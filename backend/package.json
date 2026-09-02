@@ -1,0 +1,13 @@
+{
+  "name": "ai-computer-os-backend",
+  "version": "0.1.0",
+  "description": "Express API server for AI Computer OS",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.0"
+  }
+}

@@ -1,0 +1,15 @@
+# Python 에이전트 의존성 (Week 1 기준)
+# 최신 Claude 모델(claude-opus-5) 사용을 위해 최신 anthropic SDK를 사용한다.
+
+anthropic>=0.49.0
+python-dotenv>=1.0.0
+
+# 외부 통합 (Week 4~7에서 실제 사용, 미리 설치)
+google-auth-oauthlib>=1.2.0
+google-auth-httplib2>=0.2.0
+google-api-python-client>=2.100.0
+notion-client>=2.2.0
+apscheduler>=3.10.0
+
+# 개발/테스트
+pytest>=7.4.0

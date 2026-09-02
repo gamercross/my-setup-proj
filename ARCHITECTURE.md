@@ -1,0 +1,556 @@
+# 🏗️ 기술 아키텍처
+
+> 개인 생산성 AI Agent의 시스템 아키텍처 및 기술 스택
+
+---
+
+## 📐 시스템 구조
+
+```
+┌─────────────────────────────────────────────────────┐
+│        사용자 (Windows/Mac/Linux)                    │
+└─────────────────────────────────────────────────────┘
+                      │
+        ┌─────────────┴─────────────┐
+        │                           │
+    ┌───▼───┐                  ┌───▼───────┐
+    │ App   │                  │ Claude    │
+    │(UI)   │                  │ Desktop   │
+    └───┬───┘                  └───────────┘
+        │
+    ┌───▼──────────────────────────────────┐
+    │     Electron + React (데스크톱)       │
+    │  - 메인 대시보드                       │
+    │  - 할일 관리                          │
+    │  - 프로젝트 추적                      │
+    └───┬──────────────────────────────────┘
+        │
+    ┌───▼──────────────────────────────────┐
+    │     Node.js + Express (로컬 API)      │
+    │  - 작업 관리                          │
+    │  - 데이터 동기화 컨트롤러             │
+    │  - Claude API 호출                   │
+    └───┬──────────────────────────────────┘
+        │
+    ┌───┴─────────────────────────────────┐
+    │                                      │
+┌───▼──────────┐                    ┌────▼──────────┐
+│   로컬 DB    │                    │ 클라우드 API   │
+│   SQLite     │                    │   Supabase    │
+└───┬──────────┘                    └────┬──────────┘
+    │                                    │
+    │                    ┌───────────────┼───────────────┐
+    │                    │               │               │
+    │           ┌────────▼──┐   ┌───────▼────┐   ┌─────▼──────┐
+    │           │ Google    │   │   Gmail    │   │   Notion   │
+    │           │ Calendar  │   │   API      │   │   API      │
+    │           └───────────┘   └────────────┘   └────────────┘
+    │
+    └─ 오프라인 캐시
+```
+
+---
+
+## 🛠️ 기술 스택 상세
+
+### Frontend (프론트엔드)
+
+#### 프레임워크
+- **Electron** v27+ (데스크톱 크로스 플랫폼)
+  - Windows, macOS, Linux 동시 지원
+  - 단일 코드베이스로 3개 OS 관리
+  
+- **React** v18+
+  - UI 컴포넌트 기반 개발
+  - 상태 관리 (Redux 또는 Zustand)
+  - Hot reload 개발 경험
+
+#### 스타일링
+- **Tailwind CSS** v3+
+  - Utility-first CSS
+  - 빠른 UI 개발
+  
+- **shadcn/ui** (선택사항)
+  - 제어 가능한 컴포넌트
+
+#### 상태 관리
+- **Zustand** (가벼운 상태 관리)
+  - 로컬 할일 상태
+  - UI 상태
+  
+- 또는 **Redux** (복잡한 상태 필요시)
+
+#### 개발 도구
+- **Vite** (번들러) - 빠른 개발 속도
+- **ESLint + Prettier** - 코드 품질
+- **TypeScript** - 타입 안정성
+
+---
+
+### Backend (백엔드)
+
+#### Node.js API
+- **Express.js** v4+
+  - RESTful API 구축
+  - Middleware 기반 아키텍처
+  
+- **TypeScript**
+  - 타입 안전성
+  - 자동 완성 지원
+
+#### 구조
+```
+backend/
+├── src/
+│   ├── controllers/     # 요청 처리 로직
+│   ├── services/        # 비즈니스 로직
+│   ├── routes/          # API 라우트
+│   ├── middlewares/      # 인증, 로깅 등
+│   ├── models/          # DB 스키마
+│   └── utils/           # 유틸리티 함수
+├── .env                 # 환경 변수
+├── package.json
+└── tsconfig.json
+```
+
+#### Python 에이전트
+- **Claude API** (AI 로직)
+- **FastAPI** (마이크로 서비스, 선택사항)
+- **APScheduler** (스케줄 작업)
+
+```
+agent/
+├── agent.py            # 메인 에이전트
+├── services/
+│   ├── gmail.py        # Gmail 통합
+│   ├── calendar.py     # Calendar 통합
+│   ├── notion.py       # Notion 통합
+│   └── claude.py       # Claude API
+├── models/
+│   └── schemas.py      # 데이터 모델
+└── requirements.txt
+```
+
+---
+
+### Database (데이터베이스)
+
+#### 로컬 저장소
+- **SQLite** (로컬 캐시)
+  - 가볍고 빠름
+  - 앱과 함께 배포
+  
+**테이블 구조:**
+```sql
+-- 할일 (tasks)
+CREATE TABLE tasks (
+    id INTEGER PRIMARY KEY,
+    title TEXT NOT NULL,
+    description TEXT,
+    due_date DATE,
+    priority TEXT, -- 'high', 'medium', 'low'
+    status TEXT, -- 'todo', 'in_progress', 'done'
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP
+);
+
+-- 프로젝트 (projects)
+CREATE TABLE projects (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    notion_id TEXT,
+    progress INTEGER, -- 0-100
+    status TEXT,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP
+);
+
+-- 이메일 (emails)
+CREATE TABLE emails (
+    id INTEGER PRIMARY KEY,
+    email_id TEXT UNIQUE,
+    from_address TEXT,
+    subject TEXT,
+    snippet TEXT,
+    received_at TIMESTAMP,
+    read INTEGER, -- 0 or 1
+    synced_at TIMESTAMP
+);
+
+-- 캘린더 (calendar_events)
+CREATE TABLE calendar_events (
+    id INTEGER PRIMARY KEY,
+    event_id TEXT UNIQUE,
+    title TEXT,
+    start_time TIMESTAMP,
+    end_time TIMESTAMP,
+    description TEXT,
+    location TEXT,
+    synced_at TIMESTAMP
+);
+
+-- 동기화 로그 (sync_logs)
+CREATE TABLE sync_logs (
+    id INTEGER PRIMARY KEY,
+    service TEXT, -- 'gmail', 'calendar', 'notion'
+    status TEXT, -- 'success', 'failed'
+    last_sync TIMESTAMP,
+    error_message TEXT
+);
+```
+
+#### 클라우드 저장소
+- **Supabase** (PostgreSQL)
+  - 백업용 클라우드 저장소
+  - 여러 디바이스 동기화
+  - 실시간 업데이트 (WebSocket)
+
+**동일한 테이블 구조 + 추가 필드:**
+```sql
+-- 사용자 정보
+ALTER TABLE tasks ADD COLUMN user_id UUID;
+ALTER TABLE projects ADD COLUMN user_id UUID;
+
+-- 동기화 상태
+ALTER TABLE tasks ADD COLUMN synced_at TIMESTAMP;
+ALTER TABLE tasks ADD COLUMN is_synced BOOLEAN;
+```
+
+---
+
+### External APIs (외부 API)
+
+| API | 용도 | 인증 | 사용 방식 |
+|-----|------|------|---------|
+| **Google Calendar** | 일정 조회/생성 | OAuth 2.0 | SDK (google-api-python-client) |
+| **Gmail** | 이메일 조회 | OAuth 2.0 | SDK (google-api-python-client) |
+| **Notion** | 프로젝트 관리 | Integration Token | SDK (notion-client) |
+| **Claude API** | AI 에이전트 | API Key | anthropic SDK |
+| **Supabase** | 클라우드 DB | API Key + JWT | REST API |
+
+---
+
+## 🔄 데이터 흐름
+
+### 1️⃣ 아침 자동 브리핑 흐름
+
+```
+시간: 08:00 AM
+   │
+   ├─ 1. Cron Job 실행
+   │  (crontab 또는 APScheduler)
+   │
+   ├─ 2. Python 에이전트 시작
+   │  agent.generate_daily_brief()
+   │
+   ├─ 3. 데이터 수집
+   │  ├─ Gmail: 미읽은 이메일
+   │  ├─ Calendar: 오늘 일정
+   │  └─ Notion: 진행 중인 프로젝트
+   │
+   ├─ 4. Claude API 호출
+   │  "우선순위별로 정리해줄래?"
+   │
+   ├─ 5. 결과 저장
+   │  ├─ Notion에 작성
+   │  ├─ SQLite에 캐시
+   │  └─ Supabase에 동기화
+   │
+   └─ 6. 알림 표시
+      UI에서 "아침 브리핑 준비됨"
+```
+
+### 2️⃣ 사용자 할일 입력 흐름
+
+```
+사용자: "내일 회의 준비해야 함" 입력
+   │
+   ├─ 1. UI에서 입력 수신
+   │  (React 폼)
+   │
+   ├─ 2. 로컬 저장
+   │  SQLite에 즉시 저장
+   │  (오프라인도 가능)
+   │
+   ├─ 3. 서버 전송
+   │  Express API로 Supabase 동기화
+   │
+   ├─ 4. Claude 분석 (옵션)
+   │  "이게 다른 일정과 겹칠까?"
+   │
+   └─ 5. UI 업데이트
+      다른 디바이스에도 표시
+```
+
+### 3️⃣ 실시간 동기화 흐름
+
+```
+디바이스 A (메인)     디바이스 B (보조)
+   │                    │
+   ├─ 할일 생성         │
+   │                    │
+   ├─ Supabase 업데이트 │
+   │                    │
+   ├─ Realtime Listener ├─ 변경 감지
+   │  (WebSocket)       │
+   │                    ├─ UI 자동 갱신
+```
+
+---
+
+## 🔐 보안 아키텍처
+
+### 인증 방식
+
+```
+┌─────────────────────────────────────┐
+│     OAuth 2.0 (Google API)           │
+├─────────────────────────────────────┤
+│  사용자 → 로그인 → Google 승인      │
+│              ↓                      │
+│          Refresh Token 발급         │
+│              ↓                      │
+│       로컬에 암호화 저장            │
+│              ↓                      │
+│     필요시 API 호출                 │
+└─────────────────────────────────────┘
+
+┌─────────────────────────────────────┐
+│     Notion Integration Token         │
+├─────────────────────────────────────┤
+│  .env 파일에 저장 (git ignore)      │
+│  로컬에서만 사용                    │
+└─────────────────────────────────────┘
+
+┌─────────────────────────────────────┐
+│     Claude API Key                   │
+├─────────────────────────────────────┤
+│  .env 파일에 저장 (git ignore)      │
+│  백엔드에서만 사용                  │
+└─────────────────────────────────────┘
+```
+
+### 환경 변수 (.env)
+
+```bash
+# Google APIs
+GOOGLE_CLIENT_ID=xxx.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=xxx
+GOOGLE_REDIRECT_URI=http://localhost:3000/auth/callback
+
+# Notion
+NOTION_API_KEY=secret_xxx
+
+# Claude API
+ANTHROPIC_API_KEY=sk-ant-xxx
+
+# Supabase
+SUPABASE_URL=https://xxx.supabase.co
+SUPABASE_KEY=eyJxxx
+SUPABASE_JWT_SECRET=xxx
+
+# Database
+DATABASE_URL=sqlite:///./app.db
+
+# App Config
+NODE_ENV=development
+PORT=3000
+```
+
+---
+
+## 🚀 배포 아키텍처
+
+### 개발 환경
+```
+로컬 머신 (Ubuntu)
+├─ Electron App (데스크톱)
+├─ Express Server (localhost:3000)
+├─ SQLite DB (로컬)
+└─ Python Agent (스크립트)
+```
+
+### 프로덕션 환경
+```
+컨테이너 (Docker)
+├─ Electron App 패키징
+├─ Express Server (클라우드)
+├─ Supabase (PaaS)
+└─ Python Agent (서버리스 또는 VM)
+
+배포 옵션:
+1. GitHub Releases (Electron)
+2. Vercel/Netlify (웹 버전, 선택사항)
+3. Heroku/Railway (백엔드)
+4. Google Cloud Run (Python Agent)
+```
+
+---
+
+## 📦 의존성 관리
+
+### Node.js 프로젝트 (package.json)
+
+**필수:**
+```json
+{
+  "dependencies": {
+    "electron": "^27.0.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "express": "^4.18.0",
+    "sqlite": "^5.0.0",
+    "@supabase/supabase-js": "^2.0.0"
+  }
+}
+```
+
+**개발용:**
+```json
+{
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "eslint": "^8.0.0",
+    "prettier": "^3.0.0",
+    "vite": "^5.0.0",
+    "tailwindcss": "^3.0.0"
+  }
+}
+```
+
+### Python 프로젝트 (requirements.txt)
+
+```txt
+anthropic==0.25.0
+google-auth-oauthlib==1.0.0
+google-auth-httplib2==0.2.0
+google-api-python-client==2.100.0
+notion-client==2.2.0
+python-dotenv==1.0.0
+apscheduler==3.10.0
+supabase==2.0.0
+fastapi==0.104.0  # 선택사항
+uvicorn==0.24.0   # 선택사항
+```
+
+---
+
+## 🔗 통신 프로토콜
+
+### UI ↔ Backend
+- **HTTP/REST** (Express API)
+  ```
+  GET/POST http://localhost:3000/api/tasks
+  GET/POST http://localhost:3000/api/projects
+  POST http://localhost:3000/api/sync
+  ```
+
+- **WebSocket** (실시간 동기화)
+  ```
+  ws://localhost:3000/socket
+  이벤트: task:created, task:updated, task:deleted
+  ```
+
+### Backend ↔ External APIs
+- **HTTP/REST** (Google APIs, Notion, Claude)
+- **OAuth 2.0** (Google 인증)
+
+### Backend ↔ Database
+- **SQL** (SQLite 로컬)
+- **REST API** (Supabase)
+
+---
+
+## 📊 성능 최적화
+
+### 캐싱 전략
+- 로컬 SQLite: 오프라인 사용
+- Supabase: 클라우드 백업
+- 메모리 캐시: 자주 사용하는 데이터 (Redux/Zustand)
+
+### 동기화 최적화
+- 증분 동기화 (마지막 동기화 이후만)
+- 백그라운드에서 진행
+- 네트워크 실패시 재시도 로직
+
+### UI 성능
+- 가상화 (긴 리스트)
+- 컴포넌트 메모이제이션
+- 이미지 최적화
+
+---
+
+## 🧪 테스팅 전략
+
+### 단위 테스트
+```bash
+# Jest (JavaScript)
+npm test
+
+# Pytest (Python)
+pytest tests/
+```
+
+### 통합 테스트
+- API 엔드포인트 테스트
+- 데이터베이스 작업 테스트
+- 외부 API 모킹
+
+### E2E 테스트
+```bash
+# Playwright 또는 Cypress
+npx playwright test
+```
+
+---
+
+## 🔄 CI/CD 파이프라인
+
+### GitHub Actions
+
+```yaml
+name: Test & Build
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+      - run: npm install
+      - run: npm test
+      - run: npm run build
+```
+
+---
+
+## 💾 버전 관리
+
+### Git Flow
+```
+main (배포)
+└─ release (v1.0.0)
+   └─ develop (개발)
+      ├─ feature/auth
+      ├─ feature/dashboard
+      └─ feature/agent
+```
+
+### 태그 규칙
+```
+v1.0.0-alpha    # 알파 버전
+v1.0.0-beta     # 베타 버전
+v1.0.0          # 정식 버전
+```
+
+---
+
+## 🎯 다음 단계
+
+이 아키텍처를 바탕으로:
+1. ✅ SETUP.md에서 개발 환경 설정
+2. ✅ ROADMAP.md에서 구현 순서 확인
+3. ✅ 첫 번째 구현 시작
+
+**마지막 업데이트:** 2026-09-02

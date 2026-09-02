@@ -1,0 +1,57 @@
+// 구조 스캐폴드. Week 3에서 Dashboard가 API 데이터를 주입한다.
+
+import React from 'react';
+
+// 우선순위별 배지 색상
+function priorityColor(p) {
+  if (p === 'high') return '#ef4444';
+  if (p === 'low') return '#64748b';
+  return '#f59e0b'; // medium 기본
+}
+
+// 할일 목록 컴포넌트
+export default function TaskList({ tasks = [], onToggle, onDelete }) {
+  // 배열이 아니거나 비어 있으면 안내 문구
+  if (!Array.isArray(tasks) || tasks.length === 0) {
+    return <p style={{ color: '#94a3b8' }}>할 일이 없습니다</p>;
+  }
+
+  return (
+    <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+      {tasks.map((task) => (
+        <li
+          key={task.id}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '8px 12px',
+            marginBottom: '6px',
+            background: '#1e293b',
+            borderRadius: '8px',
+            color: '#e2e8f0',
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={task.status === 'done'}
+            onChange={() => onToggle && onToggle(task.id)}
+          />
+          <span style={{ flex: 1 }}>{task.title}</span>
+          <span
+            style={{
+              fontSize: '12px',
+              padding: '2px 8px',
+              borderRadius: '999px',
+              background: priorityColor(task.priority),
+              color: '#0f172a',
+            }}
+          >
+            {task.priority || 'medium'}
+          </span>
+          <button onClick={() => onDelete && onDelete(task.id)}>삭제</button>
+        </li>
+      ))}
+    </ul>
+  );
+}

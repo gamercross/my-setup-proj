@@ -1,0 +1,19 @@
+{
+  "name": "ai-computer-os-desktop",
+  "version": "0.1.0",
+  "description": "Personal productivity AI agent for Windows/Mac/Linux",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --enable-logging",
+    "build": "electron-builder"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "zustand": "^4.4.0"
+  },
+  "devDependencies": {
+    "electron": "^27.0.0"
+  }
+}

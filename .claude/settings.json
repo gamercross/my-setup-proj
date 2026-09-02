@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR:-.}/scripts/worklog.sh\" 2>/dev/null || true",
+            "timeout": 20,
+            "statusMessage": "작업로그 갱신 확인 중..."
+          }
+        ]
+      }
+    ]
+  }
+}

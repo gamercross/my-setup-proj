@@ -1,0 +1,410 @@
+# 📊 주간 진행 상황
+
+> 실제 진행 상황을 추적하고 관리하는 문서 (매주 월요일 업데이트)
+
+---
+
+## 📋 사용 방법
+
+### 매주 할 일
+1. **월요일:** 이번주 계획 작성
+2. **주중:** 진행 상황 업데이트
+3. **금요일:** 주간 정리 및 다음주 계획
+4. **완료하면:** 체크박스에 ✅ 표시
+
+### 진행도 계산 (예시)
+```
+이번주 4개 작업 중 3개 완료
+진행도 = 3/4 = 75%
+```
+
+---
+
+## 🗓️ Week 1: 환경 설정 (09-02 ~ 09-08)
+
+**목표:** Ubuntu 기본 설정 완료, Electron 앱 첫 실행  
+**진행도:** 0% ⏳ (예정)
+
+### 강의
+- [ ] Chapter 01: 리눅스 설치와 기본 사용법
+  - [ ] WSL2 우분투 설치
+  - [ ] 기본 명령어 학습 (lsb_release, uname, whoami)
+  - [ ] sudo apt 명령어
+
+### 개발
+- [ ] 프로젝트 저장소 생성 (GitHub)
+  - GitHub 계정 확인: _______________
+  - 저장소명: ai-computer-os
+  - [ ] README.md 작성
+  
+- [ ] 로컬 폴더 구조 생성
+  ```bash
+  mkdir -p ~/ai-computer-os/{frontend,backend,agent,tests}
+  ```
+  
+- [ ] Node.js 설치
+  - [ ] `node --version` 확인
+  - [ ] `npm --version` 확인
+  
+- [ ] Python 설정
+  - [ ] `python3 --version` 확인
+  - [ ] 가상 환경 생성 (venv)
+  
+- [ ] 첫 Electron 앱
+  - [ ] `npm create electron-app` 실행
+  - [ ] 앱 창 실행 확인
+
+### 배운 Linux 명령어
+```bash
+✅ lsb_release -a      # 버전 확인
+✅ uname -r            # 커널 버전
+✅ whoami              # 사용자
+✅ pwd                 # 현재 경로
+✅ mkdir               # 폴더 생성
+✅ cd                  # 경로 이동
+✅ ls                  # 파일 목록
+✅ sudo apt update     # 패키지 업데이트
+```
+
+### 문제점 & 해결
+| 문제 | 해결 방법 | 상태 |
+|------|---------|------|
+| WSL2 설치 오류 | - | ⏳ |
+| Node 버전 충돌 | - | ⏳ |
+| 권한 오류 | - | ⏳ |
+
+### 다음주 계획
+- Git 커밋 방법 학습
+- Electron + React 통합
+- Claude API Key 설정
+- Supabase 프로젝트 생성
+
+### 진행 상황 요약
+```
+완료한 작업: 0개
+진행 중: 0개
+예정된 작업: 8개
+
+진행도: 0%
+강의 수강: 0%
+개발: 0%
+```
+
+---
+
+## 🗓️ Week 2: 기본 프로젝트 구축 (09-09 ~ 09-15)
+
+**목표:** Electron + React 기본 UI 완성, Express 서버 실행  
+**진행도:** 40% 🚧 (진행 중)
+
+### 강의
+- [ ] Chapter 02: 디렉토리와 파일 사용법
+  - [ ] file 명령어
+  - [ ] grep, find 명령어
+  - [ ] whereis, which 명령어
+
+### 개발
+- [x] React 컴포넌트 기본 구조
+  - [x] 기본 컴포넌트 생성 (TaskList / ProjectCard / Dashboard 스캐폴드, `import React` + JSX)
+  - [ ] 번들러(Vite) 연결 → Week 3
+- [x] Express CRUD 라우트 골격
+  - [x] `routes/tasks.js` — 할일 CRUD (GET/POST/PUT/DELETE)
+  - [x] `routes/projects.js` — 프로젝트 CRUD
+  - [x] `db.js` 인메모리 저장소 확장 (id 시퀀스, projects)
+  - [x] `routes/api.js` 서브라우터 연결
+- [ ] SQLite 설정 → Week 3
+  - [ ] Database 파일 생성
+  - [ ] 테이블 정의 (tasks, projects, emails)
+  - [ ] 샘플 데이터 입력
+
+> 검증: 이 개발 머신에 `node`/`npm` 미설치로 `verify.sh` 실행·`node -c` 불가.
+> 감독 에이전트 코드리뷰 PASS. Node 설치 후 `cd backend && npm install && npm start` 로 curl 테스트 필요.
+
+### 배운 Linux 명령어
+```bash
+file                   # 파일 타입 확인
+grep                   # 텍스트 검색
+find                   # 파일 검색
+ls -la                 # 상세 정보
+wc -l                  # 줄 수 세기
+```
+
+### 진행 상황 요약
+```
+완료한 작업: 2개 (React 컴포넌트 스캐폴드, Express CRUD 라우트)
+진행 중: 1개 (번들러 연결)
+예정된 작업: 5개
+
+진행도: 40%
+강의 수강: 0%
+개발: 60%
+```
+
+---
+
+## 🗓️ Week 3: 권한 & 파이썬 (09-16 ~ 09-22)
+
+**목표:** 파일 권한 관리, Python 개발 환경 완성  
+**진행도:** 0% ⏳ (예정)
+
+### 강의
+- [ ] Chapter 03: 파일 접근 권한 관리
+  - [ ] chmod 명령어
+  - [ ] chown 명령어
+  - [ ] umask
+
+### 개발
+- [ ] Python 패키지 설치
+  - [ ] requirements.txt 작성
+  - [ ] pip install 실행
+  
+- [ ] 첫 Claude API 테스트
+  - [ ] test_claude.py 작성
+  - [ ] API 호출 확인
+
+### 배운 Linux 명령어
+```bash
+chmod 755              # 권한 설정
+chmod +x script.sh     # 실행 권한
+chown user:group file  # 소유권 변경
+ls -l                  # 권한 확인
+umask -S               # 기본 권한
+```
+
+### 진행 상황 요약
+```
+완료한 작업: 0개
+진행 중: 0개
+예정된 작업: 7개
+
+진행도: 0%
+강의 수강: 0%
+개발: 0%
+```
+
+---
+
+## 📈 전체 진행도 추이
+
+```
+Week 1  ████░░░░░░ 40%
+Week 2  ████░░░░░░ 40%
+Week 3  ████░░░░░░ 40%
+Week 4  ░░░░░░░░░░  0%
+Week 5  ░░░░░░░░░░  0%
+...
+Week 14 ░░░░░░░░░░  0%
+```
+
+---
+
+## 📊 전체 마일스톤
+
+| 이벤트 | 예정일 | 상태 |
+|--------|--------|------|
+| Phase 1 완료 (환경 설정) | 2026-09-15 | ⏳ |
+| Phase 2 완료 (핵심 기능) | 2026-10-06 | ⏳ |
+| 중간고사 | 2026-10-27 | ⏳ |
+| 과제 1 발표 | 2026-10-27 | ⏳ |
+| Phase 3 완료 (AI 통합) | 2026-10-20 | ⏳ |
+| Phase 4 완료 (배포) | 2026-11-24 | ⏳ |
+| 기말고사 | 2026-12-08 | ⏳ |
+| 과제 2 발표 | 2026-12-08 | ⏳ |
+| **최종 완료** | **2026-12-15** | **⏳** |
+
+---
+
+## 💡 주간 템플릿 (복사해서 사용)
+
+```markdown
+## 🗓️ Week X: [주제] (MM-DD ~ MM-DD)
+
+**목표:** [주간 목표]  
+**진행도:** 0% ⏳ (예정)
+
+### 강의
+- [ ] Chapter X: [강의 주제]
+  - [ ] 세부 내용 1
+  - [ ] 세부 내용 2
+
+### 개발
+- [ ] 기능 1
+  - [ ] 세부 작업
+  
+- [ ] 기능 2
+  - [ ] 세부 작업
+
+### 배운 Linux 명령어
+\`\`\`bash
+명령어1        # 설명
+명령어2        # 설명
+\`\`\`
+
+### 문제점 & 해결
+| 문제 | 해결 방법 | 상태 |
+|------|---------|------|
+| 문제1 | 해결방법1 | ⏳ |
+| 문제2 | 해결방법2 | ⏳ |
+
+### 다음주 계획
+- 작업 1
+- 작업 2
+- 작업 3
+
+### 진행 상황 요약
+\`\`\`
+완료한 작업: X개
+진행 중: X개
+예정된 작업: X개
+
+진행도: X%
+강의 수강: X%
+개발: X%
+\`\`\`
+```
+
+---
+
+## 🎯 중요 체크포인트
+
+### Phase 1 완료 (Week 1-2)
+```
+Requirements:
+✅ GitHub 저장소 생성
+✅ 폴더 구조 정리
+✅ Node.js + npm 설치
+✅ Python 환경 구성
+✅ Electron 앱 첫 실행
+✅ Express 서버 동작
+✅ SQLite 데이터베이스 생성
+✅ 첫 커밋 완료
+
+Deadline: 2026-09-15
+```
+
+### Phase 2 완료 (Week 3-5)
+```
+Requirements:
+✅ 할일 CRUD 기능
+✅ Notion API 연동
+✅ Google Calendar 동기화
+✅ 기본 UI 완성
+✅ 로컬/클라우드 동기화
+
+Deadline: 2026-10-06
+```
+
+### Phase 3 완료 (Week 6-8)
+```
+Requirements:
+✅ Claude API 기본 동작
+✅ Daily Brief 에이전트
+✅ 이메일 요약 기능
+✅ Cron 자동화
+✅ 중간고사 & 과제 1
+
+Deadline: 2026-10-20
+```
+
+### Phase 4 완료 (Week 9-13)
+```
+Requirements:
+✅ 이메일 통합
+✅ 다중 사용자 지원
+✅ Mini Coding Agent
+✅ Docker 배포
+✅ 성능 최적화
+✅ 보안 강화
+
+Deadline: 2026-11-24
+```
+
+---
+
+## 📝 노트
+
+### 일반적인 문제와 해결책
+
+```
+Q: Electron 앱이 실행 안 됨
+A: 1. npm install 다시 실행
+   2. node_modules 삭제 후 재설치
+   3. npm start 실행
+
+Q: SQLite 권한 오류
+A: 1. 파일 권한 확인 (ls -l)
+   2. chmod 644 app.db 실행
+   3. 소유자 확인
+
+Q: Git 커밋 실패
+A: 1. git status 확인
+   2. git add . 실행
+   3. git commit -m "메시지" 실행
+
+Q: 패키지 설치 실패
+A: 1. npm cache clean --force
+   2. npm install 다시 실행
+   3. 권한 확인 (sudo 필요시)
+```
+
+### 학습 팁
+
+```
+1. 매일 조금씩 진행하기
+   - 하루에 2-3시간 코딩
+   - 강의 1-2개 섹션
+
+2. 명령어 외우기
+   - 자주 사용하는 명령어부터
+   - alias 설정으로 단축
+
+3. Git 습관
+   - 매일 커밋
+   - 의미 있는 메시지 작성
+
+4. 문서 정리
+   - 배운 내용 기록
+   - 에러와 해결 방법 정리
+```
+
+---
+
+## 🔗 관련 문서
+
+- **README.md** - 프로젝트 개요
+- **ROADMAP.md** - 상세 로드맵
+- **SETUP.md** - 개발 환경 설정
+- **ARCHITECTURE.md** - 기술 스택
+- **CLAUDE_INTEGRATION.md** - Claude API
+- **COURSE_MAPPING.md** - 강의 연결
+
+---
+
+## 💾 커밋 메시지 컨벤션
+
+```bash
+# 기능 추가
+git commit -m "feat: [기능명] 추가"
+git commit -m "feat: Week 1 환경 설정 완료"
+
+# 버그 수정
+git commit -m "fix: [버그명] 수정"
+git commit -m "fix: 캘린더 동기화 오류 수정"
+
+# 문서
+git commit -m "docs: [내용] 작성/수정"
+git commit -m "docs: PROGRESS.md Week 1 업데이트"
+
+# 스타일
+git commit -m "style: 코드 포매팅"
+
+# 리팩토링
+git commit -m "refactor: [부분] 개선"
+```
+
+---
+
+**마지막 업데이트:** 2026-09-02  
+**다음 업데이트:** 2026-09-09 (매주 월요일)
+
+> 💡 **팁:** 매주 금요일에 이 파일을 검토하고 다음주 계획을 추가하세요!

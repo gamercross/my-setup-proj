@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  하루 마지막 작업로그 정리 launchd 예약 작업.
+
+  설치:
+    cp scripts/com.aicomputeros.worklog.plist ~/Library/LaunchAgents/
+    launchctl load ~/Library/LaunchAgents/com.aicomputeros.worklog.plist
+
+  해제:
+    launchctl unload ~/Library/LaunchAgents/com.aicomputeros.worklog.plist
+    rm ~/Library/LaunchAgents/com.aicomputeros.worklog.plist
+
+  시간 변경: 아래 Hour/Minute 값을 수정 후 unload → load.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.aicomputeros.worklog</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>/Users/jaeyeup/2026project/my-setup-proj/scripts/worklog-eod.sh</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/jaeyeup/2026project/my-setup-proj</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+  </dict>
+
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key>
+    <integer>23</integer>
+    <key>Minute</key>
+    <integer>50</integer>
+  </dict>
+
+  <key>StandardOutPath</key>
+  <string>/Users/jaeyeup/2026project/my-setup-proj/scripts/worklog-eod.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/jaeyeup/2026project/my-setup-proj/scripts/worklog-eod.log</string>
+</dict>
+</plist>
