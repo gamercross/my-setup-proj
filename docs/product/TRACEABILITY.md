@@ -119,6 +119,16 @@ Phase A~D 를 막던 제안 ADR 4건은 **2026-09-02 채택** → `/build-next` 
 | [ADR-0012](adr/ADR-0012-task-project-link.md) `tasks.project_id` | FR-PROJ-02 | ✅ 채택 (스키마 반영, 라우트는 C2) |
 | [ADR-0013](adr/ADR-0013-dashboard-agent-queue.md) 에이전트 작업 큐 | FR-AGENT-08 | 제안 — 핵심 4기능 완성 후 |
 
+### 착수 전 결정할 사항 (ADR 아님)
+
+| 항목 | 언제 | 주체 | 메모 |
+|---|---|---|---|
+| **B3 전 CORS(C1) 순서** — C1을 B3에 포함할지 / 로드맵 순서 유지 | B3 착수 전 | 사용자 (대기 중) | 안 하면 dev `:5173`→`:3000` fetch 가 CORS 차단, B3 E2E 불가 |
+| backend `.env` 자동 로딩(dotenv) | C1 즈음 | planner | 현재 `DATABASE_PATH`·`PORT`·`NODE_ENV` 는 셸 env 로만 읽힘 |
+| TC-DB-04 (CHECK 위반 → 400 매핑) | C2 | planner | `routes/*.js` 의 `isValidationError` 정규식 확장 동반 |
+| `ProjectCard` 상태값 `'hold'` → `'on_hold'` | C2 | developer | schema·GLOSSARY 와 불일치 (UI_SPEC §3.3) |
+| `ARCHITECTURE.md` `SUPABASE_JWT_SECRET`/`DATABASE_URL` vs `.env.example` | Week 10 | planner | 어느 쪽 기준인지 |
+
 **남은 정지 요인:** `.env` API 키 (D2 부터 — Google OAuth / Notion / Anthropic), 대화형 준비(OAuth 앱 등록).
 
 ---
