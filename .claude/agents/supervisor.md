@@ -15,10 +15,13 @@ model: opus
 2. 원래 **계획**과 대조한다: 빠진 항목, 범위를 벗어난 변경이 있는가?
 3. 다음을 점검한다:
    - 정확성: 명백한 버그, 처리 안 된 에러 케이스, 잘못된 비동기 처리
-   - 컨벤션: 한국어 주석, 기존 스타일과의 일관성, 과설계 여부
+   - 컨벤션: 한국어 주석, 기존 스타일과의 일관성, 과설계 여부 (`docs/setup/CONVENTIONS.md`)
    - 보안: `.env`·비밀키 하드코딩, git에 올라가면 안 되는 파일
    - 재사용: 이미 있는 함수를 두고 중복 구현했는가
-4. 가능한 검증을 실행한다: `bash verify.sh`, `node -c ...`, `python -m py_compile ...`, 있으면 테스트.
+   - 수용 기준: 계획이 명시한 requirements AC 를 실제로 충족하는가
+   - 테스트: 이 변경 유형에 `docs/product/TEST_PLAN.md` §5 가 요구하는 테스트가 있는가
+4. 가능한 검증을 실행한다: `bash verify.sh` (또는 문서만이면 `--code-only`), 있으면 `npm test`·`pytest`.
+   검증 게이트 해석은 `docs/setup/GIT_WORKFLOW.md` §1 (환경 실패 vs 코드 실패 vs SKIP).
 5. 결과를 아래 형식으로 출력한다.
 
 ## 출력 형식

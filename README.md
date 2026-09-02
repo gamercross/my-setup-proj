@@ -9,39 +9,46 @@
 
 ## 📚 문서 지도
 
+**처음이면 → [docs/ONBOARDING.md](docs/ONBOARDING.md)** (읽는 순서·규칙·명령 요약).
+
 문서는 목적별로 세 갈래로 나뉜다.
 
 ### 1. 무엇을 만드는가 — [`docs/product/`](docs/product/)
 
+**핵심 흐름 (이 순서로 읽는다)**
+
 | 문서 | 내용 |
 |---|---|
-| [VISION.md](docs/product/VISION.md) | 제품 정의, 목표, 핵심 기능, 완료 기준 |
-| [ARCHITECTURE.md](docs/product/ARCHITECTURE.md) | 시스템 구조, 기술 스택, 데이터 흐름, DB 스키마 |
-| [ROADMAP.md](docs/product/ROADMAP.md) | Phase 1~4 개발 로드맵, 주차별 일정 |
-| [AS_IS.md](docs/product/AS_IS.md) | 현행 시스템 분석 (구현 상태, 갭) |
-| [REQUIREMENTS_FUNCTIONAL.md](docs/product/REQUIREMENTS_FUNCTIONAL.md) | 기능 요구사항 (FR-xx) 요약표 + [requirements/](docs/product/requirements/) 도메인별 상세 |
-| [REQUIREMENTS_NONFUNCTIONAL.md](docs/product/REQUIREMENTS_NONFUNCTIONAL.md) | 비기능 요구사항 (NFR-xx) |
-| [DESIGN.md](docs/product/DESIGN.md) | 아키텍처(다이어그램)·데이터 모델·흐름 시퀀스·단계별 구현 계획 |
-| [adr/](docs/product/adr/) | 아키텍처 결정 기록 (ADR-0001~) |
-| [DOC_PLAN.md](docs/product/DOC_PLAN.md) | 문서 세분화 계획 및 작성 프롬프트 |
-| [GLOSSARY.md](docs/product/GLOSSARY.md) | 도메인·상태·시스템 용어 정의 |
-| [DATA_DICTIONARY.md](docs/product/DATA_DICTIONARY.md) | DB 필드 단위 설명 (`backend/db/schema.sql` 기준) |
+| [VISION.md](docs/product/VISION.md) | 제품 정의, 목표, 핵심 기능 4종, 완료 기준 |
+| [AS_IS.md](docs/product/AS_IS.md) | 현행 구현 상태 분석, 갭 G1~G8 |
+| [ARCHITECTURE.md](docs/product/ARCHITECTURE.md) · [ROADMAP.md](docs/product/ROADMAP.md) | 기술 스택 큰 그림 · Phase 1~4 주차별 일정 |
+| [REQUIREMENTS_FUNCTIONAL.md](docs/product/REQUIREMENTS_FUNCTIONAL.md) + [requirements/](docs/product/requirements/) | 기능 요구사항(FR-xx) 요약표 + 도메인별 수용 기준 |
+| [REQUIREMENTS_NONFUNCTIONAL.md](docs/product/REQUIREMENTS_NONFUNCTIONAL.md) | 비기능 요구사항(NFR-xx): 성능·보안·신뢰성·테스트 |
+| [DESIGN.md](docs/product/DESIGN.md) + [adr/](docs/product/adr/) | 아키텍처 다이어그램·데이터 모델·흐름 시퀀스·Phase 계획 · 결정 이력(ADR-0001~) |
+| [TRACEABILITY.md](docs/product/TRACEABILITY.md) | FR/NFR ↔ 갭 ↔ 설계 ↔ 단계 ↔ 테스트 ↔ 코드 매트릭스 |
+
+**작업 중 참조**
+
+| 문서 | 내용 |
+|---|---|
+| [GLOSSARY.md](docs/product/GLOSSARY.md) | 도메인·상태값·시스템 용어 |
+| [DATA_DICTIONARY.md](docs/product/DATA_DICTIONARY.md) | DB 필드 단위 설명 (원천: `backend/db/schema.sql`) |
 | [API_REFERENCE.md](docs/product/API_REFERENCE.md) | 백엔드 REST 엔드포인트별 요청/응답·검증·curl |
 | [UI_SPEC.md](docs/product/UI_SPEC.md) | 화면·컴포넌트·스토어 계약, 와이어프레임 |
-| [TRACEABILITY.md](docs/product/TRACEABILITY.md) | 요구사항↔갭↔설계↔단계↔테스트↔코드 매트릭스 |
 | [TEST_PLAN.md](docs/product/TEST_PLAN.md) | 테스트 레벨·케이스(TC-xx)·머지 게이트 |
+| [DOC_PLAN.md](docs/product/DOC_PLAN.md) | 문서 세분화 계획·작성 프롬프트 (메타) |
 
 ### 2. 어떤 세팅이 필요한가 — [`docs/setup/`](docs/setup/)
 
 | 문서 | 내용 |
 |---|---|
 | [SETUP.md](docs/setup/SETUP.md) | 개발 환경 구축 (Node.js / Python / Git / API 키) |
+| [ENV_REFERENCE.md](docs/setup/ENV_REFERENCE.md) | `.env` 키별 용도·발급 방법·보안 규칙 |
 | [CONVENTIONS.md](docs/setup/CONVENTIONS.md) | 코드·구조·커밋·에이전트 작업 규칙 (단일 원천) |
 | [GIT_WORKFLOW.md](docs/setup/GIT_WORKFLOW.md) | 에이전트 커밋·푸시 절차, 검증 게이트 해석 |
+| [AUTOMATION.md](docs/setup/AUTOMATION.md) | 에이전트 팀 · `/feature` · 작업로그 · 슬랙 · CI |
 | [DIAGRAMS.md](docs/setup/DIAGRAMS.md) | Mermaid 다이어그램 작성·열람·이미지 내보내기 |
-| [ENV_REFERENCE.md](docs/setup/ENV_REFERENCE.md) | `.env` 키별 용도·발급 방법·보안 규칙 |
 | [CLAUDE_INTEGRATION.md](docs/setup/CLAUDE_INTEGRATION.md) | Claude API·MCP 설정, Daily Brief 에이전트 |
-| [AUTOMATION.md](docs/setup/AUTOMATION.md) | Claude Code 자동화 (에이전트 팀 · `/feature` · 작업로그 · 슬랙 · CI) |
 
 ### 3. 얼마나 됐는가 — [`docs/progress/`](docs/progress/)
 
@@ -56,13 +63,13 @@
 ## ⚡ 빠른 시작
 
 ```bash
-git clone git@github.com:gamercross/my-setup-proj.git
+git clone https://github.com/gamercross/my-setup-proj.git
 cd my-setup-proj
 bash setup.sh     # frontend/backend npm install + agent venv + .env 준비
 bash verify.sh    # 환경·문법 점검
 ```
 
-전체 환경 구축 절차는 [SETUP.md](docs/setup/SETUP.md) 를 따른다.
+전체 환경 구축 절차는 [SETUP.md](docs/setup/SETUP.md), 프로젝트 맥락은 [ONBOARDING.md](docs/ONBOARDING.md) 를 본다.
 
 ---
 
@@ -70,12 +77,12 @@ bash verify.sh    # 환경·문법 점검
 
 ```
 my-setup-proj/
-├─ frontend/   Electron + React 데스크톱 앱 (스캐폴드)
-├─ backend/    Node.js + Express API (CRUD 라우트 골격)
-├─ agent/      Python Claude 에이전트 (서비스 스텁)
-├─ scripts/    작업로그·슬랙 자동화 스크립트
-├─ tests/      테스트
-├─ docs/       product / setup / progress
+├─ frontend/   Electron + React 데스크톱 앱 (React 미연결 — G1)
+├─ backend/    Node.js + Express API (tasks/projects CRUD 라우트 + db/schema.sql)
+├─ agent/      Python Claude 에이전트 (뼈대 + 서비스 스텁)
+├─ scripts/    작업로그·슬랙·다이어그램 자동화 스크립트
+├─ tests/      테스트 (Phase A3 에서 채움)
+├─ docs/       ONBOARDING + product / setup / progress
 └─ .claude/    에이전트 팀 정의 + /feature 파이프라인
 ```
 
@@ -85,14 +92,15 @@ my-setup-proj/
 
 | 영역 | 상태 |
 |---|---|
-| 개념 설계 · 강의 매핑 | ✅ 완료 |
-| 자동화 인프라 (에이전트 팀 · 작업로그 · CI) | ✅ 동작 중 |
-| 백엔드 CRUD 라우트 | 🚧 골격만 (실행 검증 전) |
-| 프론트엔드 컴포넌트 | 🚧 스캐폴드 (번들러 미연결) |
-| AI 에이전트 | ⏳ 스텁 |
-| DB (SQLite / Supabase) | ⏳ 예정 |
+| 개념 설계 · 요구사항 · 아키텍처 문서 | ✅ 완료 (`docs/product/`) |
+| 자동화 인프라 (에이전트 팀 · 작업로그 · CI · GIT_WORKFLOW) | ✅ 동작 |
+| 백엔드 tasks/projects CRUD 라우트 | 🚧 코드 존재, 인메모리, 실행 미검증 |
+| 프론트엔드 React | ❌ 미연결 (번들러 없음) — G1 |
+| DB (SQLite) | ⏳ 예정 (Phase B2) |
+| AI 에이전트 | 🚧 뼈대 + 스텁 |
+| 자동화 테스트 | ❌ 0개 — 다음 작업 (Phase A3) |
 
-다음 할 일은 [PROGRESS.md](docs/progress/PROGRESS.md) 의 이번 주 항목 참고.
+정확한 최신은 [AS_IS.md](docs/product/AS_IS.md) · [TRACEABILITY.md](docs/product/TRACEABILITY.md) · `git log`. 다음 할 일은 [PROGRESS.md](docs/progress/PROGRESS.md).
 
 ---
 
@@ -104,7 +112,8 @@ my-setup-proj/
 planner(계획) → developer(구현) → supervisor(리뷰·검증) → finisher(커밋·푸시)
 ```
 
-자세한 규칙은 [AUTOMATION.md](docs/setup/AUTOMATION.md).
+- 규칙: [CONVENTIONS.md](docs/setup/CONVENTIONS.md) · 커밋·푸시: [GIT_WORKFLOW.md](docs/setup/GIT_WORKFLOW.md) · 파이프라인 전체: [AUTOMATION.md](docs/setup/AUTOMATION.md)
+- 미결정 설계 사항은 제안 상태 [ADR](docs/product/adr/) (0009~0012) — 착수 전 결정.
 
 ---
 

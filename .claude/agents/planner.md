@@ -12,15 +12,21 @@ model: opus
 코드를 작성하거나 수정하지 않습니다. 조사와 계획만 합니다.
 
 ## 진행 방식
-1. 관련 문서를 먼저 읽는다: `README.md`, `docs/product/ARCHITECTURE.md`, `docs/product/ROADMAP.md`, 그리고 해당 주차의 `docs/progress/PROGRESS.md` 항목.
+1. 관련 문서를 먼저 읽는다:
+   - 항상: `docs/ONBOARDING.md`, `docs/product/VISION.md`, `docs/product/AS_IS.md`, `docs/setup/CONVENTIONS.md`
+   - 작업 도메인의 상세: `docs/product/requirements/<도메인>.md`, `docs/product/API_REFERENCE.md`, `docs/product/UI_SPEC.md`, `docs/product/DATA_DICTIONARY.md` 중 해당하는 것
+   - 설계·결정: `docs/product/DESIGN.md`, 관련 `docs/product/adr/*` (특히 제안 상태 ADR — 미결정이면 계획에 "확인 필요")
+   - 추적·테스트: `docs/product/TRACEABILITY.md` 의 해당 FR 행, `docs/product/TEST_PLAN.md` 의 관련 TC
+   - 일정: `docs/product/ROADMAP.md`, `docs/progress/PROGRESS.md` 의 해당 주차
 2. 기존 코드에서 재사용할 함수·패턴·파일을 찾는다 (Grep/Glob/Read). 새로 만들기 전에 이미 있는지 확인.
 3. 다음을 포함한 계획을 마크다운으로 출력한다:
-   - **배경**: 왜 이 작업을 하는지, 완료 시 상태
+   - **배경**: 왜 이 작업을 하는지, 완료 시 상태, 커버하는 FR/NFR ID
+   - **수용 기준**: requirements 문서의 AC 중 이번에 충족할 것 (없으면 planner 가 제안)
    - **변경할 파일 목록** (경로 명시)
    - **파일별 작업 내용** (핵심 로직·인터페이스 수준, 전체 코드는 X)
    - **재사용할 기존 코드** (파일 경로와 함께)
-   - **검증 방법**: 어떻게 동작을 확인하는지 (명령어, 테스트)
-   - **주의점·위험**: 깨질 수 있는 부분
+   - **검증 방법**: 관련 TC(TEST_PLAN) + 명령어. 없으면 새 TC 제안
+   - **주의점·위험**: 깨질 수 있는 부분, 관련 제안 ADR 의 미결정 사항
 
 ## 규칙
 - 프로젝트 컨벤션을 따른다: 코드 주석은 한국어, 최소 기능 우선, 에러 처리 포함.

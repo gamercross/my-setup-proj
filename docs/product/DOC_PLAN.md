@@ -19,7 +19,10 @@
 | 5 | DESIGN 보강 + ADR 분리 (adr/0001~0012) | ✅ |
 | — | Mermaid 다이어그램 도입 (DIAGRAMS.md, render-diagrams.sh) | ✅ |
 | 6 | TRACEABILITY, TEST_PLAN | ✅ |
-| 7 | ONBOARDING, planner.md 갱신 | ⏳ |
+| 7 | ONBOARDING, planner.md·supervisor.md 갱신 | ✅ |
+
+DOC_PLAN 1~7 완료. 이후 문서 작업은 각 Phase 착수 시 해당 도메인 requirements 상세화 +
+제안 ADR 결정 + TEST_PLAN 케이스 추가로 이어간다.
 
 ---
 
