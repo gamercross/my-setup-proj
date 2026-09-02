@@ -20,10 +20,10 @@
 
 | # | 제약 | 함의 |
 |---|---|---|
-| T-1 | **개발 머신에 `node`/`npm` 미설치** (`python3` 있음) | `verify.sh` 전체 통과 불가. `--code-only` + SKIP 처리 ([GIT_WORKFLOW.md](../setup/GIT_WORKFLOW.md) §1). Phase A2 에서 해소 |
-| T-2 | 개발 OS = macOS (Darwin) | 스케줄러는 launchd 우선, Linux 는 cron ([ADR-0007](adr/ADR-0007-schedule-launchd-cron.md)). plist 경로 하드코딩 |
-| T-3 | 배포 목표 = Windows / macOS / Linux 3-OS | Electron 단일 코드베이스. 네이티브 모듈(`better-sqlite3`)은 OS별 빌드 확인 필요 (RISK) |
-| T-4 | Node 20 LTS · Python 3.12 고정 (CI 기준) | `package.json`·CI 매트릭스에 고정 (NFR-PORT-02) |
+| T-1 | ~~개발 머신에 `node`/`npm` 미설치~~ → **Phase A2에서 해소** (2026-09-02) | `node v26.8.1` / `npm 11.19.0` / `python3 3.14.4` 설치, `verify.sh` 12/0/0 통과 |
+| T-2 | 개발 OS = macOS (Darwin, Apple Silicon) | 스케줄러는 launchd 우선, Linux 는 cron ([ADR-0007](adr/ADR-0007-schedule-launchd-cron.md)). plist 경로 하드코딩 |
+| T-3 | 배포 목표 = Windows / macOS / Linux 3-OS | Electron 단일 코드베이스. 네이티브 모듈(`better-sqlite3`)은 OS별 빌드 확인 필요 ([RISKS.md](RISKS.md) R-4) |
+| T-4 | **CI: Node 22 · Python 3.12** 고정. 로컬은 상위 버전 허용 (현재 Node 26 / Python 3.14) | CI가 재현성 기준. 로컬-CI 버전차로 인한 이슈는 CI에서 잡는다 (NFR-PORT-02) |
 | T-5 | 오프라인에서도 조회 동작해야 함 (NFR-REL-04) | 로컬 SQLite 가 진실의 원천, 외부 API 는 캐시 위에 얹음 ([ADR-0006](adr/ADR-0006-agent-owns-external-apis.md)) |
 | T-6 | Electron 보안 설정 고정 (`contextIsolation`, `nodeIntegration:false`) | 렌더러에서 Node·시크릿 접근 불가 → 모든 데이터는 REST 경유 ([ADR-0004](adr/ADR-0004-front-back-http-rest.md)) |
 | T-7 | 외부 API 는 인증·승인 절차가 필요 | Google OAuth 앱 검토, Notion integration 연결, Claude 키 발급 — 각 착수 전 준비 ([ENV_REFERENCE.md](../setup/ENV_REFERENCE.md)) |

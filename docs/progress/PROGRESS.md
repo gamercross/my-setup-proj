@@ -23,7 +23,7 @@
 ## 🗓️ Week 1: 환경 설정 (09-02 ~ 09-08)
 
 **목표:** Ubuntu 기본 설정 완료, Electron 앱 첫 실행  
-**진행도:** 0% ⏳ (예정)
+**진행도:** 60% 🚧 (진행 중 — Phase A2 완료)
 
 ### 강의
 - [ ] Chapter 01: 리눅스 설치와 기본 사용법
@@ -37,21 +37,20 @@
   - 저장소명: my-setup-proj
   - [ ] README.md 작성
   
-- [ ] 로컬 폴더 구조 생성
-  ```bash
-  mkdir -p ~/my-setup-proj/{frontend,backend,agent,tests}
-  ```
+- [x] 로컬 폴더 구조 생성 (`frontend`/`backend`/`agent`/`tests`/`docs`/`scripts`)
+
+- [x] Node.js 설치 (Phase A2)
+  - [x] `node --version` → v26.8.1 (Homebrew)
+  - [x] `npm --version` → 11.19.0
   
-- [ ] Node.js 설치
-  - [ ] `node --version` 확인
-  - [ ] `npm --version` 확인
+- [x] Python 설정 (Phase A2)
+  - [x] `python3 --version` → 3.14.4
+  - [x] `agent/venv` 생성 + `pip install -r requirements.txt` 성공
   
-- [ ] Python 설정
-  - [ ] `python3 --version` 확인
-  - [ ] 가상 환경 생성 (venv)
-  
-- [ ] 첫 Electron 앱
-  - [ ] `npm create electron-app` 실행
+- [x] `bash setup.sh` / `bash verify.sh` 통과 (12/0/0)
+- [x] 백엔드 실행 검증 — `GET /`, `/api/health`, `POST /api/tasks`, `GET /api/tasks` curl 확인
+- [ ] 첫 Electron 앱 (Phase B1)
+  - [ ] Vite 번들러 연결 → React 렌더
   - [ ] 앱 창 실행 확인
 
 ### 배운 Linux 명령어
@@ -81,14 +80,17 @@
 
 ### 진행 상황 요약
 ```
-완료한 작업: 0개
-진행 중: 0개
-예정된 작업: 8개
+완료한 작업: 5개 (폴더 구조, Node 설치, Python venv, setup/verify 통과, 백엔드 실행 검증)
+진행 중: 1개 (Electron 앱 = Phase B1)
+예정된 작업: 2개
 
-진행도: 0%
+진행도: 60%
 강의 수강: 0%
-개발: 0%
+개발: 60%
 ```
+
+> Phase A2 완료. 다음: A3(테스트 골격 + CI 연결) → B1(Vite/React 연결).
+> 검증 스냅샷: `node v26.8.1 / npm 11.19.0 / python 3.14.4`, `verify.sh` 12/0/0.
 
 ---
 

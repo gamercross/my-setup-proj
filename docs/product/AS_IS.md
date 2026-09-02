@@ -42,7 +42,7 @@
 | 데이터 저장 (`src/db.js`) | **인메모리 배열** + 증가 카운터 id. `getX/addX/updateX/deleteX` 함수 인터페이스 제공 | ❌ **영속성 없음** |
 | CORS | 없음 | ❌ (프론트 연동 시 필요) |
 | 로깅 미들웨어 | 없음 (`console.error` 만) | 🚧 |
-| 실행 검증 | 이 개발 머신에 `node`/`npm` 미설치로 한 번도 실행·`npm install` 안 됨 | ❌ 미검증 |
+| 실행 검증 | ✅ Phase A2에서 기동 + CRUD curl 왕복 확인 (인메모리 기준) | ✅ |
 
 **핵심 문제:** `db.js` 가 인메모리라 프로세스 재시작 시 데이터가 사라진다. 단, 라우트가 db 함수 시그니처에만 의존하므로 **내부만 SQLite 로 교체하면 라우트는 무수정** 가능.
 
@@ -125,30 +125,33 @@ flowchart TB
   DBF -. "예정: agent/db.py 로<br/>같은 SQLite 접근 (ADR-0011)" .-> SCHEMA
 ```
 
+> **갱신 2026-09-02 (Phase A2):** 환경 구축 완료.
+
 | 항목 | 현황 |
 |---|---|
-| `node` / `npm` | 이 개발 머신 미설치 (PROGRESS.md Week 2 기록) |
-| `python3` | 확인 필요 |
-| `.env` | 없음 (`.env.example` 만 존재) |
-| `frontend/node_modules`, `backend/node_modules`, `agent/venv` | 없음 |
-| `setup.sh` / `verify.sh` | 위 이유로 한 번도 완주 못 함 |
-| 저장소 경로 이관 | `/Users/jaeyeup/2026project/my-setup-proj` → `/Users/jaeyeup/proj/my-setup-proj/my-setup-proj`. plist·문서 링크 수정됨, **커밋 전 상태** |
+| `node` / `npm` | ✅ v26.8.1 / 11.19.0 (Homebrew). CI는 22 고정 |
+| `python3` | ✅ 3.14.4. CI는 3.12 고정, `agent/venv`로 격리 |
+| `.env` | ✅ `.env.example` 복사본 존재 (값은 빈 상태 — 각 기능 착수 때 채움) |
+| `frontend/node_modules`, `backend/node_modules`, `agent/venv` | ✅ 설치됨 (`setup.sh`) |
+| `setup.sh` / `verify.sh` | ✅ 통과 (`verify.sh` 12/0/0) |
+| 백엔드 실행 | ✅ `node src/server.js` 기동, `GET /`·`/api/health`·`POST/GET /api/tasks` curl 검증 |
+| 에이전트 모듈 | ✅ import + `build_context()` 동작 (Claude 실호출은 키 필요) |
 
 ---
 
 ## 4. 갭 요약 (AS-IS → TO-BE)
 
-| # | 갭 | 심각도 | 해소 시점(로드맵) |
+| # | 갭 | 심각도 | 상태 |
 |---|---|:---:|---|
-| G1 | React 미연결 (번들러 없음, `renderer.js` ↔ `App.jsx` 이원화) | 높음 | Week 2~3 |
-| G2 | DB 영속성 없음 (인메모리) | 높음 | Week 5 (강의 SQLite) |
-| G3 | 프론트 ↔ 백엔드 연결 코드 0 (fetch/CORS/base URL 없음) | 높음 | Week 3~4 |
-| G4 | 로컬 환경 미검증 (node/npm 미설치, `.env` 없음) | 중간 | 즉시 |
-| G5 | 경로 이관 변경분 미커밋 | 낮음 | 즉시 |
-| G6 | 자동화 테스트 없음 (CI 문법 검사만) | 중간 | Week 2~ |
-| G7 | 외부 API(Gmail/Calendar/Notion) 스텁 | 낮음 | Week 6~7 (계획대로) |
-| G8 | 다중 사용자·Supabase·Docker 미착수 | 낮음 | Week 10~12 (계획대로) |
+| G1 | React 미연결 (번들러 없음, `renderer.js` ↔ `App.jsx` 이원화) | 높음 | ⏳ Phase B1 |
+| G2 | DB 영속성 없음 (인메모리) | 높음 | ⏳ Phase B2 (강의 SQLite) |
+| G3 | 프론트 ↔ 백엔드 연결 코드 0 (fetch/CORS/base URL 없음) | 높음 | ⏳ Phase B3 |
+| G4 | 로컬 환경 미검증 | 중간 | ✅ Phase A2 완료 (2026-09-02) |
+| G5 | 경로 이관 변경분 미커밋 | 낮음 | ✅ 커밋 `fc4404c` |
+| G6 | 자동화 테스트 없음 (CI 문법 검사만) | 중간 | ⏳ Phase A3 |
+| G7 | 외부 API(Gmail/Calendar/Notion) 스텁 | 낮음 | ⏳ Week 6~7 (계획대로) |
+| G8 | 다중 사용자·Supabase·Docker 미착수 | 낮음 | ⏳ Week 10~12 (계획대로) |
 
 ---
 
-**작성:** 2026-09-02
+**작성:** 2026-09-02 · **갱신:** 2026-09-02 (Phase A2)

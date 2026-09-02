@@ -17,7 +17,7 @@
 | G1 | React 미연결 (번들러 없음) | FR-UI-02 | B1 | ⏳ |
 | G2 | DB 영속성 없음 (인메모리) | FR-TASK-05 | B2 | ⏳ |
 | G3 | 프론트↔백엔드 연결 코드 0 | FR-TASK-01~04, FR-UI-01 | B3 | ⏳ |
-| G4 | 로컬 환경 미검증 | NFR-TEST-04 | A2 | 🚧 |
+| G4 | 로컬 환경 미검증 | NFR-TEST-04 | A2 | ✅ (`verify.sh` 12/0/0, 2026-09-02) |
 | G5 | 경로 이관 변경분 미커밋 | — | A1 | ✅ (`fc4404c`) |
 | G6 | 자동화 테스트 없음 | NFR-TEST-01~03 | A3 | ⏳ |
 | G7 | 외부 API 스텁 | FR-CAL, FR-MAIL, FR-PROJ-03 | C3, D2 | ⏳ |
@@ -96,8 +96,8 @@
 | NFR-TEST-01 | backend supertest | A3 | `npm test` | ⏳ |
 | NFR-TEST-02 | agent pytest | A3 | `pytest` | ⏳ |
 | NFR-TEST-03 | CI 문법 + 테스트 | A3 | Actions | 🚧 (문법만) |
-| NFR-TEST-04 | `verify.sh` exit 0 | A2 | `bash verify.sh` | 🚧 (`--code-only` 만) |
-| NFR-PORT-02 | Node 20 / Python 3.12 고정 | 상시 | CI | ✅ |
+| NFR-TEST-04 | `verify.sh` exit 0 | A2 | `bash verify.sh` | ✅ (12/0/0, 2026-09-02) |
+| NFR-PORT-02 | CI Node 22 / Python 3.12 고정 (로컬 상위 허용) | 상시 | CI | ✅ |
 | NFR-PORT-03 | 경로·환경값 설정 분리 | B2, [ADR-0009](adr/ADR-0009-sqlite-file-location.md) | grep `/Users/` | 🚧 |
 | NFR-DEPLOY-01 | Docker 빌드 | E3 (W12) | `docker build` | ⏳ |
 | NFR-DEPLOY-02 | electron-builder 패키징 | E3 | `npm run build` | ⏳ |

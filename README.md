@@ -97,10 +97,11 @@ my-setup-proj/
 |---|---|
 | 개념 설계 · 요구사항 · 아키텍처 문서 | ✅ 완료 (`docs/product/`) |
 | 자동화 인프라 (에이전트 팀 · 작업로그 · CI · GIT_WORKFLOW) | ✅ 동작 |
-| 백엔드 tasks/projects CRUD 라우트 | 🚧 코드 존재, 인메모리, 실행 미검증 |
-| 프론트엔드 React | ❌ 미연결 (번들러 없음) — G1 |
-| DB (SQLite) | ⏳ 예정 (Phase B2) |
-| AI 에이전트 | 🚧 뼈대 + 스텁 |
+| 로컬 개발 환경 (node 26 · python 3.14 · venv) | ✅ Phase A2 완료 (`verify.sh` 12/0/0) |
+| 백엔드 tasks/projects CRUD 라우트 | 🚧 인메모리, 실행·CRUD curl 검증됨 |
+| 프론트엔드 React | ❌ 미연결 (번들러 없음) — G1, Phase B1 |
+| DB (SQLite) | ⏳ Phase B2 |
+| AI 에이전트 | 🚧 뼈대 + 스텁 (모듈 import 확인) |
 | 자동화 테스트 | ❌ 0개 — 다음 작업 (Phase A3) |
 
 정확한 최신은 [AS_IS.md](docs/product/AS_IS.md) · [TRACEABILITY.md](docs/product/TRACEABILITY.md) · `git log`. 다음 할 일은 [PROGRESS.md](docs/progress/PROGRESS.md).

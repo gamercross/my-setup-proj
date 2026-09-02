@@ -75,15 +75,13 @@ wslc run -it ubuntu:26.04 bash
 
 ### Node.js 설치 (권장: LTS 버전)
 
-**방법 1: NodeSource에서 설치 (권장)**
+> **버전 정책:** CI는 Node 22로 고정. 로컬은 22 이상이면 된다 (개발 머신은 Homebrew `node`로 26 사용 중). macOS는 `brew install node`.
+
+**방법 1: NodeSource에서 설치 (권장, Ubuntu/WSL)**
 
 ```bash
-# Node 18 LTS
-curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-sudo apt install -y nodejs
-
-# 또는 Node 20 LTS
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+# Node 22 LTS
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
 sudo apt install -y nodejs
 ```
 

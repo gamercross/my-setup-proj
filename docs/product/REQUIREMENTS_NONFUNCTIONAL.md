@@ -86,7 +86,7 @@
 | ID | 요구사항 | 기준 | 검증 방법 |
 |---|---|---|---|
 | NFR-PORT-01 | Windows / macOS / Linux 에서 동일 코드베이스로 실행 | Electron 크로스플랫폼 | 최소 macOS + Linux(WSL) 확인 |
-| NFR-PORT-02 | Node.js 20 LTS, Python 3.12 기준 | `package.json`·CI 버전 고정 | CI 매트릭스 |
+| NFR-PORT-02 | CI: Node 22 · Python 3.12 고정 (로컬은 상위 허용) | CI 워크플로에 버전 고정 | CI 매트릭스 |
 | NFR-PORT-03 | 경로·환경 의존값은 설정으로 분리 (하드코딩 금지) | launchd plist 외 하드코딩 0 | grep `/Users/` |
 
 ## 7. 배포 / 운영 (DEPLOY)
