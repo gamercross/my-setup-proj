@@ -43,6 +43,7 @@ UI `App`→`Dashboard` · FR-TASK-02, FR-PROJ-02, FR-CAL-01, FR-AGENT-04
 - **AC-5** `App` 안에서 `fetch(apiBaseUrl + '/health')` 결과를 화면에 표시할 수 있다(연결 확인용).
 - **AC-6** `preload.js` 의 `appInfo` (version/electron/node) 노출은 유지된다.
 - **AC-7** `verify.sh` 의 `node -c frontend/src/main.js` 가 계속 통과하고, 빌드가 CI 에서 성공한다.
+- **AC-8** `index.html` 의 CSP 에 `connect-src 'self' http://localhost:3000` (dev 는 `ws:` 포함)를 추가한다 — 현재 CSP 는 `connect-src` 미지정으로 `'self'` 제한이라 백엔드 `fetch` 가 차단된다 ([UI_SPEC.md](../UI_SPEC.md) §7).
 
 ### 오류 시나리오
 | 상황 | 기대 동작 |

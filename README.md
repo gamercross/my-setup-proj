@@ -25,6 +25,8 @@
 | [DOC_PLAN.md](docs/product/DOC_PLAN.md) | 문서 세분화 계획 및 작성 프롬프트 |
 | [GLOSSARY.md](docs/product/GLOSSARY.md) | 도메인·상태·시스템 용어 정의 |
 | [DATA_DICTIONARY.md](docs/product/DATA_DICTIONARY.md) | DB 필드 단위 설명 (`backend/db/schema.sql` 기준) |
+| [API_REFERENCE.md](docs/product/API_REFERENCE.md) | 백엔드 REST 엔드포인트별 요청/응답·검증·curl |
+| [UI_SPEC.md](docs/product/UI_SPEC.md) | 화면·컴포넌트·스토어 계약, 와이어프레임 |
 
 ### 2. 어떤 세팅이 필요한가 — [`docs/setup/`](docs/setup/)
 

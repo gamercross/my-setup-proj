@@ -87,6 +87,9 @@ sync_logs                       매 동기화 시도 1행 추가
 
 ## 5. API 명세 (백엔드)
 
+> 엔드포인트별 요청/응답 예시·검증·부작용·curl 은 **[API_REFERENCE.md](API_REFERENCE.md)** 가 단일 원천이다.
+> 이 절은 개요표와 설계 원칙만 둔다.
+
 Base: `http://localhost:3000/api` · 응답은 JSON · 오류는 `{ "error": "메시지" }`
 
 | 메서드 | 경로 | 설명 | 요청 본문 | 성공 | FR |
@@ -134,6 +137,10 @@ frontend/src/
 ```
 
 Vite 설정: `frontend/vite.config.js`, `base: './'` (Electron file:// 로드), 빌드 산출물 `dist/` → `main.js` 가 `dist/index.html` 로드. 개발 시 `vite` dev 서버 + `loadURL`.
+
+컴포넌트 계약(props/state/이벤트)·렌더 상태·와이어프레임은 [UI_SPEC.md](UI_SPEC.md) 가 단일 원천.
+
+> ⚠️ `index.html` CSP 에 `connect-src` 가 없어 백엔드 `fetch` 가 차단된다. B1 에서 `connect-src 'self' http://localhost:3000` (+ dev `ws:`) 를 반드시 추가한다.
 
 ---
 

@@ -6,6 +6,22 @@
 
 ---
 
+## 0. 진행 상황 (2026-09-02)
+
+| 순서 | 항목 | 상태 |
+|---|---|:---:|
+| 1 | GLOSSARY, CONVENTIONS, ENV_REFERENCE | ✅ |
+| 2 | schema.sql + DATA_DICTIONARY | ✅ |
+| 3 | FR 보강 (requirements/TASK·UI·AGENT) | ✅ (P0) |
+| — | GIT_WORKFLOW + verify.sh --code-only (계획 외 추가) | ✅ |
+| 4 | API_REFERENCE | ✅ |
+| 4 | UI_SPEC | ✅ |
+| 5 | DESIGN 보강 + ADR 분리 | ⏳ |
+| 6 | TRACEABILITY, TEST_PLAN | ⏳ |
+| 7 | ONBOARDING, planner.md 갱신 | ⏳ |
+
+---
+
 ## 1. 종합 평가
 
 **방향은 맞지만 "요약" 수준에서 멈춰 있다.** 현재 문서는 *무엇을* 만드는지는 알려주지만,
