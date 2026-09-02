@@ -38,15 +38,17 @@
 
 | 영역 | 상태 |
 |---|---|
-| 개념 설계 · 요구사항 · 아키텍처 문서 | ✅ 완료 (product/) |
-| 자동화 인프라 (에이전트 팀 · 작업로그 · CI · GIT_WORKFLOW) | ✅ 동작 |
-| 백엔드 tasks/projects CRUD 라우트 | 🚧 코드 존재, 인메모리, 실행 미검증 |
-| 프론트엔드 React | ❌ 미연결 (번들러 없음) — G1 |
-| DB (SQLite) | ⏳ 예정 (Phase B2) |
-| AI 에이전트 | 🚧 뼈대 + 스텁 |
+| 개념 설계 · 요구사항 · 아키텍처 문서 · 12개 ADR | ✅ 완료 (product/) |
+| 자동화 인프라 (에이전트 팀 · `/feature` · `/build-next` · 작업로그 · CI) | ✅ 동작 |
+| 로컬 환경 (node v26 · npm 11 · python 3.14 · venv) | ✅ Phase A2, `verify.sh` 12/0/0 |
+| 백엔드 tasks/projects CRUD 라우트 | 🚧 인메모리, 실행·CRUD curl 검증됨 |
+| 프론트엔드 React | ❌ 미연결 (번들러 없음) — G1, Phase B1 |
+| DB (SQLite) | ⏳ Phase B2 (스키마 확정: `backend/db/schema.sql`) |
+| AI 에이전트 | 🚧 뼈대 + 스텁 (모듈 import 확인) |
 | 자동화 테스트 | ❌ 0개 — 다음 작업 (Phase A3) |
 
-**다음 착수 후보:** Phase A2(환경 설치·`verify.sh`) → A3(테스트 골격) → B1(React 연결).
+**다음 착수:** Phase A3(테스트 골격) → B1(React) → B2(SQLite) → …. `/build-next` 로 자동 진행 가능
+(제안 ADR 0009~0012 채택됨 → C2 까지 막힘 없음, D2 부터 `.env` API 키 필요).
 
 ---
 
@@ -92,24 +94,23 @@ flowchart LR
 
 ## 자주 쓰는 명령
 
+환경은 이미 구축됨(Phase A2). 새 머신이면 `bash setup.sh` 부터.
+
 ```bash
-bash setup.sh              # 의존성 설치 + .env 준비
-bash verify.sh             # 환경 + 문법 점검
-bash verify.sh --code-only # 문법만 (문서 커밋 시)
+bash verify.sh             # 환경 + 문법 점검 (현재 12/0/0)
+bash verify.sh --code-only # 문법만 (문서 전용 커밋 시)
 bash scripts/render-diagrams.sh   # docs/ 의 Mermaid → SVG
 
-# 백엔드 (Node 설치 후)
-cd backend && npm install && npm start     # http://localhost:3000
-cd backend && npm test                     # 테스트 (Phase A3 이후)
+# 백엔드
+cd backend && npm start     # http://localhost:3000
+cd backend && npm test      # 테스트 (Phase A3 이후)
 
-# 프론트 (Node 설치 후, Vite 도입 이후)
-cd frontend && npm install && npm run dev
+# 프론트 (Vite 도입 = Phase B1 이후)
+cd frontend && npm run dev
 
-# 에이전트
+# 에이전트 (Claude 실호출은 .env 의 ANTHROPIC_API_KEY 필요)
 cd agent && source venv/bin/activate && python test_claude.py
 ```
-
-> ⚠️ 현재 개발 머신에 `node`/`npm` 미설치. `verify.sh` 전체는 통과하지 않는다 ([GIT_WORKFLOW.md](setup/GIT_WORKFLOW.md) §1).
 
 ---
 
@@ -117,7 +118,7 @@ cd agent && source venv/bin/activate && python test_claude.py
 
 - 불확실하면 추측하지 말고 **"확인 필요"** 로 표시하고 멈춘다.
 - 계획 범위를 벗어나야 하면 이유와 함께 보고하고 사용자 확인을 받는다.
-- 미결정 설계 사항은 제안 상태 ADR([0009~0012](product/adr/))에 정리돼 있다 — 착수 전 결정.
+- 남은 미결정: [ADR-0013](product/adr/ADR-0013-dashboard-agent-queue.md)(대시보드 에이전트 작업 큐, 향후 확장). 0009~0012 는 채택 완료.
 
 ---
 

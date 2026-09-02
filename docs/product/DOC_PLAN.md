@@ -30,6 +30,12 @@ DOC_PLAN 1~7 완료. 이후 문서 작업은 각 Phase 착수 시 해당 도메�
 - ✅ USE_SCENARIOS.md (이해관계자·사용 여정)
 - ✅ REQUIREMENTS_NONFUNCTIONAL §3.1 경량 위협 모델
 - ✅ 텍스트 다이어그램 → Mermaid 일괄 전환 (ARCHITECTURE, AS_IS §2.7, ROADMAP, COURSE_MAPPING)
+- ✅ ORCHESTRATION.md (파이프라인 상태 그래프) + `/build-next` 커맨드
+- ✅ 제안 ADR 0009~0012 채택, ADR-0013(에이전트 작업 큐) 신설
+- ✅ Phase A2 완료 (환경 구축) — 코드 작업은 Phase A3 부터
+
+> **아래 §1~§4 는 2026-09-02 초기 스냅샷이다.** 지적된 부족분은 위 목록으로 대부분 해소됨.
+> 현재 상태는 [AS_IS.md](AS_IS.md) · [TRACEABILITY.md](TRACEABILITY.md) 를 본다.
 
 ---
 

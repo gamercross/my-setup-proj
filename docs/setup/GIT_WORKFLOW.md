@@ -11,8 +11,8 @@
 |---|---|---|
 | 원격 | `https://github.com/gamercross/my-setup-proj.git` (HTTPS) | 푸시에 자격증명 helper/PAT 필요. 실패 시 사용자에게 알림 |
 | 기본 브랜치 | `main` | 아래 §2 브랜치 정책 |
-| 개발 머신 | `node`/`npm` 미설치, `python3` 있음, `.env`·`node_modules`·`venv` 없음 | `verify.sh` 전체는 **통과 불가**. §1 참조 |
-| CI | 모든 push/PR 에서 `npm install`+문법, `pip install`+`compileall` | 푸시 후 결과 확인 (§5) |
+| 개발 머신 | node v26 / npm 11 / python 3.14, `node_modules`·`venv`·`.env` 준비됨 (Phase A2) | `verify.sh` 12/0/0 통과. §1 SKIP 규칙은 새 머신·CI 엣지케이스용 |
+| CI | 모든 push/PR 에서 `npm install`+문법, `pip install`+`compileall` (Node 22 / Python 3.12) | 푸시 후 결과 확인 (§5) |
 
 ---
 
@@ -37,7 +37,7 @@
    - 관련 문법 검사가 **SKIP** (도구 없음) 이고 supervisor 코드리뷰가 PASS →
      조건부 통과: 커밋 본문과 사용자 보고에 **"검증 일부 미실행: `<무엇>` (도구 없음)"** 을 반드시 명시한다.
      (선례: `docs/progress/PROGRESS.md` Week 2 — node 미설치로 검증 못 하고 리뷰만으로 커밋한 기록.)
-3. **환경 검사 실패만으로는 커밋을 막지 않는다.** 단, 환경이 준비되면(Phase A2) 전체 `verify.sh` 를 다시 돌려 SKIP 을 없앤다.
+3. **환경 검사 실패만으로는 커밋을 막지 않는다.** (개발 머신은 Phase A2 로 환경 구축됨 — 지금은 SKIP 이 안 나온다. 이 규칙은 새 머신·CI 엣지케이스 대비.)
 
 > ⚠️ **절대 규칙:** 실행하지 않은 검사를 "통과했다" 고 보고하지 않는다. SKIP 은 SKIP 이라고 말한다.
 

@@ -30,21 +30,29 @@ fi
 
 mkdir -p "$OUT_DIR"
 
-# mermaid 블록이 있는 md 파일만 처리
-mapfile -t FILES < <(grep -rl '```mermaid' docs --include='*.md' || true)
+# mermaid 블록이 있는 md 파일만 처리 (bash 3.2 호환 — mapfile 미사용)
+FILES="$(grep -rl '```mermaid' docs --include='*.md' || true)"
 
-if [ "${#FILES[@]}" -eq 0 ]; then
+if [ -z "$FILES" ]; then
   echo "Mermaid 블록이 있는 문서가 없습니다."
   exit 0
 fi
 
-echo "▶ ${#FILES[@]}개 문서에서 다이어그램 렌더"
-for f in "${FILES[@]}"; do
+COUNT=0
+FAIL=0
+while IFS= read -r f; do
+  [ -z "$f" ] && continue
+  COUNT=$((COUNT + 1))
   base="$(basename "$f" .md)"
   echo "  - $f → $OUT_DIR/${base}-*.svg"
   # mmdc: .md 입력 → 코드블록마다 <출력이름>-N.svg 생성
-  npx -y @mermaid-js/mermaid-cli -i "$f" -o "$OUT_DIR/${base}.svg" >/dev/null 2>&1 \
-    || echo "    ⚠️  $f 렌더 실패 (건너뜀)"
-done
+  if ! npx -y @mermaid-js/mermaid-cli -i "$f" -o "$OUT_DIR/${base}.svg" >/dev/null 2>&1; then
+    echo "    ⚠️  $f 렌더 실패"
+    FAIL=$((FAIL + 1))
+  fi
+done <<EOF
+$FILES
+EOF
 
-echo "✅ 완료: $OUT_DIR/"
+echo "▶ ${COUNT}개 문서 처리, 실패 ${FAIL}"
+[ "$FAIL" -eq 0 ] && echo "✅ 완료: ${OUT_DIR}/" || exit 1

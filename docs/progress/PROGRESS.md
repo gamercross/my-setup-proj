@@ -108,19 +108,17 @@
 ### 개발
 - [x] React 컴포넌트 기본 구조
   - [x] 기본 컴포넌트 생성 (TaskList / ProjectCard / Dashboard 스캐폴드, `import React` + JSX)
-  - [ ] 번들러(Vite) 연결 → Week 3
+  - [ ] 번들러(Vite) 연결 → Phase B1
 - [x] Express CRUD 라우트 골격
   - [x] `routes/tasks.js` — 할일 CRUD (GET/POST/PUT/DELETE)
   - [x] `routes/projects.js` — 프로젝트 CRUD
   - [x] `db.js` 인메모리 저장소 확장 (id 시퀀스, projects)
   - [x] `routes/api.js` 서브라우터 연결
-- [ ] SQLite 설정 → Week 3
-  - [ ] Database 파일 생성
-  - [ ] 테이블 정의 (tasks, projects, emails)
+  - [x] **실행 검증 완료** (Phase A2) — `npm start` → curl 로 health·CRUD 왕복 확인
+- [x] `backend/db/schema.sql` 확정 (6개 테이블 + `tasks.project_id` FK, ADR-0009~0012 채택)
+- [ ] SQLite 설정 (better-sqlite3 로 `db.js` 교체) → Phase B2
+  - [ ] `DATABASE_PATH` 규약, WAL 모드
   - [ ] 샘플 데이터 입력
-
-> 검증: 이 개발 머신에 `node`/`npm` 미설치로 `verify.sh` 실행·`node -c` 불가.
-> 감독 에이전트 코드리뷰 PASS. Node 설치 후 `cd backend && npm install && npm start` 로 curl 테스트 필요.
 
 ### 배운 Linux 명령어
 ```bash

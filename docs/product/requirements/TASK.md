@@ -116,7 +116,7 @@ API `PUT`/`DELETE /api/tasks/:id` · UI `TaskList` `onDelete` · NFR-REL-02
 - **AC-2** SQLite 파일은 `backend/db/schema.sql` 로 초기화되며, 이미 있으면 데이터를 보존한다(`CREATE TABLE IF NOT EXISTS`).
 - **AC-3** `backend/src/db.js` 의 함수 시그니처(`getTasks/getTask/addTask/updateTask/deleteTask`)는 인메모리 때와 동일하게 유지된다 (NFR-MAINT-03) — 라우트·테스트 무수정.
 - **AC-4** 기존 인메모리 기준 API 통합 테스트가 SQLite 로 교체 후에도 전부 통과한다(회귀).
-- **AC-5** DB 파일 경로는 설정으로 분리한다 (`backend/data/app.db` 또는 `app.getPath('userData')` — 열린 질문, DESIGN §9).
+- **AC-5** DB 파일 경로는 `DATABASE_PATH` 환경변수로 주입한다 (기본 `backend/data/app.db`, 패키지는 `userData` — [ADR-0009](../adr/ADR-0009-sqlite-file-location.md)). 부팅 시 WAL 모드 ([ADR-0011](../adr/ADR-0011-agent-backend-db-access.md)).
 
 ### 관련
 ADR-02/03 · `backend/db/` · 데이터 `tasks` · NFR-MAINT-03, NFR-PERF-02

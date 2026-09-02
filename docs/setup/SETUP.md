@@ -132,15 +132,12 @@ source ~/.bashrc  # 또는 source ~/.zshrc
 
 ### Python 설치
 
+> **버전 정책:** CI는 Python 3.12 고정. 로컬은 3.12 이상이면 된다 (개발 머신은 3.14 사용 중 — `agent/venv` 로 격리되므로 무방).
+> macOS 는 python.org 설치본 또는 `brew install python@3.12`.
+
 ```bash
-# Python 3.11+ 설치
-sudo apt install -y python3.11 python3.11-venv python3.11-dev
-
-# Python 3.12 (최신)
+# Ubuntu/WSL — Python 3.12
 sudo apt install -y python3.12 python3.12-venv python3.12-dev
-
-# 기본 python3가 3.11 이상 가리키도록 설정
-sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
 sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 2
 ```
 
@@ -170,9 +167,11 @@ deactivate
 
 **확인:**
 ```bash
-which python  # /home/username/my-setup-proj/venv/bin/python
-python --version  # Python 3.11.x 또는 3.12.x
+which python  # .../my-setup-proj/agent/venv/bin/python
+python --version  # Python 3.12 이상
 ```
+
+> 실제로는 `bash setup.sh` 가 `agent/venv` 생성과 `pip install -r agent/requirements.txt` 를 한 번에 처리한다.
 
 ---
 
