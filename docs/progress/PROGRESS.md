@@ -23,7 +23,7 @@
 ## 🗓️ Week 1: 환경 설정 (09-02 ~ 09-08)
 
 **목표:** Ubuntu 기본 설정 완료, Electron 앱 첫 실행  
-**진행도:** 60% 🚧 (진행 중 — Phase A2 완료)
+**진행도:** 70% 🚧 (진행 중 — Phase A2·A3·B1 완료, 앱 창 수동 확인만 남음)
 
 ### 강의
 - [ ] Chapter 01: 리눅스 설치와 기본 사용법
@@ -50,8 +50,8 @@
 - [x] `bash setup.sh` / `bash verify.sh` 통과 (12/0/0)
 - [x] 백엔드 실행 검증 — `GET /`, `/api/health`, `POST /api/tasks`, `GET /api/tasks` curl 확인
 - [ ] 첫 Electron 앱 (Phase B1)
-  - [ ] Vite 번들러 연결 → React 렌더
-  - [ ] 앱 창 실행 확인
+  - [x] Vite 번들러 연결 → React 렌더 (`renderer.jsx` → `createRoot(<App/>)`, Phase B1)
+  - [ ] 앱 창 실행 확인 (로컬 수동 — 샌드박스 electron 미기동)
 
 ### 배운 Linux 명령어
 ```bash
@@ -80,16 +80,16 @@
 
 ### 진행 상황 요약
 ```
-완료한 작업: 5개 (폴더 구조, Node 설치, Python venv, setup/verify 통과, 백엔드 실행 검증)
-진행 중: 1개 (Electron 앱 = Phase B1)
-예정된 작업: 2개
+완료한 작업: 6개 (폴더 구조, Node 설치, Python venv, setup/verify 통과, 백엔드 실행 검증, Vite+React 마운트 = B1)
+진행 중: 1개 (Electron 앱 창 수동 확인)
+예정된 작업: 1개
 
-진행도: 60%
+진행도: 70%
 강의 수강: 0%
-개발: 60%
+개발: 72%
 ```
 
-> Phase A2·A3 완료. 다음: B1(Vite/React 연결) → B2(SQLite).
+> Phase A2·A3·B1 완료. 다음: B2(SQLite) → B3(프론트↔백엔드 배선).
 > 검증 스냅샷: `node v26.8.1 / npm 11.19.0 / python 3.14.4`, `verify.sh` 13/0/0, `npm test` 15/0, `pytest -m "not network"` 3 pass.
 
 ---
@@ -97,7 +97,7 @@
 ## 🗓️ Week 2: 기본 프로젝트 구축 (09-09 ~ 09-15)
 
 **목표:** Electron + React 기본 UI 완성, Express 서버 실행  
-**진행도:** 40% 🚧 (진행 중)
+**진행도:** 50% 🚧 (진행 중 — Phase B1 완료)
 
 ### 강의
 - [ ] Chapter 02: 디렉토리와 파일 사용법
@@ -108,7 +108,7 @@
 ### 개발
 - [x] React 컴포넌트 기본 구조
   - [x] 기본 컴포넌트 생성 (TaskList / ProjectCard / Dashboard 스캐폴드, `import React` + JSX)
-  - [ ] 번들러(Vite) 연결 → Phase B1
+  - [x] 번들러(Vite) 연결 → Phase B1 (`vite.config.js`, `renderer.jsx` 마운트, `App` 렌더)
 - [x] Express CRUD 라우트 골격
   - [x] `routes/tasks.js` — 할일 CRUD (GET/POST/PUT/DELETE)
   - [x] `routes/projects.js` — 프로젝트 CRUD
@@ -136,13 +136,13 @@ wc -l                  # 줄 수 세기
 
 ### 진행 상황 요약
 ```
-완료한 작업: 3개 (React 컴포넌트 스캐폴드, Express CRUD 라우트, 자동화 테스트 골격 + CI)
-진행 중: 1개 (번들러 연결)
-예정된 작업: 4개
+완료한 작업: 4개 (React 컴포넌트 스캐폴드, 번들러(Vite) 연결 = B1, Express CRUD 라우트, 자동화 테스트 골격 + CI)
+진행 중: 1개 (SQLite 교체 = B2)
+예정된 작업: 3개
 
-진행도: 50%
+진행도: 60%
 강의 수강: 0%
-개발: 70%
+개발: 78%
 ```
 
 ---
@@ -192,8 +192,8 @@ umask -S               # 기본 권한
 ## 📈 전체 진행도 추이
 
 ```
-Week 1  ████░░░░░░ 40%
-Week 2  ████░░░░░░ 40%
+Week 1  ███████░░░ 70%
+Week 2  ██████░░░░ 60%
 Week 3  ████░░░░░░ 40%
 Week 4  ░░░░░░░░░░  0%
 Week 5  ░░░░░░░░░░  0%

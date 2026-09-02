@@ -42,7 +42,7 @@
 | 자동화 인프라 (에이전트 팀 · `/feature` · `/build-next` · 작업로그 · CI) | ✅ 동작 |
 | 로컬 환경 (node v26 · npm 11 · python 3.14 · venv) | ✅ Phase A2, `verify.sh` 12/0/0 |
 | 백엔드 tasks/projects CRUD 라우트 | 🚧 인메모리, 실행·CRUD curl 검증됨 |
-| 프론트엔드 React | ❌ 미연결 (번들러 없음) — G1, Phase B1 |
+| 프론트엔드 React | 🚧 B1 완료 (Vite + `renderer.jsx` 마운트) — Dashboard 배선은 B3 |
 | DB (SQLite) | ⏳ Phase B2 (스키마 확정: `backend/db/schema.sql`) |
 | AI 에이전트 | 🚧 뼈대 + 스텁 (모듈 import 확인) |
 | 자동화 테스트 | ❌ 0개 — 다음 작업 (Phase A3) |
@@ -105,7 +105,7 @@ bash scripts/render-diagrams.sh   # docs/ 의 Mermaid → SVG
 cd backend && npm start     # http://localhost:3000
 cd backend && npm test      # 테스트 (Phase A3 이후)
 
-# 프론트 (Vite 도입 = Phase B1 이후)
+# 프론트 (Vite 도입 = Phase B1)
 cd frontend && npm run dev
 
 # 에이전트 (Claude 실호출은 .env 의 ANTHROPIC_API_KEY 필요)

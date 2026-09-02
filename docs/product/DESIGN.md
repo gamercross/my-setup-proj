@@ -151,7 +151,7 @@ Vite 설정: `frontend/vite.config.js`, `base: './'` (Electron file:// 로드), 
 
 컴포넌트 계약(props/state/이벤트)·렌더 상태·와이어프레임은 [UI_SPEC.md](UI_SPEC.md) 가 단일 원천.
 
-> ⚠️ `index.html` CSP 에 `connect-src` 가 없어 백엔드 `fetch` 가 차단된다. B1 에서 `connect-src 'self' http://localhost:3000` (+ dev `ws:`) 를 반드시 추가한다.
+> ✅ B1 해소: prod `index.html` CSP 는 `script-src 'self'; connect-src 'self' http://localhost:3000`. dev 는 `vite.config.js` 의 `devCspPlugin` 이 `unsafe-inline` + `ws://localhost:5173` 까지 완화(React Refresh 프리앰블용).
 
 ### 흐름: 할일 생성 (FR-TASK-01)
 
@@ -265,7 +265,7 @@ sequenceDiagram
 | Phase | 강의 Week | 주제 | 상태 |
 |---|---|---|---|
 | A | Week 1~2 | 기반 정리 (환경·테스트·커밋 체계) | A1~A3 ✅ |
-| B | Week 2~3 | 프론트 React 연결 + SQLite + 할일 CRUD | ⏳ (ADR 결정 완료) |
+| B | Week 2~3 | 프론트 React 연결 + SQLite + 할일 CRUD | B1 ✅ / B2·B3 ⏳ |
 | C | Week 4~5 | 백엔드 미들웨어 · 프로젝트 · 캘린더 | ⏳ |
 | D | Week 6~7 | 에이전트 (수집·Claude·Notion·스케줄) | ⏳ |
 | — | Week 8 | 중간고사 · 과제 1 발표 | ⏳ |
@@ -284,7 +284,7 @@ sequenceDiagram
 
 | 단계 | `/feature` 설명 | 커버 | 산출물 |
 |---|---|---|---|
-| B1 | Vite 도입, `renderer.js`→`renderer.jsx` 로 React 마운트, `App` 렌더 확인 | AD-01, FR-UI-02, G1 | 빌드 파이프라인 |
+| B1 | ✅ Vite 도입, `renderer.js`→`renderer.jsx` 로 React 마운트, `App` 렌더 확인 (`main.js` dev/prod 분기 + `fallback.html`, `preload.apiBaseUrl`, prod CSP) | AD-01, FR-UI-02, G1 | 빌드 파이프라인 |
 | B2 | `schema.sql` + better-sqlite3 로 `db.js` 내부 교체 (라우트 무수정) | AD-02/03, FR-TASK-05, G2 | `backend/db/` |
 | B3 | `api/client.js` + zustand store, Dashboard→TaskList/TaskForm 배선 (할일 CRUD E2E) | FR-TASK-01~04, FR-UI-01, G3 | 동작하는 할일 기능 |
 

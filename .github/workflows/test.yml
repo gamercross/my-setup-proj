@@ -33,6 +33,7 @@ jobs:
           node-version: '22'
       - run: npm install
       - run: node -c src/main.js  # 문법 검사
+      - run: npm run build  # Vite 빌드 검증
 
   agent:
     runs-on: ubuntu-latest

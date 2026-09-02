@@ -23,13 +23,13 @@
 | 항목 | 현황 | 평가 |
 |---|---|---|
 | Electron 메인 (`src/main.js`) | 800×600 창 생성, `preload.js` 통해 `contextIsolation` 적용, `index.html` 로드 | ✅ 동작 |
-| 렌더 화면 (`src/renderer.js`) | 순수 JS로 문자열 HTML을 `#root` 에 삽입한 환영 화면 | 🚧 임시 |
-| React 컴포넌트 (`App.jsx`, `components/Dashboard.jsx`, `TaskList.jsx`, `ProjectCard.jsx`) | 파일은 존재. `import React` + JSX + props 인터페이스까지 작성됨 | ❌ **미연결** |
-| 번들러 | 없음 (Vite 미설치). `package.json` 에 `react`/`react-dom`/`zustand` 는 있으나 빌드 스크립트 없음 | ❌ 없음 |
+| 렌더 진입 (`src/renderer.jsx`) | `createRoot(#root).render(<App/>)` — `renderer.js`(바닐라) 제거 | ✅ Vite + React 마운트 (B1) |
+| React 컴포넌트 (`App.jsx`, `components/Dashboard.jsx`, `TaskList.jsx`, `ProjectCard.jsx`) | `App.jsx` 는 마운트됨(appInfo + `/api/health` 3상태 렌더). Dashboard/TaskList/ProjectCard 배선은 B3 | 🚧 App 연결됨, 하위는 B3 |
+| 번들러 | ✅ Vite + `@vitejs/plugin-react` (B1). `vite.config.js` root=src / base=./ / devCspPlugin | ✅ Vite + React 마운트 (B1) |
 | 상태 관리 | `zustand` 의존성만 선언, 사용처 없음 | ❌ 미사용 |
 | 스타일링 | 인라인 style 만. Tailwind 미도입 | 🚧 |
 
-**핵심 문제:** `renderer.js`(바닐라)와 `App.jsx`(React)가 서로 무관하게 존재한다. 번들러가 없어 React 트리는 실행 경로에 진입하지 못한다.
+**핵심 문제:** (B1 해소) 번들러(Vite)가 도입되고 `renderer.jsx` 가 `App.jsx` 를 마운트한다. `renderer.js`(바닐라)는 삭제됐다. 남은 작업은 Dashboard 이하 컴포넌트 배선(B3).
 
 ### 2.2 Backend — `backend/` (Express API 골격)
 
@@ -94,11 +94,11 @@
 flowchart TB
   subgraph FE["frontend/src"]
     MAIN["main.js"] --> PRE["preload.js"]
-    IDX["index.html"] --> RJS["renderer.js<br/>(바닐라)"]
-    APP["App.jsx"] -.-> DASH["Dashboard.jsx"]
+    IDX["index.html"] --> RJX["renderer.jsx"]
+    RJX --> APP["App.jsx"]
+    APP -.-> DASH["Dashboard.jsx"]
     DASH -.-> TL["TaskList.jsx"]
     DASH -.-> PC["ProjectCard.jsx"]
-    RJS -. "미연결: App.jsx 를<br/>불러오지 않음 (G1)" .-> APP
   end
 
   subgraph BE["backend/src"]
@@ -121,7 +121,7 @@ flowchart TB
     SNO -. "스텁" .-> X1
   end
 
-  RJS -. "미연결: fetch 없음 (G3)" .-> SRV
+  APP -. "미연결: fetch 없음 (G3)" .-> SRV
   DBF -. "예정: agent/db.py 로<br/>같은 SQLite 접근 (ADR-0011)" .-> SCHEMA
 ```
 
@@ -143,7 +143,7 @@ flowchart TB
 
 | # | 갭 | 심각도 | 상태 |
 |---|---|:---:|---|
-| G1 | React 미연결 (번들러 없음, `renderer.js` ↔ `App.jsx` 이원화) | 높음 | ⏳ Phase B1 |
+| G1 | React 미연결 (번들러 없음, `renderer.js` ↔ `App.jsx` 이원화) | 높음 | ✅ Phase B1 (Vite + `renderer.jsx` 마운트) |
 | G2 | DB 영속성 없음 (인메모리) | 높음 | ⏳ Phase B2 (강의 SQLite) |
 | G3 | 프론트 ↔ 백엔드 연결 코드 0 (fetch/CORS/base URL 없음) | 높음 | ⏳ Phase B3 |
 | G4 | 로컬 환경 미검증 | 중간 | ✅ Phase A2 완료 (2026-09-02) |

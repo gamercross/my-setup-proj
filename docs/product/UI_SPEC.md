@@ -11,7 +11,7 @@
 |---|---|
 | 화면 수 | **1개 (대시보드).** 라우팅 없음 |
 | 창 크기 | 기본 800×600, 최소 800×600 (`main.js`) |
-| 렌더 방식 | 목표: React + Vite (FR-UI-02). 현재: `renderer.js` 바닐라 임시 화면 |
+| 렌더 방식 | ✅ React + Vite (FR-UI-02 / B1). `renderer.jsx` → `createRoot(#root).render(<App/>)` |
 | 마운트 지점 | `index.html` 의 `<div id="root">` |
 | 브리지 | `preload.js` → `window.appInfo` (아래 §5) |
 
@@ -150,7 +150,7 @@
 
 | 컴포넌트 | props | 내부 state | 방출 이벤트 | 상태 |
 |---|---|---|---|:---:|
-| `App` | — | (error boundary) | — | 🔷 (현재 없음) |
+| `App` | — | `health` (loading/ok/error) | — | 🚧 B1 마운트됨 (appInfo + `/api/health` 렌더, error boundary·Dashboard 배선은 B3) |
 | `Dashboard` | — | store 구독 | — | 🚧 (로컬 state) |
 | `TaskList` | `tasks: Task[]`, `onToggle(id)`, `onDelete(id)` | — | `onToggle`, `onDelete` | ✅ |
 | `TaskForm` | `onSubmit(payload)` | `title, description, dueDate, priority` | `onSubmit` | 🔷 |
@@ -168,12 +168,8 @@
 현재 노출 (`preload.js`):
 ```js
 { name: 'AI Computer OS', version: '0.1.0',
-  electron: process.versions.electron, node: process.versions.node }
-```
-
-**추가 예정 (FR-UI-02):**
-```js
-{ ...위, apiBaseUrl: 'http://localhost:3000/api' }  // PORT 반영
+  electron: process.versions.electron, node: process.versions.node,
+  apiBaseUrl: 'http://localhost:3000/api' }  // ✅ B1 추가 (3000 고정, CSP connect-src 와 정합)
 ```
 - 시크릿·Node API 는 절대 노출하지 않는다 (NFR-SEC-03/04).
 
@@ -205,10 +201,10 @@
 
 | 파일 | 현재 | 목표 |
 |---|---|---|
-| `index.html` | `<script src="renderer.js">` + CSP `script-src 'self'` | `<script type="module" src="renderer.jsx">`, CSP 에 dev 서버·`connect-src http://localhost:3000` 허용 |
-| `renderer.js` | 바닐라 문자열 HTML | 삭제 → `renderer.jsx`: `createRoot(#root).render(<App/>)` |
-| `main.js` | `loadFile(index.html)` | dev: `loadURL(vite)` / prod: `loadFile(dist/index.html)` |
-| `package.json` | react 의존성만 | `+ vite`, `@vitejs/plugin-react`, `dev`/`build` 스크립트 |
+| `index.html` | ✅ B1 완료 — `<script type="module" src="renderer.jsx">`, prod CSP `script-src 'self'` + `connect-src 'self' http://localhost:3000`. dev 는 `devCspPlugin` 이 완화 |
+| `renderer.jsx` | ✅ B1 완료 — `createRoot(#root).render(<App/>)` (`renderer.js` 삭제) |
+| `main.js` | ✅ B1 완료 — `NODE_ENV` 분기: dev `loadURL(:5173)` / prod `loadFile(dist/index.html)`, 실패 시 `fallback.html` |
+| `package.json` | ✅ B1 완료 — `vite`, `@vitejs/plugin-react`, `concurrently`/`wait-on`/`cross-env`, `dev`/`build`/`start`/`package` 스크립트 |
 
 > ⚠️ **CSP 주의:** 현재 `index.html` 의 CSP 에 `connect-src` 가 없어 `'self'` 로 제한된다 → `fetch('http://localhost:3000')` 이 **차단된다.** React 연결 시 CSP 에 `connect-src 'self' http://localhost:3000` (+ dev 는 ws) 를 반드시 추가한다.
 
@@ -218,13 +214,13 @@
 
 | # | 명세 | 현재 | 해소 |
 |---|---|---|---|
-| U1 | React 트리 렌더 | `renderer.js` 바닐라, `App.jsx` 미사용 | Week 2~3 B1 (FR-UI-02) |
+| U1 | React 트리 렌더 | ✅ B1 — `renderer.jsx` → `createRoot().render(<App/>)` (`renderer.js` 삭제) |
 | U2 | `Dashboard` 가 store+API 사용 | 로컬 state, fetch 없음 | Week 3 B3 |
-| U3 | `apiBaseUrl` 브리지 | preload 에 없음 | B1 |
+| U3 | `apiBaseUrl` 브리지 | ✅ B1 — `preload.js` `apiBaseUrl: 'http://localhost:3000/api'` (3000 고정) |
 | U4 | `ProjectCard` status `on_hold` | `'hold'` 로 처리 | Week 4 |
 | U5 | 일정·브리핑·에러 영역 | 없음 | Week 5·7, FR-UI-04 |
-| U6 | CSP `connect-src` 허용 | 없음 (fetch 차단됨) | B1 (필수) |
-| U7 | 로딩/에러 상태 렌더 | "비어있음"만 있음 | B3, FR-UI-04 |
+| U6 | CSP `connect-src` 허용 | ✅ B1 — prod `connect-src 'self' http://localhost:3000`, dev 는 `devCspPlugin` 완화 |
+| U7 | 로딩/에러 상태 렌더 | `App.jsx` 는 `/api/health` 3상태 렌더. Dashboard 영역 로딩/에러는 B3 | B3, FR-UI-04 |
 
 ---
 

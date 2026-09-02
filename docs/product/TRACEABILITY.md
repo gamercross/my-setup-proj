@@ -14,7 +14,7 @@
 
 | 갭 | 내용 | 닫는 요구사항 | Phase | 상태 |
 |---|---|---|---|:---:|
-| G1 | React 미연결 (번들러 없음) | FR-UI-02 | B1 | ⏳ |
+| G1 | React 미연결 (번들러 없음) | FR-UI-02 | B1 | ✅ (Vite + `renderer.jsx` 마운트, 2026-09-02) |
 | G2 | DB 영속성 없음 (인메모리) | FR-TASK-05 | B2 | ⏳ |
 | G3 | 프론트↔백엔드 연결 코드 0 | FR-TASK-01~04, FR-UI-01 | B3 | ⏳ |
 | G4 | 로컬 환경 미검증 | NFR-TEST-04 | A2 | ✅ (`verify.sh` 12/0/0, 2026-09-02) |
@@ -64,7 +64,7 @@
 | FR-AUTH-02 | G8 | [ADR-0008](adr/ADR-0008-supabase-deferred.md) | E1 | — | 신규 | ⏳ |
 | FR-AUTH-03 | — | requirements(예정) | E1 | — | 신규 | ⏳ |
 | FR-UI-01 | G3 | UI_SPEC §2, DESIGN §3 (flowchart) | B3, C, D3 | TC-UI-02 | `components/Dashboard.jsx` | 🚧 |
-| FR-UI-02 | G1 | [ADR-0001](adr/ADR-0001-frontend-react-vite.md), [ADR-0010](adr/ADR-0010-vite-dev-vs-build.md), UI_SPEC §7 | B1 | TC-UI-01,05 | `frontend/src/renderer.jsx`, `vite.config.js`, `index.html`(CSP) | ⏳ |
+| FR-UI-02 | G1 | [ADR-0001](adr/ADR-0001-frontend-react-vite.md), [ADR-0010](adr/ADR-0010-vite-dev-vs-build.md), UI_SPEC §7 | B1 | TC-UI-01,05,07,08 | `frontend/src/{renderer.jsx,vite.config.js,main.js,App.jsx}` | ✅ (AC-5 는 에러표시 수준, 실제 200 은 CORS C1 대기) |
 | FR-UI-03 | — | requirements/UI.md | W2 (완료) | TC-UI-04 | `frontend/src/main.js` | ✅ |
 | FR-UI-04 | — | UI_SPEC §3.6 | B3 | TC-UI-02 | `components/ErrorBanner.jsx`(신규), `api/client.js` | ⏳ |
 

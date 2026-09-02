@@ -33,14 +33,14 @@ UI `App`→`Dashboard` · FR-TASK-02, FR-PROJ-02, FR-CAL-01, FR-AGENT-04
 
 **사용자 스토리:** (기술 요구) 개발자로서 나는 이미 작성된 React 컴포넌트가 실제로 화면에 그려지고 API 데이터를 표시하길 원한다.
 
-**우선순위** P0 · **목표 주차** W2~3 · **상태** ❌ (번들러 없음, `renderer.js` ↔ `App.jsx` 이원화 — [AS_IS.md](../AS_IS.md) G1)
+**우선순위** P0 · **목표 주차** W2~3 · **상태** ✅ Phase B1 (Vite + `renderer.jsx` 마운트). AC-5 는 "에러 표시" 수준까지 — 실제 200 응답은 CORS(C1) 후. G1 해소.
 
 ### 수용 기준
 - **AC-1** `renderer.js`(바닐라)가 제거되고, `renderer.jsx` 가 `ReactDOM.createRoot(#root).render(<App/>)` 로 React 트리를 마운트한다.
 - **AC-2** Vite 로 번들되며, `frontend/package.json` 에 `dev`/`build` 스크립트와 `vite`·`@vitejs/plugin-react` devDependency 가 추가된다.
-- **AC-3** 개발 모드(`NODE_ENV=development`): Electron 이 Vite dev 서버 URL 을 `loadURL` 로 로드, HMR 동작.
-- **AC-4** 프로덕션: `npm run build` → `dist/` 산출물을 `main.js` 가 `loadFile` 로 로드.
-- **AC-5** `App` 안에서 `fetch(apiBaseUrl + '/health')` 결과를 화면에 표시할 수 있다(연결 확인용).
+- **AC-3** ✅ 개발 모드(`NODE_ENV=development`): `main.js` 가 Vite dev 서버(`http://localhost:5173`)를 `loadURL` 로 로드, HMR 동작.
+- **AC-4** ✅ 프로덕션: `npm run build` → `dist/` 산출물을 `main.js` 가 `loadFile(dist/index.html)` 로 로드.
+- **AC-5** `App` 안에서 `fetch(apiBaseUrl + '/health')` 결과를 3상태로 화면에 표시한다. 현재는 CORS 미설정으로 "에러 표시" 수준까지 검증 — 실제 200 은 C1 이후.
 - **AC-6** `preload.js` 의 `appInfo` (version/electron/node) 노출은 유지된다.
 - **AC-7** `verify.sh` 의 `node -c frontend/src/main.js` 가 계속 통과하고, 빌드가 CI 에서 성공한다.
 - **AC-8** `index.html` 의 CSP 에 `connect-src 'self' http://localhost:3000` (dev 는 `ws:` 포함)를 추가한다 — 현재 CSP 는 `connect-src` 미지정으로 `'self'` 제한이라 백엔드 `fetch` 가 차단된다 ([UI_SPEC.md](../UI_SPEC.md) §7).
