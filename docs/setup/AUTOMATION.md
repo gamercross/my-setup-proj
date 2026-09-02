@@ -53,7 +53,14 @@ flowchart LR
 
 - `CHANGES_NEEDED` 반복은 **최대 2회**. 그래도 통과 못 하면 커밋하지 않고 멈춘다.
 - 각 단계 종료 시 슬랙에 한 줄 알림 (`scripts/slack-notify.sh`, webhook 없으면 조용히 스킵).
-- 커밋·푸시 판정 규칙은 [GIT_WORKFLOW.md](GIT_WORKFLOW.md).
+- 커밋·푸시 판정 규칙은 [GIT_WORKFLOW.md](GIT_WORKFLOW.md), 상태 전이·정지 조건은 [ORCHESTRATION.md](ORCHESTRATION.md).
+
+### `/build-next` — 로드맵 자동 진행 (`.claude/commands/build-next.md`)
+
+`/feature` 를 사람이 매번 부르는 대신, `/build-next` 가 [DESIGN.md](../product/DESIGN.md) §8 +
+[TRACEABILITY.md](../product/TRACEABILITY.md) 를 읽어 **다음 스텝을 스스로 골라** `/feature` 를 반복한다.
+제안 상태 ADR 미결정·`.env` 키 누락·대화형 준비 필요 등 **사람이 결정할 지점에서만 멈춘다**
+(정지 상태와 보고 내용은 [ORCHESTRATION.md](ORCHESTRATION.md) §3). 한 호출당 최대 3스텝.
 
 ---
 
@@ -134,7 +141,8 @@ bash scripts/slack-notify.sh "✅" "마무리하는 친구" "커밋 abc123 푸�
   settings.json              # Stop 훅 → worklog.sh
   agents/{planner,developer,supervisor,finisher}.md
   agents/README.md
-  commands/feature.md        # /feature 오케스트레이터
+  commands/feature.md        # /feature — 한 기능 파이프라인
+  commands/build-next.md     # /build-next — 로드맵 자동 진행 상위 루프
 scripts/
   worklog.sh                 # 매 턴: 오늘 섹션 갱신
   worklog-eod.sh             # 23:50: 커밋·푸시·슬랙

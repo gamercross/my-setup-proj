@@ -30,7 +30,8 @@ $ARGUMENTS
    다시 **supervisor** 에게 보낸다. **최대 2회** 반복하고, 그래도 통과 못 하면
    남은 문제를 사용자에게 보고하고 슬랙에 알린 뒤 멈춘다 (커밋하지 않는다).
 
-5. 판정이 `PASS` 이면 **finisher** 에게 위임 — 검증·`docs/progress/PROGRESS.md` 갱신·커밋·푸시.
+5. 판정이 `PASS` 이면 **finisher** 에게 위임 — 검증 게이트([docs/setup/GIT_WORKFLOW.md](../../docs/setup/GIT_WORKFLOW.md)),
+   `docs/progress/PROGRESS.md`·`docs/product/TRACEABILITY.md` 갱신, 커밋·푸시.
    (finisher 가 자체적으로 ✅ 슬랙 알림을 보낸다.)
 
 6. 최종 보고: 커밋 해시, 변경 요약, 다음에 할 일.
@@ -39,3 +40,4 @@ $ARGUMENTS
 - 한 번에 한 에이전트만. 이전 단계 결과를 다음 에이전트에게 명확한 컨텍스트로 넘긴다.
 - 에이전트가 멈추거나 범위 이탈을 보고하면 임의로 진행하지 말고 사용자에게 확인한다.
 - 슬랙 알림 실패는 무시하고 진행한다 (알림은 부가 기능).
+- 상태 전이·정지 조건의 정식 정의는 [docs/setup/ORCHESTRATION.md](../../docs/setup/ORCHESTRATION.md) 를 따른다.

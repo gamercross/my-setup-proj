@@ -49,7 +49,8 @@
 | [ENV_REFERENCE.md](docs/setup/ENV_REFERENCE.md) | `.env` 키별 용도·발급 방법·보안 규칙 |
 | [CONVENTIONS.md](docs/setup/CONVENTIONS.md) | 코드·구조·커밋·에이전트 작업 규칙 (단일 원천) |
 | [GIT_WORKFLOW.md](docs/setup/GIT_WORKFLOW.md) | 에이전트 커밋·푸시 절차, 검증 게이트 해석 |
-| [AUTOMATION.md](docs/setup/AUTOMATION.md) | 에이전트 팀 · `/feature` · 작업로그 · 슬랙 · CI |
+| [ORCHESTRATION.md](docs/setup/ORCHESTRATION.md) | 에이전트 파이프라인 상태 그래프, `/build-next` 자동 진행 |
+| [AUTOMATION.md](docs/setup/AUTOMATION.md) | 에이전트 팀 · `/feature` · `/build-next` · 작업로그 · 슬랙 · CI |
 | [DIAGRAMS.md](docs/setup/DIAGRAMS.md) | Mermaid 다이어그램 작성·열람·이미지 내보내기 |
 | [CLAUDE_INTEGRATION.md](docs/setup/CLAUDE_INTEGRATION.md) | Claude API·MCP 설정, Daily Brief 에이전트 |
 
@@ -116,7 +117,11 @@ my-setup-proj/
 planner(계획) → developer(구현) → supervisor(리뷰·검증) → finisher(커밋·푸시)
 ```
 
-- 규칙: [CONVENTIONS.md](docs/setup/CONVENTIONS.md) · 커밋·푸시: [GIT_WORKFLOW.md](docs/setup/GIT_WORKFLOW.md) · 파이프라인 전체: [AUTOMATION.md](docs/setup/AUTOMATION.md)
+`/build-next` 는 로드맵([DESIGN §8](docs/product/DESIGN.md))을 스스로 따라가며 이 파이프라인을 반복 실행하고,
+사람이 결정할 지점(제안 ADR·API 키·대화형)에서만 멈춘다.
+
+- 상태 그래프·정지 조건: [ORCHESTRATION.md](docs/setup/ORCHESTRATION.md)
+- 규칙: [CONVENTIONS.md](docs/setup/CONVENTIONS.md) · 커밋·푸시: [GIT_WORKFLOW.md](docs/setup/GIT_WORKFLOW.md) · 전체: [AUTOMATION.md](docs/setup/AUTOMATION.md)
 - 미결정 설계 사항은 제안 상태 [ADR](docs/product/adr/) (0009~0012) — 착수 전 결정.
 
 ---

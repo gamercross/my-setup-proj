@@ -78,6 +78,7 @@ npx -y @mermaid-js/mermaid-cli -i flow.mmd -o flow.png -t dark -b transparent
 | [DESIGN.md](../product/DESIGN.md) §6 | 할일 생성 흐름 (sequence) |
 | [DESIGN.md](../product/DESIGN.md) §7 | Daily Brief 생성 흐름 (sequence) |
 | [AUTOMATION.md](AUTOMATION.md) §2 | `/feature` 에이전트 파이프라인 (flowchart) |
+| [ORCHESTRATION.md](ORCHESTRATION.md) §2 | 오케스트레이션 상태 그래프 (stateDiagram) |
 | [ARCHITECTURE.md](../product/ARCHITECTURE.md) | 시스템 구조 · 데이터 흐름 3종 · OAuth 인증 · Git Flow |
 | [AS_IS.md](../product/AS_IS.md) §2.7 | 현재 모듈 의존 관계 (flowchart) |
 | [ROADMAP.md](../product/ROADMAP.md) | 개발 일정 (gantt) · 강의↔프로젝트 동기화 (flowchart) |

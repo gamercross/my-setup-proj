@@ -1,22 +1,24 @@
 # 🤝 에이전트 모임 (Agent Team)
 
-하나의 기능을 네 역할이 나눠 완성합니다.
+하나의 기능을 네 역할이 나눠 완성합니다. 상세 규칙은 [docs/setup/AUTOMATION.md](../../docs/setup/AUTOMATION.md) ·
+오케스트레이션 그래프는 [docs/setup/ORCHESTRATION.md](../../docs/setup/ORCHESTRATION.md).
 
-| 친구 | 파일 | 역할 | 코드 수정 | 커밋 |
-|---|---|---|:---:|:---:|
-| 🧠 생각하는 친구 | `planner.md` | 조사 + 구현 계획 | ✕ | ✕ |
-| 🛠️ 개발하는 친구 | `developer.md` | 계획대로 구현 | ○ | ✕ |
-| 👀 감독하는 친구 | `supervisor.md` | diff 리뷰 + 검증, PASS/FAIL 판정 | ✕ | ✕ |
-| ✅ 마무리하는 친구 | `finisher.md` | verify.sh + PROGRESS.md + 커밋·푸시 | 문서만 | ○ |
+| 친구 | 파일 | 모델 | 역할 | 코드 수정 | 커밋 |
+|---|---|---|---|:---:|:---:|
+| 🧠 생각하는 친구 | `planner.md` | opus | 요구사항 분해 + 구현 계획 | ✕ | ✕ |
+| 🛠️ 개발하는 친구 | `developer.md` | sonnet | 계획대로 구현 (범위 밖 금지) | ○ | ✕ |
+| 👀 감독하는 친구 | `supervisor.md` | opus | diff 리뷰 + 수용기준·테스트 확인 + verify → PASS/CHANGES_NEEDED | ✕ | ✕ |
+| ✅ 마무리하는 친구 | `finisher.md` | sonnet | 검증 게이트 → PROGRESS·TRACEABILITY 갱신 → 커밋·푸시 ([GIT_WORKFLOW.md](../../docs/setup/GIT_WORKFLOW.md)) | 문서만 | ○ |
 
 ## 사용법
 
 ```
-/feature Week 2 - TaskList/ProjectCard/Dashboard 컴포넌트와 tasks/projects 라우트 추가
+/feature Phase A3 - backend supertest 스모크 + agent pytest + CI에 테스트 연결
 ```
 
 조율은 [.claude/commands/feature.md](../commands/feature.md) 가 담당하며,
-`planner → developer → supervisor → (필요 시 반복) → finisher` 순서로 진행됩니다.
+`planner → developer → supervisor → (CHANGES_NEEDED 면 최대 2회 반복) → finisher` 순서로 진행됩니다.
+로드맵을 자동으로 따라가는 상위 루프는 [.claude/commands/build-next.md](../commands/build-next.md).
 
 ## 슬랙 연동
 

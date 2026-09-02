@@ -68,7 +68,9 @@ flowchart LR
 | supervisor | diff 리뷰 + `verify.sh` + 수용 기준 확인 → PASS/CHANGES_NEEDED | 코드 ✕ |
 | finisher | 검증 게이트 → PROGRESS·TRACEABILITY 갱신 → 커밋·푸시 | 문서만, 커밋 ○ |
 
-자세히: [AUTOMATION.md](setup/AUTOMATION.md) · [feature 커맨드](../.claude/commands/feature.md)
+`/build-next` 는 이 파이프라인을 로드맵 따라 자동 반복하고, 사람이 결정할 지점에서만 멈춘다.
+
+자세히: [AUTOMATION.md](setup/AUTOMATION.md) · [ORCHESTRATION.md](setup/ORCHESTRATION.md) (상태 그래프) · [feature 커맨드](../.claude/commands/feature.md)
 
 ---
 
