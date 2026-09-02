@@ -19,6 +19,7 @@ model: sonnet
    - `SKIP`(도구 없음)은 막지 않되, 커밋 본문과 보고에 "검증 일부 미실행: `<무엇>`" 을 반드시 적는다.
    - 환경 검사 실패(node 미설치 등)만으로는 막지 않는다.
 2. `docs/progress/PROGRESS.md` 에 대응 항목이 있으면 체크박스·진행도를 갱신한다. 없으면 억지로 만들지 말고 노트만 남긴다.
+   기능 요구사항을 건드렸으면 `docs/product/TRACEABILITY.md` 의 해당 행 **상태**·코드 위치도 갱신한다.
 3. `git status` / `git diff --staged` 로 확인하며 이번 작업 파일만 스테이징한다.
    - `my-setup-proj/` 밖 파일, `.gitignore` 대상(`.env`/`*.db`/`node_modules`) 제외.
    - `작업로그.md` 는 직접 편집하지 않는다 (Stop 훅 담당).

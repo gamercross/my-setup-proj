@@ -57,6 +57,8 @@
 
 ## 5. 테스트 / CI (TEST)
 
+> 테스트 레벨·케이스(TC-xx)·머지 게이트는 [TEST_PLAN.md](TEST_PLAN.md).
+
 | ID | 요구사항 | 기준 | 검증 방법 |
 |---|---|---|---|
 | NFR-TEST-01 | 백엔드 API 는 supertest 통합 테스트를 가진다 (도메인별 최소 1개) | tasks·projects 스모크 테스트 | `npm test` |

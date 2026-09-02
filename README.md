@@ -28,6 +28,8 @@
 | [DATA_DICTIONARY.md](docs/product/DATA_DICTIONARY.md) | DB 필드 단위 설명 (`backend/db/schema.sql` 기준) |
 | [API_REFERENCE.md](docs/product/API_REFERENCE.md) | 백엔드 REST 엔드포인트별 요청/응답·검증·curl |
 | [UI_SPEC.md](docs/product/UI_SPEC.md) | 화면·컴포넌트·스토어 계약, 와이어프레임 |
+| [TRACEABILITY.md](docs/product/TRACEABILITY.md) | 요구사항↔갭↔설계↔단계↔테스트↔코드 매트릭스 |
+| [TEST_PLAN.md](docs/product/TEST_PLAN.md) | 테스트 레벨·케이스(TC-xx)·머지 게이트 |
 
 ### 2. 어떤 세팅이 필요한가 — [`docs/setup/`](docs/setup/)
 
