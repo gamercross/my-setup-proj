@@ -30,7 +30,16 @@ if ! git diff --quiet -- "$LOG"; then
   git push -q origin "$BRANCH" 2>/dev/null || echo "[worklog-eod] push 실패 — 다음 세션에서 수동 푸시 필요"
 fi
 
-# 3) 오늘 섹션 본문을 슬랙으로
-SUMMARY="$(awk -v t="## $TODAY" '$0==t{f=1;next} /^## /&&f{exit} f' "$LOG" | sed '/^$/d')"
-[ -z "$SUMMARY" ] && SUMMARY="오늘 기록된 커밋이 없습니다."
+# 3) 오늘 요약 블록을 슬랙으로 (커밋 목록이 아니라 요약)
+SUMMARY="$(awk -v s="<!-- SUMMARY:$TODAY -->" -v e="<!-- /SUMMARY:$TODAY -->" '
+  $0==s{grab=1;next} $0==e{grab=0} grab
+' "$LOG" | sed '/^$/d')"
+CNT="$(git log --since="$TODAY 00:00:00" --oneline 2>/dev/null | wc -l | tr -d ' ')"
+if [ -z "$SUMMARY" ] || printf '%s' "$SUMMARY" | grep -q '요약 미작성'; then
+  SUMMARY="(요약 미작성) — 오늘 커밋 ${CNT}개"
+else
+  SUMMARY="$SUMMARY
+
+— 오늘 커밋 ${CNT}개"
+fi
 bash "$ROOT/scripts/slack-notify.sh" "🗒️" "일일 요약 ($TODAY)" "$SUMMARY" || true

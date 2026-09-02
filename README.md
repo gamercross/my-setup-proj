@@ -60,7 +60,7 @@
 |---|---|
 | [PROGRESS.md](docs/progress/PROGRESS.md) | 주간 진행 상황, 체크리스트, 마일스톤 (매주 월요일 갱신) |
 | [COURSE_MAPPING.md](docs/progress/COURSE_MAPPING.md) | 강의 주차 ↔ 프로젝트 작업 매핑 |
-| [작업로그.md](작업로그.md) | 날짜별 커밋 기록 (매 턴 자동 갱신, 매일 23:50 커밋) |
+| [작업로그.md](작업로그.md) | 날짜별 요약(작성) + 커밋(자동). 매 턴 갱신, 매일 23:50 커밋·슬랙 |
 
 ---
 

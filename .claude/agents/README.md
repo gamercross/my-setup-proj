@@ -44,6 +44,6 @@
 
 ## 일일 작업로그
 
-- 매 턴 종료 시 [scripts/worklog.sh](../../scripts/worklog.sh) 가 `작업로그.md` 의 **오늘 섹션**을 최신 커밋으로 다시 만듭니다 (하루 1섹션, 중복 없음).
-- 매일 23:50 [launchd `com.aicomputeros.worklog`](../../scripts/com.aicomputeros.worklog.plist) 가 그날 섹션을 커밋·푸시하고 슬랙에 요약을 보냅니다.
+- 날짜별로 **요약**(finisher·사람 작성) + **커밋**(자동). 매 턴 종료 시 [scripts/worklog.sh](../../scripts/worklog.sh) 가 전체 이력에서 커밋 섹션을 다시 만들고, `<!-- SUMMARY:날짜 -->` 요약 블록은 보존합니다.
+- 매일 23:50 [launchd `com.aicomputeros.worklog`](../../scripts/com.aicomputeros.worklog.plist) 가 커밋·푸시하고 그날 요약을 슬랙에 보냅니다.
 - 설치: `cp scripts/com.aicomputeros.worklog.plist ~/Library/LaunchAgents/ && launchctl load ~/Library/LaunchAgents/com.aicomputeros.worklog.plist`

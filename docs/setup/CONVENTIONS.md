@@ -70,7 +70,7 @@
 | 꼬리말 | `Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>` (+ 세션 지정 시 `Claude-Session:` 줄) |
 | 커밋 단위 | 한 커밋 = 한 논리적 변경. 섞이면 나눈다. |
 | 범위 | `my-setup-proj/` 밖 파일·`.gitignore` 대상 스테이징 금지. |
-| 작업로그 | `작업로그.md` 는 Stop 훅 담당 → **직접 수정하지 않는다.** |
+| 작업로그 | `작업로그.md` 의 **커밋 섹션**은 Stop 훅이 자동 생성 → 손대지 않는다. **요약 블록**(`<!-- SUMMARY:날짜 -->`)은 finisher 가 커밋 시 갱신 ([AUTOMATION.md](AUTOMATION.md) §3). |
 | 금지 | `git push --force`, `main` 강제 푸시, 실행 안 한 검사를 "통과"로 보고 |
 
 ## 6. 브랜치 전략
