@@ -30,10 +30,12 @@
 | `due_date` | TEXT | NULL 허용 | 마감일 (`YYYY-MM-DD`). 없으면 NULL | `"2026-09-05"` |
 | `priority` | TEXT | NOT NULL, 기본 `medium`, CHECK | 우선순위 `high`/`medium`/`low` | `"high"` |
 | `status` | TEXT | NOT NULL, 기본 `todo`, CHECK | 진행 상태 `todo`/`in_progress`/`done` | `"todo"` |
+| `project_id` | INTEGER | NULL 허용, FK → `projects(id)` `ON DELETE SET NULL` | 소속 프로젝트. NULL = 단독 할일 (ADR-0012) | `3` / `null` |
 | `created_at` | TEXT | NOT NULL | 생성 시각 (불변) | `"2026-09-02T09:00:00Z"` |
 | `updated_at` | TEXT | NOT NULL | 마지막 수정 시각 | `"2026-09-02T10:15:00Z"` |
 
-- 인덱스: `idx_tasks_due(due_date)`, `idx_tasks_status(status)` — 마감일·상태 필터/정렬용 (FR-TASK-06).
+- 인덱스: `idx_tasks_due(due_date)`, `idx_tasks_status(status)`, `idx_tasks_project(project_id)` — 필터/정렬용 (FR-TASK-06, FR-PROJ).
+- `project_id` 라우트·API 처리(`POST/PUT` 검증, `GET /api/tasks?project_id=`)는 Phase C2 에서. 스키마엔 이미 반영됨.
 - 완료 토글(FR-TASK-03): `status` 를 `todo` ↔ `done` 전환, `updated_at` 갱신.
 
 ## 2. `projects` — 프로젝트
@@ -113,14 +115,12 @@
 ## 관계 요약
 
 ```
-projects (1) ──< (N) tasks        ※ 현재 스키마에 project_id FK 없음 — 향후 추가 검토 (열린 질문)
+projects (1) ──< (N) tasks        tasks.project_id FK, ON DELETE SET NULL (ADR-0012)
 briefs          독립 (날짜별 1건)
 calendar_events 독립 (외부 캐시)
 emails          독립 (외부 캐시)
 sync_logs       독립 (append-only 로그)
 ```
-
-**확인 필요:** 할일을 프로젝트에 소속시킬지(`tasks.project_id`) 여부는 아직 결정 안 됨. FR-PROJ 세부화 시 정한다.
 
 ---
 

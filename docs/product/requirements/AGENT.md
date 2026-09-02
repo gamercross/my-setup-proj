@@ -122,4 +122,17 @@ NFR-REL-02, NFR-REL-05, NFR-OBS-02
 
 ---
 
+## FR-AGENT-08 — 대시보드 기반 작업 큐 (P2, 향후 확장)
+
+**우선순위** P2 · **목표 주차** W11+ · **상태** ⏳ (자리표시 — [VISION.md](../VISION.md) 향후 확장, [ADR-0013](../adr/ADR-0013-dashboard-agent-queue.md))
+
+**사용자 스토리:** 사용자로서 나는 대시보드에 요청을 입력하면 에이전트가 처리해 결과를 돌려주길 원한다 (Daily Brief 의 일반화).
+
+### 방향 (착수 시 상세화)
+- `agent_jobs` 큐 테이블, `agent/runner.py`, `POST/GET /api/agent/jobs`, UI 입력창+결과 패널.
+- 프롬프트 범위는 **생산성 데이터 분석·요약·제안**으로 제한 (파일·셸·git 접근 없음).
+- 핵심 4기능(FR-TASK/PROJ/CAL/MAIL + FR-AGENT-01~06) 완성 후 착수.
+
+---
+
 **작성:** 2026-09-02

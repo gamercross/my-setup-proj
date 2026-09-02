@@ -1,0 +1,1 @@
+# SQLite DB(app.db)가 여기 생성된다 (DATABASE_PATH 기본값, ADR-0009). 실제 .db 파일은 .gitignore 로 제외.

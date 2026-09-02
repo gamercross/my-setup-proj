@@ -18,8 +18,10 @@ out/
 # 다이어그램 렌더 산출물 (원천은 .md 의 mermaid 블록)
 docs/diagrams/
 
-# 데이터베이스
+# 데이터베이스 (SQLite + WAL 사이드카)
 *.db
+*.db-wal
+*.db-shm
 *.sqlite3
 
 # 로그

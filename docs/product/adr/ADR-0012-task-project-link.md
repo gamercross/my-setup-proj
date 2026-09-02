@@ -1,23 +1,30 @@
 # ADR-0012: 할일–프로젝트 연결 (`tasks.project_id`)
 
-- 상태: **제안** (2026-09-02) — 결정 필요, FR-PROJ 세부화(Week 4) 시
+- 상태: 채택 (2026-09-02)
 - 관련: FR-PROJ, FR-TASK, [DATA_DICTIONARY.md](../DATA_DICTIONARY.md)
 
 ## 맥락
-현재 `tasks` 와 `projects` 는 무관하다. 할일을 프로젝트에 소속시킬지 정해야 한다. GLOSSARY 는 "프로젝트 = 여러 할일을 묶는 상위 단위" 로 정의한다.
+`tasks` 와 `projects` 가 무관하다. GLOSSARY 는 "프로젝트 = 여러 할일을 묶는 상위 단위" 로 정의한다.
 
-## 제안
-**Week 4 에 `tasks.project_id INTEGER REFERENCES projects(id)` (NULL 허용) 추가.** NULL 이면 "프로젝트 없음(단독 할일)".
+## 결정
+**`tasks.project_id INTEGER REFERENCES projects(id) ON DELETE SET NULL` (NULL 허용) 를 추가한다.**
+- NULL = "프로젝트 없음(단독 할일)".
+- 프로젝트 삭제 시 하위 할일은 삭제하지 않고 `project_id` 를 NULL 로 (`ON DELETE SET NULL`).
+- `progress` 는 **당분간 수동 입력** 유지. 하위 할일 완료율 자동 계산은 하지 않는다(나중에 선택적으로).
+- 스키마(`schema.sql`)에는 지금 반영. 라우트·API·필터(`GET /api/tasks?project_id=`) 구현은 **Phase C2**.
 
 ## 근거
 - 정의상 이미 상위/하위 관계다.
-- NULL 허용이면 기존 할일·단독 할일과 호환.
-- 프로젝트 진행도(`progress`)를 하위 할일 완료율로 자동 계산할 여지가 생긴다(선택).
+- NULL 허용이면 기존·단독 할일과 호환.
+- `SET NULL` 이 데이터 손실 없이 가장 안전.
 
-## 미결
-- 지금 추가할지, 실제 UI 요구가 나올 때 추가할지 (YAGNI 관점).
-- 프로젝트 삭제 시 하위 할일 처리: `SET NULL` vs `CASCADE` vs 삭제 차단.
-- `progress` 를 수동 입력으로 둘지, 할일 완료율로 자동 계산할지.
+## 대안
+- 연결 안 함: 프로젝트 개념이 반쪽이 된다.
+- `ON DELETE CASCADE`: 프로젝트 지우면 할일이 사라져 위험.
+- 별도 조인 테이블(다대다): 할일이 한 프로젝트에만 속하면 과설계.
 
-## 결정 시 영향
-- `schema.sql`, `db.js`(`addTask`/`updateTask` 허용 필드), API_REFERENCE(`POST /api/tasks` 필드), 필터(`GET /api/tasks?project_id=`).
+## 결과 / 트레이드오프
+- `backend/db/schema.sql`: `tasks` 에 `project_id` 컬럼 + `idx_tasks_project` 인덱스 + FK.
+- `db.js` `TASK_FIELDS` 에 `project_id` 추가 (C2).
+- `POST /api/tasks` / `PUT` 에서 `project_id` 검증: 존재하는 프로젝트이거나 NULL (C2).
+- `PRAGMA foreign_keys = ON` 이 이미 `schema.sql` 에 있어 FK 가 강제된다.

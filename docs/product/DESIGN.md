@@ -30,10 +30,11 @@
 | [0006](adr/ADR-0006-agent-owns-external-apis.md) | 외부 API 는 Python 에이전트가 전담 | 채택 |
 | [0007](adr/ADR-0007-schedule-launchd-cron.md) | 스케줄은 launchd/cron | 채택 |
 | [0008](adr/ADR-0008-supabase-deferred.md) | Supabase 동기화는 Week 10 이후 | 채택 |
-| [0009](adr/ADR-0009-sqlite-file-location.md) | SQLite 파일 위치 | **제안** |
-| [0010](adr/ADR-0010-vite-dev-vs-build.md) | Vite dev 서버 vs 빌드 산출물 로드 | **제안** |
-| [0011](adr/ADR-0011-agent-backend-db-access.md) | 에이전트–백엔드 SQLite 동시 접근 | **제안** |
-| [0012](adr/ADR-0012-task-project-link.md) | 할일–프로젝트 연결 (`tasks.project_id`) | **제안** |
+| [0009](adr/ADR-0009-sqlite-file-location.md) | SQLite 위치: `DATABASE_PATH` 주입 | 채택 |
+| [0010](adr/ADR-0010-vite-dev-vs-build.md) | Vite: `NODE_ENV` 로 dev/빌드 분기 | 채택 |
+| [0011](adr/ADR-0011-agent-backend-db-access.md) | 에이전트–백엔드 SQLite: WAL + 쓰기 주체 분리 | 채택 |
+| [0012](adr/ADR-0012-task-project-link.md) | `tasks.project_id` FK (`ON DELETE SET NULL`) | 채택 |
+| [0013](adr/ADR-0013-dashboard-agent-queue.md) | 대시보드 에이전트 작업 큐 (향후 확장) | **제안** |
 
 ---
 
@@ -91,7 +92,7 @@ flowchart TB
 테이블: `tasks`, `projects`, `calendar_events`(Google 캐시), `emails`(Gmail 캐시), `briefs`(날짜별 1건), `sync_logs`(append-only).
 
 ```
-projects (1) ──< (N) tasks     ※ tasks.project_id FK 는 미도입 — FR-PROJ 세부화 시 결정
+projects (1) ──< (N) tasks     tasks.project_id FK, ON DELETE SET NULL (ADR-0012)
 calendar_events / emails        외부 API 캐시. event_id / email_id UNIQUE 로 upsert
 briefs                          date UNIQUE. 같은 날 재실행 시 갱신
 sync_logs                       매 동기화 시도 1행 추가
@@ -314,16 +315,18 @@ sequenceDiagram
 
 ---
 
-## 9. 열린 질문 (제안 상태 ADR)
+## 9. 결정 완료 / 남은 열린 질문
 
-각 항목은 착수 전 결정한다. ADR 파일에 제안·근거·미결점이 정리돼 있다.
+Phase A~D 를 막던 제안 ADR 4건은 **2026-09-02 채택**:
 
-| ADR | 질문 | 착수 기한 |
-|---|---|---|
-| [0009](adr/ADR-0009-sqlite-file-location.md) | SQLite 파일 위치 (`backend/data/` vs `userData`, 환경변수 주입) | B2 (Week 5) |
-| [0010](adr/ADR-0010-vite-dev-vs-build.md) | Vite dev 서버 vs 빌드 산출물 (`NODE_ENV` 분기) | B1 (Week 2~3) |
-| [0011](adr/ADR-0011-agent-backend-db-access.md) | 에이전트–백엔드 SQLite 동시 접근 (WAL vs API 경유) | D1 (Week 7) |
-| [0012](adr/ADR-0012-task-project-link.md) | 할일–프로젝트 연결 (`tasks.project_id`) | C2 (Week 4) |
+| ADR | 결정 |
+|---|---|
+| [0009](adr/ADR-0009-sqlite-file-location.md) | `DATABASE_PATH` 환경변수 주입, 기본 `backend/data/app.db`, 패키지는 `userData` |
+| [0010](adr/ADR-0010-vite-dev-vs-build.md) | `NODE_ENV` 분기 — dev=Vite 서버(5173)+HMR, prod=`dist` 빌드 |
+| [0011](adr/ADR-0011-agent-backend-db-access.md) | WAL 모드 + `busy_timeout=5000`, 쓰기 주체 분리(agent=캐시, backend=tasks/projects) |
+| [0012](adr/ADR-0012-task-project-link.md) | `tasks.project_id` FK `ON DELETE SET NULL`, 스키마 반영 완료, 라우트는 C2 |
+
+남은 열린 질문: [ADR-0013](adr/ADR-0013-dashboard-agent-queue.md)(대시보드 에이전트 작업 큐) — 핵심 4기능 완성 후.
 
 ---
 

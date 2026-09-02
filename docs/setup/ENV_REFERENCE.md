@@ -18,8 +18,9 @@
 | `SLACK_WEBHOOK_URL` | ❌ (선택) | 에이전트 진행·EOD 요약 알림용 Incoming Webhook | `scripts/slack-notify.sh`, `worklog-eod.sh` | **조용히 스킵** — 항상 호출해도 안전 |
 | `SUPABASE_URL` | ⏳ (Week 10~) | Supabase 프로젝트 URL | 동기화 모듈(예정) | 클라우드 동기화 비활성, 로컬 전용 |
 | `SUPABASE_KEY` | ⏳ (Week 10~) | Supabase anon/service 키 | 동상 | 동상 |
-| `NODE_ENV` | ✅ | `development` / `production`. 로깅·개발도구·번들 로드 방식 분기 | `backend/src/server.js`, `frontend/src/main.js` | 코드 기본값(`development` 가정) |
+| `NODE_ENV` | ✅ | `development` / `production`. 로깅·개발도구·Vite 로드 방식 분기 (ADR-0010) | `backend/src/server.js`, `frontend/src/main.js` | 코드 기본값(`development` 가정) |
 | `PORT` | ✅ | 백엔드 리슨 포트. 기본 `3000` | `backend/src/server.js` | `3000` 사용 |
+| `DATABASE_PATH` | — | 로컬 SQLite 파일 경로 (ADR-0009). 비우면 `backend/data/app.db` | `backend/db/`, `agent/db.py` | 기본 경로 사용. Electron 패키지는 `main.js` 가 `userData` 로 덮어씀 |
 
 ## 2. 키별 발급 방법
 

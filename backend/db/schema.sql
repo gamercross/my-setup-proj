@@ -4,24 +4,12 @@
 -- 문서(ARCHITECTURE.md, DESIGN.md, DATA_DICTIONARY.md)는 DDL 을 복사하지 말고 이 파일을 참조한다.
 --
 -- 적용: 백엔드 부팅 시 이 스크립트를 그대로 실행한다 (CREATE TABLE IF NOT EXISTS).
+--   경로는 환경변수 DATABASE_PATH (기본 backend/data/app.db) — ADR-0009.
+--   부팅 시 PRAGMA journal_mode=WAL; PRAGMA busy_timeout=5000; 을 함께 설정한다 — ADR-0011.
 -- 날짜/시간 컬럼은 모두 TEXT + ISO8601 (예: '2026-09-02T08:00:00Z', 날짜만이면 '2026-09-02').
 -- Week 10+ Supabase 동기화 시 user_id / is_synced / synced_at 컬럼을 추가한다 (아래 주석 참조).
 
 PRAGMA foreign_keys = ON;
-
--- ── 할일 ────────────────────────────────────────────────
-CREATE TABLE IF NOT EXISTS tasks (
-  id          INTEGER PRIMARY KEY AUTOINCREMENT,
-  title       TEXT    NOT NULL,
-  description TEXT    NOT NULL DEFAULT '',
-  due_date    TEXT,                                    -- 'YYYY-MM-DD', NULL 허용
-  priority    TEXT    NOT NULL DEFAULT 'medium' CHECK (priority IN ('high','medium','low')),
-  status      TEXT    NOT NULL DEFAULT 'todo'   CHECK (status IN ('todo','in_progress','done')),
-  created_at  TEXT    NOT NULL,
-  updated_at  TEXT    NOT NULL
-);
-CREATE INDEX IF NOT EXISTS idx_tasks_due    ON tasks(due_date);
-CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
 
 -- ── 프로젝트 ────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS projects (
@@ -34,6 +22,22 @@ CREATE TABLE IF NOT EXISTS projects (
   updated_at TEXT    NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_projects_notion ON projects(notion_id);
+
+-- ── 할일 ────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS tasks (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  title       TEXT    NOT NULL,
+  description TEXT    NOT NULL DEFAULT '',
+  due_date    TEXT,                                    -- 'YYYY-MM-DD', NULL 허용
+  priority    TEXT    NOT NULL DEFAULT 'medium' CHECK (priority IN ('high','medium','low')),
+  status      TEXT    NOT NULL DEFAULT 'todo'   CHECK (status IN ('todo','in_progress','done')),
+  project_id  INTEGER REFERENCES projects(id) ON DELETE SET NULL,  -- NULL = 단독 할일 (ADR-0012)
+  created_at  TEXT    NOT NULL,
+  updated_at  TEXT    NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_tasks_due     ON tasks(due_date);
+CREATE INDEX IF NOT EXISTS idx_tasks_status  ON tasks(status);
+CREATE INDEX IF NOT EXISTS idx_tasks_project ON tasks(project_id);
 
 -- ── 캘린더 일정 (Google Calendar 캐시) ──────────────────
 CREATE TABLE IF NOT EXISTS calendar_events (

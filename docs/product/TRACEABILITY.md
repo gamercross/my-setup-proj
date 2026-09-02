@@ -107,14 +107,19 @@
 
 ---
 
-## 5. 미결정 (제안 ADR) 이 막고 있는 항목
+## 5. ADR 결정 상태
 
-| 제안 ADR | 막는 FR | 결정 기한 |
+Phase A~D 를 막던 제안 ADR 4건은 **2026-09-02 채택** → `/build-next` 가 A3~C2 를 막힘 없이 진행 가능.
+
+| ADR | 관련 FR | 상태 |
 |---|---|---|
-| [ADR-0009](adr/ADR-0009-sqlite-file-location.md) SQLite 위치 | FR-TASK-05 | B2 |
-| [ADR-0010](adr/ADR-0010-vite-dev-vs-build.md) Vite 로드 방식 | FR-UI-02 | B1 |
-| [ADR-0011](adr/ADR-0011-agent-backend-db-access.md) DB 동시 접근 | FR-AGENT-01 | D1 |
-| [ADR-0012](adr/ADR-0012-task-project-link.md) `tasks.project_id` | FR-PROJ-02 | C2 |
+| [ADR-0009](adr/ADR-0009-sqlite-file-location.md) SQLite 위치 | FR-TASK-05 | ✅ 채택 |
+| [ADR-0010](adr/ADR-0010-vite-dev-vs-build.md) Vite 로드 방식 | FR-UI-02 | ✅ 채택 |
+| [ADR-0011](adr/ADR-0011-agent-backend-db-access.md) DB 동시 접근 | FR-AGENT-01 | ✅ 채택 |
+| [ADR-0012](adr/ADR-0012-task-project-link.md) `tasks.project_id` | FR-PROJ-02 | ✅ 채택 (스키마 반영, 라우트는 C2) |
+| [ADR-0013](adr/ADR-0013-dashboard-agent-queue.md) 에이전트 작업 큐 | FR-AGENT-08 | 제안 — 핵심 4기능 완성 후 |
+
+**남은 정지 요인:** `.env` API 키 (D2 부터 — Google OAuth / Notion / Anthropic), 대화형 준비(OAuth 앱 등록).
 
 ---
 

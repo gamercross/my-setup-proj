@@ -39,7 +39,8 @@
 | [0006](ADR-0006-agent-owns-external-apis.md) | 외부 API 는 Python 에이전트가 전담 | 채택 | FR-AGENT, FR-CAL, FR-MAIL |
 | [0007](ADR-0007-schedule-launchd-cron.md) | 스케줄은 launchd/cron | 채택 | FR-AGENT-05 |
 | [0008](ADR-0008-supabase-deferred.md) | Supabase 클라우드 동기화는 Week 10 이후 | 채택 | FR-SYNC |
-| [0009](ADR-0009-sqlite-file-location.md) | SQLite 파일 위치 | 제안 | FR-TASK-05 |
-| [0010](ADR-0010-vite-dev-vs-build.md) | Vite dev 서버 vs 빌드 산출물 로드 | 제안 | FR-UI-02 |
-| [0011](ADR-0011-agent-backend-db-access.md) | 에이전트–백엔드 SQLite 동시 접근 방식 | 제안 | FR-AGENT-01 |
-| [0012](ADR-0012-task-project-link.md) | 할일–프로젝트 연결(`tasks.project_id`) | 제안 | FR-PROJ |
+| [0009](ADR-0009-sqlite-file-location.md) | SQLite 파일 위치 (`DATABASE_PATH` 주입) | 채택 | FR-TASK-05 |
+| [0010](ADR-0010-vite-dev-vs-build.md) | Vite: `NODE_ENV` 로 dev 서버/빌드 분기 | 채택 | FR-UI-02 |
+| [0011](ADR-0011-agent-backend-db-access.md) | 에이전트–백엔드 SQLite: WAL + 쓰기 주체 분리 | 채택 | FR-AGENT-01 |
+| [0012](ADR-0012-task-project-link.md) | `tasks.project_id` FK (`ON DELETE SET NULL`) | 채택 | FR-PROJ |
+| [0013](ADR-0013-dashboard-agent-queue.md) | 대시보드 기반 에이전트 작업 큐 | 제안 | FR-AGENT-08 |
