@@ -16,7 +16,8 @@
 | — | GIT_WORKFLOW + verify.sh --code-only (계획 외 추가) | ✅ |
 | 4 | API_REFERENCE | ✅ |
 | 4 | UI_SPEC | ✅ |
-| 5 | DESIGN 보강 + ADR 분리 | ⏳ |
+| 5 | DESIGN 보강 + ADR 분리 (adr/0001~0012) | ✅ |
+| — | Mermaid 다이어그램 도입 (DIAGRAMS.md, render-diagrams.sh) | ✅ |
 | 6 | TRACEABILITY, TEST_PLAN | ⏳ |
 | 7 | ONBOARDING, planner.md 갱신 | ⏳ |
 

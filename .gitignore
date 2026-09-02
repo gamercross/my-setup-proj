@@ -15,6 +15,9 @@ build/
 out/
 *.egg-info/
 
+# 다이어그램 렌더 산출물 (원천은 .md 의 mermaid 블록)
+docs/diagrams/
+
 # 데이터베이스
 *.db
 *.sqlite3

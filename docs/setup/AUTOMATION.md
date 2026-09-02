@@ -17,13 +17,13 @@
 | 🧠 생각하는 친구 | `planner.md` | opus | 문서·코드베이스 조사 후 구현 계획 작성 | ✕ | ✕ |
 | 🛠️ 개발하는 친구 | `developer.md` | sonnet | 계획대로만 구현 (범위 밖 금지) | ○ | ✕ |
 | 👀 감독하는 친구 | `supervisor.md` | opus | diff 리뷰 + `verify.sh`·문법 검증, `PASS` / `CHANGES_NEEDED` 판정 | ✕ | ✕ |
-| ✅ 마무리하는 친구 | `finisher.md` | sonnet | `verify.sh` → `PROGRESS.md` 갱신 → 커밋·`git push origin ex` | 문서만 | ○ |
+| ✅ 마무리하는 친구 | `finisher.md` | sonnet | 검증 게이트 → `PROGRESS.md` 갱신 → 커밋·푸시 ([GIT_WORKFLOW.md](GIT_WORKFLOW.md)) | 문서만 | ○ |
 
 핵심 규칙:
 
 - developer 는 `.env` 하드코딩 금지, 한국어 주석, 과설계 금지, **커밋 안 함**.
-- finisher 는 검증 실패 시 커밋하지 않고, `--force` 및 `main` 직접 커밋·새 브랜치 생성 금지.
-- Claude 모델은 최신(`claude-opus-5` 등)을 쓴다.
+- finisher 는 실제로 실행돼 FAIL 난 검사가 있으면 커밋하지 않고, `git push --force`·`main` 강제 푸시 금지. 브랜치 정책은 [GIT_WORKFLOW.md](GIT_WORKFLOW.md) §2.
+- Claude 모델은 최신(`claude-opus-5` 등)을 쓴다. 상세 규칙은 [CONVENTIONS.md](CONVENTIONS.md).
 
 ---
 
@@ -35,13 +35,25 @@
 
 오케스트레이터가 직접 코딩하지 않고 아래 순서로 위임한다:
 
-```
-planner → developer → supervisor → (CHANGES_NEEDED 면 최대 2회 반복) → finisher
+```mermaid
+flowchart LR
+  U([사용자: /feature 설명]) --> O[오케스트레이터]
+  O --> P["🧠 planner<br/>구현 계획"]
+  P --> D["🛠️ developer<br/>계획대로 구현<br/>(커밋 X)"]
+  D --> S{"👀 supervisor<br/>리뷰 + verify"}
+  S -- CHANGES_NEEDED --> D
+  S -- "2회 초과 실패" --> STOP([중단: 사용자 보고<br/>커밋 안 함])
+  S -- PASS --> F["✅ finisher<br/>검증 게이트 → PROGRESS 갱신<br/>→ 커밋 → push"]
+  F --> R([최종 보고:<br/>커밋 해시·변경 요약·다음 할 일])
+  P -. slack .-> SL[(슬랙 알림)]
+  D -. slack .-> SL
+  S -. slack .-> SL
+  F -. slack .-> SL
 ```
 
-- 각 단계 종료 시 슬랙에 한 줄 알림을 보낸다 (`scripts/slack-notify.sh`).
-- supervisor 가 2회 반복 후에도 통과 못 하면 **커밋하지 않고** 사용자에게 보고 후 멈춘다.
-- 최종 보고: 커밋 해시, 변경 요약, 다음 할 일.
+- `CHANGES_NEEDED` 반복은 **최대 2회**. 그래도 통과 못 하면 커밋하지 않고 멈춘다.
+- 각 단계 종료 시 슬랙에 한 줄 알림 (`scripts/slack-notify.sh`, webhook 없으면 조용히 스킵).
+- 커밋·푸시 판정 규칙은 [GIT_WORKFLOW.md](GIT_WORKFLOW.md).
 
 ---
 
@@ -127,6 +139,7 @@ scripts/
   worklog.sh                 # 매 턴: 오늘 섹션 갱신
   worklog-eod.sh             # 23:50: 커밋·푸시·슬랙
   slack-notify.sh            # 슬랙 Incoming Webhook 전송
+  render-diagrams.sh         # docs/ 의 Mermaid 블록 → SVG (docs/setup/DIAGRAMS.md)
   com.aicomputeros.worklog.plist   # launchd 예약 작업
 .github/workflows/test.yml   # 문법 검사 CI
 setup.sh / verify.sh         # 로컬 환경 구축·점검

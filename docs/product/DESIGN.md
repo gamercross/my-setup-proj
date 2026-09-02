@@ -16,47 +16,67 @@
 
 ---
 
-## 2. 아키텍처 결정 (ADR 요약)
+## 2. 아키텍처 결정 (ADR)
 
-| # | 결정 | 이유 | 대안 |
-|---|---|---|---|
-| AD-01 | 프론트 렌더링을 **React + Vite** 로 통일, `renderer.js` 는 React 마운트 부트스트랩으로 축소 | `App.jsx` 등 이미 작성된 컴포넌트 활용, HMR 개발경험 | 바닐라 유지(❌ 확장성), Webpack(무거움) |
-| AD-02 | 로컬 DB 는 **better-sqlite3** (동기 API) | Electron/Node 단일 프로세스, 간단·빠름, 강의 SQLite 실습과 일치 | `node:sqlite`(실험적), Prisma(과함) |
-| AD-03 | 스키마는 `backend/db/schema.sql` 1파일 + 부팅 시 `CREATE TABLE IF NOT EXISTS` 적용 | 마이그레이션 도구 없이 시작, 강의 DDL 실습 | 마이그레이션 라이브러리(나중에) |
-| AD-04 | 프론트 ↔ 백엔드는 **HTTP REST** (`http://localhost:3000/api`), base URL 은 환경설정 | 단순, 강의 웹서버 실습과 일치 | Electron IPC 직결(백엔드 재사용 불가) |
-| AD-05 | 상태관리는 **zustand** (이미 의존성 있음), 서버데이터는 fetch 후 store 에 보관 | 가벼움 | Redux(과함), React Query(나중 고려) |
-| AD-06 | 외부 API(Gmail/Calendar/Notion/Claude)는 **Python agent** 가 전담, 백엔드는 agent 결과를 DB 에서 읽음 | 언어별 SDK 성숙도, 강의 Python 실습 | Node 에서 전부(SDK 미성숙) |
-| AD-07 | 에이전트 스케줄은 **launchd(macOS)/cron(Linux)** | 이미 worklog 에 launchd 사용 중 | APScheduler 상주 프로세스(나중) |
-| AD-08 | 클라우드 동기화(Supabase)는 **Week 10 이후**, 그전까지 로컬 전용 | 핵심 기능 먼저 | 처음부터 클라우드(복잡도↑) |
+결정 하나 = 파일 하나. 전체·배경은 **[adr/](adr/)**.
+
+| # | 결정 | 상태 |
+|---|---|---|
+| [0001](adr/ADR-0001-frontend-react-vite.md) | 프론트 렌더링을 React + Vite 로 통일 | 채택 |
+| [0002](adr/ADR-0002-local-db-better-sqlite3.md) | 로컬 DB 는 better-sqlite3 (동기 API) | 채택 |
+| [0003](adr/ADR-0003-schema-single-file.md) | 스키마는 `schema.sql` 1파일 + `IF NOT EXISTS` | 채택 |
+| [0004](adr/ADR-0004-front-back-http-rest.md) | 프론트↔백엔드는 HTTP REST | 채택 |
+| [0005](adr/ADR-0005-state-zustand.md) | 상태관리는 zustand | 채택 |
+| [0006](adr/ADR-0006-agent-owns-external-apis.md) | 외부 API 는 Python 에이전트가 전담 | 채택 |
+| [0007](adr/ADR-0007-schedule-launchd-cron.md) | 스케줄은 launchd/cron | 채택 |
+| [0008](adr/ADR-0008-supabase-deferred.md) | Supabase 동기화는 Week 10 이후 | 채택 |
+| [0009](adr/ADR-0009-sqlite-file-location.md) | SQLite 파일 위치 | **제안** |
+| [0010](adr/ADR-0010-vite-dev-vs-build.md) | Vite dev 서버 vs 빌드 산출물 로드 | **제안** |
+| [0011](adr/ADR-0011-agent-backend-db-access.md) | 에이전트–백엔드 SQLite 동시 접근 | **제안** |
+| [0012](adr/ADR-0012-task-project-link.md) | 할일–프로젝트 연결 (`tasks.project_id`) | **제안** |
 
 ---
 
 ## 3. 목표 아키텍처 (TO-BE)
 
-```
-┌───────────────────────────── Electron App ─────────────────────────────┐
-│  main.js (창·수명주기)                                                  │
-│    └─ preload.js (contextBridge: appInfo, apiBaseUrl)                   │
-│         └─ renderer → React(Vite 번들)                                  │
-│              App → Dashboard → { TaskList, ProjectCard, CalendarWidget, │
-│                                  BriefCard }                            │
-│              store/ (zustand)  ── fetch ──┐                             │
-└───────────────────────────────────────────┼───────────────────────────┘
-                                            │ HTTP REST  :3000/api
-┌───────────────────────────── Backend (Express) ───────────────────────┐
-│  server.js → middlewares(cors, logger, json, errorHandler)            │
-│    routes/  tasks · projects · calendar · mail · brief                │
-│      └─ services/  taskService · projectService · briefService ...    │
-│           └─ db/  index.js (better-sqlite3)  ← schema.sql             │
-└──────────────────────────────────┬───────────────────────────────────┘
-                                   │ 같은 SQLite 파일 (읽기/쓰기)
-┌───────────────────────── Python Agent ───────────────────────────────┐
-│  daily_brief.py  (launchd/cron, 매일 08:00)                          │
-│    services/ gmail · calendar · notion · claude                      │
-│    → 수집 → claude.ask() → SQLite(brief, emails, calendar_events)     │
-│           → notion.save_to_notion()                                  │
-└─────────────────────────────────────────────────────────────────────┘
-        (Week 10+) SQLite ⇄ Supabase 증분 동기화
+> 다이어그램은 Mermaid. GitHub 에서 자동 렌더된다. 로컬/오프라인 이미지는 [DIAGRAMS.md](../setup/DIAGRAMS.md) 참고.
+
+```mermaid
+flowchart TB
+  subgraph EL["Electron App (frontend/)"]
+    MAIN["main.js<br/>창·수명주기"]
+    PRE["preload.js<br/>contextBridge: appInfo, apiBaseUrl"]
+    subgraph R["renderer (React + Vite)"]
+      APP["App"] --> DASH["Dashboard<br/>(zustand store 구독)"]
+      DASH --> TL["TaskList / TaskForm"]
+      DASH --> PC["ProjectCard"]
+      DASH --> CW["CalendarWidget"]
+      DASH --> BC["BriefCard"]
+      DASH --> EB["ErrorBanner"]
+    end
+    MAIN --> PRE --> R
+  end
+
+  subgraph BE["Backend (backend/, Express)"]
+    SRV["server.js<br/>cors → json → logger → routes → 404 → errorHandler"]
+    SRV --> RT["routes/<br/>tasks · projects · calendar · mail · brief · sync"]
+    RT --> SVC["services/"]
+    SVC --> DBM["db/ (better-sqlite3)"]
+  end
+
+  subgraph AG["Python Agent (agent/)"]
+    DB2["daily_brief.py<br/>launchd/cron 매일 08:00"]
+    DB2 --> GS["services/ gmail · calendar · notion · claude"]
+    DB2 --> ADB["db.py"]
+  end
+
+  SQLITE[("SQLite<br/>schema.sql")]
+
+  R -- "HTTP REST :3000/api" --> SRV
+  DBM --> SQLITE
+  ADB --> SQLITE
+  GS -. "OAuth / HTTPS" .-> EXT["Gmail · Google Calendar<br/>Notion · Claude API"]
+  SQLITE -. "Week 10+ 증분 동기화" .-> SUPA[("Supabase")]
 ```
 
 핵심 변경점: **① renderer 를 React 로 교체, ② db 를 SQLite 로 교체, ③ 프론트–백엔드 fetch 연결, ④ agent 가 같은 SQLite 에 씀.**
@@ -92,23 +112,13 @@ sync_logs                       매 동기화 시도 1행 추가
 
 Base: `http://localhost:3000/api` · 응답은 JSON · 오류는 `{ "error": "메시지" }`
 
-| 메서드 | 경로 | 설명 | 요청 본문 | 성공 | FR |
-|---|---|---|---|---|---|
-| GET | `/health` | 상태 확인 | — | `{ ok: true }` | — |
-| GET | `/tasks` | 할일 목록 (쿼리: `status`,`priority`,`due`) | — | `{ tasks: [...] }` | FR-TASK-02/06 |
-| GET | `/tasks/:id` | 단건 | — | `{ task }` / 404 | — |
-| POST | `/tasks` | 생성 | `{title, description?, due_date?, priority?}` | 201 `{ task }` | FR-TASK-01 |
-| PUT | `/tasks/:id` | 수정 (부분) | 허용 필드 | `{ task }` / 404 | FR-TASK-03/04 |
-| DELETE | `/tasks/:id` | 삭제 | — | `{ ok: true }` / 404 | FR-TASK-04 |
-| GET/POST/PUT/DELETE | `/projects...` | tasks 와 동일 구조 | | | FR-PROJ-01/02 |
-| GET | `/calendar/events` | 캐시된 일정 (쿼리: `from`,`to`) | — | `{ events: [...] }` | FR-CAL-01 |
-| GET | `/mail/unread` | 캐시된 미읽은 메일 | — | `{ emails: [...] }` | FR-MAIL-01 |
-| GET | `/brief/today` | 오늘 브리핑 | — | `{ brief }` / 404 | FR-AGENT-04 |
-| GET | `/sync/logs` | 동기화 이력 | — | `{ logs: [...] }` | FR-SYNC-03 |
+엔드포인트 범위: `/health`, `/tasks`(CRUD), `/projects`(CRUD), `/calendar/events`, `/mail/unread`, `/brief/today`, `/sync/logs`.
+요청·응답 예시, 검증 규칙, 상태코드, 현재 구현과의 차이는 [API_REFERENCE.md](API_REFERENCE.md).
 
-검증 규칙(NFR-SEC-07): `title` 필수, `priority ∈ {high,medium,low}`, `status ∈ {todo,in_progress,done}`, `progress ∈ [0,100]`. 위반 시 400.
-
-미들웨어 순서: `cors(로컬 오리진만)` → `express.json()` → `requestLogger` → 라우트 → `404` → `errorHandler`.
+설계 규칙:
+- 검증(NFR-SEC-07): `title`/`name` 필수, `priority ∈ {high,medium,low}`, `status ∈ {todo,in_progress,done}`, `progress ∈ [0,100]`. 위반 시 400.
+- 미들웨어 순서: `cors(로컬 오리진만)` → `express.json()` → `requestLogger` → 라우트 → `404` → `errorHandler`.
+- `calendar`/`mail`/`brief`/`sync` 는 읽기 전용 — 데이터는 에이전트가 SQLite 캐시 테이블에 씀 ([ADR-0006](adr/ADR-0006-agent-owns-external-apis.md)).
 
 ---
 
@@ -142,6 +152,39 @@ Vite 설정: `frontend/vite.config.js`, `base: './'` (Electron file:// 로드), 
 
 > ⚠️ `index.html` CSP 에 `connect-src` 가 없어 백엔드 `fetch` 가 차단된다. B1 에서 `connect-src 'self' http://localhost:3000` (+ dev `ws:`) 를 반드시 추가한다.
 
+### 흐름: 할일 생성 (FR-TASK-01)
+
+```mermaid
+sequenceDiagram
+  actor U as 사용자
+  participant F as TaskForm (React)
+  participant S as useTaskStore
+  participant C as api/client.js
+  participant R as routes/tasks.js
+  participant SV as services
+  participant DB as db (SQLite)
+
+  U->>F: 제목·우선순위 입력 후 제출
+  F->>S: addTask(payload)
+  S->>C: POST /api/tasks
+  C->>R: HTTP 요청
+  R->>R: 입력 검증 (title 필수 등)
+  alt 검증 실패
+    R-->>C: 400 { error }
+    C-->>S: 정규화된 에러 문자열
+    S-->>F: error 상태 → ErrorBanner
+  else 정상
+    R->>SV: createTask(payload)
+    SV->>DB: INSERT (created_at/updated_at 서버가 채움)
+    DB-->>SV: task 행
+    SV-->>R: task
+    R-->>C: 201 { task }
+    C-->>S: task
+    S->>S: tasks 배열에 append
+    S-->>F: 목록 갱신, 폼 초기화
+  end
+```
+
 ---
 
 ## 7. 에이전트 설계
@@ -165,11 +208,68 @@ agent/
 3. `claude.ask(context, system=SYSTEM_PROMPT)` — 실패 시 로그+종료(앱 영향 없음)
 4. 결과를 `briefs` 테이블 저장 + `notion.save_to_notion()` → `notion_url` 갱신
 
+### 흐름: Daily Brief 생성 (FR-AGENT-01~06)
+
+```mermaid
+sequenceDiagram
+  participant SCH as launchd/cron (08:00)
+  participant DB2 as daily_brief.py
+  participant GM as gmail / calendar
+  participant DBP as db.py (SQLite)
+  participant CL as claude.py → Claude API
+  participant NO as notion.py
+
+  SCH->>DB2: 실행
+  DB2->>GM: 수집 요청
+  alt 외부 API 실패
+    GM-->>DB2: 오류
+    DB2->>DBP: sync_logs('gmail','failed', 원인)
+    Note over DB2: 해당 소스는 "없음"으로 대체, 계속 진행
+  else 정상
+    GM-->>DB2: 이메일·일정
+    DB2->>DBP: emails / calendar_events upsert + sync_logs(success)
+  end
+  DB2->>DBP: 오늘 tasks 조회
+  DBP-->>DB2: 할일 목록
+  DB2->>DB2: build_context()
+  DB2->>CL: ask(context, system=SYSTEM_PROMPT)
+  alt Claude 실패
+    CL-->>DB2: 예외
+    DB2-->>SCH: "⚠️ Claude 호출 실패: 원인" (비정상 종료코드, 크래시 없음)
+  else 정상
+    CL-->>DB2: 브리핑 텍스트
+    DB2->>DBP: briefs upsert (date 기준)
+    DB2->>NO: save_to_notion(브리핑)
+    alt Notion 실패
+      NO-->>DB2: 오류
+      DB2->>DBP: sync_logs('notion','failed', 원인)
+      Note over DB2: 로컬 저장은 유지, "Notion 저장만 실패"로 보고
+    else 정상
+      NO-->>DB2: 페이지 URL
+      DB2->>DBP: briefs.notion_url 갱신
+    end
+  end
+```
+
 ---
 
 ## 8. 단계별 구현 계획 (`/feature` 단위)
 
 각 행 = `/feature` 1회. "커버 요구사항" 은 완료 시 상태를 갱신할 ID.
+
+### Week ↔ Phase 대응
+
+세 가지 넘버링을 맞춘다: 강의 "Week"([ROADMAP.md](ROADMAP.md)) · 요구사항 "목표 주차"([REQUIREMENTS_FUNCTIONAL.md](REQUIREMENTS_FUNCTIONAL.md)) · 설계 "Phase".
+
+| Phase | 강의 Week | 주제 | 상태 |
+|---|---|---|---|
+| A | Week 1~2 | 기반 정리 (환경·테스트·커밋 체계) | 🚧 |
+| B | Week 2~3 | 프론트 React 연결 + SQLite + 할일 CRUD | ⏳ |
+| C | Week 4~5 | 백엔드 미들웨어 · 프로젝트 · 캘린더 | ⏳ |
+| D | Week 6~7 | 에이전트 (수집·Claude·Notion·스케줄) | ⏳ |
+| — | Week 8 | 중간고사 · 과제 1 발표 | ⏳ |
+| E | Week 9~13 | 다중 사용자 · Supabase · Docker · 최적화 | ⏳ |
+| — | Week 14~15 | 기말고사 · 과제 2 · 최종 발표 | ⏳ |
 
 ### Phase A — 기반 정리 (Week 1 잔여)
 
@@ -214,11 +314,16 @@ agent/
 
 ---
 
-## 9. 열린 질문
+## 9. 열린 질문 (제안 상태 ADR)
 
-- Vite dev 서버 vs 빌드 산출물 로드 — 개발 편의(HMR) 위해 `NODE_ENV` 로 분기할지?
-- SQLite 파일 위치 — `backend/data/app.db` vs OS 사용자 데이터 디렉토리(`app.getPath('userData')`)? 배포 시 후자가 맞음.
-- agent 와 backend 가 같은 SQLite 에 동시 쓰기 — WAL 모드로 충분한지, 아니면 agent 는 backend API 경유로 쓸지.
+각 항목은 착수 전 결정한다. ADR 파일에 제안·근거·미결점이 정리돼 있다.
+
+| ADR | 질문 | 착수 기한 |
+|---|---|---|
+| [0009](adr/ADR-0009-sqlite-file-location.md) | SQLite 파일 위치 (`backend/data/` vs `userData`, 환경변수 주입) | B2 (Week 5) |
+| [0010](adr/ADR-0010-vite-dev-vs-build.md) | Vite dev 서버 vs 빌드 산출물 (`NODE_ENV` 분기) | B1 (Week 2~3) |
+| [0011](adr/ADR-0011-agent-backend-db-access.md) | 에이전트–백엔드 SQLite 동시 접근 (WAL vs API 경유) | D1 (Week 7) |
+| [0012](adr/ADR-0012-task-project-link.md) | 할일–프로젝트 연결 (`tasks.project_id`) | C2 (Week 4) |
 
 ---
 

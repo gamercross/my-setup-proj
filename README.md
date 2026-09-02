@@ -21,7 +21,8 @@
 | [AS_IS.md](docs/product/AS_IS.md) | 현행 시스템 분석 (구현 상태, 갭) |
 | [REQUIREMENTS_FUNCTIONAL.md](docs/product/REQUIREMENTS_FUNCTIONAL.md) | 기능 요구사항 (FR-xx) 요약표 + [requirements/](docs/product/requirements/) 도메인별 상세 |
 | [REQUIREMENTS_NONFUNCTIONAL.md](docs/product/REQUIREMENTS_NONFUNCTIONAL.md) | 비기능 요구사항 (NFR-xx) |
-| [DESIGN.md](docs/product/DESIGN.md) | 아키텍처 결정, 데이터 모델, API 명세, 단계별 구현 계획 |
+| [DESIGN.md](docs/product/DESIGN.md) | 아키텍처(다이어그램)·데이터 모델·흐름 시퀀스·단계별 구현 계획 |
+| [adr/](docs/product/adr/) | 아키텍처 결정 기록 (ADR-0001~) |
 | [DOC_PLAN.md](docs/product/DOC_PLAN.md) | 문서 세분화 계획 및 작성 프롬프트 |
 | [GLOSSARY.md](docs/product/GLOSSARY.md) | 도메인·상태·시스템 용어 정의 |
 | [DATA_DICTIONARY.md](docs/product/DATA_DICTIONARY.md) | DB 필드 단위 설명 (`backend/db/schema.sql` 기준) |
@@ -35,6 +36,7 @@
 | [SETUP.md](docs/setup/SETUP.md) | 개발 환경 구축 (Node.js / Python / Git / API 키) |
 | [CONVENTIONS.md](docs/setup/CONVENTIONS.md) | 코드·구조·커밋·에이전트 작업 규칙 (단일 원천) |
 | [GIT_WORKFLOW.md](docs/setup/GIT_WORKFLOW.md) | 에이전트 커밋·푸시 절차, 검증 게이트 해석 |
+| [DIAGRAMS.md](docs/setup/DIAGRAMS.md) | Mermaid 다이어그램 작성·열람·이미지 내보내기 |
 | [ENV_REFERENCE.md](docs/setup/ENV_REFERENCE.md) | `.env` 키별 용도·발급 방법·보안 규칙 |
 | [CLAUDE_INTEGRATION.md](docs/setup/CLAUDE_INTEGRATION.md) | Claude API·MCP 설정, Daily Brief 에이전트 |
 | [AUTOMATION.md](docs/setup/AUTOMATION.md) | Claude Code 자동화 (에이전트 팀 · `/feature` · 작업로그 · 슬랙 · CI) |
