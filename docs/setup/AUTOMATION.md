@@ -3,7 +3,7 @@
 > 이 프로젝트에 붙어 있는 "사람이 안 해도 되는 일" 목록.
 > 에이전트 팀 · `/feature` 파이프라인 · 작업로그 자동화 · 슬랙 알림 · GitHub Actions 로 구성된다.
 
-주간 계획은 [PROGRESS.md](PROGRESS.md), 일일 커밋 기록은 [작업로그.md](작업로그.md) 를 본다.
+주간 계획은 [PROGRESS.md](../progress/PROGRESS.md), 일일 커밋 기록은 [작업로그.md](../../작업로그.md) 를 본다.
 
 ---
 
@@ -75,7 +75,7 @@ launchctl load ~/Library/LaunchAgents/com.aicomputeros.worklog.plist
 
 해제는 `launchctl unload ...` 후 파일 삭제. 시간 변경은 plist 의 `Hour`/`Minute` 수정 후 unload → load.
 
-> ⚠️ plist 안의 경로가 `/Users/jaeyeup/2026project/my-setup-proj` 로 하드코딩돼 있다.
+> ⚠️ plist 안의 경로가 `/Users/jaeyeup/proj/my-setup-proj/my-setup-proj` 로 하드코딩돼 있다.
 > 다른 컴퓨터·경로에서는 plist 의 `ProgramArguments` / `WorkingDirectory` / 로그 경로를 고쳐야 한다.
 
 ---
@@ -109,7 +109,9 @@ bash scripts/slack-notify.sh "✅" "마무리하는 친구" "커밋 abc123 푸�
 | 스크립트 | 용도 |
 |---|---|
 | `setup.sh` | frontend/backend `npm install` + agent Python venv 생성·설치, `.env` 없으면 `.env.example` 복사 |
-| `verify.sh` | node/npm/python 설치 여부, 의존성 디렉토리, 주요 파일 문법 확인. 실패 시 exit 1 |
+| `verify.sh` | 환경(설치·의존성) + 주요 파일 문법 확인. `--code-only` 로 문법만. 검사 도구가 없으면 SKIP(실패 아님). 커밋 판정 규칙은 [GIT_WORKFLOW.md](GIT_WORKFLOW.md) |
+
+커밋·푸시 시 에이전트가 따르는 규칙은 [GIT_WORKFLOW.md](GIT_WORKFLOW.md) 에 정리돼 있다 (검증 게이트 해석, 브랜치 정책, 미프로비저닝 머신 처리, 사후 CI 확인).
 
 ---
 

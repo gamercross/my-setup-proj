@@ -140,7 +140,10 @@ agent/
   - 가볍고 빠름
   - 앱과 함께 배포
   
-**테이블 구조:**
+> ⚠️ 아래 DDL 은 초기 설계 스케치다. **실제 스키마의 단일 원천은 [`backend/db/schema.sql`](../../backend/db/schema.sql)**,
+> 필드 설명은 [DATA_DICTIONARY.md](DATA_DICTIONARY.md) 를 본다. 둘이 다르면 `schema.sql` 이 맞다.
+
+**테이블 구조(스케치):**
 ```sql
 -- 할일 (tasks)
 CREATE TABLE tasks (
@@ -549,8 +552,8 @@ v1.0.0          # 정식 버전
 ## 🎯 다음 단계
 
 이 아키텍처를 바탕으로:
-1. ✅ SETUP.md에서 개발 환경 설정
-2. ✅ ROADMAP.md에서 구현 순서 확인
+1. ✅ [SETUP.md](../setup/SETUP.md) 에서 개발 환경 설정
+2. ✅ [ROADMAP.md](ROADMAP.md) 에서 구현 순서 확인
 3. ✅ 첫 번째 구현 시작
 
 **마지막 업데이트:** 2026-09-02

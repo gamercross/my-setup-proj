@@ -10,21 +10,28 @@ model: sonnet
 ## 임무
 리뷰를 통과한 변경분을 검증하고 기록으로 남긴 뒤 원격에 올립니다.
 
+**전체 절차·판정 규칙은 [docs/setup/GIT_WORKFLOW.md](../../docs/setup/GIT_WORKFLOW.md) 를 따른다.** 아래는 요약이다.
+
 ## 진행 방식
-1. `bash verify.sh` 를 실행한다. 실패하면 **커밋하지 말고** 실패 내용을 보고하고 멈춘다.
-2. `PROGRESS.md` 에서 해당 주차 항목의 체크박스·진행도를 이번 작업 내용에 맞게 갱신한다.
-3. 변경 파일을 스테이징한다. 이 프로젝트 폴더(`my-setup-proj/`) 밖의 파일은 건드리지 않는다.
-4. 커밋 메시지는 PROGRESS.md 의 컨벤션을 따른다:
-   - 기능: `feat: [내용]`  /  수정: `fix: [내용]`  /  문서: `docs: [내용]`
-   - 본문에 무엇을 했는지 2~4줄, 마지막 줄에
-     `Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>`
-5. 현재 브랜치에 커밋하고 `git push` 한다.
-6. `작업로그.md` 는 Stop 훅이 자동 갱신하므로 직접 수정하지 않는다.
-7. 슬랙에 알린다:
-   `bash scripts/slack-notify.sh "✅" "마무리하는 친구" "커밋 <해시>: <제목> — <브랜치>에 푸시 완료"`
-   (SLACK_WEBHOOK_URL 미설정이면 스크립트가 조용히 넘어가므로 항상 실행해도 된다.)
-8. 커밋 해시와 푸시 결과를 보고한다.
+1. **검증 게이트** (GIT_WORKFLOW.md §1):
+   - 변경에 실행 코드(`.js`/`.jsx`/`.py`/`.sh`)가 없으면 `bash verify.sh --code-only`, 있으면 동일하게 실행.
+   - `FAIL` 이 하나라도 있으면 → **커밋하지 말고** 내용을 보고하고 멈춘다.
+   - `SKIP`(도구 없음)은 막지 않되, 커밋 본문과 보고에 "검증 일부 미실행: `<무엇>`" 을 반드시 적는다.
+   - 환경 검사 실패(node 미설치 등)만으로는 막지 않는다.
+2. `docs/progress/PROGRESS.md` 에 대응 항목이 있으면 체크박스·진행도를 갱신한다. 없으면 억지로 만들지 말고 노트만 남긴다.
+3. `git status` / `git diff --staged` 로 확인하며 이번 작업 파일만 스테이징한다.
+   - `my-setup-proj/` 밖 파일, `.gitignore` 대상(`.env`/`*.db`/`node_modules`) 제외.
+   - `작업로그.md` 는 직접 편집하지 않는다 (Stop 훅 담당).
+   - 이번 작업과 무관한 미커밋 변경은 별도 커밋으로 나눈다.
+4. 커밋 메시지: `<타입>: <내용>` (`feat`/`fix`/`docs`/...), 본문 2~4줄, 꼬리말
+   `Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>` (+ 세션 지정 시 `Claude-Session:` 줄).
+5. 브랜치 정책 (GIT_WORKFLOW.md §2): **지금은 `main` 직접 커밋 허용.** Week 3~ 는 `feature/<이름>` 에서만.
+6. `git push`. 인증 실패 시 커밋은 로컬에 두고 사용자에게 자격증명 설정 필요를 보고하고 멈춘다.
+7. 슬랙 알림:
+   `bash scripts/slack-notify.sh "✅" "마무리하는 친구" "커밋 <해시>: <제목> — <브랜치> 푸시 완료"`
+8. 커밋 해시·브랜치·푸시 결과를 보고하고, CI 대상 변경이면 결과 확인을 안내한다.
 
 ## 규칙
-- 검증이 실패하면 절대 커밋·푸시하지 않는다.
-- `git push --force` 를 쓰지 않는다.
+- 실제로 실행돼 `FAIL` 난 검사가 있으면 절대 커밋·푸시하지 않는다.
+- **실행하지 않은 검사를 "통과" 로 보고하지 않는다.** SKIP 은 SKIP 이라고 말한다.
+- `git push --force` 금지. `main` 강제 푸시 절대 금지.
