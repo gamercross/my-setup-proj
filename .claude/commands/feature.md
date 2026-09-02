@@ -30,7 +30,7 @@ $ARGUMENTS
    다시 **supervisor** 에게 보낸다. **최대 2회** 반복하고, 그래도 통과 못 하면
    남은 문제를 사용자에게 보고하고 슬랙에 알린 뒤 멈춘다 (커밋하지 않는다).
 
-5. 판정이 `PASS` 이면 **finisher** 에게 위임 — 검증·PROGRESS.md 갱신·커밋·푸시.
+5. 판정이 `PASS` 이면 **finisher** 에게 위임 — 검증·`docs/progress/PROGRESS.md` 갱신·커밋·푸시.
    (finisher 가 자체적으로 ✅ 슬랙 알림을 보낸다.)
 
 6. 최종 보고: 커밋 해시, 변경 요약, 다음에 할 일.

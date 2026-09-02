@@ -545,7 +545,7 @@ if __name__ == "__main__":
 
 ```bash
 # 매일 아침 8시에 실행
-0 8 * * * cd ~/ai-computer-os && source venv/bin/activate && python agent/daily_brief.py
+0 8 * * * cd ~/my-setup-proj && source venv/bin/activate && python agent/daily_brief.py
 
 # 또는 APScheduler 사용 (Python)
 ```
@@ -667,4 +667,4 @@ print(f"Estimated cost: ${total:.4f}")
 ---
 
 **마지막 업데이트:** 2026-09-02  
-**다음 단계:** COURSE_MAPPING.md에서 강의 연결 확인
+**다음 단계:** [COURSE_MAPPING.md](../progress/COURSE_MAPPING.md) 에서 강의 연결 확인

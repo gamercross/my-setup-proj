@@ -20,11 +20,11 @@
   <key>ProgramArguments</key>
   <array>
     <string>/bin/bash</string>
-    <string>/Users/jaeyeup/2026project/my-setup-proj/scripts/worklog-eod.sh</string>
+    <string>/Users/jaeyeup/proj/my-setup-proj/my-setup-proj/scripts/worklog-eod.sh</string>
   </array>
 
   <key>WorkingDirectory</key>
-  <string>/Users/jaeyeup/2026project/my-setup-proj</string>
+  <string>/Users/jaeyeup/proj/my-setup-proj/my-setup-proj</string>
 
   <key>EnvironmentVariables</key>
   <dict>
@@ -41,8 +41,8 @@
   </dict>
 
   <key>StandardOutPath</key>
-  <string>/Users/jaeyeup/2026project/my-setup-proj/scripts/worklog-eod.log</string>
+  <string>/Users/jaeyeup/proj/my-setup-proj/my-setup-proj/scripts/worklog-eod.log</string>
   <key>StandardErrorPath</key>
-  <string>/Users/jaeyeup/2026project/my-setup-proj/scripts/worklog-eod.log</string>
+  <string>/Users/jaeyeup/proj/my-setup-proj/my-setup-proj/scripts/worklog-eod.log</string>
 </dict>
 </plist>

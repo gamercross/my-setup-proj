@@ -486,10 +486,10 @@ git commit -m "Week X: [기능명] 구현/수정"
 
 ## 🔗 연관 문서
 
-- **README.md** - 프로젝트 개요
-- **ARCHITECTURE.md** - 기술 스택
-- **PROGRESS.md** - 실제 진행 상황 (매주 업데이트)
-- **COURSE_MAPPING.md** - 강의 연결
+- [README.md](../../README.md) - 프로젝트 개요
+- [ARCHITECTURE.md](ARCHITECTURE.md) - 기술 스택
+- [PROGRESS.md](../progress/PROGRESS.md) - 실제 진행 상황 (매주 업데이트)
+- [COURSE_MAPPING.md](../progress/COURSE_MAPPING.md) - 강의 연결
 
 ---
 

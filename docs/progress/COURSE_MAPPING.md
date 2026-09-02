@@ -44,7 +44,7 @@
 당신의 프로젝트:
 
 1. Ubuntu 폴더 구조 생성
-   ~/ai-computer-os/
+   ~/my-setup-proj/
    ├── frontend/
    ├── backend/
    ├── agent/
@@ -91,7 +91,7 @@
 당신의 프로젝트:
 
 1. Node.JS 프로젝트 초기화
-   cd ~/ai-computer-os/frontend
+   cd ~/my-setup-proj/frontend
    npm init
    npm install react react-dom electron
 
@@ -151,7 +151,7 @@
    source ~/.bashrc
 
 2. SQLite 데이터베이스 생성
-   cd ~/ai-computer-os
+   cd ~/my-setup-proj
    sqlite3 app.db
    
    # 테이블 생성
@@ -167,13 +167,13 @@
    SELECT * FROM tasks;
 
 3. alias 설정 (선택)
-   alias ai-start='cd ~/ai-computer-os && npm start'
-   alias ai-db='sqlite3 ~/ai-computer-os/app.db'
+   alias ai-start='cd ~/my-setup-proj && npm start'
+   alias ai-db='sqlite3 ~/my-setup-proj/app.db'
 
 4. 셸 스크립트 작성
    # setup.sh
    #!/bin/bash
-   cd ~/ai-computer-os
+   cd ~/my-setup-proj
    npm install
    npm start
    
@@ -236,7 +236,7 @@
    crontab -e
    
    # 매일 아침 8시에 실행
-   0 8 * * * cd ~/ai-computer-os && python agent/daily_brief.py
+   0 8 * * * cd ~/my-setup-proj && python agent/daily_brief.py
    
    # Cron 작업 확인
    crontab -l
@@ -314,27 +314,27 @@
 
 2. 프로젝트 백업/배포
    # 프로젝트 아카이브 생성
-   tar cvf ai-computer-os.tar \
+   tar cvf my-setup-proj.tar \
      --exclude=node_modules \
      --exclude=venv \
      --exclude=.git \
-     ~/ai-computer-os
+     ~/my-setup-proj
    
    # 압축
-   gzip ai-computer-os.tar
+   gzip my-setup-proj.tar
    
    # 다른 곳에 복사
-   cp ai-computer-os.tar.gz /backup/
+   cp my-setup-proj.tar.gz /backup/
    
    # 복원
-   tar xzf ai-computer-os.tar.gz
+   tar xzf my-setup-proj.tar.gz
 
 3. 디스크 사용량 모니터링
    # 전체 사용량
    df -h
    
    # 폴더별 사용량
-   du -sh ~/ai-computer-os/*
+   du -sh ~/my-setup-proj/*
    
    # 가장 큰 파일 찾기
    find . -type f -exec ls -lh {} \; | sort -k5 -hr | head -20
@@ -434,7 +434,7 @@ sudo passwd testuser
 sudo usermod -aG sudoers testuser
 
 # 권한 테스트
-sudo -u testuser ~/ai-computer-os/app
+sudo -u testuser ~/my-setup-proj/app
 ```
 
 #### Week 11: 네트워크 & Mini Coding Agent ⭐
@@ -498,8 +498,8 @@ sudo systemctl enable nginx # 서비스 관리
    CMD ["npm", "start"]
 
 2. 빌드 및 실행
-   docker build -t ai-computer-os .
-   docker run -p 3000:3000 ai-computer-os
+   docker build -t my-setup-proj .
+   docker run -p 3000:3000 my-setup-proj
 
 3. Nginx 리버스 프록시
    server {
@@ -703,7 +703,7 @@ Week 14-15: 기말고사 + 과제 2
 프로젝트 완료 후:
 
 ```
-ai-computer-os/
+my-setup-proj/
 ├── README.md (프로젝트 설명)
 ├── ARCHITECTURE.md (기술 스택)
 ├── ROADMAP.md (개발 계획)
@@ -725,4 +725,4 @@ ai-computer-os/
 ---
 
 **마지막 업데이트:** 2026-09-02  
-**다음 단계:** PROGRESS.md에서 주간 진행 상황 추적
+**다음 단계:** [PROGRESS.md](PROGRESS.md) 에서 주간 진행 상황 추적

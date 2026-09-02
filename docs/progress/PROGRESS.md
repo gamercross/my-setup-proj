@@ -34,12 +34,12 @@
 ### 개발
 - [ ] 프로젝트 저장소 생성 (GitHub)
   - GitHub 계정 확인: _______________
-  - 저장소명: ai-computer-os
+  - 저장소명: my-setup-proj
   - [ ] README.md 작성
   
 - [ ] 로컬 폴더 구조 생성
   ```bash
-  mkdir -p ~/ai-computer-os/{frontend,backend,agent,tests}
+  mkdir -p ~/my-setup-proj/{frontend,backend,agent,tests}
   ```
   
 - [ ] Node.js 설치
@@ -371,12 +371,12 @@ A: 1. npm cache clean --force
 
 ## 🔗 관련 문서
 
-- **README.md** - 프로젝트 개요
-- **ROADMAP.md** - 상세 로드맵
-- **SETUP.md** - 개발 환경 설정
-- **ARCHITECTURE.md** - 기술 스택
-- **CLAUDE_INTEGRATION.md** - Claude API
-- **COURSE_MAPPING.md** - 강의 연결
+- [README.md](../../README.md) - 프로젝트 개요
+- [ROADMAP.md](../product/ROADMAP.md) - 상세 로드맵
+- [SETUP.md](../setup/SETUP.md) - 개발 환경 설정
+- [ARCHITECTURE.md](../product/ARCHITECTURE.md) - 기술 스택
+- [CLAUDE_INTEGRATION.md](../setup/CLAUDE_INTEGRATION.md) - Claude API
+- [COURSE_MAPPING.md](COURSE_MAPPING.md) - 강의 연결
 
 ---
 

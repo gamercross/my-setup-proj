@@ -157,8 +157,8 @@ python3 -m pip install --upgrade pip setuptools wheel
 
 ```bash
 # 프로젝트 디렉토리 생성
-mkdir -p ~/ai-computer-os
-cd ~/ai-computer-os
+mkdir -p ~/my-setup-proj
+cd ~/my-setup-proj
 
 # 가상 환경 생성
 python3 -m venv venv
@@ -172,7 +172,7 @@ deactivate
 
 **확인:**
 ```bash
-which python  # /home/username/ai-computer-os/venv/bin/python
+which python  # /home/username/my-setup-proj/venv/bin/python
 python --version  # Python 3.11.x 또는 3.12.x
 ```
 
@@ -237,7 +237,7 @@ ssh -T git@github.com
 ```bash
 # 웹브라우저에서: https://github.com/new
 
-# 저장소명: ai-computer-os
+# 저장소명: my-setup-proj
 # 설명: Personal productivity AI agent
 # 공개/비공개: 비공개
 # README: 체크
@@ -245,8 +245,8 @@ ssh -T git@github.com
 # License: MIT
 
 # 클론
-git clone git@github.com:YOUR_USERNAME/ai-computer-os.git
-cd ai-computer-os
+git clone git@github.com:YOUR_USERNAME/my-setup-proj.git
+cd my-setup-proj
 ```
 
 ---
@@ -256,7 +256,7 @@ cd ai-computer-os
 ### 폴더 구조 생성
 
 ```bash
-cd ~/ai-computer-os
+cd ~/my-setup-proj
 
 # 폴더 생성
 mkdir -p frontend backend agent tests docs
@@ -313,7 +313,7 @@ pip install -r requirements.txt
 ### .gitignore 설정
 
 ```bash
-cd ~/ai-computer-os
+cd ~/my-setup-proj
 
 cat > .gitignore << EOF
 # Environment
@@ -423,7 +423,7 @@ python test_claude.py
 #### Google APIs
 ```bash
 # 1. https://console.cloud.google.com 접속
-# 2. 새 프로젝트 생성: "ai-computer-os"
+# 2. 새 프로젝트 생성: "my-setup-proj"
 # 3. Google Calendar API 활성화
 # 4. Google Gmail API 활성화
 # 5. OAuth 2.0 동의 화면 설정
@@ -435,7 +435,7 @@ python test_claude.py
 ```bash
 # 1. https://supabase.com 접속
 # 2. 로그인 또는 회원가입
-# 3. 새 프로젝트 생성: "ai-computer-os"
+# 3. 새 프로젝트 생성: "my-setup-proj"
 # 4. 프로젝트 설정에서 URL과 API Key 복사
 # 5. .env에 붙여넣기
 ```
@@ -456,7 +456,7 @@ python test_claude.py
 ### Electron 앱 실행
 
 ```bash
-cd ~/ai-computer-os/frontend
+cd ~/my-setup-proj/frontend
 
 # 개발 모드로 실행
 npm start
@@ -470,7 +470,7 @@ npm run dev
 ### Express 서버 실행
 
 ```bash
-cd ~/ai-computer-os/backend
+cd ~/my-setup-proj/backend
 
 # 서버 시작
 npm start
@@ -492,9 +492,9 @@ curl http://localhost:3000/api/tasks
 
 ```bash
 # 가상 환경 활성화
-source ~/ai-computer-os/venv/bin/activate
+source ~/my-setup-proj/venv/bin/activate
 
-cd ~/ai-computer-os/agent
+cd ~/my-setup-proj/agent
 
 # 테스트 실행
 python test_claude.py
@@ -526,7 +526,7 @@ sudo apt install -y nodejs
 ```bash
 # 문제: 가상 환경이 활성화 안 됨
 # 해결:
-source ~/ai-computer-os/venv/bin/activate
+source ~/my-setup-proj/venv/bin/activate
 
 # 확인
 which python  # should show venv path
@@ -580,7 +580,7 @@ npm start
 - [ ] Python 에이전트 테스트 완료
 
 **모두 완료했다면 다음으로 이동:**
-→ **ROADMAP.md**에서 Phase 1 시작!
+→ [ROADMAP.md](../product/ROADMAP.md) 에서 Phase 1 시작!
 
 ---
 
@@ -636,4 +636,4 @@ pip install -r requirements.txt
 ---
 
 **마지막 업데이트:** 2026-09-02  
-**다음 단계:** 프로젝트 초기화 후 ROADMAP.md 참고
+**다음 단계:** 프로젝트 초기화 후 [ROADMAP.md](../product/ROADMAP.md) 참고
