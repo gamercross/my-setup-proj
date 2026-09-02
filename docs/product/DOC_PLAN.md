@@ -24,6 +24,13 @@
 DOC_PLAN 1~7 완료. 이후 문서 작업은 각 Phase 착수 시 해당 도메인 requirements 상세화 +
 제안 ADR 결정 + TEST_PLAN 케이스 추가로 이어간다.
 
+**후속 보강 (시스템 분석 완성도):**
+- ✅ CONSTRAINTS.md (제약·가정·규모/비용 추정)
+- ✅ RISKS.md (리스크 레지스터 R-1~R-16)
+- ✅ USE_SCENARIOS.md (이해관계자·사용 여정)
+- ✅ REQUIREMENTS_NONFUNCTIONAL §3.1 경량 위협 모델
+- ✅ 텍스트 다이어그램 → Mermaid 일괄 전환 (ARCHITECTURE, AS_IS §2.7, ROADMAP, COURSE_MAPPING)
+
 ---
 
 ## 1. 종합 평가

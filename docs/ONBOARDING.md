@@ -18,14 +18,15 @@
 
 | # | 문서 | 여기서 얻을 것 |
 |---|---|---|
-| 1 | [product/VISION.md](product/VISION.md) | 무엇을 만드는가, "완료" 의 정의 |
-| 2 | [product/AS_IS.md](product/AS_IS.md) | 지금 코드가 어디까지 됐나, 갭 G1~G8 |
-| 3 | [product/ROADMAP.md](product/ROADMAP.md) + [product/DESIGN.md](product/DESIGN.md) §8 | 주차별 일정, Week ↔ Phase 대응 |
-| 4 | [product/REQUIREMENTS_FUNCTIONAL.md](product/REQUIREMENTS_FUNCTIONAL.md) + [requirements/](product/requirements/) | 기능 요구사항(FR), P0 도메인 수용 기준 |
-| 5 | [product/REQUIREMENTS_NONFUNCTIONAL.md](product/REQUIREMENTS_NONFUNCTIONAL.md) | 품질 기준(NFR) — 보안·신뢰성·테스트 |
-| 6 | [product/DESIGN.md](product/DESIGN.md) + [product/adr/](product/adr/) | 아키텍처(다이어그램), 결정 이력, 데이터·API·흐름 |
-| 7 | [setup/CONVENTIONS.md](setup/CONVENTIONS.md) + [setup/GIT_WORKFLOW.md](setup/GIT_WORKFLOW.md) | 코드·커밋·푸시 규칙 (반드시 준수) |
-| 8 | 작업 시작 시 | [product/TRACEABILITY.md](product/TRACEABILITY.md) 에서 해당 FR 행, [product/TEST_PLAN.md](product/TEST_PLAN.md) 에서 관련 TC |
+| 1 | [product/VISION.md](product/VISION.md) + [product/USE_SCENARIOS.md](product/USE_SCENARIOS.md) | 무엇을 만드는가, "완료" 의 정의, 사용 여정 |
+| 2 | [product/AS_IS.md](product/AS_IS.md) | 지금 코드가 어디까지 됐나, 모듈 의존 그래프, 갭 G1~G8 |
+| 3 | [product/CONSTRAINTS.md](product/CONSTRAINTS.md) + [product/RISKS.md](product/RISKS.md) | 전제 조건, 무엇이 틀어질 수 있나 |
+| 4 | [product/ROADMAP.md](product/ROADMAP.md) + [product/DESIGN.md](product/DESIGN.md) §8 | 주차별 일정, Week ↔ Phase 대응 |
+| 5 | [product/REQUIREMENTS_FUNCTIONAL.md](product/REQUIREMENTS_FUNCTIONAL.md) + [requirements/](product/requirements/) | 기능 요구사항(FR), P0 도메인 수용 기준 |
+| 6 | [product/REQUIREMENTS_NONFUNCTIONAL.md](product/REQUIREMENTS_NONFUNCTIONAL.md) | 품질 기준(NFR) — 보안(위협 모델)·신뢰성·테스트 |
+| 7 | [product/DESIGN.md](product/DESIGN.md) + [product/adr/](product/adr/) | 아키텍처(다이어그램), 결정 이력, 데이터·API·흐름 |
+| 8 | [setup/CONVENTIONS.md](setup/CONVENTIONS.md) + [setup/GIT_WORKFLOW.md](setup/GIT_WORKFLOW.md) | 코드·커밋·푸시 규칙 (반드시 준수) |
+| 9 | 작업 시작 시 | [product/TRACEABILITY.md](product/TRACEABILITY.md) 에서 해당 FR 행, [product/TEST_PLAN.md](product/TEST_PLAN.md) 에서 관련 TC |
 
 세부 참조(작업 중 필요할 때): [GLOSSARY](product/GLOSSARY.md) · [DATA_DICTIONARY](product/DATA_DICTIONARY.md) · [API_REFERENCE](product/API_REFERENCE.md) · [UI_SPEC](product/UI_SPEC.md) · [ENV_REFERENCE](setup/ENV_REFERENCE.md) · [DIAGRAMS](setup/DIAGRAMS.md)
 

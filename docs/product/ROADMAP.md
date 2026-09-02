@@ -6,20 +6,38 @@
 
 ## 📅 전체 일정
 
-```
-Phase 1: 기초 구축 (Week 1-2) ████░░░░░░
-Phase 2: 핵심 기능 (Week 3-5) ░░░░░░░░░░
-Phase 3: AI 통합 (Week 6-8) ░░░░░░░░░░
-Phase 4: 배포/완성 (Week 9-14) ░░░░░░░░░░
+> 설계 Phase(A~E) ↔ Week 대응은 [DESIGN.md](DESIGN.md) §8. 다이어그램 안내: [DIAGRAMS.md](../setup/DIAGRAMS.md).
 
-강의 일정과 동기화
-├─ 1-3주: Linux 기초 + Phase 1
-├─ 4-5주: 백엔드 + Phase 2
-├─ 6-7주: 프로세스/배포 + Phase 2-3
-├─ 8주: 중간고사 + 과제 발표
-├─ 9-11주: 에이전트 + Phase 3-4
-├─ 12-13주: 배포/최적화 + Phase 4
-└─ 14-15주: 최종 발표 + 기말고사
+```mermaid
+gantt
+  title my-setup-proj 개발 일정 (2026-09-02 ~ 11-30)
+  dateFormat YYYY-MM-DD
+  axisFormat %m/%d
+
+  section Phase 1 기초
+  환경·프로젝트 구조        :p1, 2026-09-02, 14d
+  section Phase 2 핵심 기능
+  할일·프로젝트·캘린더       :p2, after p1, 21d
+  section Phase 3 AI 통합
+  Claude 에이전트·브리핑     :p3, after p2, 14d
+  중간고사·과제 1           :milestone, 2026-10-27, 0d
+  section Phase 4 배포·완성
+  이메일·다중사용자·Docker   :p4, 2026-10-28, 35d
+  최적화·보안               :p4b, after p4, 7d
+  기말고사·과제 2·발표       :milestone, 2026-12-08, 0d
+```
+
+**강의 ↔ 프로젝트 동기화**
+
+```mermaid
+flowchart LR
+  W13["Week 1~3<br/>Linux 기초"] --> PA["Phase 1<br/>환경·구조"]
+  W45["Week 4~5<br/>Node·SQLite"] --> PB["Phase 2<br/>백엔드·DB"]
+  W67["Week 6~7<br/>프로세스·배포"] --> PC["Phase 2~3"]
+  W8["Week 8<br/>중간고사·과제1"] --> M1{{"반쯤 완성된<br/>프로젝트 발표"}}
+  W911["Week 9~11<br/>사용자·네트워크·Agent"] --> PD["Phase 3~4<br/>에이전트"]
+  W1213["Week 12~13<br/>배포·최적화"] --> PE["Phase 4<br/>Docker·보안"]
+  W1415["Week 14~15<br/>기말·발표"] --> M2{{"최종 발표<br/>과제 2"}}
 ```
 
 ---

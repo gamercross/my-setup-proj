@@ -3,7 +3,10 @@
 > 2026-09-02 기준 `my-setup-proj` 저장소의 실제 구현 상태.
 > 무엇을 만들 것인지는 [VISION.md](VISION.md), 목표 구조는 [ARCHITECTURE.md](ARCHITECTURE.md),
 > 이 분석을 바탕으로 한 요구사항은 [REQUIREMENTS_FUNCTIONAL.md](REQUIREMENTS_FUNCTIONAL.md) ·
-> [REQUIREMENTS_NONFUNCTIONAL.md](REQUIREMENTS_NONFUNCTIONAL.md), 설계는 [DESIGN.md](DESIGN.md) 참고.
+> [REQUIREMENTS_NONFUNCTIONAL.md](REQUIREMENTS_NONFUNCTIONAL.md), 설계는 [DESIGN.md](DESIGN.md).
+> 전제 조건은 [CONSTRAINTS.md](CONSTRAINTS.md), 앞으로의 리스크는 [RISKS.md](RISKS.md), 사용 흐름은 [USE_SCENARIOS.md](USE_SCENARIOS.md).
+>
+> **갭(G) = 지금 있는 차이**(이 문서 §4) · **리스크(R) = 앞으로 생길 수 있는 문제**([RISKS.md](RISKS.md)).
 
 ---
 
@@ -83,9 +86,44 @@
 | frontend | Jest 미도입 |
 | agent | `test_claude.py` (연결 확인용, 단위 테스트 아님) |
 
----
+### 2.7 현재 모듈 의존 관계
 
-## 3. 환경 상태
+> 실선 = `require`/`import`, 점선 = 미연결(코드 존재하나 호출 경로 없음). 다이어그램 안내: [DIAGRAMS.md](../setup/DIAGRAMS.md).
+
+```mermaid
+flowchart TB
+  subgraph FE["frontend/src"]
+    MAIN["main.js"] --> PRE["preload.js"]
+    IDX["index.html"] --> RJS["renderer.js<br/>(바닐라)"]
+    APP["App.jsx"] -.-> DASH["Dashboard.jsx"]
+    DASH -.-> TL["TaskList.jsx"]
+    DASH -.-> PC["ProjectCard.jsx"]
+    RJS -. "미연결: App.jsx 를<br/>불러오지 않음 (G1)" .-> APP
+  end
+
+  subgraph BE["backend/src"]
+    SRV["server.js"] --> AR["routes/api.js"]
+    AR --> TR["routes/tasks.js"]
+    AR --> PR["routes/projects.js"]
+    TR --> DBJS["db.js<br/>(인메모리)"]
+    PR --> DBJS
+    SCHEMA["db/schema.sql"] -. "미사용: 아직 로드하는<br/>코드 없음 (G2)" .-> DBJS
+  end
+
+  subgraph AGT["agent"]
+    DBF["daily_brief.py"] --> SGM["services/gmail.py"]
+    DBF --> SCA["services/calendar.py"]
+    DBF --> SNO["services/notion.py"]
+    DBF --> SCL["services/claude.py"]
+    TCL["test_claude.py"] --> SCL
+    SGM -. "스텁" .-> X1[" "]
+    SCA -. "스텁" .-> X1
+    SNO -. "스텁" .-> X1
+  end
+
+  RJS -. "미연결: fetch 없음 (G3)" .-> SRV
+  DBF -. "예정: agent/db.py 로<br/>같은 SQLite 접근 (ADR-0011)" .-> SCHEMA
+```
 
 | 항목 | 현황 |
 |---|---|

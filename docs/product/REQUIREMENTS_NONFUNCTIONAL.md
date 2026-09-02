@@ -44,6 +44,21 @@
 | NFR-SEC-06 | 백엔드 CORS 는 로컬 오리진만 허용 | `origin` 화이트리스트 | 설정 리뷰 |
 | NFR-SEC-07 | 입력 검증: 필수값·타입·범위(progress 0–100 등)를 API 경계에서 검증 | 400 응답 반환 | supertest |
 
+### 3.1 경량 위협 모델
+
+"무엇으로부터 지키는가". 개인용·로컬 앱이므로 범위는 제한적이다.
+
+| 자산 | 위협 | 대응 (NFR) |
+|---|---|---|
+| Claude / Google / Notion 시크릿·토큰 | git 커밋으로 유출, 렌더러 노출, 평문 저장 | NFR-SEC-01(`.gitignore`), SEC-03(렌더러 격리), SEC-05(암호화), [RISKS.md](RISKS.md) R-13·R-14 |
+| 로컬 백엔드 `:3000` | 같은 머신의 다른 프로세스·웹페이지가 API 호출(CSRF 유사) | NFR-SEC-06(CORS 로컬 오리진), [UI_SPEC.md](UI_SPEC.md) §7(CSP `connect-src`), R-15 |
+| 로컬 DB (`app.db`) | 메일·일정 내용이 평문. 기기 분실·공유 시 노출 | 기기 수준 디스크 암호화에 의존(문서화), 민감 본문은 저장 안 함(스니펫만) — [CONSTRAINTS.md](CONSTRAINTS.md) §3 |
+| 외부 API 응답 | 신뢰할 수 없는 데이터(메일 제목 등)를 UI 렌더 → XSS | React 기본 이스케이프, 마크다운 렌더 시 sanitize |
+| Electron 렌더러 | 원격 콘텐츠 로드로 RCE | NFR-SEC-04(`nodeIntegration:false`), 로컬 콘텐츠만 로드, CSP |
+| 에이전트 프로세스 | 무인 실행 중 예외로 조용히 죽음 | NFR-OBS-02(단계 로깅), `sync_logs`, FR-AGENT-06(실패 격리) |
+
+범위 밖(지금): 네트워크 공격자, 다중 사용자 권한 분리(Week 10+), 공급망 감사.
+
 ## 4. 유지보수성 / 코드 품질 (MAINT)
 
 | ID | 요구사항 | 기준 | 검증 방법 |

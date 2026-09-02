@@ -6,47 +6,28 @@
 
 ## 📐 시스템 구조
 
-```
-┌─────────────────────────────────────────────────────┐
-│        사용자 (Windows/Mac/Linux)                    │
-└─────────────────────────────────────────────────────┘
-                      │
-        ┌─────────────┴─────────────┐
-        │                           │
-    ┌───▼───┐                  ┌───▼───────┐
-    │ App   │                  │ Claude    │
-    │(UI)   │                  │ Desktop   │
-    └───┬───┘                  └───────────┘
-        │
-    ┌───▼──────────────────────────────────┐
-    │     Electron + React (데스크톱)       │
-    │  - 메인 대시보드                       │
-    │  - 할일 관리                          │
-    │  - 프로젝트 추적                      │
-    └───┬──────────────────────────────────┘
-        │
-    ┌───▼──────────────────────────────────┐
-    │     Node.js + Express (로컬 API)      │
-    │  - 작업 관리                          │
-    │  - 데이터 동기화 컨트롤러             │
-    │  - Claude API 호출                   │
-    └───┬──────────────────────────────────┘
-        │
-    ┌───┴─────────────────────────────────┐
-    │                                      │
-┌───▼──────────┐                    ┌────▼──────────┐
-│   로컬 DB    │                    │ 클라우드 API   │
-│   SQLite     │                    │   Supabase    │
-└───┬──────────┘                    └────┬──────────┘
-    │                                    │
-    │                    ┌───────────────┼───────────────┐
-    │                    │               │               │
-    │           ┌────────▼──┐   ┌───────▼────┐   ┌─────▼──────┐
-    │           │ Google    │   │   Gmail    │   │   Notion   │
-    │           │ Calendar  │   │   API      │   │   API      │
-    │           └───────────┘   └────────────┘   └────────────┘
-    │
-    └─ 오프라인 캐시
+> 구현 관점의 정확한 아키텍처는 [DESIGN.md](DESIGN.md) §3 (컴포넌트·프로세스 단위). 아래는 개념 레벨.
+> 다이어그램 열람·이미지 내보내기는 [DIAGRAMS.md](../setup/DIAGRAMS.md).
+
+```mermaid
+flowchart TB
+  U([사용자<br/>Windows / macOS / Linux])
+  CD([Claude Desktop])
+
+  U --> APP["데스크톱 앱 (UI)"]
+  U --> CD
+
+  APP --> EL["Electron + React<br/>대시보드 · 할일 · 프로젝트 추적"]
+  EL --> API["Node.js + Express (로컬 API)<br/>작업 관리 · 동기화 컨트롤러"]
+  API --> SQLITE[("로컬 DB — SQLite<br/>오프라인 캐시")]
+  API --> SUPA[("클라우드 — Supabase<br/>(Week 10+)")]
+
+  AGENT["Python 에이전트"] --> SQLITE
+  AGENT -. "OAuth / HTTPS" .-> GC["Google Calendar"]
+  AGENT -. "OAuth / HTTPS" .-> GM["Gmail API"]
+  AGENT -. "Token / HTTPS" .-> NO["Notion API"]
+  AGENT -. "API Key" .-> CL["Claude API"]
+  SUPA -. 동기화 .-> SQLITE
 ```
 
 ---
@@ -235,68 +216,58 @@ ALTER TABLE tasks ADD COLUMN is_synced BOOLEAN;
 
 ## 🔄 데이터 흐름
 
+> 구현 단위의 정확한 시퀀스(에러 분기 포함)는 [DESIGN.md](DESIGN.md) §6·§7.
+
 ### 1️⃣ 아침 자동 브리핑 흐름
 
-```
-시간: 08:00 AM
-   │
-   ├─ 1. Cron Job 실행
-   │  (crontab 또는 APScheduler)
-   │
-   ├─ 2. Python 에이전트 시작
-   │  agent.generate_daily_brief()
-   │
-   ├─ 3. 데이터 수집
-   │  ├─ Gmail: 미읽은 이메일
-   │  ├─ Calendar: 오늘 일정
-   │  └─ Notion: 진행 중인 프로젝트
-   │
-   ├─ 4. Claude API 호출
-   │  "우선순위별로 정리해줄래?"
-   │
-   ├─ 5. 결과 저장
-   │  ├─ Notion에 작성
-   │  ├─ SQLite에 캐시
-   │  └─ Supabase에 동기화
-   │
-   └─ 6. 알림 표시
-      UI에서 "아침 브리핑 준비됨"
+```mermaid
+sequenceDiagram
+  participant SCH as 스케줄러 (08:00)
+  participant AG as Python 에이전트
+  participant EXT as Gmail / Calendar / Notion
+  participant CL as Claude API
+  participant DB as SQLite
+  participant UI as 앱 UI
+
+  SCH->>AG: generate_daily_brief()
+  AG->>EXT: 미읽은 메일 · 오늘 일정 · 진행 중 프로젝트 수집
+  EXT-->>AG: 데이터
+  AG->>CL: "우선순위별로 정리해줘" (+ 수집 컨텍스트)
+  CL-->>AG: 브리핑 텍스트
+  AG->>DB: briefs 저장 (+ 캐시 테이블 upsert)
+  AG->>EXT: Notion 페이지로 저장
+  UI->>DB: GET /api/brief/today
+  DB-->>UI: "아침 브리핑 준비됨"
 ```
 
 ### 2️⃣ 사용자 할일 입력 흐름
 
-```
-사용자: "내일 회의 준비해야 함" 입력
-   │
-   ├─ 1. UI에서 입력 수신
-   │  (React 폼)
-   │
-   ├─ 2. 로컬 저장
-   │  SQLite에 즉시 저장
-   │  (오프라인도 가능)
-   │
-   ├─ 3. 서버 전송
-   │  Express API로 Supabase 동기화
-   │
-   ├─ 4. Claude 분석 (옵션)
-   │  "이게 다른 일정과 겹칠까?"
-   │
-   └─ 5. UI 업데이트
-      다른 디바이스에도 표시
+```mermaid
+sequenceDiagram
+  actor U as 사용자
+  participant UI as React 폼
+  participant API as Express API
+  participant DB as SQLite
+  participant SUPA as Supabase (Week 10+)
+
+  U->>UI: "내일 회의 준비" 입력
+  UI->>API: POST /api/tasks
+  API->>DB: 즉시 저장 (오프라인도 가능)
+  DB-->>API: task
+  API-->>UI: 201 { task }
+  UI->>UI: 목록 갱신
+  opt Week 10+
+    API-)SUPA: 백그라운드 동기화
+  end
 ```
 
-### 3️⃣ 실시간 동기화 흐름
+### 3️⃣ 실시간 동기화 흐름 (Week 10+)
 
-```
-디바이스 A (메인)     디바이스 B (보조)
-   │                    │
-   ├─ 할일 생성         │
-   │                    │
-   ├─ Supabase 업데이트 │
-   │                    │
-   ├─ Realtime Listener ├─ 변경 감지
-   │  (WebSocket)       │
-   │                    ├─ UI 자동 갱신
+```mermaid
+flowchart LR
+  A["디바이스 A (메인)"] -->|할일 생성| SUPA[("Supabase")]
+  SUPA -->|Realtime / WebSocket| B["디바이스 B (보조)"]
+  B -->|변경 감지| BUI["UI 자동 갱신"]
 ```
 
 ---
@@ -305,33 +276,24 @@ ALTER TABLE tasks ADD COLUMN is_synced BOOLEAN;
 
 ### 인증 방식
 
-```
-┌─────────────────────────────────────┐
-│     OAuth 2.0 (Google API)           │
-├─────────────────────────────────────┤
-│  사용자 → 로그인 → Google 승인      │
-│              ↓                      │
-│          Refresh Token 발급         │
-│              ↓                      │
-│       로컬에 암호화 저장            │
-│              ↓                      │
-│     필요시 API 호출                 │
-└─────────────────────────────────────┘
+```mermaid
+flowchart TB
+  subgraph OAUTH["Google API — OAuth 2.0"]
+    L["사용자 로그인 → Google 승인"] --> RT["Refresh Token 발급"]
+    RT --> ENC["로컬에 암호화 저장<br/>(평문 금지, NFR-SEC-05)"]
+    ENC --> CALL["필요 시 Access Token 갱신 → API 호출"]
+  end
 
-┌─────────────────────────────────────┐
-│     Notion Integration Token         │
-├─────────────────────────────────────┤
-│  .env 파일에 저장 (git ignore)      │
-│  로컬에서만 사용                    │
-└─────────────────────────────────────┘
+  subgraph NOTION["Notion Integration Token"]
+    NT[".env 에 저장 (git ignore)<br/>에이전트에서만 사용"]
+  end
 
-┌─────────────────────────────────────┐
-│     Claude API Key                   │
-├─────────────────────────────────────┤
-│  .env 파일에 저장 (git ignore)      │
-│  백엔드에서만 사용                  │
-└─────────────────────────────────────┘
+  subgraph CLAUDE["Claude API Key"]
+    CK[".env 또는 ant 프로필<br/>백엔드·에이전트에서만 사용<br/>렌더러 노출 금지 (NFR-SEC-03)"]
+  end
 ```
+
+키별 상세는 [ENV_REFERENCE.md](../setup/ENV_REFERENCE.md), 위협 모델은 [REQUIREMENTS_NONFUNCTIONAL.md](REQUIREMENTS_NONFUNCTIONAL.md) §3.
 
 ### 환경 변수 (.env)
 
@@ -531,13 +493,26 @@ jobs:
 ## 💾 버전 관리
 
 ### Git Flow
-```
-main (배포)
-└─ release (v1.0.0)
-   └─ develop (개발)
-      ├─ feature/auth
-      ├─ feature/dashboard
-      └─ feature/agent
+
+> 현재는 `main` 단일 브랜치(초기 셋업). Week 3~ 부터 아래 흐름. 규칙은 [GIT_WORKFLOW.md](../setup/GIT_WORKFLOW.md) §2.
+
+```mermaid
+gitGraph
+  commit id: "초기"
+  branch develop
+  checkout develop
+  commit id: "환경"
+  branch feature/dashboard
+  commit id: "React 연결"
+  commit id: "할일 CRUD"
+  checkout develop
+  merge feature/dashboard
+  branch feature/agent
+  commit id: "Daily Brief"
+  checkout develop
+  merge feature/agent
+  checkout main
+  merge develop tag: "v1.0.0"
 ```
 
 ### 태그 규칙

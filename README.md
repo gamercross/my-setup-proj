@@ -20,10 +20,13 @@
 | 문서 | 내용 |
 |---|---|
 | [VISION.md](docs/product/VISION.md) | 제품 정의, 목표, 핵심 기능 4종, 완료 기준 |
-| [AS_IS.md](docs/product/AS_IS.md) | 현행 구현 상태 분석, 갭 G1~G8 |
-| [ARCHITECTURE.md](docs/product/ARCHITECTURE.md) · [ROADMAP.md](docs/product/ROADMAP.md) | 기술 스택 큰 그림 · Phase 1~4 주차별 일정 |
+| [AS_IS.md](docs/product/AS_IS.md) | 현행 구현 상태 분석, 모듈 의존 그래프, 갭 G1~G8 |
+| [USE_SCENARIOS.md](docs/product/USE_SCENARIOS.md) | 이해관계자, 사용 여정 S-1~S-6 |
+| [CONSTRAINTS.md](docs/product/CONSTRAINTS.md) | 제약·가정, 규모/비용 추정 |
+| [RISKS.md](docs/product/RISKS.md) | 리스크 레지스터 (R-1~R-16, 확률×영향×완화) |
+| [ARCHITECTURE.md](docs/product/ARCHITECTURE.md) · [ROADMAP.md](docs/product/ROADMAP.md) | 기술 스택 큰 그림 · Phase 1~4 주차별 일정 (다이어그램) |
 | [REQUIREMENTS_FUNCTIONAL.md](docs/product/REQUIREMENTS_FUNCTIONAL.md) + [requirements/](docs/product/requirements/) | 기능 요구사항(FR-xx) 요약표 + 도메인별 수용 기준 |
-| [REQUIREMENTS_NONFUNCTIONAL.md](docs/product/REQUIREMENTS_NONFUNCTIONAL.md) | 비기능 요구사항(NFR-xx): 성능·보안·신뢰성·테스트 |
+| [REQUIREMENTS_NONFUNCTIONAL.md](docs/product/REQUIREMENTS_NONFUNCTIONAL.md) | 비기능 요구사항(NFR-xx): 성능·보안(위협 모델)·신뢰성·테스트 |
 | [DESIGN.md](docs/product/DESIGN.md) + [adr/](docs/product/adr/) | 아키텍처 다이어그램·데이터 모델·흐름 시퀀스·Phase 계획 · 결정 이력(ADR-0001~) |
 | [TRACEABILITY.md](docs/product/TRACEABILITY.md) | FR/NFR ↔ 갭 ↔ 설계 ↔ 단계 ↔ 테스트 ↔ 코드 매트릭스 |
 
