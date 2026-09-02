@@ -152,7 +152,8 @@ flowchart TB
 | G6 | 자동화 테스트 없음 (CI 문법 검사만) | 중간 | ✅ Phase A3 (backend 15 + agent 3, CI 연결) |
 | G7 | 외부 API(Gmail/Calendar/Notion) 스텁 | 낮음 | ⏳ Week 6~7 (계획대로) |
 | G8 | 다중 사용자·Supabase·Docker 미착수 | 낮음 | ⏳ Week 10~12 (계획대로) |
+| G9 | 프로젝트 다이어그램(`docs/**/*.md` 의 Mermaid)을 저장소를 열지 않고는 볼 수 없음 — 앱 안에서 구조·진행을 그림으로 확인 불가 | 낮음 | ⏳ Phase C4 (FR-UI-05, [ADR-0014](adr/ADR-0014-dashboard-diagram-viewer.md)) |
 
 ---
 
-**작성:** 2026-09-02 · **갱신:** 2026-09-02 (Phase A2)
+**작성:** 2026-09-02 · **갱신:** 2026-09-03 (Phase A2 / G9 추가)

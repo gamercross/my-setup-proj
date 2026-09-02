@@ -22,10 +22,13 @@
 | G6 | 자동화 테스트 없음 | NFR-TEST-01~03 | A3 | ✅ (backend 15 + agent 3, CI 연결, 2026-09-02) |
 | G7 | 외부 API 스텁 | FR-CAL, FR-MAIL, FR-PROJ-03 | C3, D2 | ⏳ |
 | G8 | 다중 사용자·Supabase·Docker 미착수 | FR-AUTH-02, FR-SYNC, NFR-DEPLOY | E1~E3 | ⏳ |
+| G9 | 앱에서 프로젝트 다이어그램 열람 불가 | FR-UI-05 | C4 | ⏳ |
 
 ## 2. Week ↔ Phase
 
 [DESIGN.md](DESIGN.md) §8 대응표 참조. 요약: A=W1~2, B=W2~3, C=W4~5, D=W6~7, E=W9~13.
+
+C 세부: C1 미들웨어(CORS·로깅·에러) → C2 프로젝트 CRUD → C3 캘린더 위젯 → C4 다이어그램 뷰어(FR-UI-05, C1 선행). B 세부: B1 Vite·React ✅ / B2 SQLite ✅ / B3 할일 CRUD 배선 ⏳.
 
 ---
 
@@ -67,6 +70,7 @@
 | FR-UI-02 | G1 | [ADR-0001](adr/ADR-0001-frontend-react-vite.md), [ADR-0010](adr/ADR-0010-vite-dev-vs-build.md), UI_SPEC §7 | B1 | TC-UI-01,05,07,08 | `frontend/src/{renderer.jsx,vite.config.js,main.js,App.jsx}` | ✅ (AC-5 는 에러표시 수준, 실제 200 은 CORS C1 대기) |
 | FR-UI-03 | — | requirements/UI.md | W2 (완료) | TC-UI-04 | `frontend/src/main.js` | ✅ |
 | FR-UI-04 | — | UI_SPEC §3.6 | B3 | TC-UI-02 | `components/ErrorBanner.jsx`(신규), `api/client.js` | ⏳ |
+| FR-UI-05 | G9 | [ADR-0014](adr/ADR-0014-dashboard-diagram-viewer.md), API_REFERENCE `GET /diagrams`, requirements/UI.md | C4 | TC-DIAG-01~03, TC-UI-09 | `backend/src/services/diagrams.js`(신규), `backend/src/routes/diagrams.js`(신규), `frontend/src/components/DiagramPanel.jsx`(신규) | ⏳ |
 
 ---
 
@@ -118,6 +122,7 @@ Phase A~D 를 막던 제안 ADR 4건은 **2026-09-02 채택** → `/build-next` 
 | [ADR-0011](adr/ADR-0011-agent-backend-db-access.md) DB 동시 접근 | FR-AGENT-01 | ✅ 채택 |
 | [ADR-0012](adr/ADR-0012-task-project-link.md) `tasks.project_id` | FR-PROJ-02 | ✅ 채택 (스키마 반영, 라우트는 C2) |
 | [ADR-0013](adr/ADR-0013-dashboard-agent-queue.md) 에이전트 작업 큐 | FR-AGENT-08 | 제안 — 핵심 4기능 완성 후 |
+| [ADR-0014](adr/ADR-0014-dashboard-diagram-viewer.md) 다이어그램 뷰어 | FR-UI-05 | 제안 — Phase C1 이후 착수 |
 
 ### 착수 전 결정할 사항 (ADR 아님)
 
@@ -128,6 +133,8 @@ Phase A~D 를 막던 제안 ADR 4건은 **2026-09-02 채택** → `/build-next` 
 | TC-DB-04 (CHECK 위반 → 400 매핑) | C2 | planner | `routes/*.js` 의 `isValidationError` 정규식 확장 동반 |
 | `ProjectCard` 상태값 `'hold'` → `'on_hold'` | C2 | developer | schema·GLOSSARY 와 불일치 (UI_SPEC §3.3) |
 | `ARCHITECTURE.md` `SUPABASE_JWT_SECRET`/`DATABASE_URL` vs `.env.example` | Week 10 | planner | 어느 쪽 기준인지 |
+| **ADR-0014** 패키지 빌드에 `docs/` 동봉 여부 (`electron-builder extraResources`) vs 다이어그램 뷰어를 dev 전용으로 | C4 착수 전 | planner | 미동봉이면 prod 는 `GET /api/diagrams` 가 빈 배열 |
+| **ADR-0014** 뷰어 탭을 고정 목록으로 둘지 / `docs` 전체 자동 나열할지 | C4 (UI_SPEC) | developer | UI_SPEC §3.7 에 명세 |
 
 **남은 정지 요인:** `.env` API 키 (D2 부터 — Google OAuth / Notion / Anthropic), 대화형 준비(OAuth 앱 등록).
 
