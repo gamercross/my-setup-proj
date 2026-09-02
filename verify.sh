@@ -60,6 +60,7 @@ fi
 
 echo "▶ 문법 확인"
 syntax_check "backend server.js 문법"   node    node -c backend/src/server.js
+syntax_check "backend app.js 문법"      node    node -c backend/src/app.js
 syntax_check "frontend main.js 문법"    node    node -c frontend/src/main.js
 syntax_check "backend tasks.js 문법"    node    node -c backend/src/routes/tasks.js
 syntax_check "backend projects.js 문법" node    node -c backend/src/routes/projects.js

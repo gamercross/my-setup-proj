@@ -75,16 +75,16 @@
 | 작업로그 (`scripts/worklog.sh` + Stop 훅) | 매 턴 종료 시 오늘 커밋 섹션 재생성 | ✅ 동작 |
 | 작업로그 EOD (`scripts/worklog-eod.sh` + launchd plist) | 매일 23:50 커밋·푸시·슬랙. plist 경로 하드코딩 | ✅ 동작 (경로 이관 반영됨, 미커밋) |
 | 슬랙 알림 (`scripts/slack-notify.sh`) | `SLACK_WEBHOOK_URL` 없으면 조용히 종료 | ✅ 동작 |
-| CI (`.github/workflows/test.yml`) | backend/frontend/agent 각각 **문법 검사만** (`node -c`, `compileall`) | 🚧 테스트 없음 |
+| CI (`.github/workflows/test.yml`) | 문법 검사 + `npm test`(backend) + `pytest -m "not network"`(agent) | ✅ Phase A3 |
 
 ### 2.6 테스트
 
 | 항목 | 현황 |
 |---|---|
-| `tests/` | README 만. 실제 테스트 0개 |
-| backend | supertest 미도입 |
+| `tests/` (크로스 프로젝트) | README 만. 실제 테스트 0개 (Week 12+) |
+| backend | ✅ supertest + `node --test` 15케이스 (TC-TASK-01,02,04~10 / TC-PROJ-01~06), `:memory:` DB — Phase A3 |
 | frontend | Jest 미도입 |
-| agent | `test_claude.py` (연결 확인용, 단위 테스트 아님) |
+| agent | ✅ pytest 3케이스 (TC-AGENT-01~03) `agent/tests/test_daily_brief.py` — Phase A3. `test_claude.py` 는 `agent/tests/` 로 이동(연결 확인용) |
 
 ### 2.7 현재 모듈 의존 관계
 
@@ -148,7 +148,7 @@ flowchart TB
 | G3 | 프론트 ↔ 백엔드 연결 코드 0 (fetch/CORS/base URL 없음) | 높음 | ⏳ Phase B3 |
 | G4 | 로컬 환경 미검증 | 중간 | ✅ Phase A2 완료 (2026-09-02) |
 | G5 | 경로 이관 변경분 미커밋 | 낮음 | ✅ 커밋 `fc4404c` |
-| G6 | 자동화 테스트 없음 (CI 문법 검사만) | 중간 | ⏳ Phase A3 |
+| G6 | 자동화 테스트 없음 (CI 문법 검사만) | 중간 | ✅ Phase A3 (backend 15 + agent 3, CI 연결) |
 | G7 | 외부 API(Gmail/Calendar/Notion) 스텁 | 낮음 | ⏳ Week 6~7 (계획대로) |
 | G8 | 다중 사용자·Supabase·Docker 미착수 | 낮음 | ⏳ Week 10~12 (계획대로) |
 

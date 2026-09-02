@@ -18,6 +18,8 @@ jobs:
           node-version: '22'
       - run: npm install
       - run: node -c src/server.js  # 문법 검사
+      - run: node -c src/app.js  # 문법 검사
+      - run: npm test
 
   frontend:
     runs-on: ubuntu-latest
@@ -44,3 +46,4 @@ jobs:
           python-version: '3.12'
       - run: pip install -r requirements.txt
       - run: python -m compileall .  # 문법 검사
+      - run: pytest -m "not network"

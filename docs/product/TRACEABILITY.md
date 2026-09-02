@@ -19,7 +19,7 @@
 | G3 | 프론트↔백엔드 연결 코드 0 | FR-TASK-01~04, FR-UI-01 | B3 | ⏳ |
 | G4 | 로컬 환경 미검증 | NFR-TEST-04 | A2 | ✅ (`verify.sh` 12/0/0, 2026-09-02) |
 | G5 | 경로 이관 변경분 미커밋 | — | A1 | ✅ (`fc4404c`) |
-| G6 | 자동화 테스트 없음 | NFR-TEST-01~03 | A3 | ⏳ |
+| G6 | 자동화 테스트 없음 | NFR-TEST-01~03 | A3 | ✅ (backend 15 + agent 3, CI 연결, 2026-09-02) |
 | G7 | 외부 API 스텁 | FR-CAL, FR-MAIL, FR-PROJ-03 | C3, D2 | ⏳ |
 | G8 | 다중 사용자·Supabase·Docker 미착수 | FR-AUTH-02, FR-SYNC, NFR-DEPLOY | E1~E3 | ⏳ |
 
@@ -93,9 +93,9 @@
 | NFR-OBS-01 | 백엔드 요청 로깅 미들웨어 | C1 | 서버 콘솔 | ⏳ |
 | NFR-OBS-02 | 에이전트 4단계 로깅 | D1 | 실행 로그 | ⏳ |
 | NFR-OBS-03 | `sync_logs` 영속 | D2 | SQL | ⏳ |
-| NFR-TEST-01 | backend supertest | A3 | `npm test` | ⏳ |
-| NFR-TEST-02 | agent pytest | A3 | `pytest` | ⏳ |
-| NFR-TEST-03 | CI 문법 + 테스트 | A3 | Actions | 🚧 (문법만) |
+| NFR-TEST-01 | backend supertest | A3 | `npm test` | ✅ (15 pass, 2026-09-02) |
+| NFR-TEST-02 | agent pytest | A3 | `pytest` | ✅ (3 pass, 2026-09-02) |
+| NFR-TEST-03 | CI 문법 + 테스트 | A3 | Actions | ✅ (`npm test` + `pytest -m "not network"` 연결) |
 | NFR-TEST-04 | `verify.sh` exit 0 | A2 | `bash verify.sh` | ✅ (12/0/0, 2026-09-02) |
 | NFR-PORT-02 | CI Node 22 / Python 3.12 고정 (로컬 상위 허용) | 상시 | CI | ✅ |
 | NFR-PORT-03 | 경로·환경값 설정 분리 | B2, [ADR-0009](adr/ADR-0009-sqlite-file-location.md) | grep `/Users/` | 🚧 |

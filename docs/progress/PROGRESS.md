@@ -89,8 +89,8 @@
 개발: 60%
 ```
 
-> Phase A2 완료. 다음: A3(테스트 골격 + CI 연결) → B1(Vite/React 연결).
-> 검증 스냅샷: `node v26.8.1 / npm 11.19.0 / python 3.14.4`, `verify.sh` 12/0/0.
+> Phase A2·A3 완료. 다음: B1(Vite/React 연결) → B2(SQLite).
+> 검증 스냅샷: `node v26.8.1 / npm 11.19.0 / python 3.14.4`, `verify.sh` 13/0/0, `npm test` 15/0, `pytest -m "not network"` 3 pass.
 
 ---
 
@@ -116,6 +116,11 @@
   - [x] `routes/api.js` 서브라우터 연결
   - [x] **실행 검증 완료** (Phase A2) — `npm start` → curl 로 health·CRUD 왕복 확인
 - [x] `backend/db/schema.sql` 확정 (6개 테이블 + `tasks.project_id` FK, ADR-0009~0012 채택)
+- [x] 자동화 테스트 골격 (Phase A3)
+  - [x] `backend/test/` — supertest 통합 15케이스 (TC-TASK-01,02,04~10 / TC-PROJ-01~06), `:memory:` DB
+  - [x] `backend/src/app.js` 분리 (server.js 가 import 시 listen 하던 문제 해결)
+  - [x] `agent/tests/` — pytest 3케이스 (TC-AGENT-01~03), `test_claude.py` 이동
+  - [x] CI 에 `npm test` · `pytest -m "not network"` 연결, `verify.sh` app.js 문법 체크 추가 (13/0/0)
 - [ ] SQLite 설정 (better-sqlite3 로 `db.js` 교체) → Phase B2
   - [ ] `DATABASE_PATH` 규약, WAL 모드
   - [ ] 샘플 데이터 입력
@@ -131,13 +136,13 @@ wc -l                  # 줄 수 세기
 
 ### 진행 상황 요약
 ```
-완료한 작업: 2개 (React 컴포넌트 스캐폴드, Express CRUD 라우트)
+완료한 작업: 3개 (React 컴포넌트 스캐폴드, Express CRUD 라우트, 자동화 테스트 골격 + CI)
 진행 중: 1개 (번들러 연결)
-예정된 작업: 5개
+예정된 작업: 4개
 
-진행도: 40%
+진행도: 50%
 강의 수강: 0%
-개발: 60%
+개발: 70%
 ```
 
 ---

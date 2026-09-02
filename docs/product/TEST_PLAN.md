@@ -16,7 +16,7 @@
 | **E2E** | 앱↔백엔드↔DB 전체 (Playwright) | 🔷 Week 12+ | 로컬 |
 
 **원칙**
-- 외부 API(Claude/Google/Notion)는 테스트에서 **모킹**한다. 실제 호출은 수동 스모크(`agent/test_claude.py`)로만.
+- 외부 API(Claude/Google/Notion)는 테스트에서 **모킹**한다. 실제 호출은 수동 스모크(`agent/tests/test_claude.py`)로만.
 - SQLite 는 테스트마다 `:memory:` 또는 임시 파일 → 테스트 간 격리.
 - 테스트는 결정적이어야 한다. 시각 의존 로직은 시각을 주입한다.
 
@@ -27,17 +27,20 @@
 ```
 backend/
   test/                     # *.test.js — node --test 가 수집
+    helpers/
+      testApp.js            # app.js + :memory: DB 를 supertest 로 감싸는 헬퍼
     tasks.test.js
     projects.test.js
-    db.test.js
+    db.test.js               # 🔷 Phase B2 (SQLite 회귀)
 agent/
   tests/                    # test_*.py — pytest 가 수집
     test_daily_brief.py
-    test_claude.py          # (기존) 실호출 스모크 — 키 없으면 skip
+    test_claude.py          # (이동됨) 실호출 스모크 — 키 없으면 skip
+  pytest.ini                # testpaths=tests, network 마커 정의
 tests/                      # 크로스 프로젝트 통합 (Week 12+, 지금은 README)
 ```
 
-CI(`.github/workflows/test.yml`)에 `npm test`(backend), `pytest`(agent) 단계를 추가한다 (현재는 문법 검사만 — NFR-TEST-03).
+CI(`.github/workflows/test.yml`)에 `npm test`(backend), `pytest -m "not network"`(agent) 단계가 연결됨 (Phase A3 — NFR-TEST-03).
 
 ---
 
@@ -93,7 +96,7 @@ CI(`.github/workflows/test.yml`)에 `npm test`(backend), `pytest`(agent) 단계�
 | TC-AGENT-05 | FR-AGENT-04 AC-1 | 같은 날 2회 실행 | `briefs` 에 해당 날짜 1행만 (upsert) | P1 |
 | TC-AGENT-06 | FR-AGENT-02 | `claude.ask` 모킹 응답 | `briefs.content` 에 저장됨 | P1 |
 
-`agent/tests/test_claude.py` (기존, 이동): `ANTHROPIC_API_KEY` 없으면 `skip`, 있으면 1회 실호출 성공 확인.
+`agent/tests/test_claude.py` (이동 완료): `ANTHROPIC_API_KEY` 없으면 `skip`, 있으면 1회 실호출 성공 확인.
 
 ### 3.5 수동 체크리스트 (Electron / OAuth)
 
@@ -140,16 +143,18 @@ supervisor 는 리뷰 시 "이 변경에 대응하는 테스트가 있는가"를
 |---|---|
 | `verify.sh` | 환경 + **문법**(`node -c`, `compileall`). 테스트는 돌리지 않음 |
 | `verify.sh --code-only` | 문법만. 커밋 게이트용 |
-| `npm test` / `pytest` | **이 문서의 테스트 케이스**. Phase A3 에서 CI 에 추가 |
-| GitHub Actions | push/PR 마다 문법 + (A3 후) 테스트. 초록이어야 머지 |
+| `npm test` / `pytest -m "not network"` | **이 문서의 테스트 케이스**. Phase A3 에서 CI 에 연결됨 |
+| GitHub Actions | push/PR 마다 문법 + 테스트(`npm test`, `pytest -m "not network"`). 초록이어야 머지 |
 
 ---
 
-## 7. 현재 상태 (2026-09-02)
+## 7. 현재 상태 (2026-09-02, Phase A3 완료)
 
-- 자동화 테스트: **0개.** `agent/test_claude.py` 는 연결 확인용(단위 테스트 아님).
-- CI: 문법 검사만.
-- **다음 작업(Phase A3):** `backend/test/{tasks,projects}.test.js` 스모크(P0 케이스), `agent/tests/test_daily_brief.py` (TC-AGENT-01~03), CI 에 `npm test`·`pytest` 연결.
+- 백엔드 자동화 테스트: **15케이스 작성됨** — `backend/test/tasks.test.js` (TC-TASK-01,02,04~10), `backend/test/projects.test.js` (TC-PROJ-01~06). `supertest` + `node --test`, `:memory:` DB.
+- 에이전트 자동화 테스트: **3케이스 작성됨** — `agent/tests/test_daily_brief.py` (TC-AGENT-01~03). `test_claude.py` 는 `agent/tests/` 로 이동(연결 확인용, 키 없으면 skip).
+- CI: 문법 검사 + `npm test`(backend) + `pytest -m "not network"`(agent) 연결됨. `node -c src/app.js` 추가.
+- `verify.sh`: `app.js` 문법 체크 추가 (13/0/0).
+- 미작성(후속): TC-TASK-03/11/12, TC-DB-01~04 (Phase B2), TC-AGENT-04~06, 수동 체크리스트.
 
 ---
 

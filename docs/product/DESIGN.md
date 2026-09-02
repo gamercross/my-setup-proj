@@ -264,7 +264,7 @@ sequenceDiagram
 
 | Phase | 강의 Week | 주제 | 상태 |
 |---|---|---|---|
-| A | Week 1~2 | 기반 정리 (환경·테스트·커밋 체계) | 🚧 A1·A2 ✅ / A3 ⏳ |
+| A | Week 1~2 | 기반 정리 (환경·테스트·커밋 체계) | A1~A3 ✅ |
 | B | Week 2~3 | 프론트 React 연결 + SQLite + 할일 CRUD | ⏳ (ADR 결정 완료) |
 | C | Week 4~5 | 백엔드 미들웨어 · 프로젝트 · 캘린더 | ⏳ |
 | D | Week 6~7 | 에이전트 (수집·Claude·Notion·스케줄) | ⏳ |
@@ -278,7 +278,7 @@ sequenceDiagram
 |---|---|---|---|
 | A1 | 경로 이관 변경분 커밋 | G5 | ✅ `fc4404c` |
 | A2 | node/npm/python 설치 + `setup.sh`·`verify.sh` 통과 + 백엔드 실행 검증 | G4, NFR-TEST-04 | ✅ `45f0a15` (12/0/0) |
-| A3 | backend supertest 스모크(TC-TASK/PROJ P0) + agent pytest(TC-AGENT-01~03), CI 에 `npm test`·`pytest` 연결 | NFR-TEST-01~03, G6 | ⏳ 다음 |
+| A3 | backend supertest 스모크(TC-TASK/PROJ P0, 15케이스) + agent pytest(TC-AGENT-01~03), CI 에 `npm test`·`pytest -m "not network"` 연결, `app.js` 분리 | NFR-TEST-01~03, G6 | ✅ A3 |
 
 ### Phase B — 프론트 연결 + DB (Week 2~3)
 
