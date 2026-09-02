@@ -109,14 +109,14 @@ API `PUT`/`DELETE /api/tasks/:id` · UI `TaskList` `onDelete` · NFR-REL-02
 
 **사용자 스토리:** 사용자로서 나는 앱을 껐다 켜도 내 할일이 그대로 있길 바란다.
 
-**우선순위** P0 · **목표 주차** W5 · **상태** ⏳
+**우선순위** P0 · **목표 주차** W5 · **상태** ✅ Phase B2 (2026-09-02, better-sqlite3)
 
 ### 수용 기준
-- **AC-1** Given 할일 2건 생성 후 백엔드 프로세스 재시작, When `GET /api/tasks`, Then 2건이 그대로 반환된다.
-- **AC-2** SQLite 파일은 `backend/db/schema.sql` 로 초기화되며, 이미 있으면 데이터를 보존한다(`CREATE TABLE IF NOT EXISTS`).
-- **AC-3** `backend/src/db.js` 의 함수 시그니처(`getTasks/getTask/addTask/updateTask/deleteTask`)는 인메모리 때와 동일하게 유지된다 (NFR-MAINT-03) — 라우트·테스트 무수정.
-- **AC-4** 기존 인메모리 기준 API 통합 테스트가 SQLite 로 교체 후에도 전부 통과한다(회귀).
-- **AC-5** DB 파일 경로는 `DATABASE_PATH` 환경변수로 주입한다 (기본 `backend/data/app.db`, 패키지는 `userData` — [ADR-0009](../adr/ADR-0009-sqlite-file-location.md)). 부팅 시 WAL 모드 ([ADR-0011](../adr/ADR-0011-agent-backend-db-access.md)).
+- **AC-1** ✅ Given 할일 2건 생성 후 백엔드 프로세스 재시작, When `GET /api/tasks`, Then 2건이 그대로 반환된다. (TC-DB-01)
+- **AC-2** ✅ SQLite 파일은 `backend/db/schema.sql` 로 초기화되며, 이미 있으면 데이터를 보존한다(`CREATE TABLE IF NOT EXISTS`). `db/index.js` 가 런타임 멱등 적용. (TC-DB-03)
+- **AC-3** ✅ `backend/src/db.js` 의 함수 시그니처(`getTasks/getTask/addTask/updateTask/deleteTask`)는 인메모리 때와 동일하게 유지된다 (NFR-MAINT-03) — 라우트·테스트 무수정. (TC-DB-02)
+- **AC-4** ✅ 기존 인메모리 기준 API 통합 테스트가 SQLite 로 교체 후에도 전부 통과한다(회귀). `npm test` 18/18.
+- **AC-5** ✅ DB 파일 경로는 `DATABASE_PATH` 환경변수로 주입한다 (기본 `backend/data/app.db`, 패키지는 `userData` — [ADR-0009](../adr/ADR-0009-sqlite-file-location.md)). 부팅 시 WAL 모드 ([ADR-0011](../adr/ADR-0011-agent-backend-db-access.md)).
 
 ### 관련
 ADR-02/03 · `backend/db/` · 데이터 `tasks` · NFR-MAINT-03, NFR-PERF-02

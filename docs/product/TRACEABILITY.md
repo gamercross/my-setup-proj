@@ -15,7 +15,7 @@
 | 갭 | 내용 | 닫는 요구사항 | Phase | 상태 |
 |---|---|---|---|:---:|
 | G1 | React 미연결 (번들러 없음) | FR-UI-02 | B1 | ✅ (Vite + `renderer.jsx` 마운트, 2026-09-02) |
-| G2 | DB 영속성 없음 (인메모리) | FR-TASK-05 | B2 | ⏳ |
+| G2 | DB 영속성 없음 (인메모리) | FR-TASK-05 | B2 | ✅ (better-sqlite3, WAL, DATABASE_PATH, 2026-09-02) |
 | G3 | 프론트↔백엔드 연결 코드 0 | FR-TASK-01~04, FR-UI-01 | B3 | ⏳ |
 | G4 | 로컬 환경 미검증 | NFR-TEST-04 | A2 | ✅ (`verify.sh` 12/0/0, 2026-09-02) |
 | G5 | 경로 이관 변경분 미커밋 | — | A1 | ✅ (`fc4404c`) |
@@ -33,11 +33,11 @@
 
 | FR | 갭 | 설계 / ADR | Phase·단계 | 테스트 | 코드 위치 | 상태 |
 |---|---|---|---|---|---|:---:|
-| FR-TASK-01 | G3 | API_REFERENCE `POST /tasks`, [ADR-0004](adr/ADR-0004-front-back-http-rest.md) | B3 | TC-TASK-01~03 | `backend/src/routes/tasks.js`, `frontend/.../TaskForm.jsx` | 🚧 |
-| FR-TASK-02 | G3 | UI_SPEC §3.2 | B3 | TC-TASK-04,05 | `routes/tasks.js`, `components/TaskList.jsx` | 🚧 |
-| FR-TASK-03 | G3 | API_REFERENCE `PUT /tasks/:id` | B3 | TC-TASK-06 | `routes/tasks.js`, `Dashboard.jsx` | 🚧 |
-| FR-TASK-04 | G3 | API_REFERENCE | B3 | TC-TASK-07~11 | `routes/tasks.js` | 🚧 |
-| FR-TASK-05 | G2 | [ADR-0002](adr/ADR-0002-local-db-better-sqlite3.md), [ADR-0003](adr/ADR-0003-schema-single-file.md), [ADR-0009](adr/ADR-0009-sqlite-file-location.md) | B2 | TC-DB-01~03 | `backend/db/`, `backend/src/db.js` | ⏳ |
+| FR-TASK-01 | G3 | API_REFERENCE `POST /tasks`, [ADR-0004](adr/ADR-0004-front-back-http-rest.md) | B3 | TC-TASK-01~03 | `backend/src/routes/tasks.js`, `backend/src/db.js` (SQLite), `frontend/.../TaskForm.jsx` | 🚧 |
+| FR-TASK-02 | G3 | UI_SPEC §3.2 | B3 | TC-TASK-04,05 | `routes/tasks.js`, `backend/src/db.js` (SQLite), `components/TaskList.jsx` | 🚧 |
+| FR-TASK-03 | G3 | API_REFERENCE `PUT /tasks/:id` | B3 | TC-TASK-06 | `routes/tasks.js`, `backend/src/db.js` (SQLite), `Dashboard.jsx` | 🚧 |
+| FR-TASK-04 | G3 | API_REFERENCE | B3 | TC-TASK-07~11 | `routes/tasks.js`, `backend/src/db.js` (SQLite) | 🚧 |
+| FR-TASK-05 | G2 | [ADR-0002](adr/ADR-0002-local-db-better-sqlite3.md), [ADR-0003](adr/ADR-0003-schema-single-file.md), [ADR-0009](adr/ADR-0009-sqlite-file-location.md) | B2 | TC-DB-01~03 | `backend/db/index.js`, `backend/src/db.js` | ✅ (2026-09-02) |
 | FR-TASK-06 | — | API_REFERENCE 쿼리 파라미터 | C (W4) | TC-TASK-12 | `routes/tasks.js`, `db.js` | ⏳ |
 | FR-TASK-07 | — | requirements/TASK.md | C (W5) | — | `routes/tasks.js` | ⏳ |
 | FR-PROJ-01 | G3 | API_REFERENCE `/projects` | C2 | TC-PROJ-01~03,06 | `backend/src/routes/projects.js` | 🚧 |
@@ -87,7 +87,7 @@
 | NFR-REL-05 | 네트워크 재시도 (지수 백오프 ×3) | D2 | 단위(모킹) | ⏳ |
 | NFR-REL-06 | graceful shutdown (SIGTERM) | E4 (W9) | `kill -TERM` | ⏳ |
 | NFR-MAINT-02 | 계층 분리 routes→services→db | C1 | 코드리뷰 | 🚧 |
-| NFR-MAINT-03 | `db.js` 인터페이스 불변 | B2 | TC-DB-02 | ⏳ |
+| NFR-MAINT-03 | `db.js` 인터페이스 불변 | B2 | TC-DB-02 | ✅ (공개 함수 10개 시그니처·반환·오류 불변, 2026-09-02) |
 | NFR-MAINT-04 | 모델 상수 1곳 (`claude.py DEFAULT_MODEL`) | 상시 | grep | ✅ |
 | NFR-MAINT-05 | 한 기능 = `/feature` 1회 | 상시 | 커밋 히스토리 | 🚧 |
 | NFR-OBS-01 | 백엔드 요청 로깅 미들웨어 | C1 | 서버 콘솔 | ⏳ |
@@ -98,7 +98,7 @@
 | NFR-TEST-03 | CI 문법 + 테스트 | A3 | Actions | ✅ (`npm test` + `pytest -m "not network"` 연결) |
 | NFR-TEST-04 | `verify.sh` exit 0 | A2 | `bash verify.sh` | ✅ (12/0/0, 2026-09-02) |
 | NFR-PORT-02 | CI Node 22 / Python 3.12 고정 (로컬 상위 허용) | 상시 | CI | ✅ |
-| NFR-PORT-03 | 경로·환경값 설정 분리 | B2, [ADR-0009](adr/ADR-0009-sqlite-file-location.md) | grep `/Users/` | 🚧 |
+| NFR-PORT-03 | 경로·환경값 설정 분리 | B2, [ADR-0009](adr/ADR-0009-sqlite-file-location.md) | grep `/Users/` | ✅ (`DATABASE_PATH` 주입, 기본 `backend/data/app.db`, 2026-09-02) |
 | NFR-DEPLOY-01 | Docker 빌드 | E3 (W12) | `docker build` | ⏳ |
 | NFR-DEPLOY-02 | electron-builder 패키징 | E3 | `npm run build` | ⏳ |
 | NFR-DEPLOY-03 | Daily Brief 무인 실행 | D3 | 로그 | ⏳ |

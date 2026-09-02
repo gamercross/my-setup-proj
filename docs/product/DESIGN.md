@@ -89,6 +89,8 @@ flowchart TB
 **DDL 단일 원천: [`backend/db/schema.sql`](../../backend/db/schema.sql).** 필드별 의미·규칙은 [DATA_DICTIONARY.md](DATA_DICTIONARY.md).
 이 절은 관계와 설계 의도만 다룬다.
 
+> **B2 완료 (2026-09-02):** better-sqlite3 로 `backend/src/db.js` 내부 교체 완료. `backend/db/index.js` 가 `schema.sql` 을 런타임에 멱등 적용(WAL). 라우트·검증 무수정.
+
 테이블: `tasks`, `projects`, `calendar_events`(Google 캐시), `emails`(Gmail 캐시), `briefs`(날짜별 1건), `sync_logs`(append-only).
 
 ```
@@ -265,7 +267,7 @@ sequenceDiagram
 | Phase | 강의 Week | 주제 | 상태 |
 |---|---|---|---|
 | A | Week 1~2 | 기반 정리 (환경·테스트·커밋 체계) | A1~A3 ✅ |
-| B | Week 2~3 | 프론트 React 연결 + SQLite + 할일 CRUD | B1 ✅ / B2·B3 ⏳ |
+| B | Week 2~3 | 프론트 React 연결 + SQLite + 할일 CRUD | B1·B2 ✅ / B3 ⏳ |
 | C | Week 4~5 | 백엔드 미들웨어 · 프로젝트 · 캘린더 | ⏳ |
 | D | Week 6~7 | 에이전트 (수집·Claude·Notion·스케줄) | ⏳ |
 | — | Week 8 | 중간고사 · 과제 1 발표 | ⏳ |
@@ -285,7 +287,7 @@ sequenceDiagram
 | 단계 | `/feature` 설명 | 커버 | 산출물 |
 |---|---|---|---|
 | B1 | ✅ Vite 도입, `renderer.js`→`renderer.jsx` 로 React 마운트, `App` 렌더 확인 (`main.js` dev/prod 분기 + `fallback.html`, `preload.apiBaseUrl`, prod CSP) | AD-01, FR-UI-02, G1 | 빌드 파이프라인 |
-| B2 | `schema.sql` + better-sqlite3 로 `db.js` 내부 교체 (라우트 무수정) | AD-02/03, FR-TASK-05, G2 | `backend/db/` |
+| B2 | ✅ `schema.sql` + better-sqlite3 로 `db.js` 내부 교체 (라우트 무수정, `db/index.js` 커넥션 싱글턴 + WAL + `DATABASE_PATH`) | AD-02/03, FR-TASK-05, G2 | `backend/db/index.js`, `backend/test/db.test.js` |
 | B3 | `api/client.js` + zustand store, Dashboard→TaskList/TaskForm 배선 (할일 CRUD E2E) | FR-TASK-01~04, FR-UI-01, G3 | 동작하는 할일 기능 |
 
 ### Phase C — 강의 동기화 (Week 4~5)

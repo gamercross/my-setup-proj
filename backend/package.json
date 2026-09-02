@@ -9,6 +9,7 @@
     "test": "node --test \"test/**/*.test.js\""
   },
   "dependencies": {
+    "better-sqlite3": "^13.0.3",
     "express": "^4.18.0"
   },
   "devDependencies": {

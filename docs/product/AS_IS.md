@@ -39,12 +39,12 @@
 | API 라우터 (`src/routes/api.js`) | `GET /api/health`, `/api/tasks`·`/api/projects` 서브라우터 연결 | ✅ |
 | 할일 라우트 (`src/routes/tasks.js`) | GET(목록/단건)·POST·PUT·DELETE, 검증오류 400 / 그 외 500 매핑 | ✅ |
 | 프로젝트 라우트 (`src/routes/projects.js`) | tasks 와 동일 구조 CRUD | ✅ |
-| 데이터 저장 (`src/db.js`) | **인메모리 배열** + 증가 카운터 id. `getX/addX/updateX/deleteX` 함수 인터페이스 제공 | ❌ **영속성 없음** |
+| 데이터 저장 (`src/db.js`) | ✅ **better-sqlite3 (B2)** — `db/index.js` 커넥션 싱글턴 경유, WAL 모드, `DATABASE_PATH` 로 경로 주입(기본 `backend/data/app.db`). 공개 함수 10개 시그니처 불변 | ✅ 영속화 |
 | CORS | 없음 | ❌ (프론트 연동 시 필요) |
 | 로깅 미들웨어 | 없음 (`console.error` 만) | 🚧 |
 | 실행 검증 | ✅ Phase A2에서 기동 + CRUD curl 왕복 확인 (인메모리 기준) | ✅ |
 
-**핵심 문제:** `db.js` 가 인메모리라 프로세스 재시작 시 데이터가 사라진다. 단, 라우트가 db 함수 시그니처에만 의존하므로 **내부만 SQLite 로 교체하면 라우트는 무수정** 가능.
+**핵심 문제:** (B2 해소) `db.js` 내부가 better-sqlite3 로 교체돼 프로세스 재시작 후에도 데이터가 유지된다. 라우트·검증 로직은 무수정(NFR-MAINT-03).
 
 ### 2.3 Agent — `agent/` (Python Claude 에이전트 스텁)
 
@@ -62,7 +62,7 @@
 
 | 항목 | 현황 |
 |---|---|
-| SQLite | ❌ 미도입. `schema.sql` 파일 없음 |
+| SQLite | ✅ better-sqlite3 (B2) — `backend/db/index.js` + `backend/db/schema.sql` 런타임 적용, WAL |
 | Supabase | ❌ 미도입 (roadmap Week 10+) |
 | 스키마 정의 위치 | [ARCHITECTURE.md](ARCHITECTURE.md) 에 `tasks`/`projects`/`emails`/`calendar_events`/`sync_logs` DDL 문서로만 존재 |
 
@@ -82,7 +82,7 @@
 | 항목 | 현황 |
 |---|---|
 | `tests/` (크로스 프로젝트) | README 만. 실제 테스트 0개 (Week 12+) |
-| backend | ✅ supertest + `node --test` 15케이스 (TC-TASK-01,02,04~10 / TC-PROJ-01~06), `:memory:` DB — Phase A3 |
+| backend | ✅ supertest + `node --test` 18케이스 (TC-TASK-01,02,04~10 / TC-PROJ-01~06 / TC-DB-01~03), `:memory:` DB — Phase A3·B2 |
 | frontend | Jest 미도입 |
 | agent | ✅ pytest 3케이스 (TC-AGENT-01~03) `agent/tests/test_daily_brief.py` — Phase A3. `test_claude.py` 는 `agent/tests/` 로 이동(연결 확인용) |
 
@@ -105,9 +105,10 @@ flowchart TB
     SRV["server.js"] --> AR["routes/api.js"]
     AR --> TR["routes/tasks.js"]
     AR --> PR["routes/projects.js"]
-    TR --> DBJS["db.js<br/>(인메모리)"]
+    TR --> DBJS["db.js<br/>(better-sqlite3)"]
     PR --> DBJS
-    SCHEMA["db/schema.sql"] -. "미사용: 아직 로드하는<br/>코드 없음 (G2)" .-> DBJS
+    DBJS --> DBIDX["db/index.js<br/>(커넥션 싱글턴)"]
+    DBIDX --> SCHEMA["db/schema.sql"]
   end
 
   subgraph AGT["agent"]
@@ -144,7 +145,7 @@ flowchart TB
 | # | 갭 | 심각도 | 상태 |
 |---|---|:---:|---|
 | G1 | React 미연결 (번들러 없음, `renderer.js` ↔ `App.jsx` 이원화) | 높음 | ✅ Phase B1 (Vite + `renderer.jsx` 마운트) |
-| G2 | DB 영속성 없음 (인메모리) | 높음 | ⏳ Phase B2 (강의 SQLite) |
+| G2 | DB 영속성 없음 (인메모리) | 높음 | ✅ Phase B2 (better-sqlite3, WAL, DATABASE_PATH) |
 | G3 | 프론트 ↔ 백엔드 연결 코드 0 (fetch/CORS/base URL 없음) | 높음 | ⏳ Phase B3 |
 | G4 | 로컬 환경 미검증 | 중간 | ✅ Phase A2 완료 (2026-09-02) |
 | G5 | 경로 이관 변경분 미커밋 | 낮음 | ✅ 커밋 `fc4404c` |

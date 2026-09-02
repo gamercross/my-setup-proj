@@ -89,15 +89,15 @@
 개발: 72%
 ```
 
-> Phase A2·A3·B1 완료. 다음: B2(SQLite) → B3(프론트↔백엔드 배선).
-> 검증 스냅샷: `node v26.8.1 / npm 11.19.0 / python 3.14.4`, `verify.sh` 13/0/0, `npm test` 15/0, `pytest -m "not network"` 3 pass.
+> Phase A2·A3·B1·B2 완료. 다음: B3(프론트↔백엔드 배선).
+> 검증 스냅샷: `node v26.8.1 / npm 11.19.0 / python 3.14.4`, `verify.sh` 15/0/0, `npm test` 18/0, `pytest -m "not network"` 3 pass.
 
 ---
 
 ## 🗓️ Week 2: 기본 프로젝트 구축 (09-09 ~ 09-15)
 
 **목표:** Electron + React 기본 UI 완성, Express 서버 실행  
-**진행도:** 50% 🚧 (진행 중 — Phase B1 완료)
+**진행도:** 65% 🚧 (진행 중 — Phase B1·B2 완료)
 
 ### 강의
 - [ ] Chapter 02: 디렉토리와 파일 사용법
@@ -121,9 +121,10 @@
   - [x] `backend/src/app.js` 분리 (server.js 가 import 시 listen 하던 문제 해결)
   - [x] `agent/tests/` — pytest 3케이스 (TC-AGENT-01~03), `test_claude.py` 이동
   - [x] CI 에 `npm test` · `pytest -m "not network"` 연결, `verify.sh` app.js 문법 체크 추가 (13/0/0)
-- [ ] SQLite 설정 (better-sqlite3 로 `db.js` 교체) → Phase B2
-  - [ ] `DATABASE_PATH` 규약, WAL 모드
-  - [ ] 샘플 데이터 입력
+- [x] SQLite 설정 (better-sqlite3 로 `db.js` 교체) → Phase B2 (2026-09-02)
+  - [x] `DATABASE_PATH` 규약, WAL 모드 (`backend/db/index.js` 커넥션 싱글턴, `schema.sql` 런타임 멱등 적용)
+  - [x] `backend/test/db.test.js` — TC-DB-01~03 (재시작 영속 / 인터페이스 불변 / 스키마 멱등+WAL)
+  - [ ] 샘플 데이터 입력 (유보)
 
 ### 배운 Linux 명령어
 ```bash
@@ -136,13 +137,13 @@ wc -l                  # 줄 수 세기
 
 ### 진행 상황 요약
 ```
-완료한 작업: 4개 (React 컴포넌트 스캐폴드, 번들러(Vite) 연결 = B1, Express CRUD 라우트, 자동화 테스트 골격 + CI)
-진행 중: 1개 (SQLite 교체 = B2)
-예정된 작업: 3개
+완료한 작업: 5개 (React 컴포넌트 스캐폴드, 번들러(Vite) 연결 = B1, Express CRUD 라우트, 자동화 테스트 골격 + CI, SQLite 교체 = B2)
+진행 중: 0개
+예정된 작업: 2개 (B3 프론트↔백엔드 배선, 샘플 데이터)
 
-진행도: 60%
+진행도: 65%
 강의 수강: 0%
-개발: 78%
+개발: 88%
 ```
 
 ---
@@ -193,7 +194,7 @@ umask -S               # 기본 권한
 
 ```
 Week 1  ███████░░░ 70%
-Week 2  ██████░░░░ 60%
+Week 2  ███████░░░ 65%
 Week 3  ████░░░░░░ 40%
 Week 4  ░░░░░░░░░░  0%
 Week 5  ░░░░░░░░░░  0%

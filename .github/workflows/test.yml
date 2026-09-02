@@ -19,6 +19,8 @@ jobs:
       - run: npm install
       - run: node -c src/server.js  # 문법 검사
       - run: node -c src/app.js  # 문법 검사
+      - run: node -c src/db.js  # 문법 검사
+      - run: node -c db/index.js  # 문법 검사
       - run: npm test
 
   frontend:

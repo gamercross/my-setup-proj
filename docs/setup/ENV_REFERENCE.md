@@ -20,7 +20,7 @@
 | `SUPABASE_KEY` | ⏳ (Week 10~) | Supabase anon/service 키 | 동상 | 동상 |
 | `NODE_ENV` | ✅ | `development` / `production`. 로깅·개발도구·Vite 로드 방식 분기 (ADR-0010) | `backend/src/server.js`, `frontend/src/main.js` | 코드 기본값(`development` 가정) |
 | `PORT` | ✅ | 백엔드 리슨 포트. 기본 `3000` | `backend/src/server.js` | `3000` 사용 |
-| `DATABASE_PATH` | — | 로컬 SQLite 파일 경로 (ADR-0009). 비우면 `backend/data/app.db` | `backend/db/`, `agent/db.py` | 기본 경로 사용. Electron 패키지는 `main.js` 가 `userData` 로 덮어씀 |
+| `DATABASE_PATH` | — | 로컬 SQLite 파일 경로 (ADR-0009). 비우면 `backend/data/app.db` | `backend/db/index.js`, `agent/db.py` | ✅ B2 구현: `backend/db/index.js` 가 이 값을 읽음 (없으면 `backend/data/app.db`). 단 backend 는 아직 `.env` 자동 로딩 없음 — 셸 환경변수로 주입 (dotenv 도입은 후속). Electron 패키지는 `main.js` 가 `userData` 로 덮어씀 |
 
 ## 2. 키별 발급 방법
 

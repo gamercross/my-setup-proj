@@ -31,7 +31,7 @@ backend/
       testApp.js            # app.js + :memory: DB 를 supertest 로 감싸는 헬퍼
     tasks.test.js
     projects.test.js
-    db.test.js               # 🔷 Phase B2 (SQLite 회귀)
+    db.test.js               # ✅ Phase B2 (SQLite 회귀, TC-DB-01~03)
 agent/
   tests/                    # test_*.py — pytest 가 수집
     test_daily_brief.py
@@ -80,9 +80,9 @@ CI(`.github/workflows/test.yml`)에 `npm test`(backend), `pytest -m "not network
 
 | ID | 대상 | 전제 | 기대 결과 | 우선 |
 |---|---|---|---|:---:|
-| TC-DB-01 | FR-TASK-05 | SQLite 백엔드, 할일 2건 생성 | 프로세스/커넥션 재시작 후 `GET /api/tasks` 에 2건 유지 | P0(B2) |
-| TC-DB-02 | NFR-MAINT-03 | `db.js` 시그니처 | `getTasks/getTask/addTask/updateTask/deleteTask` 반환 형태가 인메모리 때와 동일 | P0(B2) |
-| TC-DB-03 | ADR-0003 | 빈 DB 파일 | 부팅 시 `schema.sql` 적용, 재부팅 시 데이터 보존 (`IF NOT EXISTS`) | P0(B2) |
+| TC-DB-01 | FR-TASK-05 | SQLite 백엔드, 할일 2건 생성 | 프로세스/커넥션 재시작 후 `GET /api/tasks` 에 2건 유지 | ✅ P0(B2) |
+| TC-DB-02 | NFR-MAINT-03 | `db.js` 시그니처 | `getTasks/getTask/addTask/updateTask/deleteTask` 반환 형태가 인메모리 때와 동일 | ✅ P0(B2) |
+| TC-DB-03 | ADR-0003 | 빈 DB 파일 | 부팅 시 `schema.sql` 적용, 재부팅 시 데이터 보존 (`IF NOT EXISTS`) + WAL | ✅ P0(B2) |
 | TC-DB-04 | schema CHECK | `addTask({title:"a", priority:"x"})` 직접 호출 | SQLite CHECK 제약 위반 → 예외 → 라우트가 400 매핑 | P1 |
 
 ### 3.4 에이전트 — `agent/tests/test_daily_brief.py`
@@ -150,13 +150,14 @@ supervisor 는 리뷰 시 "이 변경에 대응하는 테스트가 있는가"를
 
 ---
 
-## 7. 현재 상태 (2026-09-02, Phase A3 완료)
+## 7. 현재 상태 (2026-09-02, Phase B2 완료)
 
-- 백엔드 자동화 테스트: **15케이스 작성됨** — `backend/test/tasks.test.js` (TC-TASK-01,02,04~10), `backend/test/projects.test.js` (TC-PROJ-01~06). `supertest` + `node --test`, `:memory:` DB.
+- 백엔드 자동화 테스트: **18케이스 작성됨** — `backend/test/tasks.test.js` (TC-TASK-01,02,04~10), `backend/test/projects.test.js` (TC-PROJ-01~06), `backend/test/db.test.js` (TC-DB-01~03, Phase B2). `supertest` + `node --test`, `:memory:` DB.
 - 에이전트 자동화 테스트: **3케이스 작성됨** — `agent/tests/test_daily_brief.py` (TC-AGENT-01~03). `test_claude.py` 는 `agent/tests/` 로 이동(연결 확인용, 키 없으면 skip).
-- CI: 문법 검사 + `npm test`(backend) + `pytest -m "not network"`(agent) 연결됨. `node -c src/app.js` 추가.
-- `verify.sh`: `app.js` 문법 체크 추가 (13/0/0).
-- 미작성(후속): TC-TASK-03/11/12, TC-DB-01~04 (Phase B2), TC-AGENT-04~06, 수동 체크리스트.
+- CI: 문법 검사 + `npm test`(backend) + `pytest -m "not network"`(agent) 연결됨. `node -c src/app.js`, `src/db.js`, `db/index.js` 추가.
+- `verify.sh`: `db.js`·`db/index.js` 문법 체크 추가 (15/0/0).
+- 미작성(후속): TC-TASK-03/11/12, TC-DB-04, TC-AGENT-04~06, 수동 체크리스트.
+- Phase B2(2026-09-02): `backend/src/db.js` 를 better-sqlite3 로 재작성, `backend/db/index.js` 신규(커넥션 싱글턴 + WAL + `DATABASE_PATH`), `backend/test/db.test.js` 추가. `npm test` 18/18 (node 26·22), `verify.sh` 15/0/0, frontend `npm run build` 회귀 없음, agent pytest 3 pass.
 - Phase B1(2026-09-02): `frontend/vite.config.js` + `renderer.jsx` 마운트. `npm run build` 성공(`dist/index.html` + `dist/assets/*.js`), prod CSP 지시어 확인, `verify.sh` 13/0/0. 프론트 수동 체크리스트(TC-UI-01, TC-UI-07 prod 스모크)는 **로컬 수행 대기** — 샌드박스에서 electron 바이너리 postinstall 차단으로 창 기동 불가. `main.js` dev/prod 분기·`fallback.html` 폴백은 코드 리뷰로 판정.
 
 ---

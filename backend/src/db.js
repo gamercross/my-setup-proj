@@ -1,33 +1,70 @@
-// 데이터베이스 모듈 (Week 1 임시 구현)
-// Week 2에서 SQLite(better-sqlite3 등)로 교체한다.
-// 지금은 메모리 배열로 최소 인터페이스만 제공한다.
+// 데이터 접근 계층 (better-sqlite3) — ADR-0002, ADR-0009, ADR-0011
+//
+// 공개 API 는 Week 1 인메모리 구현과 완전히 동일하다 (라우트/응답 형태 불변).
+// 실제 커넥션·스키마·PRAGMA 는 backend/db/index.js 가 담당한다.
+//
+// 주의: 여기서 require('../db') 는 backend/db/index.js (커넥션 계층) 다.
+//       라우트가 require('../db') 하면 이 파일이다.
+const { getDb } = require('../db');
 
-// 임시 인메모리 저장소
-const memory = {
-  tasks: [],
-  projects: [],
+const db = getDb();
+
+// 응답 키 순서까지 인메모리 구현과 동일하게 맞춘다. SELECT * 금지.
+// tasks 는 project_id 를 응답에 노출하지 않는다 (인메모리 구현과 동일).
+const TASK_COLS = 'id, title, description, due_date, priority, status, created_at, updated_at';
+const PROJECT_COLS = 'id, name, progress, status, notion_id, created_at, updated_at';
+
+// 병합 허용 필드 (라우트의 isValidationError 정규식이 오류 메시지에 의존하므로 문자열 불변)
+const TASK_FIELDS = ['title', 'description', 'due_date', 'priority', 'status'];
+const PROJECT_FIELDS = ['name', 'progress', 'status', 'notion_id'];
+
+// prepared statement 는 모듈 로드 시 준비한다.
+const stmts = {
+  listTasks: db.prepare(`SELECT ${TASK_COLS} FROM tasks ORDER BY id`),
+  getTask: db.prepare(`SELECT ${TASK_COLS} FROM tasks WHERE id = ?`),
+  insertTask: db.prepare(
+    `INSERT INTO tasks (title, description, due_date, priority, status, created_at, updated_at)
+     VALUES (@title, @description, @due_date, @priority, @status, @created_at, @updated_at)`
+  ),
+  updateTask: db.prepare(
+    `UPDATE tasks SET title = @title, description = @description, due_date = @due_date,
+       priority = @priority, status = @status, updated_at = @updated_at
+     WHERE id = @id`
+  ),
+  deleteTask: db.prepare('DELETE FROM tasks WHERE id = ?'),
+
+  listProjects: db.prepare(`SELECT ${PROJECT_COLS} FROM projects ORDER BY id`),
+  getProject: db.prepare(`SELECT ${PROJECT_COLS} FROM projects WHERE id = ?`),
+  insertProject: db.prepare(
+    `INSERT INTO projects (name, progress, status, notion_id, created_at, updated_at)
+     VALUES (@name, @progress, @status, @notion_id, @created_at, @updated_at)`
+  ),
+  updateProject: db.prepare(
+    `UPDATE projects SET name = @name, progress = @progress, status = @status,
+       notion_id = @notion_id, updated_at = @updated_at
+     WHERE id = @id`
+  ),
+  deleteProject: db.prepare('DELETE FROM projects WHERE id = ?'),
 };
 
-// id 시퀀스 (배열 length 기반 생성은 삭제 시 충돌하므로 증가 카운터 사용)
-let taskSeq = 0;
-let projectSeq = 0;
-
-// 할일에서 병합 허용할 필드
-const TASK_FIELDS = ['title', 'description', 'due_date', 'priority', 'status'];
-// 프로젝트에서 병합 허용할 필드
-const PROJECT_FIELDS = ['name', 'progress', 'status', 'notion_id'];
+// id 를 정수로 정규화한다. 정수가 아니면 null (NaN 바인딩 시 500 방지).
+function toId(id) {
+  const n = Number(id);
+  return Number.isInteger(n) ? n : null;
+}
 
 // ── 할일(tasks) ─────────────────────────────
 
-// 할일 목록 조회
+// 할일 목록 조회 (생성 순서)
 function getTasks() {
-  return memory.tasks;
+  return stmts.listTasks.all();
 }
 
 // 할일 단건 조회 (없으면 undefined)
 function getTask(id) {
-  const nid = Number(id);
-  return memory.tasks.find((t) => t.id === nid);
+  const nid = toId(id);
+  if (nid === null) return undefined;
+  return stmts.getTask.get(nid);
 }
 
 // 할일 추가
@@ -37,7 +74,6 @@ function addTask(task) {
   }
   const now = new Date().toISOString();
   const row = {
-    id: ++taskSeq,
     title: task.title,
     description: task.description || '',
     due_date: task.due_date || null,
@@ -46,8 +82,8 @@ function addTask(task) {
     created_at: now,
     updated_at: now,
   };
-  memory.tasks.push(row);
-  return row;
+  const info = stmts.insertTask.run(row);
+  return getTask(info.lastInsertRowid);
 }
 
 // 할일 수정 (없으면 undefined, 허용 필드만 병합)
@@ -60,16 +96,15 @@ function updateTask(id, patch) {
     }
   }
   row.updated_at = new Date().toISOString();
-  return row;
+  stmts.updateTask.run(row);
+  return getTask(row.id);
 }
 
 // 할일 삭제 (삭제 성공 여부 boolean 반환)
 function deleteTask(id) {
-  const nid = Number(id);
-  const idx = memory.tasks.findIndex((t) => t.id === nid);
-  if (idx === -1) return false;
-  memory.tasks.splice(idx, 1);
-  return true;
+  const nid = toId(id);
+  if (nid === null) return false;
+  return stmts.deleteTask.run(nid).changes > 0;
 }
 
 // ── 프로젝트(projects) ─────────────────────────────
@@ -81,15 +116,16 @@ function assertProgress(v) {
   }
 }
 
-// 프로젝트 목록 조회
+// 프로젝트 목록 조회 (생성 순서)
 function getProjects() {
-  return memory.projects;
+  return stmts.listProjects.all();
 }
 
 // 프로젝트 단건 조회 (없으면 undefined)
 function getProject(id) {
-  const nid = Number(id);
-  return memory.projects.find((p) => p.id === nid);
+  const nid = toId(id);
+  if (nid === null) return undefined;
+  return stmts.getProject.get(nid);
 }
 
 // 프로젝트 추가
@@ -101,7 +137,6 @@ function addProject(p) {
   assertProgress(progress);
   const now = new Date().toISOString();
   const row = {
-    id: ++projectSeq,
     name: p.name,
     progress,
     status: p.status || 'active',
@@ -109,11 +144,12 @@ function addProject(p) {
     created_at: now,
     updated_at: now,
   };
-  memory.projects.push(row);
-  return row;
+  const info = stmts.insertProject.run(row);
+  return getProject(info.lastInsertRowid);
 }
 
 // 프로젝트 수정 (없으면 undefined, 허용 필드만 병합)
+// 존재 확인 → progress 검증 순서 유지 (TC-PROJ-04).
 function updateProject(id, patch) {
   const row = getProject(id);
   if (!row) return undefined;
@@ -124,16 +160,15 @@ function updateProject(id, patch) {
     }
   }
   row.updated_at = new Date().toISOString();
-  return row;
+  stmts.updateProject.run(row);
+  return getProject(row.id);
 }
 
 // 프로젝트 삭제 (삭제 성공 여부 boolean 반환)
 function deleteProject(id) {
-  const nid = Number(id);
-  const idx = memory.projects.findIndex((p) => p.id === nid);
-  if (idx === -1) return false;
-  memory.projects.splice(idx, 1);
-  return true;
+  const nid = toId(id);
+  if (nid === null) return false;
+  return stmts.deleteProject.run(nid).changes > 0;
 }
 
 module.exports = {

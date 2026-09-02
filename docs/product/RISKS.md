@@ -24,7 +24,7 @@
 
 | ID | 리스크 | 확률 | 영향 | 등급 | 완화책 | 상태 |
 |---|---|---|---|:---:|---|:---:|
-| R-4 | **`better-sqlite3` 네이티브 빌드 실패** (CI·Docker·타 OS) (T-3, A-6) | 중간 | 중간 | 🟠 | B2에서 CI 3-OS 매트릭스로 조기 확인. 실패 시 `node:sqlite`(Node 22+) 또는 순수 JS 폴백 ([ADR-0002](adr/ADR-0002-local-db-better-sqlite3.md)) | 🟡 |
+| R-4 | **`better-sqlite3` 네이티브 빌드 실패** (CI·Docker·타 OS) (T-3, A-6) | 중간 | 중간 | 🟠 | B2에서 CI 3-OS 매트릭스로 조기 확인. 실패 시 `node:sqlite`(Node 22+) 또는 순수 JS 폴백 ([ADR-0002](adr/ADR-0002-local-db-better-sqlite3.md)). better-sqlite3 v13 은 N-API prebuild 8개 플랫폼 동봉(linux-x64 포함), CI(ubuntu/node22)에서 소스빌드 불필요. node26·node22 양쪽 로드 확인(B2) | 🟢 |
 | R-5 | **Google OAuth 앱 검토·승인 지연** — Gmail/Calendar 스코프 (T-7) | 중간 | 중간 | 🟠 | "테스트 사용자" 모드로 본인 계정만 사용(검토 불필요). Week 6 전에 클라이언트 등록 미리 완료 | 🔴 |
 | R-6 | agent와 backend의 SQLite **동시 쓰기 충돌** (ADR-0011 미결) | 중간 | 중간 | 🟠 | D1 전에 ADR-0011 확정(WAL + busy_timeout). 쓰기 주체 분리 유지(agent=캐시 테이블, backend=tasks/projects) | 🟡 |
 | R-7 | Electron + Vite + CSP 조합에서 **개발 서버 로드/HMR 안 됨** (UI_SPEC §7) | 중간 | 낮음 | 🟡 | B1에서 dev CSP를 별도로 완화, 안 되면 빌드 산출물 로드로 통일 ([ADR-0010](adr/ADR-0010-vite-dev-vs-build.md)) | 🟡 |
