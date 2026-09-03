@@ -134,7 +134,7 @@ flowchart LR
 | 시크릿 | `.env` 하드코딩 금지. 렌더러에 API 키 노출 금지 |
 | Claude | 모델 `claude-opus-5`, `thinking: adaptive`, 상수는 `agent/services/claude.py` 한 곳 |
 | 커밋 | `<타입>: <내용>`, 꼬리말 `Co-Authored-By: Claude Sonnet 5 ...`. `main` 강제 푸시·`--force` 금지 |
-| 브랜치 | 지금은 `main` 직접 커밋 OK. Week 3~ 는 `feature/<이름>` |
+| 브랜치 | `feature/<짧은-이름>` 에서 작업 → 푸시 → **PR → `main`**. `main` 직접 커밋·`--force` 금지. `develop`·Git Flow 안 씀 ([ADR-0023](product/architecture/adr/ADR-0023-branch-model.md)) |
 | 검증 | 실제로 실행돼 FAIL 난 검사가 있으면 커밋 금지. **실행 안 한 검사를 "통과" 로 보고 금지** |
 | 범위 | 계획을 벗어나야 하면 임의 진행 금지 — 이유와 함께 보고하고 멈춘다 |
 

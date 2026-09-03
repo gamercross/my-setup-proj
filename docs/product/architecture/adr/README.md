@@ -53,3 +53,4 @@
 | [0020](ADR-0020-widget-shell-architecture.md) | 위젯 셸 아키텍처 (react-grid-layout + 위젯 계약) | 제안 | FR-WIDGET, DASHBOARD_OS |
 | [0021](ADR-0021-widget-layout-persistence.md) | 위젯 레이아웃·설정 영속화 (localStorage → SQLite) | 제안 | FR-WIDGET-04~06 |
 | [0022](ADR-0022-per-widget-theming.md) | 위젯별 테마 (스코프된 CSS 변수 + 구조화 config) | 제안 | FR-WIDGET-05, NFR-SEC-04 |
+| [0023](ADR-0023-branch-model.md) | 브랜치 모델 — `feature/* → PR → main` (Git Flow 미채택) | 채택 | GIT_WORKFLOW §2 |

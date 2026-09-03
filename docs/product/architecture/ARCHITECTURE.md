@@ -478,35 +478,33 @@ jobs:
 
 ## 💾 버전 관리
 
-### Git Flow
+### 브랜치 모델 (실제 — `feature/* → PR → main`)
 
-> 현재는 `main` 단일 브랜치(초기 셋업). Week 3~ 부터 아래 흐름. 규칙은 [GIT_WORKFLOW.md](../../setup/GIT_WORKFLOW.md) §2.
+> **`develop` 브랜치·Git Flow 는 쓰지 않는다** ([ADR-0023](adr/ADR-0023-branch-model.md)). 1인 프로젝트라 오버헤드 대비 이득이 없다.
+> 규칙 전문은 [GIT_WORKFLOW.md](../../setup/GIT_WORKFLOW.md) §2, [CONVENTIONS.md](../../setup/CONVENTIONS.md) §6.
+
+- 모든 변경(코드·문서)은 `feature/<짧은-이름>` 브랜치에서 → 푸시 → **PR → `main`**.
+- `main` 직접 커밋 금지. `main` 강제 푸시·`--force` 금지.
+- `main` 에는 CI(`Test & Build`) 통과 + 검증 게이트 통과분만 병합.
+- 스택 작업이 필요하면 PR 을 쌓고(아래→위) 아래부터 병합하며 상위 PR base 를 `main` 으로 재지정 (PR #1~#3 선례).
 
 ```mermaid
 gitGraph
-  commit id: "초기"
-  branch develop
-  checkout develop
-  commit id: "환경"
-  branch feature/dashboard
-  commit id: "React 연결"
-  commit id: "할일 CRUD"
-  checkout develop
-  merge feature/dashboard
-  branch feature/agent
-  commit id: "Daily Brief"
-  checkout develop
-  merge feature/agent
+  commit id: "da1a6b8"
+  branch feature/dashboard-os-widgets
+  checkout feature/dashboard-os-widgets
+  commit id: "docs: 위젯 셸 방향"
   checkout main
-  merge develop tag: "v1.0.0"
+  merge feature/dashboard-os-widgets tag: "PR #4"
+  branch feature/c5-widget-shell
+  commit id: "위젯 셸 구현"
+  checkout main
+  merge feature/c5-widget-shell tag: "PR #5"
 ```
 
 ### 태그 규칙
-```
-v1.0.0-alpha    # 알파 버전
-v1.0.0-beta     # 베타 버전
-v1.0.0          # 정식 버전
-```
+릴리스 시점에 `main` 에 붙인다. `v<major>.<minor>.<patch>` (+ `-alpha`/`-beta` 프리릴리스).
+현재는 정식 릴리스 전이라 태그 없음 — 강의 과제 1 발표 시점에 `v0.x` 시작 예정.
 
 ---
 

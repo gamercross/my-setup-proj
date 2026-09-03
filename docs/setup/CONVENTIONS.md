@@ -76,12 +76,16 @@
 
 ## 6. 브랜치 전략
 
-| 시기 | 정책 |
-|---|---|
-| **지금 (초기 셋업 · Week 1~2)** | `main` 직접 커밋 허용 (구조 정리·문서·스캐폴드 단계) |
-| **Week 3~ (기능 개발)** | `main` 직접 커밋 금지. `feature/<짧은-이름>` 에서 작업 → 푸시. `main` 은 통과된 것만 |
+**`feature/<짧은-이름>` 에서 작업 → 푸시 → PR → `main`.** `develop` 브랜치·Git Flow 는 쓰지 않는다 ([ADR-0023](../product/architecture/adr/ADR-0023-branch-model.md)).
 
-> `/feature` 오케스트레이터가 단계 시작 시 브랜치를 확인하고, Week 3 이후 `main` 위면 먼저 브랜치를 만든다. 자세히는 [GIT_WORKFLOW.md](GIT_WORKFLOW.md) §2.
+| 항목 | 규칙 |
+|---|---|
+| 작업 브랜치 | `feature/<주제>` (Phase 접두어 권장: `feature/c5-widget-shell`). 코드·문서 모두 |
+| `main` | PR 병합으로만. 직접 커밋·강제 푸시·`--force` 금지 |
+| 병합 조건 | CI(`Test & Build`) 통과 + 검증 게이트([GIT_WORKFLOW.md](GIT_WORKFLOW.md) §1) 통과 |
+| 스택 작업 | PR 을 쌓고 아래부터 병합, 병합 시 상위 PR base 를 `main` 으로 재지정 (PR #1~#3 선례) |
+
+> `/feature`·`/build-next` 오케스트레이터가 단계 시작 시 브랜치를 확인하고, `main` 위면 먼저 `feature/*` 를 만든다. 자세히는 [GIT_WORKFLOW.md](GIT_WORKFLOW.md) §2.
 
 ## 7. 에이전트 파이프라인 규칙
 
