@@ -1,7 +1,7 @@
 # FR-UI — 대시보드 / 화면 상세 명세
 
-> [REQUIREMENTS_FUNCTIONAL.md](../REQUIREMENTS_FUNCTIONAL.md) 의 UI 도메인 상세화.
-> 화면 요소·컴포넌트 계약은 [UI_SPEC.md](../UI_SPEC.md)(예정)에서 더 자세히 다룬다. 이 문서는 "요구사항" 수준.
+> [REQUIREMENTS_FUNCTIONAL.md](REQUIREMENTS_FUNCTIONAL.md) 의 UI 도메인 상세화.
+> 화면 요소·컴포넌트 계약은 [UI_SPEC.md](../reference/UI_SPEC.md)(예정)에서 더 자세히 다룬다. 이 문서는 "요구사항" 수준.
 
 ## 공통 규칙
 
@@ -43,7 +43,7 @@ UI `App`→`Dashboard` · FR-TASK-02, FR-PROJ-02, FR-CAL-01, FR-AGENT-04
 - **AC-5** `App` 안에서 `fetch(apiBaseUrl + '/health')` 결과를 3상태로 화면에 표시한다. 현재는 CORS 미설정으로 "에러 표시" 수준까지 검증 — 실제 200 은 C1 이후.
 - **AC-6** `preload.js` 의 `appInfo` (version/electron/node) 노출은 유지된다.
 - **AC-7** `verify.sh` 의 `node -c frontend/src/main.js` 가 계속 통과하고, 빌드가 CI 에서 성공한다.
-- **AC-8** `index.html` 의 CSP 에 `connect-src 'self' http://localhost:3000` (dev 는 `ws:` 포함)를 추가한다 — 현재 CSP 는 `connect-src` 미지정으로 `'self'` 제한이라 백엔드 `fetch` 가 차단된다 ([UI_SPEC.md](../UI_SPEC.md) §7).
+- **AC-8** `index.html` 의 CSP 에 `connect-src 'self' http://localhost:3000` (dev 는 `ws:` 포함)를 추가한다 — 현재 CSP 는 `connect-src` 미지정으로 `'self'` 제한이라 백엔드 `fetch` 가 차단된다 ([UI_SPEC.md](../reference/UI_SPEC.md) §7).
 
 ### 오류 시나리오
 | 상황 | 기대 동작 |
@@ -52,7 +52,7 @@ UI `App`→`Dashboard` · FR-TASK-02, FR-PROJ-02, FR-CAL-01, FR-AGENT-04
 | 번들 로드 실패(프로덕션) | `main.js` 가 에러 로깅 후 폴백 HTML |
 
 ### 관련
-ADR-01 · [AS_IS.md](../AS_IS.md) G1 · DESIGN §6 · NFR-PORT-01, NFR-TEST-03
+ADR-01 · [AS_IS.md](../vision/AS_IS.md) G1 · DESIGN §6 · NFR-PORT-01, NFR-TEST-03
 
 ---
 
@@ -96,7 +96,7 @@ UI `ErrorBanner` · `api/client.js` · NFR-REL-02
 **사용자 스토리:** 사용자로서 나는 이 프로젝트가 지금 어떤 구조이고 어디까지 진행됐는지를
 저장소를 열지 않고 대시보드에서 그림으로 보고 싶다.
 
-**우선순위** P2 · **목표 주차** W4~5 (Phase C1 이후) · **상태** ⏳ (제안 — [ADR-0014](../adr/ADR-0014-dashboard-diagram-viewer.md))
+**우선순위** P2 · **목표 주차** W4~5 (Phase C1 이후) · **상태** ⏳ (제안 — [ADR-0014](../architecture/adr/ADR-0014-dashboard-diagram-viewer.md))
 
 ### 범위
 - **이번(MVP)**: `docs/**/*.md` 에 이미 있는 Mermaid 다이어그램을 대시보드 패널에서 렌더.
@@ -112,7 +112,7 @@ UI `ErrorBanner` · `api/client.js` · NFR-REL-02
 - **AC-4** 개별 다이어그램 렌더가 실패해도 패널 전체가 죽지 않고, 해당 항목만
   "이 다이어그램을 그릴 수 없습니다" + 원문 Mermaid 코드로 폴백한다.
 - **AC-5** 데이터는 `GET /api/diagrams` 로 받는다. 응답은 `{ "diagrams": [{ doc, path, index, title, code }] }`.
-  (엔드포인트 상세는 [API_REFERENCE.md](../API_REFERENCE.md) 다이어그램 절.)
+  (엔드포인트 상세는 [API_REFERENCE.md](../reference/API_REFERENCE.md) 다이어그램 절.)
 - **AC-6** `mermaid` 는 패널 진입 시 동적 import 되어 초기 대시보드 번들에 포함되지 않는다
   (별도 청크). CI 빌드가 계속 성공한다.
 - **AC-7** CSP 추가 완화 없이 동작한다 (`script-src 'self'`, 기존 `style-src 'unsafe-inline'`).
@@ -126,7 +126,7 @@ UI `ErrorBanner` · `api/client.js` · NFR-REL-02
 | 특정 블록의 Mermaid 문법 오류 | 그 항목만 원문 코드로 폴백, 나머지는 정상 렌더 |
 
 ### 관련
-[ADR-0014](../adr/ADR-0014-dashboard-diagram-viewer.md) · [DIAGRAMS.md](../../setup/DIAGRAMS.md) ·
+[ADR-0014](../architecture/adr/ADR-0014-dashboard-diagram-viewer.md) · [DIAGRAMS.md](../../setup/DIAGRAMS.md) ·
 DESIGN §8 (신규 단계) · Phase C1(CORS 선행) · NFR-REL-02, NFR-PERF
 
 ---

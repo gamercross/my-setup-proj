@@ -6,11 +6,60 @@
 
 ## 이 프로젝트가 뭔가 (3문장)
 
-**Windows / macOS / Linux 어디서든 켜는 단일 생산성 대시보드**(Electron + React)와, 그 안에서 할일·일정·메일을 정리해 주는 **Claude 기반 AI 에이전트**(Python)를 만든다.
-동시에 우숭대학교 "AI 컴퓨터 운영체제 실습" 강의(14주)의 실습 환경이자 최종 결과물이다.
+**Windows / macOS / Linux 어디서든 켜는 "대시보드 OS"**(Electron + React) — 할일·프로젝트·일정·메일·브리핑이 각각 **위젯처럼 움직이고 위젯마다 디자인을 꾸미는** 데스크톱 셸 — 과, 그 데이터를 정리해 주는 **Claude 기반 AI 에이전트**(Python)를 만든다.
+동시에 우숭대학교 "AI 컴퓨터 운영체제 실습" 강의(14주)의 실습 환경이자 최종 결과물이다 — "대시보드 OS" 는 강의의 창·프로세스 관리 주제와 정합한다.
 시작 2026-09-02, 목표 완성 2026-11-30.
 
-핵심 기능 4종: ① 오늘/내일 할 일 자동 브리핑 ② 프로젝트 진행도(Notion) ③ 이메일 통합 ④ 캘린더 일정.
+핵심 기능 4종: ① 오늘/내일 할 일 자동 브리핑 ② 프로젝트 진행도(Notion) ③ 이메일 통합 ④ 캘린더 일정. 이들이 위젯으로 셸에 올라간다 (위젯 셸 = Phase C5~C6, [DASHBOARD_OS.md](product/vision/DASHBOARD_OS.md)).
+
+---
+
+## 문서 지도 (2026-09-03 카테고리화)
+
+`docs/` 는 목적별 폴더로 나뉜다. 화살표 = 읽는 순서(위 → 아래로 갈수록 구체).
+
+```mermaid
+flowchart TB
+  ON["📍 ONBOARDING · STUDY_GUIDE<br/>(docs/ 루트 · 진입점)"]
+
+  subgraph PROD["docs/product/ — 무엇을 만드는가"]
+    direction TB
+    V["vision/<br/>VISION · DASHBOARD_OS · USE_SCENARIOS<br/>AS_IS · CONSTRAINTS · RISKS"]
+    R["requirements/<br/>FR · NFR · TRACEABILITY<br/>+ TASK·UI·AGENT·PROJ·WIDGET"]
+    A["architecture/<br/>ARCHITECTURE(§0 뷰 지도) · DESIGN<br/>DRIVERS · RUNTIME_VIEW · DATA · CROSSCUTTING<br/>EVOLUTION · adr/"]
+    REF["reference/<br/>API_REFERENCE · UI_SPEC<br/>DATA_DICTIONARY · GLOSSARY"]
+    T["testing/<br/>TEST_PLAN"]
+    ROAD["ROADMAP · DOC_PLAN<br/>(product/ 루트)"]
+    V --> R --> A --> REF
+    A --> T
+    R --> ROAD
+  end
+
+  subgraph SET["docs/setup/ — 어떤 세팅"]
+    S1["SETUP · ENV_REFERENCE · CONVENTIONS<br/>GIT_WORKFLOW · ORCHESTRATION<br/>AUTOMATION · DIAGRAMS · CLAUDE_INTEGRATION"]
+  end
+
+  subgraph PRG["docs/progress/ — 얼마나 됐나"]
+    P1["PROGRESS · COURSE_MAPPING · (작업로그.md)"]
+  end
+
+  ON --> PROD
+  ON --> SET
+  ON --> PRG
+  A -. "결정 근거" .-> R
+  T -. "머지 게이트" .-> SET
+  PROD -. "상태 갱신" .-> PRG
+```
+
+| 폴더 | 질문 | 대표 문서 |
+|---|---|---|
+| `product/vision/` | 왜·누구를 위해 만드나 | VISION, DASHBOARD_OS(위젯 셸 방향), USE_SCENARIOS, AS_IS |
+| `product/requirements/` | 무엇을 만족해야 하나 | FR, NFR, TRACEABILITY |
+| `product/architecture/` | 어떻게 만드나 (구조·결정) | ARCHITECTURE §0 → 뷰별 문서, adr/ |
+| `product/reference/` | 정확한 계약 (필드·엔드포인트·용어) | API_REFERENCE, UI_SPEC, DATA_DICTIONARY, GLOSSARY |
+| `product/testing/` | 어떻게 검증하나 | TEST_PLAN |
+| `setup/` | 환경·도구·규칙 | SETUP, CONVENTIONS, ORCHESTRATION |
+| `progress/` | 지금 어디까지 | PROGRESS, COURSE_MAPPING |
 
 ---
 
@@ -18,23 +67,24 @@
 
 | # | 문서 | 여기서 얻을 것 |
 |---|---|---|
-| 1 | [product/VISION.md](product/VISION.md) + [product/USE_SCENARIOS.md](product/USE_SCENARIOS.md) | 무엇을 만드는가, "완료" 의 정의, 사용 여정 |
-| 2 | [product/AS_IS.md](product/AS_IS.md) | 지금 코드가 어디까지 됐나, 모듈 의존 그래프, 갭 G1~G9 |
-| 3 | [product/CONSTRAINTS.md](product/CONSTRAINTS.md) + [product/RISKS.md](product/RISKS.md) | 전제 조건, 무엇이 틀어질 수 있나 |
-| 4 | [product/ROADMAP.md](product/ROADMAP.md) + [product/DESIGN.md](product/DESIGN.md) §8 | 주차별 일정, Week ↔ Phase 대응 |
-| 5 | [product/REQUIREMENTS_FUNCTIONAL.md](product/REQUIREMENTS_FUNCTIONAL.md) + [requirements/](product/requirements/) | 기능 요구사항(FR), P0 도메인 수용 기준 |
-| 6 | [product/REQUIREMENTS_NONFUNCTIONAL.md](product/REQUIREMENTS_NONFUNCTIONAL.md) | 품질 기준(NFR) — 보안(위협 모델)·신뢰성·테스트 |
-| 7 | [product/DESIGN.md](product/DESIGN.md) + [product/adr/](product/adr/) | 아키텍처(다이어그램), 결정 이력, 데이터·API·흐름 |
+| 1 | [product/VISION.md](product/vision/VISION.md) (+ [DASHBOARD_OS.md](product/vision/DASHBOARD_OS.md)) + [product/USE_SCENARIOS.md](product/vision/USE_SCENARIOS.md) | 무엇을 만드는가, 대시보드 OS·위젯 셸 방향, "완료" 의 정의, 사용 여정 |
+| 2 | [product/AS_IS.md](product/vision/AS_IS.md) | 지금 코드가 어디까지 됐나, 모듈 의존 그래프, 갭 G1~G9 |
+| 3 | [product/CONSTRAINTS.md](product/vision/CONSTRAINTS.md) + [product/RISKS.md](product/vision/RISKS.md) | 전제 조건, 무엇이 틀어질 수 있나 |
+| 4 | [product/ROADMAP.md](product/ROADMAP.md) + [product/DESIGN.md](product/architecture/DESIGN.md) §8 | 주차별 일정, Week ↔ Phase 대응 |
+| 5 | [product/REQUIREMENTS_FUNCTIONAL.md](product/requirements/REQUIREMENTS_FUNCTIONAL.md) + [requirements/](product/requirements/) | 기능 요구사항(FR), P0 도메인 수용 기준 |
+| 6 | [product/REQUIREMENTS_NONFUNCTIONAL.md](product/requirements/REQUIREMENTS_NONFUNCTIONAL.md) | 품질 기준(NFR) — 보안(위협 모델)·신뢰성·테스트 |
+| 7 | [product/DESIGN.md](product/architecture/DESIGN.md) + [product/adr/](product/architecture/adr/) | 아키텍처(다이어그램), 결정 이력, 데이터·API·흐름 |
+| 7b | [product/ARCHITECTURE.md](product/architecture/ARCHITECTURE.md) §0 뷰 지도 → [ARCHITECTURE_DRIVERS](product/architecture/ARCHITECTURE_DRIVERS.md) · [RUNTIME_VIEW](product/architecture/RUNTIME_VIEW.md) · [DATA_ARCHITECTURE](product/architecture/DATA_ARCHITECTURE.md) · [CROSSCUTTING](product/architecture/CROSSCUTTING.md) · [ARCHITECTURE_EVOLUTION](product/architecture/ARCHITECTURE_EVOLUTION.md) | 큰 틀 — 왜 이 구조인가, 프로세스·데이터·횡단 관심사, 클라우드 진화. 공부 목록은 [STUDY_GUIDE.md](STUDY_GUIDE.md) |
 | 8 | [setup/CONVENTIONS.md](setup/CONVENTIONS.md) + [setup/GIT_WORKFLOW.md](setup/GIT_WORKFLOW.md) | 코드·커밋·푸시 규칙 (반드시 준수) |
-| 9 | 작업 시작 시 | [product/TRACEABILITY.md](product/TRACEABILITY.md) 에서 해당 FR 행, [product/TEST_PLAN.md](product/TEST_PLAN.md) 에서 관련 TC |
+| 9 | 작업 시작 시 | [product/TRACEABILITY.md](product/requirements/TRACEABILITY.md) 에서 해당 FR 행, [product/TEST_PLAN.md](product/testing/TEST_PLAN.md) 에서 관련 TC |
 
-세부 참조(작업 중 필요할 때): [GLOSSARY](product/GLOSSARY.md) · [DATA_DICTIONARY](product/DATA_DICTIONARY.md) · [API_REFERENCE](product/API_REFERENCE.md) · [UI_SPEC](product/UI_SPEC.md) · [ENV_REFERENCE](setup/ENV_REFERENCE.md) · [DIAGRAMS](setup/DIAGRAMS.md)
+세부 참조(작업 중 필요할 때): [GLOSSARY](product/reference/GLOSSARY.md) · [DATA_DICTIONARY](product/reference/DATA_DICTIONARY.md) · [API_REFERENCE](product/reference/API_REFERENCE.md) · [UI_SPEC](product/reference/UI_SPEC.md) · [ENV_REFERENCE](setup/ENV_REFERENCE.md) · [DIAGRAMS](setup/DIAGRAMS.md)
 
 ---
 
 ## 지금 어디까지 됐나
 
-> 스냅샷. 자동 갱신 아님 — 정확한 최신은 `git log` 와 [AS_IS.md](product/AS_IS.md) §2, [TRACEABILITY.md](product/TRACEABILITY.md) 를 본다.
+> 스냅샷. 자동 갱신 아님 — 정확한 최신은 `git log` 와 [AS_IS.md](product/vision/AS_IS.md) §2, [TRACEABILITY.md](product/requirements/TRACEABILITY.md) 를 본다.
 
 | 영역 | 상태 |
 |---|---|
@@ -118,8 +168,8 @@ cd agent && source venv/bin/activate && python test_claude.py
 
 - 불확실하면 추측하지 말고 **"확인 필요"** 로 표시하고 멈춘다.
 - 계획 범위를 벗어나야 하면 이유와 함께 보고하고 사용자 확인을 받는다.
-- 남은 미결정(제안): [ADR-0013](product/adr/ADR-0013-dashboard-agent-queue.md)(에이전트 작업 큐, 향후 확장),
-  [ADR-0014](product/adr/ADR-0014-dashboard-diagram-viewer.md)(대시보드 다이어그램 뷰어, Phase C1 이후 착수). 0009~0012 는 채택 완료.
+- 남은 미결정(제안): [ADR-0013](product/architecture/adr/ADR-0013-dashboard-agent-queue.md)(에이전트 작업 큐, 향후 확장),
+  [ADR-0014](product/architecture/adr/ADR-0014-dashboard-diagram-viewer.md)(대시보드 다이어그램 뷰어, Phase C1 이후 착수). 0009~0012 는 채택 완료.
 
 ---
 

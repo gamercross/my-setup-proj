@@ -89,3 +89,17 @@ CREATE INDEX IF NOT EXISTS idx_sync_service ON sync_logs(service, last_sync);
 -- ALTER TABLE tasks    ADD COLUMN is_synced  INTEGER NOT NULL DEFAULT 0;
 -- ALTER TABLE tasks    ADD COLUMN synced_at  TEXT;
 -- (projects 등 동기화 대상 테이블에 동일 적용)
+
+-- ── (제안, C5 단계 2) 위젯 레이아웃 — 대시보드 OS ──────
+-- UI 상태다. 1차는 SQLite 가 아니라 브라우저 localStorage('dashboard.layout.v1').
+-- 재설치·다기기 요구가 생기면 아래 테이블로 이관한다 (ADR-0021). 지금은 미적용.
+-- CREATE TABLE IF NOT EXISTS widget_instances (
+--   id          INTEGER PRIMARY KEY AUTOINCREMENT,
+--   widget_type TEXT    NOT NULL,   -- 'tasks'|'projects'|'calendar'|'emails'|'brief'|'diagrams'
+--   x INTEGER NOT NULL, y INTEGER NOT NULL, w INTEGER NOT NULL, h INTEGER NOT NULL,
+--   z INTEGER NOT NULL DEFAULT 0,
+--   minimized   INTEGER NOT NULL DEFAULT 0 CHECK (minimized IN (0,1)),
+--   config      TEXT    NOT NULL DEFAULT '{}',  -- JSON: { theme:{...}, display:{...} } (화이트리스트 키만, ADR-0022)
+--   created_at  TEXT    NOT NULL,
+--   updated_at  TEXT    NOT NULL
+-- );

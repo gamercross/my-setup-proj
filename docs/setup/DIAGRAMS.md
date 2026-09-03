@@ -30,7 +30,7 @@ ASCII 아트 다이어그램은 새로 만들지 않는다. 기존 것은 점진
 
 ### 2.1 앱 대시보드 뷰어 (`DiagramPanel`) 🔷 예정 — Phase C4
 
-FR-UI-05 · [ADR-0014](../product/adr/ADR-0014-dashboard-diagram-viewer.md) · [UI_SPEC §3.7](../product/UI_SPEC.md)
+FR-UI-05 · [ADR-0014](../product/architecture/adr/ADR-0014-dashboard-diagram-viewer.md) · [UI_SPEC §3.7](../product/reference/UI_SPEC.md)
 
 저장소를 열지 않고 앱 안에서 프로젝트 구조·진행을 그림으로 보기 위한 패널. Phase **C1(CORS 미들웨어) 완료 후** 착수한다.
 
@@ -70,7 +70,7 @@ bash scripts/render-diagrams.sh
 ### 개별 파일
 
 ```bash
-npx -y @mermaid-js/mermaid-cli -i docs/product/DESIGN.md -o docs/diagrams/DESIGN.svg
+npx -y @mermaid-js/mermaid-cli -i docs/product/architecture/DESIGN.md -o docs/diagrams/DESIGN.svg
 # → DESIGN-1.svg, DESIGN-2.svg ... (블록마다 하나)
 
 # .mmd 단일 파일
@@ -95,16 +95,16 @@ npx -y @mermaid-js/mermaid-cli -i flow.mmd -o flow.png -t dark -b transparent
 
 | 문서 | 다이어그램 |
 |---|---|
-| [DESIGN.md](../product/DESIGN.md) §3 | 목표 아키텍처 (flowchart) |
-| [DESIGN.md](../product/DESIGN.md) §6 | 할일 생성 흐름 (sequence) |
-| [DESIGN.md](../product/DESIGN.md) §7 | Daily Brief 생성 흐름 (sequence) |
+| [DESIGN.md](../product/architecture/DESIGN.md) §3 | 목표 아키텍처 (flowchart) |
+| [DESIGN.md](../product/architecture/DESIGN.md) §6 | 할일 생성 흐름 (sequence) |
+| [DESIGN.md](../product/architecture/DESIGN.md) §7 | Daily Brief 생성 흐름 (sequence) |
 | [AUTOMATION.md](AUTOMATION.md) §2 | `/feature` 에이전트 파이프라인 (flowchart) |
 | [ORCHESTRATION.md](ORCHESTRATION.md) §2 | 오케스트레이션 상태 그래프 (stateDiagram) |
-| [ARCHITECTURE.md](../product/ARCHITECTURE.md) | 시스템 구조 · 데이터 흐름 3종 · OAuth 인증 · Git Flow |
-| [AS_IS.md](../product/AS_IS.md) §2.7 | 현재 모듈 의존 관계 (flowchart) |
+| [ARCHITECTURE.md](../product/architecture/ARCHITECTURE.md) | 시스템 구조 · 데이터 흐름 3종 · OAuth 인증 · Git Flow |
+| [AS_IS.md](../product/vision/AS_IS.md) §2.7 | 현재 모듈 의존 관계 (flowchart) |
 | [ROADMAP.md](../product/ROADMAP.md) | 개발 일정 (gantt) · 강의↔프로젝트 동기화 (flowchart) |
 | [COURSE_MAPPING.md](../progress/COURSE_MAPPING.md) | 강의 연결도 (flowchart) |
-| [USE_SCENARIOS.md](../product/USE_SCENARIOS.md) | 아침 사용 여정 (journey) · 할일/동기화 흐름 |
+| [USE_SCENARIOS.md](../product/vision/USE_SCENARIOS.md) | 아침 사용 여정 (journey) · 할일/동기화 흐름 |
 
 ---
 

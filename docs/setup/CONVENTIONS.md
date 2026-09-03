@@ -28,7 +28,7 @@
 | Python 파일·함수 | snake_case | `daily_brief.py`, `build_context()` |
 | DB 테이블·컬럼 | snake_case, 복수형 테이블 | `tasks`, `due_date` |
 | API JSON 필드 | snake_case (DB 컬럼과 일치) | `due_date`, `is_read` |
-| 요구사항 ID | [GLOSSARY.md](../product/GLOSSARY.md) §4 참조 | `FR-TASK-01` |
+| 요구사항 ID | [GLOSSARY.md](../product/reference/GLOSSARY.md) §4 참조 | `FR-TASK-01` |
 
 ## 3. 폴더 책임
 
@@ -98,7 +98,7 @@
 - 추측 금지 — 모르면 "확인 필요"로 표시.
 - 상호 링크: 관련 문서를 상단 인용구에 건다.
 - 새 아키텍처 결정은 `adr/` 에 ADR 추가로만 (예정).
-- 기능 완료 시 finisher 가 [PROGRESS.md](../progress/PROGRESS.md) 와 [TRACEABILITY.md](../product/TRACEABILITY.md)(예정) 상태를 갱신.
+- 기능 완료 시 finisher 가 [PROGRESS.md](../progress/PROGRESS.md) 와 [TRACEABILITY.md](../product/requirements/TRACEABILITY.md)(예정) 상태를 갱신.
 
 ---
 

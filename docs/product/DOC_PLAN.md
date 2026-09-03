@@ -1,6 +1,6 @@
 # 🗂️ 문서 세분화 계획 및 작성 프롬프트
 
-> 목적: 지금까지 만든 문서([AS_IS](AS_IS.md) · [FR](REQUIREMENTS_FUNCTIONAL.md) · [NFR](REQUIREMENTS_NONFUNCTIONAL.md) · [DESIGN](DESIGN.md))가
+> 목적: 지금까지 만든 문서([AS_IS](vision/AS_IS.md) · [FR](requirements/REQUIREMENTS_FUNCTIONAL.md) · [NFR](requirements/REQUIREMENTS_NONFUNCTIONAL.md) · [DESIGN](architecture/DESIGN.md))가
 > **처음 보는 에이전트/사람이 바로 개발에 착수할 수 있을 만큼 자세한가**를 점검하고,
 > 부족한 부분을 카테고리로 나눠 "무슨 내용이 필요한지"를 프롬프트 형태로 정리한다.
 
@@ -35,7 +35,7 @@ DOC_PLAN 1~7 완료. 이후 문서 작업은 각 Phase 착수 시 해당 도메�
 - ✅ Phase A2 완료 (환경 구축) — 코드 작업은 Phase A3 부터
 
 > **아래 §1~§4 는 2026-09-02 초기 스냅샷이다.** 지적된 부족분은 위 목록으로 대부분 해소됨.
-> 현재 상태는 [AS_IS.md](AS_IS.md) · [TRACEABILITY.md](TRACEABILITY.md) 를 본다.
+> 현재 상태는 [AS_IS.md](vision/AS_IS.md) · [TRACEABILITY.md](requirements/TRACEABILITY.md) 를 본다.
 
 ---
 
@@ -79,7 +79,7 @@ DOC_PLAN 1~7 완료. 이후 문서 작업은 각 Phase 착수 시 해당 도메�
 각 항목은 `/feature` 또는 직접 작성 시 그대로 붙여 쓸 수 있는 프롬프트다.
 공통 규칙: **한국어 · 표와 예시 중심 · 추측 금지(모르면 "확인 필요") · 관련 문서 상호 링크**.
 
-### 3.1 `docs/product/GLOSSARY.md` — 용어집
+### 3.1 `docs/product/reference/GLOSSARY.md` — 용어집
 
 ```
 프로젝트 전반의 도메인 용어를 정의하는 GLOSSARY.md 를 만든다.
@@ -96,7 +96,7 @@ DOC_PLAN 1~7 완료. 이후 문서 작업은 각 Phase 착수 시 해당 도메�
 - 각 용어는 1~3문장. 코드에서 쓰이는 정확한 문자열(예: 'in_progress')을 명시.
 ```
 
-### 3.2 `docs/product/DATA_DICTIONARY.md` — 데이터 사전 (필드 단위)
+### 3.2 `docs/product/reference/DATA_DICTIONARY.md` — 데이터 사전 (필드 단위)
 
 ```
 schema.sql 의 모든 테이블·컬럼을 필드 단위로 설명하는 DATA_DICTIONARY.md 를 만든다.
@@ -111,7 +111,7 @@ schema.sql 의 모든 테이블·컬럼을 필드 단위로 설명하는 DATA_DI
 - Week 10+ Supabase 추가 컬럼(user_id, is_synced)은 "향후" 표시.
 ```
 
-### 3.3 `docs/product/API_REFERENCE.md` — API 상세 명세
+### 3.3 `docs/product/reference/API_REFERENCE.md` — API 상세 명세
 
 ```
 백엔드 REST API 의 엔드포인트별 상세 레퍼런스 API_REFERENCE.md 를 만든다.
@@ -129,7 +129,7 @@ DESIGN.md §5 의 요약표를 대체하지 않고 확장한다.
 - curl 예시 1세트 포함.
 ```
 
-### 3.4 `docs/product/UI_SPEC.md` — 화면 명세
+### 3.4 `docs/product/reference/UI_SPEC.md` — 화면 명세
 
 ```
 Electron 앱의 화면을 컴포넌트 단위로 명세하는 UI_SPEC.md 를 만든다.
@@ -148,7 +148,7 @@ Electron 앱의 화면을 컴포넌트 단위로 명세하는 UI_SPEC.md 를 만
 - zustand store 계약: 각 store 의 상태 shape + 액션 시그니처.
 ```
 
-### 3.5 `docs/product/TEST_PLAN.md` — 테스트 계획
+### 3.5 `docs/product/testing/TEST_PLAN.md` — 테스트 계획
 
 ```
 프로젝트 테스트 전략과 케이스 목록 TEST_PLAN.md 를 만든다.
@@ -192,7 +192,7 @@ Electron 앱의 화면을 컴포넌트 단위로 명세하는 UI_SPEC.md 를 만
 - .env.example 과 이 문서의 동기화 책임 명시.
 ```
 
-### 3.8 `docs/product/adr/ADR-0001-*.md …` — 결정 기록
+### 3.8 `docs/product/architecture/adr/ADR-0001-*.md …` — 결정 기록
 
 ```
 DESIGN.md §2 의 AD-01~AD-08 을 각각 개별 ADR 파일로 분리한다.
@@ -202,7 +202,7 @@ DESIGN.md §2 의 AD-01~AD-08 을 각각 개별 ADR 파일로 분리한다.
 - 앞으로 설계 결정은 ADR 추가로만.
 ```
 
-### 3.9 `docs/product/TRACEABILITY.md` — 추적 매트릭스
+### 3.9 `docs/product/requirements/TRACEABILITY.md` — 추적 매트릭스
 
 ```
 요구사항–설계–테스트–코드 연결을 한 표로 보여주는 TRACEABILITY.md 를 만든다.

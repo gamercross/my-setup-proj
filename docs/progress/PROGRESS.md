@@ -404,7 +404,7 @@ A: 1. npm cache clean --force
 - [README.md](../../README.md) - 프로젝트 개요
 - [ROADMAP.md](../product/ROADMAP.md) - 상세 로드맵
 - [SETUP.md](../setup/SETUP.md) - 개발 환경 설정
-- [ARCHITECTURE.md](../product/ARCHITECTURE.md) - 기술 스택
+- [ARCHITECTURE.md](../product/architecture/ARCHITECTURE.md) - 기술 스택
 - [CLAUDE_INTEGRATION.md](../setup/CLAUDE_INTEGRATION.md) - Claude API
 - [COURSE_MAPPING.md](COURSE_MAPPING.md) - 강의 연결
 

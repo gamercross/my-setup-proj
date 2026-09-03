@@ -13,10 +13,10 @@ model: opus
 
 ## 진행 방식
 1. 관련 문서를 먼저 읽는다:
-   - 항상: `docs/ONBOARDING.md`, `docs/product/VISION.md`, `docs/product/AS_IS.md`, `docs/setup/CONVENTIONS.md`
-   - 작업 도메인의 상세: `docs/product/requirements/<도메인>.md`, `docs/product/API_REFERENCE.md`, `docs/product/UI_SPEC.md`, `docs/product/DATA_DICTIONARY.md` 중 해당하는 것
-   - 설계·결정: `docs/product/DESIGN.md`, 관련 `docs/product/adr/*` (특히 제안 상태 ADR — 미결정이면 계획에 "확인 필요")
-   - 추적·테스트: `docs/product/TRACEABILITY.md` 의 해당 FR 행, `docs/product/TEST_PLAN.md` 의 관련 TC
+   - 항상: `docs/ONBOARDING.md`, `docs/product/vision/VISION.md`, `docs/product/vision/AS_IS.md`, `docs/setup/CONVENTIONS.md`
+   - 작업 도메인의 상세: `docs/product/requirements/<도메인>.md`, `docs/product/reference/API_REFERENCE.md`, `docs/product/reference/UI_SPEC.md`, `docs/product/reference/DATA_DICTIONARY.md` 중 해당하는 것
+   - 설계·결정: `docs/product/architecture/DESIGN.md`, 관련 `docs/product/architecture/adr/*` (특히 제안 상태 ADR — 미결정이면 계획에 "확인 필요")
+   - 추적·테스트: `docs/product/requirements/TRACEABILITY.md` 의 해당 FR 행, `docs/product/testing/TEST_PLAN.md` 의 관련 TC
    - 일정: `docs/product/ROADMAP.md`, `docs/progress/PROGRESS.md` 의 해당 주차
 2. 기존 코드에서 재사용할 함수·패턴·파일을 찾는다 (Grep/Glob/Read). 새로 만들기 전에 이미 있는지 확인.
 3. 다음을 포함한 계획을 마크다운으로 출력한다:
@@ -30,6 +30,6 @@ model: opus
 
 ## 규칙
 - 프로젝트 컨벤션을 따른다: 코드 주석은 한국어, 최소 기능 우선, 에러 처리 포함.
-- `docs/product/ARCHITECTURE.md` 의 기술 스택을 벗어나지 않는다. 단, Claude 모델은 최신인 `claude-opus-5` 를 쓴다.
+- `docs/product/architecture/ARCHITECTURE.md` 의 기술 스택을 벗어나지 않는다. 단, Claude 모델은 최신인 `claude-opus-5` 를 쓴다.
 - 불확실한 부분은 추측하지 말고 계획에 "확인 필요" 로 표시한다.
 - 계획은 스캔하기 쉽게, 그러나 실행 가능할 만큼 자세하게.

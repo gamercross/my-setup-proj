@@ -14,7 +14,7 @@ build-next (상위 루프)  ──선택──▶  feature (하위 파이프라�
 ```
 
 - **feature**: 하나의 스텝(예: B1)을 planner→developer→supervisor→finisher 로 완성.
-- **build-next**: [DESIGN.md](../product/DESIGN.md) §8 + [TRACEABILITY.md](../product/TRACEABILITY.md) 를 읽어 **다음 스텝을 스스로 골라** feature 를 반복 실행. 사람이 결정해야 하는 지점에서만 멈춘다.
+- **build-next**: [DESIGN.md](../product/architecture/DESIGN.md) §8 + [TRACEABILITY.md](../product/requirements/TRACEABILITY.md) 를 읽어 **다음 스텝을 스스로 골라** feature 를 반복 실행. 사람이 결정해야 하는 지점에서만 멈춘다.
 
 ---
 

@@ -63,7 +63,7 @@
 
 - 새 키를 코드에서 읽기 시작하면 **같은 PR 에서** `.env.example`(빈 값)과 이 문서를 갱신한다.
 - `.env.example` 에 값을 넣지 않는다(플레이스홀더/기본값만).
-- **확인 필요:** [ARCHITECTURE.md](../product/ARCHITECTURE.md) §보안 예시에는 `SUPABASE_JWT_SECRET`, `DATABASE_URL` 이 있으나 현재 `.env.example` 에는 없다. 실제 도입 시 어느 쪽을 기준으로 할지 정한다.
+- **확인 필요:** [ARCHITECTURE.md](../product/architecture/ARCHITECTURE.md) §보안 예시에는 `SUPABASE_JWT_SECRET`, `DATABASE_URL` 이 있으나 현재 `.env.example` 에는 없다. 실제 도입 시 어느 쪽을 기준으로 할지 정한다.
 
 ---
 

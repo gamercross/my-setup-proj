@@ -1,12 +1,12 @@
 # FR-PROJ — 프로젝트 추적 상세 명세
 
-> [REQUIREMENTS_FUNCTIONAL.md](../REQUIREMENTS_FUNCTIONAL.md) 의 PROJ 도메인 상세화.
-> 용어 [GLOSSARY.md](../GLOSSARY.md) · 데이터 [DATA_DICTIONARY.md](../DATA_DICTIONARY.md) · API [API_REFERENCE.md](../API_REFERENCE.md) · 화면 [UI_SPEC.md](../UI_SPEC.md).
-> 관련 결정: [ADR-0012](../adr/ADR-0012-task-project-link.md) (`tasks.project_id` FK `ON DELETE SET NULL`).
+> [REQUIREMENTS_FUNCTIONAL.md](REQUIREMENTS_FUNCTIONAL.md) 의 PROJ 도메인 상세화.
+> 용어 [GLOSSARY.md](../reference/GLOSSARY.md) · 데이터 [DATA_DICTIONARY.md](../reference/DATA_DICTIONARY.md) · API [API_REFERENCE.md](../reference/API_REFERENCE.md) · 화면 [UI_SPEC.md](../reference/UI_SPEC.md).
+> 관련 결정: [ADR-0012](../architecture/adr/ADR-0012-task-project-link.md) (`tasks.project_id` FK `ON DELETE SET NULL`).
 
 ## 공통 규칙 (모든 FR-PROJ 적용)
 
-- 저장소: `projects` 테이블 (better-sqlite3, [ADR-0002](../adr/ADR-0002-*)). 스키마 단일 원천 `backend/db/schema.sql`.
+- 저장소: `projects` 테이블 (better-sqlite3, [ADR-0002](../architecture/adr/ADR-0002-local-db-better-sqlite3.md)). 스키마 단일 원천 `backend/db/schema.sql`.
 - 시각: 서버가 `created_at`/`updated_at` 을 ISO8601 로 채운다.
 - 검증 실패 → HTTP 400 `{ "error": "<한국어 메시지>" }` (NFR-SEC-07). SQLite CHECK/NOTNULL/FK 위반도 `backend/src/errors.js` 가 400 + 한국어로 치환 (영문 원문 비노출).
 - 존재하지 않는 `id` → HTTP 404 `{ "error": "프로젝트를 찾을 수 없습니다." }`.

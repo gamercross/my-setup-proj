@@ -6,9 +6,9 @@
 
 ## 📅 전체 일정
 
-> 설계 Phase(A~E) ↔ Week 대응은 [DESIGN.md](DESIGN.md) §8. 다이어그램 안내: [DIAGRAMS.md](../setup/DIAGRAMS.md).
+> 설계 Phase(A~E) ↔ Week 대응은 [DESIGN.md](architecture/DESIGN.md) §8. 다이어그램 안내: [DIAGRAMS.md](../setup/DIAGRAMS.md).
 >
-> ⚠️ **이 문서는 계획이다.** 세부 작업의 `[ ]` 체크박스는 실시간 상태로 유지하지 않는다 (그래서 마일스톤이 ✅ 여도 하위 항목이 `[ ]` 로 남아 있을 수 있다). **실제 진행 상태의 단일 원천은 [PROGRESS.md](progress/PROGRESS.md) · [TRACEABILITY.md](TRACEABILITY.md) · `git log`.** 날짜는 실제 달력 기준(2026-09-02 = 수요일).
+> ⚠️ **이 문서는 계획이다.** 세부 작업의 `[ ]` 체크박스는 실시간 상태로 유지하지 않는다 (그래서 마일스톤이 ✅ 여도 하위 항목이 `[ ]` 로 남아 있을 수 있다). **실제 진행 상태의 단일 원천은 [PROGRESS.md](../progress/PROGRESS.md) · [TRACEABILITY.md](requirements/TRACEABILITY.md) · `git log`.** 날짜는 실제 달력 기준(2026-09-02 = 수요일).
 
 ```mermaid
 gantt
@@ -182,7 +182,7 @@ flowchart LR
   - [x] 진행도 바 (0-100%) + 슬라이더 편집
   - [x] 상태 표시 (진행 중/완료/보류 — `active`/`done`/`on_hold`)
   - [x] `tasks.project_id` API 배선 (ADR-0012)
-  - 상태 SSOT: [PROGRESS.md](../progress/PROGRESS.md) · [TRACEABILITY.md](TRACEABILITY.md)
+  - 상태 SSOT: [PROGRESS.md](../progress/PROGRESS.md) · [TRACEABILITY.md](requirements/TRACEABILITY.md)
 
 ### Week 5: Google Calendar 연동 (09-30 ~ 10-06)
 
@@ -212,17 +212,27 @@ flowchart LR
 
 #### 다이어그램 뷰어 (FR-UI-05 · Phase C4)
 
-CORS 미들웨어(Phase C1)가 선행돼야 한다. 설계는 [ADR-0014](adr/ADR-0014-dashboard-diagram-viewer.md).
+CORS 미들웨어(Phase C1)가 선행돼야 한다. 설계는 [ADR-0014](architecture/adr/ADR-0014-dashboard-diagram-viewer.md).
 
 - [ ] **Backend** — `GET /api/diagrams` (`backend/src/services/diagrams.js` 가 `docs/**/*.md` 의 Mermaid 블록 파싱, 읽기 전용) + `routes/diagrams.js`
 - [ ] **Frontend** — `DiagramPanel.jsx` (패널 진입 시 `mermaid` 동적 import, 다크 테마, 로딩/비어있음/정상/에러 4상태)
 - [ ] **패키지** — `electron-builder` `extraResources` 에 `docs/` 동봉 여부 결정 (미동봉 시 prod 는 빈 배열)
 - [ ] **테스트** — TC-DIAG-01~03 (`backend/test/diagrams.test.js`), TC-UI-09 (수동)
 
+#### 대시보드 OS — 위젯 셸 (FR-WIDGET · Phase C5~C6)
+
+🆕 방향 전환: 고정 패널 → 각 데이터가 위젯으로 움직이고 위젯마다 디자인. 개념 [vision/DASHBOARD_OS.md](vision/DASHBOARD_OS.md), 결정 [ADR-0020~0022](architecture/adr/) (전부 **제안** — 착수 전 DASHBOARD_OS §8 의 DO-1~6 확정).
+
+- [ ] **C5 위젯 셸** — `widgets/registry.js` + `WidgetShell`/`WidgetHost`(react-grid-layout)/`WidgetFrame`, `useLayoutStore`, localStorage 영속. 기존 할일·프로젝트 뷰를 위젯으로 이관. 위젯별 `ErrorBoundary`. (FR-WIDGET-01~04·07·08)
+- [ ] **C6 위젯 커스터마이즈** — 전역 인라인 style → CSS 변수, `WidgetSettings`(테마+표시 탭), `themePresets.js`, `themeToVars` 화이트리스트. (FR-WIDGET-05·06)
+- [ ] **테스트** — TC-WIDGET-01~ (레이아웃 저장/복원, 손상 폴백, config 검증, 위젯 격리)
+- **일정 주의:** 시험 기간(Week 8, R-1) 전 최소선 = 그리드 배치 + 레이아웃 저장 + 위젯별 색. 나머지는 이후로 이월 가능.
+
 **Phase 2 마일스톤:**
 - ✅ 할일 CRUD 완료
 - ✅ Notion 연동 확인
 - ✅ Google Calendar 동기화 작동
+- [ ] 위젯 셸에서 위젯 이동·리사이즈·레이아웃 저장·위젯별 테마 (C5~C6)
 
 ---
 
@@ -518,7 +528,7 @@ git commit -m "Week X: [기능명] 구현/수정"
 ## 🔗 연관 문서
 
 - [README.md](../../README.md) - 프로젝트 개요
-- [ARCHITECTURE.md](ARCHITECTURE.md) - 기술 스택
+- [ARCHITECTURE.md](architecture/ARCHITECTURE.md) - 기술 스택
 - [PROGRESS.md](../progress/PROGRESS.md) - 실제 진행 상황 (매주 업데이트)
 - [COURSE_MAPPING.md](../progress/COURSE_MAPPING.md) - 강의 연결
 
