@@ -2,11 +2,7 @@
 
 const router = require('express').Router();
 const db = require('../db');
-
-// db 검증 오류를 400, 그 외를 500 으로 매핑하는 헬퍼
-function isValidationError(err) {
-  return err && /필수|0~100/.test(err.message || '');
-}
+const { isValidationError, toClientMessage } = require('../errors');
 
 // GET /api/projects - 프로젝트 전체 목록
 router.get('/', (req, res) => {
@@ -48,7 +44,7 @@ router.post('/', (req, res) => {
     res.status(201).json({ project });
   } catch (err) {
     if (isValidationError(err)) {
-      return res.status(400).json({ error: err.message });
+      return res.status(400).json({ error: toClientMessage(err) });
     }
     console.error('프로젝트 생성 실패:', err);
     res.status(500).json({ error: '프로젝트를 생성하지 못했습니다.' });
@@ -75,7 +71,7 @@ router.put('/:id', (req, res) => {
     res.json({ project });
   } catch (err) {
     if (isValidationError(err)) {
-      return res.status(400).json({ error: err.message });
+      return res.status(400).json({ error: toClientMessage(err) });
     }
     console.error('프로젝트 수정 실패:', err);
     res.status(500).json({ error: '프로젝트를 수정하지 못했습니다.' });

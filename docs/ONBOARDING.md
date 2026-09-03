@@ -41,14 +41,14 @@
 | 개념 설계 · 요구사항 · 아키텍처 문서 · 12개 ADR | ✅ 완료 (product/) |
 | 자동화 인프라 (에이전트 팀 · `/feature` · `/build-next` · 작업로그 · CI) | ✅ 동작 |
 | 로컬 환경 (node v26 · npm 11 · python 3.14 · venv) | ✅ Phase A2, `verify.sh` 15/0/0 |
-| 백엔드 tasks/projects CRUD 라우트 | 🚧 SQLite 영속화(B2), 실행·CRUD curl 검증됨 — 프론트 배선은 B3 |
-| 프론트엔드 React | 🚧 B1 완료 (Vite + `renderer.jsx` 마운트) — Dashboard 배선은 B3 |
+| 백엔드 tasks/projects CRUD 라우트 | ✅ SQLite 영속화(B2) + 미들웨어 정식화(C1) + `errors.js` 오류 매핑·`tasks.project_id`(C2). 프론트 배선 완료(B3 할일 / C2 프로젝트) |
+| 프론트엔드 React | ✅ B1(Vite 마운트) + B3(할일 CRUD) + C2(프로젝트 CRUD, `useProjectStore`·`ProjectForm`) — 브라우저 E2E 로컬 수동 확인 대기 |
 | DB (SQLite) | ✅ B2 (better-sqlite3, WAL, DATABASE_PATH) |
 | AI 에이전트 | 🚧 뼈대 + 스텁 (모듈 import 확인) |
-| 자동화 테스트 | ✅ backend 18 / agent 3 (Phase A3·B2) |
+| 자동화 테스트 | ✅ backend 39 / agent 3 (Phase A3·B2·C1·C2), `verify.sh` 19/0/0 |
 
-**다음 착수:** Phase B3 (할일 CRUD 프론트 배선). `/build-next` 로 자동 진행 가능
-(제안 ADR 0009~0012 채택됨 → C2 까지 막힘 없음, D2 부터 `.env` API 키 필요).
+**다음 착수:** Phase C3 (캘린더 위젯 + `/api/calendar/events`) 또는 B3/C1/C2 브라우저 E2E 로컬 검증.
+(제안 ADR 0009~0012 채택됨, D2 부터 `.env` API 키 필요).
 
 ---
 

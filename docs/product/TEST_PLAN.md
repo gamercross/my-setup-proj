@@ -74,7 +74,15 @@ CI(`.github/workflows/test.yml`)에 `npm test`(backend), `pytest -m "not network
 | TC-PROJ-03 | FR-PROJ-01 | `POST {}` | 400 `"name 은 필수입니다."` | P0 |
 | TC-PROJ-04 | FR-PROJ-02 | `PUT /api/projects/99999 {progress:200}` | 404 (없는 id 가 progress 검증보다 우선) | P0 |
 | TC-PROJ-05 | FR-PROJ-02 | `PUT /api/projects/:id {progress:50}` | 200, `progress=50` | P0 |
-| TC-PROJ-06 | FR-PROJ-01 | `DELETE /api/projects/:id` | 200 `{ok:true}` | P0 |
+| TC-PROJ-06 | FR-PROJ-01 | `DELETE /api/projects/:id` | 200 `{ok:true}`, 이후 단건 404 | ✅ P0 |
+| TC-PROJ-07 | FR-PROJ-02 | `GET /api/projects` (빈 상태) | 200 `{projects:[]}` | ✅ P0(C2) |
+| TC-PROJ-08 | ADR-0012 | `POST /api/tasks {title, project_id:<존재>}` | 201, 응답에 `project_id` | ✅ P0(C2, `tasks.test.js`) |
+| TC-PROJ-09 | ADR-0012 | `POST /api/tasks {project_id:9999}` | 400 `"연결할 프로젝트를 찾을 수 없습니다."`, 목록 불변 | ✅ P0(C2, `tasks.test.js`) |
+| TC-PROJ-09b | ADR-0012 | `PUT /api/tasks/:id {project_id:null}` | 200, 연결 해제 | ✅ P0(C2, `tasks.test.js`) |
+| TC-PROJ-09c | ADR-0012 | `PUT /api/tasks/:id {project_id:9999}` | 400 (없는 프로젝트) | ✅ P0(C2, `tasks.test.js`) |
+| TC-PROJ-09d | ADR-0012 | `PUT /api/tasks/:id {project_id:"1"}` | 400 (문자열, 타입 오류) | ✅ P0(C2, `tasks.test.js`) |
+| TC-PROJ-10 | FR-PROJ-01 AC-6 | 하위 할일 있는 프로젝트 `DELETE` | 할일 유지, `project_id`=null (ON DELETE SET NULL) | ✅ P0(C2) |
+| TC-PROJ-11 | FR-PROJ-01 AC-8 | `PUT /api/projects/:id {status:"done"}` | 200, `status="done"` | ✅ P0(C2) |
 
 ### 3.3 저장소 회귀 — `backend/test/db.test.js`
 
@@ -83,7 +91,10 @@ CI(`.github/workflows/test.yml`)에 `npm test`(backend), `pytest -m "not network
 | TC-DB-01 | FR-TASK-05 | SQLite 백엔드, 할일 2건 생성 | 프로세스/커넥션 재시작 후 `GET /api/tasks` 에 2건 유지 | ✅ P0(B2) |
 | TC-DB-02 | NFR-MAINT-03 | `db.js` 시그니처 | `getTasks/getTask/addTask/updateTask/deleteTask` 반환 형태가 인메모리 때와 동일 | ✅ P0(B2) |
 | TC-DB-03 | ADR-0003 | 빈 DB 파일 | 부팅 시 `schema.sql` 적용, 재부팅 시 데이터 보존 (`IF NOT EXISTS`) + WAL | ✅ P0(B2) |
-| TC-DB-04 | schema CHECK | `addTask({title:"a", priority:"x"})` 직접 호출 | SQLite CHECK 제약 위반 → 예외 → 라우트가 400 매핑 | P1 |
+| TC-DB-04a | schema CHECK | `POST /api/tasks {priority:"x"}` | 500 아니라 400 (라우트가 CHECK 위반 매핑, `errors.js`) | ✅ P0(C2, `tasks.test.js`) |
+| TC-DB-04b | schema CHECK | `PUT /api/projects/:id {status:"hold"}` | 400 (허용값 밖) | ✅ P0(C2, `projects.test.js`) |
+| TC-DB-04c | schema CHECK | `db.addTask` 직접 호출, 잘못된 값 | `SqliteError(code=SQLITE_CONSTRAINT_CHECK)` 던짐 | ✅ P1(C2, `db.test.js`) |
+| TC-DB-04d | schema FK | `db.addTask({project_id:<없음>})` 직접 호출 | FK 위반으로 던짐 | ✅ P1(C2, `db.test.js`) |
 
 ### 3.4 에이전트 — `agent/tests/test_daily_brief.py`
 
@@ -140,6 +151,9 @@ CI(`.github/workflows/test.yml`)에 `npm test`(backend), `pytest -m "not network
 | TC-UI-11 | FR-TASK-03 AC-4 | 체크박스 클릭 후 백엔드 중단 | 즉시 UI 반영 후 요청 실패 시 원상복구 + `ErrorBanner`. 상태: C1 완료, 로컬 수동 확인 대기 |
 | TC-UI-12 | FR-TASK-04 AC-6 | 삭제 클릭 중 백엔드 중단 | 항목이 원위치로 복원됨 + `ErrorBanner`. 상태: C1 완료, 로컬 수동 확인 대기 |
 | TC-UI-13 | FR-TASK-01 | 폼에 제목만 입력 후 제출 | `POST` 201, 목록 맨 아래 append, 폼 초기화. 상태: C1 완료, 로컬 수동 확인 대기 |
+| TC-UI-14 | FR-PROJ-01 AC-7 | 프로젝트 폼에 이름만 입력 후 제출 | `POST /api/projects` 201, 카드 목록에 즉시 추가, 폼 초기화. 상태: C2 완료, 로컬 수동 확인 대기 |
+| TC-UI-15 | FR-PROJ-02 AC-5 | 카드 진행도 슬라이더 드래그 후 놓음, 백엔드 중단 | 해당 카드만 낙관적 갱신, 요청 실패 시 롤백 + `ErrorBanner`. 상태: C2 완료, 로컬 수동 확인 대기 |
+| TC-UI-16 | FR-PROJ-01 AC-8 / FR-UI-01 AC-2 | 카드 상태 드롭다운 변경 / 프로젝트 API 실패 | `PUT {status}` 200 반영 / 프로젝트 패널 에러가 할일 패널 렌더를 막지 않음. 상태: C2 완료, 로컬 수동 확인 대기 |
 
 ---
 
@@ -180,13 +194,14 @@ supervisor 는 리뷰 시 "이 변경에 대응하는 테스트가 있는가"를
 
 ---
 
-## 7. 현재 상태 (2026-09-03, Phase C1 완료)
+## 7. 현재 상태 (2026-09-03, Phase C2 완료)
 
-- 백엔드 자동화 테스트: **27케이스 작성됨** — `backend/test/tasks.test.js` (TC-TASK-01,02,04~10), `backend/test/projects.test.js` (TC-PROJ-01~06), `backend/test/db.test.js` (TC-DB-01~03), `backend/test/middleware.test.js` (TC-MW-01~09, Phase C1). `supertest` + `node --test`, `:memory:` DB.
+- 백엔드 자동화 테스트: **39케이스 작성됨** — `backend/test/tasks.test.js` (TC-TASK-01,02,04~10 + TC-PROJ-08/09/09b/09c/09d + TC-DB-04a), `backend/test/projects.test.js` (TC-PROJ-01~07,10,11 + TC-DB-04b), `backend/test/db.test.js` (TC-DB-01~03 + TC-DB-04c/d), `backend/test/middleware.test.js` (TC-MW-01~09). `supertest` + `node --test`, `:memory:` DB. (TC-DB-04b 는 project status 검증이라 `projects.test.js` 에 위치.)
 - 에이전트 자동화 테스트: **3케이스 작성됨** — `agent/tests/test_daily_brief.py` (TC-AGENT-01~03). `test_claude.py` 는 `agent/tests/` 로 이동(연결 확인용, 키 없으면 skip).
 - CI: 문법 검사 + `npm test`(backend) + `pytest -m "not network"`(agent) 연결됨. `node -c src/app.js`, `src/db.js`, `db/index.js` 추가.
-- `verify.sh`: `db.js`·`db/index.js` + C1 미들웨어 3종 문법 체크 (18/0/0, SKIP 없음).
-- 미작성(후속): TC-TASK-03/11/12, TC-DB-04, TC-AGENT-04~06, 수동 체크리스트.
+- `verify.sh`: + `backend/src/errors.js` 문법 체크 추가 (19/0/0, SKIP 없음).
+- 미작성(후속): TC-TASK-03/11/12, TC-AGENT-04~06.
+- Phase C2(2026-09-03): 프로젝트 CRUD 프론트 배선(`useProjectStore`, `ProjectForm`, `ProjectCard` 상태·진행도·삭제) + `tasks.project_id` 라우트 검증(ADR-0012) + `backend/src/errors.js`(SQLite CHECK/NOTNULL/FK → 400 한국어) + `'hold'`→`'on_hold'` 통일. `npm test` 39/39, `verify.sh` 19/0/0, frontend `npm run build` 성공. 브라우저 수동 체크(TC-UI-14~16)는 로컬 수행 대기(샌드박스 창 기동 불가).
 - Phase C1(2026-09-03): `backend/src/middleware/{cors,requestLogger,errorHandler}.js` 분리, `backend/src/app.js` 미들웨어 체인 정식화(`requestLogger` 최상단), `backend/test/middleware.test.js` 신규(TC-MW-01~09). `npm test` 27/27, `verify.sh` 18/0/0. 브라우저 E2E(TC-UI-10~13)는 로컬 수동 확인 대기.
 - Phase B2(2026-09-02): `backend/src/db.js` 를 better-sqlite3 로 재작성, `backend/db/index.js` 신규(커넥션 싱글턴 + WAL + `DATABASE_PATH`), `backend/test/db.test.js` 추가. `npm test` 18/18 (node 26·22), `verify.sh` 15/0/0, frontend `npm run build` 회귀 없음, agent pytest 3 pass.
 - Phase B1(2026-09-02): `frontend/vite.config.js` + `renderer.jsx` 마운트. `npm run build` 성공(`dist/index.html` + `dist/assets/*.js`), prod CSP 지시어 확인, `verify.sh` 13/0/0. 프론트 수동 체크리스트(TC-UI-01, TC-UI-07 prod 스모크)는 **로컬 수행 대기** — 샌드박스에서 electron 바이너리 postinstall 차단으로 창 기동 불가. `main.js` dev/prod 분기·`fallback.html` 폴백은 코드 리뷰로 판정.

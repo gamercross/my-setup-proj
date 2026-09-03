@@ -177,10 +177,12 @@ flowchart LR
   databases = notion.search()
   ```
 
-- [ ] **Frontend**
-  - [ ] 프로젝트 카드 UI
-  - [ ] 진행도 바 (0-100%)
-  - [ ] 상태 표시 (진행 중/완료/보류)
+- [x] **Frontend** (Phase C2, 2026-09-03)
+  - [x] 프로젝트 카드 UI (`ProjectCard` + `ProjectForm`, `useProjectStore`)
+  - [x] 진행도 바 (0-100%) + 슬라이더 편집
+  - [x] 상태 표시 (진행 중/완료/보류 — `active`/`done`/`on_hold`)
+  - [x] `tasks.project_id` API 배선 (ADR-0012)
+  - 상태 SSOT: [PROGRESS.md](../progress/PROGRESS.md) · [TRACEABILITY.md](TRACEABILITY.md)
 
 ### Week 5: Google Calendar 연동 (09-30 ~ 10-06)
 

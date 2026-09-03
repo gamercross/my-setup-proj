@@ -99,4 +99,53 @@ describe('할일 API', () => {
     const res = await request(app).delete('/api/tasks/99999');
     assert.equal(res.status, 404);
   });
+
+  it('TC-PROJ-08: POST /api/tasks {title, project_id} 는 201 로 연결 생성', async () => {
+    const proj = await request(app).post('/api/projects').send({ name: 'p' });
+    const pid = proj.body.project.id;
+
+    const res = await request(app).post('/api/tasks').send({ title: 'a', project_id: pid });
+    assert.equal(res.status, 201);
+    assert.equal(res.body.task.project_id, pid);
+  });
+
+  it('TC-PROJ-09: 없는 project_id 로 생성하면 400, 목록 불변', async () => {
+    const res = await request(app).post('/api/tasks').send({ title: 'a', project_id: 99999 });
+    assert.equal(res.status, 400);
+
+    const list = await request(app).get('/api/tasks');
+    assert.equal(list.body.tasks.length, 0);
+  });
+
+  it('TC-PROJ-09c: PUT {project_id: 9999} (없는 프로젝트) 는 400', async () => {
+    const created = await request(app).post('/api/tasks').send({ title: 'a' });
+    const id = created.body.task.id;
+    const res = await request(app).put(`/api/tasks/${id}`).send({ project_id: 9999 });
+    assert.equal(res.status, 400);
+  });
+
+  it('TC-PROJ-09d: PUT {project_id: "1"} (문자열) 는 400', async () => {
+    const created = await request(app).post('/api/tasks').send({ title: 'a' });
+    const id = created.body.task.id;
+    const res = await request(app).put(`/api/tasks/${id}`).send({ project_id: '1' });
+    assert.equal(res.status, 400);
+    assert.equal(res.body.error, 'project_id 는 프로젝트 id(정수) 또는 null 이어야 합니다.');
+  });
+
+  it('TC-PROJ-09b: PUT {project_id: null} 은 200, 연결 해제', async () => {
+    const proj = await request(app).post('/api/projects').send({ name: 'p' });
+    const pid = proj.body.project.id;
+    const created = await request(app).post('/api/tasks').send({ title: 'a', project_id: pid });
+    const id = created.body.task.id;
+
+    const res = await request(app).put(`/api/tasks/${id}`).send({ project_id: null });
+    assert.equal(res.status, 200);
+    assert.equal(res.body.task.project_id, null);
+  });
+
+  it('TC-DB-04a: 잘못된 priority 로 생성하면 500 이 아니라 400', async () => {
+    const res = await request(app).post('/api/tasks').send({ title: 'a', priority: 'urgent' });
+    assert.equal(res.status, 400);
+    assert.equal(res.body.error, '입력값이 허용된 값 범위를 벗어났습니다.');
+  });
 });

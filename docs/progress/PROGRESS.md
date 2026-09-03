@@ -89,15 +89,15 @@
 개발: 72%
 ```
 
-> Phase A2·A3·B1·B2·C1 완료, B3 코드 배선 완료 (2026-09-03). 다음: B3 브라우저 E2E·GUI 수동체크(로컬) 또는 C2(프로젝트 CRUD 프론트 배선).
-> 검증 스냅샷: `node v26.8.1 / npm 11.19.0 / python 3.14.4`, `verify.sh` 15/0/0, `npm test` 18/0, `pytest -m "not network"` 3 pass.
+> Phase A2·A3·B1·B2·C1·C2 완료, B3·C2 코드 배선 완료 (2026-09-03). 다음: C3(캘린더) 또는 B3/C1/C2 브라우저 E2E 로컬 검증.
+> 검증 스냅샷: `node v26.8.1 / npm 11.19.0 / python 3.14.4`, `verify.sh` 19/0/0, `npm test` 39/0, `pytest -m "not network"` 3 pass.
 
 ---
 
 ## 🗓️ Week 2: 기본 프로젝트 구축 (09-09 ~ 09-15)
 
 **목표:** Electron + React 기본 UI 완성, Express 서버 실행  
-**진행도:** 80% 🚧 (진행 중 — Phase B1·B2·C1 완료, B3 코드 배선 완료 / 브라우저 E2E·수동체크 로컬 대기)
+**진행도:** 85% 🚧 (진행 중 — Phase B1·B2·C1·C2 완료, B3·C2 코드 배선 완료 / 브라우저 E2E·수동체크 로컬 대기)
 
 ### 강의
 - [ ] Chapter 02: 디렉토리와 파일 사용법
@@ -139,6 +139,16 @@
   - [x] `Dashboard.jsx` / `App.jsx` 스토어·헬스체크 배선 (로딩/정상/빈/에러 4상태)
   - [ ] 브라우저 E2E (TC-UI-10~13) — C1 완료, 로컬 수동 확인 대기
   - [ ] GUI 수동 체크 M1~M7 — 로컬 수행 대기 (샌드박스 창 기동 불가)
+- [x] 프로젝트 CRUD 프론트 배선 (Phase C2) → 완료 (2026-09-03, feature/c2-projects, 미푸시)
+  - [x] `frontend/src/store/useProjectStore.js` — zustand, fetch/add/update/remove (낙관적 갱신 + 롤백)
+  - [x] `frontend/src/components/ProjectForm.jsx` — 이름(필수)·진행도(선택) 입력
+  - [x] `frontend/src/components/ProjectCard.jsx` — 상태 select·삭제 버튼·진행도 슬라이더 (`'hold'`→`'on_hold'` 통일)
+  - [x] `Dashboard.jsx` — 프로젝트 패널 4상태 배선 (로딩/빈/정상/에러), 에러가 할일 패널 렌더를 막지 않음
+  - [x] `backend/src/errors.js` — SQLite CHECK/NOTNULL/FK → 400 한국어 매핑 (TC-DB-04a~d)
+  - [x] `tasks.project_id` 라우트 검증 (POST/PUT, ADR-0012) + API 응답 노출
+  - [x] `npm test` 39/39, `verify.sh` 19/0/0, `npm run build` 성공
+  - [ ] 브라우저 수동 체크 (TC-UI-14~16) — 로컬 수행 대기 (샌드박스 창 기동 불가)
+  - 이월: 이름 인라인 수정 UI, `GET /api/tasks?project_id=` 필터, TaskForm 프로젝트 드롭다운, TaskList 배지
 
 ### 배운 Linux 명령어
 ```bash
@@ -151,11 +161,11 @@ wc -l                  # 줄 수 세기
 
 ### 진행 상황 요약
 ```
-완료한 작업: 7개 (React 컴포넌트 스캐폴드, 번들러(Vite) 연결 = B1, Express CRUD 라우트, 자동화 테스트 골격 + CI, SQLite 교체 = B2, 프론트↔백엔드 코드 배선 = B3, 백엔드 미들웨어 정식화 = C1)
-진행 중: 1개 (B3 브라우저 E2E·GUI 수동체크 — 로컬 대기)
-예정된 작업: 2개 (C2 프로젝트 CRUD 프론트 배선, 샘플 데이터)
+완료한 작업: 8개 (React 컴포넌트 스캐폴드, 번들러(Vite) 연결 = B1, Express CRUD 라우트, 자동화 테스트 골격 + CI, SQLite 교체 = B2, 프론트↔백엔드 코드 배선 = B3, 백엔드 미들웨어 정식화 = C1, 프로젝트 CRUD 프론트 배선 + errors.js + tasks.project_id = C2)
+진행 중: 1개 (B3·C2 브라우저 E2E·GUI 수동체크 — 로컬 대기)
+예정된 작업: 1개 (샘플 데이터)
 
-진행도: 80%
+진행도: 85%
 강의 수강: 0%
 개발: 90%
 ```
@@ -210,7 +220,7 @@ umask -S               # 기본 권한
 Week 1  ███████░░░ 70%
 Week 2  ███████░░░ 65%
 Week 3  ████░░░░░░ 40%
-Week 4  ░░░░░░░░░░  0%
+Week 4  ███░░░░░░░ 30%  (FR-PROJ-01/02 프론트 배선 = Phase C2, 2026-09-03)
 Week 5  ░░░░░░░░░░  0%
 ...
 Week 14 ░░░░░░░░░░  0%

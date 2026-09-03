@@ -1,12 +1,13 @@
-// 메인 대시보드. 할일 패널은 useTaskStore + API 로 배선되어 있다.
-// 프로젝트 패널은 이번 범위 밖이라 로컬 빈 배열을 유지한다.
+// 메인 대시보드. 할일 패널은 useTaskStore, 프로젝트 패널은 useProjectStore 로 배선되어 있다.
 
 import React, { useEffect } from 'react';
 import TaskList from './TaskList';
 import ProjectCard from './ProjectCard';
 import TaskForm from './TaskForm';
+import ProjectForm from './ProjectForm';
 import ErrorBanner from './ErrorBanner';
 import { useTaskStore } from '../store/useTaskStore.js';
+import { useProjectStore } from '../store/useProjectStore.js';
 
 export default function Dashboard() {
   // 필드별 개별 셀렉터로 구독한다 (객체 리터럴 반환 금지 — 불필요한 리렌더 방지)
@@ -18,15 +19,27 @@ export default function Dashboard() {
   const toggleTask = useTaskStore((s) => s.toggleTask);
   const removeTask = useTaskStore((s) => s.removeTask);
 
+  const projects = useProjectStore((s) => s.projects);
+  const projectsLoading = useProjectStore((s) => s.loading);
+  const projectsError = useProjectStore((s) => s.error);
+  const fetchProjects = useProjectStore((s) => s.fetchProjects);
+  const addProject = useProjectStore((s) => s.addProject);
+  const removeProject = useProjectStore((s) => s.removeProject);
+  const updateProject = useProjectStore((s) => s.updateProject);
+
   useEffect(() => {
     fetchTasks();
   }, [fetchTasks]);
 
-  // 프로젝트 패널은 범위 밖 (기존대로 빈 배열)
-  const projects = [];
+  useEffect(() => {
+    fetchProjects();
+  }, [fetchProjects]);
 
   const showLoading = loading && tasks.length === 0;
   const showEmpty = !loading && tasks.length === 0;
+
+  const showProjectsLoading = projectsLoading && projects.length === 0;
+  const showProjectsEmpty = !projectsLoading && projects.length === 0 && !projectsError;
 
   return (
     <div style={{ padding: '24px', background: '#0f172a', color: '#e2e8f0', minHeight: '100vh' }}>
@@ -51,12 +64,29 @@ export default function Dashboard() {
           <TaskForm onSubmit={addTask} disabled={loading} />
         </section>
 
-        {/* 우측: 프로젝트 패널 (범위 밖) */}
+        {/* 우측: 프로젝트 패널 */}
         <section style={{ flex: 1 }}>
           <h2 style={{ fontSize: '16px', color: '#94a3b8' }}>프로젝트</h2>
-          {projects.map((p) => (
-            <ProjectCard key={p.id} project={p} />
-          ))}
+
+          {projectsError && <ErrorBanner message={projectsError} onRetry={fetchProjects} />}
+
+          {showProjectsLoading ? (
+            <p style={{ color: '#94a3b8' }}>불러오는 중…</p>
+          ) : showProjectsEmpty ? (
+            <p style={{ color: '#94a3b8' }}>프로젝트가 없습니다</p>
+          ) : (
+            projects.map((p) => (
+              <ProjectCard
+                key={p.id}
+                project={p}
+                onDelete={removeProject}
+                onProgressChange={(id, v) => updateProject(id, { progress: v })}
+                onStatusChange={(id, v) => updateProject(id, { status: v })}
+              />
+            ))
+          )}
+
+          <ProjectForm onSubmit={addProject} disabled={projectsLoading} />
         </section>
       </div>
     </div>

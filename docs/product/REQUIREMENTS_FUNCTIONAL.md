@@ -20,7 +20,8 @@
 | TASK | [requirements/TASK.md](requirements/TASK.md) | P0 완료, P1 초안 |
 | UI | [requirements/UI.md](requirements/UI.md) | P0 완료 |
 | AGENT | [requirements/AGENT.md](requirements/AGENT.md) | P0 완료, P1 초안 |
-| PROJ / CAL / MAIL / SYNC / AUTH | (예정) | 아래 표만 — 해당 주차 착수 전 상세화 |
+| PROJ | [requirements/PROJ.md](requirements/PROJ.md) | P0 완료 (C2, 2026-09-03) |
+| CAL / MAIL / SYNC / AUTH | (예정) | 아래 표만 — 해당 주차 착수 전 상세화 |
 
 ---
 
@@ -40,8 +41,8 @@
 
 | ID | 요구사항 | 우선순위 | 목표 주차 | 상태 |
 |---|---|:---:|:---:|:---:|
-| FR-PROJ-01 | 사용자는 프로젝트를 이름·진행도(0–100)·상태로 생성/수정/삭제할 수 있다 | P1 | W4 | 🚧 (API만) |
-| FR-PROJ-02 | 프로젝트 카드에 진행도 바와 상태(진행중/완료/보류)를 표시한다 | P1 | W4 | 🚧 |
+| FR-PROJ-01 | 사용자는 프로젝트를 이름·진행도(0–100)·상태로 생성/수정/삭제할 수 있다 | P1 | W4 | ✅ (C2 — 이름 인라인 수정 UI 는 이월) |
+| FR-PROJ-02 | 프로젝트 카드에 진행도 바와 상태(진행중/완료/보류)를 표시한다 | P1 | W4 | ✅ (C2) |
 | FR-PROJ-03 | Notion 데이터베이스의 프로젝트를 읽어와 표시한다 (읽기 전용) | P1 | W4 | ⏳ |
 | FR-PROJ-04 | Notion `notion_id` 로 로컬 프로젝트와 매핑한다 | P2 | W4 | ⏳ |
 
