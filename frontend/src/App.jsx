@@ -1,7 +1,11 @@
 // 메인 앱 컴포넌트
-// 스캐폴드 환영 화면 + 백엔드 /health 연결 상태 표시.
+// - 본문은 ErrorBoundary 로 감싼 Dashboard.
+// - 백엔드 /health 연결 상태는 헤더 우측의 작은 표시로 축소 유지 (FR-UI-02 AC-5 회귀 방지).
 
 import React, { useEffect, useState } from 'react';
+import Dashboard from './components/Dashboard';
+import ErrorBoundary from './components/ErrorBoundary';
+import { apiGet } from './api/client.js';
 
 // preload 로 노출된 정보 (없을 수도 있으므로 방어)
 const info = window.appInfo ?? {};
@@ -11,23 +15,15 @@ export default function App() {
   const [health, setHealth] = useState({ status: 'loading', message: '백엔드 확인 중…' });
 
   useEffect(() => {
-    // apiBaseUrl 이 없으면 요청 자체가 불가능하다
-    if (!info.apiBaseUrl) {
-      setHealth({ status: 'error', message: '백엔드에 연결할 수 없습니다' });
-      return;
-    }
-
     let aborted = false;
     (async () => {
       try {
-        const res = await fetch(`${info.apiBaseUrl}/health`);
-        if (aborted) return;
-        if (!res.ok) throw new Error('health not ok');
-        setHealth({ status: 'ok', message: '백엔드 연결됨 (ok)' });
+        await apiGet('/health');
+        if (!aborted) setHealth({ status: 'ok', message: '백엔드 연결됨' });
       } catch (err) {
         // 스택·상태코드 원문은 콘솔에만, 화면에는 한국어 요약만
         console.error('헬스체크 실패:', err);
-        if (!aborted) setHealth({ status: 'error', message: '백엔드에 연결할 수 없습니다' });
+        if (!aborted) setHealth({ status: 'error', message: '백엔드 연결 안 됨' });
       }
     })();
 
@@ -40,13 +36,27 @@ export default function App() {
     health.status === 'ok' ? '#4ade80' : health.status === 'error' ? '#f87171' : '#94a3b8';
 
   return (
-    <div style={{ textAlign: 'center', padding: '2rem' }}>
-      <h1 style={{ margin: '0 0 0.5rem', fontSize: '1.5rem' }}>🤖 Welcome to AI Computer OS</h1>
-      <p style={{ margin: '0.25rem 0', color: '#94a3b8' }}>개인 생산성 AI Agent</p>
-      <p style={{ margin: '0.25rem 0', color: '#94a3b8' }}>
-        v{info.version ?? '?'} · Electron {info.electron ?? '?'} · Node {info.node ?? '?'}
-      </p>
-      <p style={{ margin: '1rem 0 0', color: statusColor }}>{health.message}</p>
+    <div>
+      {/* 헤더 우측: 버전 + 연결 상태 작은 표시 */}
+      <header
+        style={{
+          display: 'flex',
+          justifyContent: 'flex-end',
+          alignItems: 'center',
+          gap: '10px',
+          padding: '6px 24px',
+          background: '#0f172a',
+          color: '#94a3b8',
+          fontSize: '12px',
+        }}
+      >
+        <span>v{info.version ?? '?'} · Electron {info.electron ?? '?'} · Node {info.node ?? '?'}</span>
+        <span style={{ color: statusColor }}>● {health.message}</span>
+      </header>
+
+      <ErrorBoundary>
+        <Dashboard />
+      </ErrorBoundary>
     </div>
   );
 }

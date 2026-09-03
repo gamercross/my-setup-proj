@@ -146,13 +146,14 @@ flowchart TB
 |---|---|:---:|---|
 | G1 | React 미연결 (번들러 없음, `renderer.js` ↔ `App.jsx` 이원화) | 높음 | ✅ Phase B1 (Vite + `renderer.jsx` 마운트) |
 | G2 | DB 영속성 없음 (인메모리) | 높음 | ✅ Phase B2 (better-sqlite3, WAL, DATABASE_PATH) |
-| G3 | 프론트 ↔ 백엔드 연결 코드 0 (fetch/CORS/base URL 없음) | 높음 | ⏳ Phase B3 |
+| G3 | 프론트 ↔ 백엔드 연결 코드 0 (fetch/CORS/base URL 없음) | 높음 | 🚧 코드 배선 완료 (2026-09-03), 브라우저 E2E 는 CORS(C1) 이후 |
 | G4 | 로컬 환경 미검증 | 중간 | ✅ Phase A2 완료 (2026-09-02) |
 | G5 | 경로 이관 변경분 미커밋 | 낮음 | ✅ 커밋 `fc4404c` |
 | G6 | 자동화 테스트 없음 (CI 문법 검사만) | 중간 | ✅ Phase A3 (backend 15 + agent 3, CI 연결) |
 | G7 | 외부 API(Gmail/Calendar/Notion) 스텁 | 낮음 | ⏳ Week 6~7 (계획대로) |
 | G8 | 다중 사용자·Supabase·Docker 미착수 | 낮음 | ⏳ Week 10~12 (계획대로) |
+| G9 | 프로젝트 다이어그램(`docs/**/*.md` 의 Mermaid)을 저장소를 열지 않고는 볼 수 없음 — 앱 안에서 구조·진행을 그림으로 확인 불가 | 낮음 | ⏳ Phase C4 (FR-UI-05, [ADR-0014](adr/ADR-0014-dashboard-diagram-viewer.md)) |
 
 ---
 
-**작성:** 2026-09-02 · **갱신:** 2026-09-02 (Phase A2)
+**작성:** 2026-09-02 · **갱신:** 2026-09-03 (Phase A2 / G9 추가)

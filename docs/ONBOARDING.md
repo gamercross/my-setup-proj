@@ -19,7 +19,7 @@
 | # | 문서 | 여기서 얻을 것 |
 |---|---|---|
 | 1 | [product/VISION.md](product/VISION.md) + [product/USE_SCENARIOS.md](product/USE_SCENARIOS.md) | 무엇을 만드는가, "완료" 의 정의, 사용 여정 |
-| 2 | [product/AS_IS.md](product/AS_IS.md) | 지금 코드가 어디까지 됐나, 모듈 의존 그래프, 갭 G1~G8 |
+| 2 | [product/AS_IS.md](product/AS_IS.md) | 지금 코드가 어디까지 됐나, 모듈 의존 그래프, 갭 G1~G9 |
 | 3 | [product/CONSTRAINTS.md](product/CONSTRAINTS.md) + [product/RISKS.md](product/RISKS.md) | 전제 조건, 무엇이 틀어질 수 있나 |
 | 4 | [product/ROADMAP.md](product/ROADMAP.md) + [product/DESIGN.md](product/DESIGN.md) §8 | 주차별 일정, Week ↔ Phase 대응 |
 | 5 | [product/REQUIREMENTS_FUNCTIONAL.md](product/REQUIREMENTS_FUNCTIONAL.md) + [requirements/](product/requirements/) | 기능 요구사항(FR), P0 도메인 수용 기준 |
@@ -118,7 +118,8 @@ cd agent && source venv/bin/activate && python test_claude.py
 
 - 불확실하면 추측하지 말고 **"확인 필요"** 로 표시하고 멈춘다.
 - 계획 범위를 벗어나야 하면 이유와 함께 보고하고 사용자 확인을 받는다.
-- 남은 미결정: [ADR-0013](product/adr/ADR-0013-dashboard-agent-queue.md)(대시보드 에이전트 작업 큐, 향후 확장). 0009~0012 는 채택 완료.
+- 남은 미결정(제안): [ADR-0013](product/adr/ADR-0013-dashboard-agent-queue.md)(에이전트 작업 큐, 향후 확장),
+  [ADR-0014](product/adr/ADR-0014-dashboard-diagram-viewer.md)(대시보드 다이어그램 뷰어, Phase C1 이후 착수). 0009~0012 는 채택 완료.
 
 ---
 

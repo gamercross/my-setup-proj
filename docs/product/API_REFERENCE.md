@@ -329,6 +329,38 @@ FR-SYNC-03, NFR-OBS-03
 
 ---
 
+## 다이어그램 (diagrams) 🔷 예정 — Week 4~5 (Phase C4)
+
+### `GET /api/diagrams` — 문서 다이어그램 목록
+
+FR-UI-05 · [ADR-0014](adr/ADR-0014-dashboard-diagram-viewer.md)
+
+`docs/**/*.md` 안의 ```` ```mermaid ```` 코드블록을 추출해 반환한다. 파일시스템 읽기 전용
+(`backend/src/services/diagrams.js`). DB·에이전트 관여 없음.
+
+| 쿼리 | 설명 |
+|---|---|
+| `doc` | 특정 문서만 (예: `DESIGN` — 확장자·경로 제외 basename) |
+
+**응답 200**
+```json
+{ "diagrams": [ {
+  "doc": "DESIGN",
+  "path": "docs/product/DESIGN.md",
+  "index": 1,
+  "title": "목표 아키텍처 (TO-BE)",
+  "code": "flowchart TB\n  ..."
+} ] }
+```
+- `title` = 블록 직전 최근접 heading 텍스트. 없으면 `"<doc> #<index>"`.
+- `docs/` 를 찾지 못하면(패키지에 미동봉 등) `{ "diagrams": [] }` (200, 에러 아님).
+- 클라이언트(`DiagramPanel.jsx`)가 `mermaid` 를 동적 import 해 SVG 로 렌더. 렌더 실패는
+  블록 단위로 폴백(원문 코드 표시).
+
+**응답 500** — `{ "error": "다이어그램을 불러오지 못했습니다." }`
+
+---
+
 # curl 예시 세트
 
 ```bash
@@ -369,6 +401,7 @@ Week 5 이전 기준. 명세(위)와 실제 코드(`backend/src/`)의 갭:
 | D6 | CORS 화이트리스트 | 미설정 | Week 4 C1 |
 | D7 | 요청 로깅 미들웨어 | `console.error` 만 | Week 4 C1 (NFR-OBS-01) |
 | D8 | `calendar`/`mail`/`brief`/`sync` 라우트 | 없음 | Week 5~7 |
+| D9 | `diagrams` 라우트 + `services/diagrams.js` | 없음 | Week 4~5 C4 (C1 이후) |
 
 ---
 

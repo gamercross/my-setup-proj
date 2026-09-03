@@ -49,12 +49,18 @@
 │  09:00 팀 미팅              │  ## 오늘의 우선순위 TOP 3        │
 │  14:00 강의                 │  1. ...                          │
 ├─────────────────────────────────────────────────────────────┤
+│  다이어그램 (🔷 예정 C4)  [아키텍처][로드맵][오케스트레이션][의존] │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │           (선택한 Mermaid 다이어그램 SVG)               │  │
+│  └───────────────────────────────────────────────────────┘  │
+├─────────────────────────────────────────────────────────────┤
 │  ⚠️ 백엔드에 연결할 수 없습니다  [재시도]   ← ErrorBanner (조건부) │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 - 상단 2열(할일 / 프로젝트): 현재 `Dashboard.jsx` 에 존재 (`display:flex; gap:24px`).
 - 하단 2열(일정 / 브리핑): 🔷 예정 (Week 5, 7).
+- 다이어그램 패널: 🔷 예정 (Phase C4, FR-UI-05). 전폭 섹션, 탭 전환.
 - `ErrorBanner`: 🔷 예정 (FR-UI-04). 영역별로 개별 표시 가능.
 
 ---
@@ -144,6 +150,19 @@
 | 배치 | 영역별 개별 표시 (한 영역 실패가 다른 영역을 가리지 않음 — FR-UI-01 AC-2) |
 | 최상위 | React error boundary 로 렌더 예외를 잡아 앱 전체 크래시 방지 (FR-UI-04 AC-5) |
 
+### 3.7 다이어그램 패널 🔷 예정 (Phase C4, FR-UI-05)
+
+| 항목 | 내용 |
+|---|---|
+| 목적 | `docs/**/*.md` 의 Mermaid 다이어그램을 앱에서 열람 — 프로젝트 구조·진행을 그림으로 |
+| 요소 | `DiagramPanel` — 그룹 탭(아키텍처 / 로드맵 gantt / 오케스트레이션 / 모듈 의존) + 선택 SVG |
+| 데이터 출처 | `GET /api/diagrams` → 로컬 컴포넌트 state (스토어 불필요 — 읽기 전용·정적) |
+| 렌더 | `import('mermaid')` 동적 로딩(별도 청크), `mermaid.initialize({ startOnLoad:false, theme:'dark', securityLevel:'strict' })` 후 블록별 `render()` |
+| 관련 FR | FR-UI-05 · [ADR-0014](adr/ADR-0014-dashboard-diagram-viewer.md) |
+| 상태 | 로딩 / "다이어그램 없음"(빈 배열) / 정상 / 에러(API 실패 → `ErrorBanner`) |
+| 폴백 | 개별 블록 렌더 실패 시 그 항목만 "이 다이어그램을 그릴 수 없습니다" + 원문 코드 (`<pre>`) |
+| 미결 | 탭 고정 목록 vs `docs` 전체 자동 나열 — C4 착수 시 확정 |
+
 ---
 
 ## 4. 컴포넌트 계약
@@ -158,6 +177,7 @@
 | `CalendarWidget` | `events: Event[]` | — | — | 🔷 |
 | `BriefCard` | `brief: Brief \| null` | — | — | 🔷 |
 | `ErrorBanner` | `message: string`, `onRetry()` | — | `onRetry` | 🔷 |
+| `DiagramPanel` | — | `diagrams`, `activeGroup`, `loading`, `error` | — | 🔷 C4 |
 
 **타입 형태**는 [DATA_DICTIONARY.md](DATA_DICTIONARY.md) 및 [API_REFERENCE.md](API_REFERENCE.md) 의 리소스 객체와 동일 (필드명 snake_case 유지).
 

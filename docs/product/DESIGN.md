@@ -35,6 +35,7 @@
 | [0011](adr/ADR-0011-agent-backend-db-access.md) | 에이전트–백엔드 SQLite: WAL + 쓰기 주체 분리 | 채택 |
 | [0012](adr/ADR-0012-task-project-link.md) | `tasks.project_id` FK (`ON DELETE SET NULL`) | 채택 |
 | [0013](adr/ADR-0013-dashboard-agent-queue.md) | 대시보드 에이전트 작업 큐 (향후 확장) | **제안** |
+| [0014](adr/ADR-0014-dashboard-diagram-viewer.md) | 대시보드 다이어그램 뷰어 (mermaid 클라이언트 렌더 + `/api/diagrams`) | **제안** |
 
 ---
 
@@ -53,6 +54,7 @@ flowchart TB
       DASH --> PC["ProjectCard"]
       DASH --> CW["CalendarWidget"]
       DASH --> BC["BriefCard"]
+      DASH --> DGP["DiagramPanel<br/>(mermaid 동적 import)"]
       DASH --> EB["ErrorBanner"]
     end
     MAIN --> PRE --> R
@@ -60,9 +62,10 @@ flowchart TB
 
   subgraph BE["Backend (backend/, Express)"]
     SRV["server.js<br/>cors → json → logger → routes → 404 → errorHandler"]
-    SRV --> RT["routes/<br/>tasks · projects · calendar · mail · brief · sync"]
+    SRV --> RT["routes/<br/>tasks · projects · calendar · mail · brief · sync · diagrams"]
     RT --> SVC["services/"]
     SVC --> DBM["db/ (better-sqlite3)"]
+    SVC --> DOCS["docs/**/*.md<br/>(mermaid 소스, 읽기 전용)"]
   end
 
   subgraph AG["Python Agent (agent/)"]
@@ -115,13 +118,14 @@ sync_logs                       매 동기화 시도 1행 추가
 
 Base: `http://localhost:3000/api` · 응답은 JSON · 오류는 `{ "error": "메시지" }`
 
-엔드포인트 범위: `/health`, `/tasks`(CRUD), `/projects`(CRUD), `/calendar/events`, `/mail/unread`, `/brief/today`, `/sync/logs`.
+엔드포인트 범위: `/health`, `/tasks`(CRUD), `/projects`(CRUD), `/calendar/events`, `/mail/unread`, `/brief/today`, `/sync/logs`, `/diagrams`(읽기 전용, `docs/` 파싱 — C4).
 요청·응답 예시, 검증 규칙, 상태코드, 현재 구현과의 차이는 [API_REFERENCE.md](API_REFERENCE.md).
 
 설계 규칙:
 - 검증(NFR-SEC-07): `title`/`name` 필수, `priority ∈ {high,medium,low}`, `status ∈ {todo,in_progress,done}`, `progress ∈ [0,100]`. 위반 시 400.
 - 미들웨어 순서: `cors(로컬 오리진만)` → `express.json()` → `requestLogger` → 라우트 → `404` → `errorHandler`.
 - `calendar`/`mail`/`brief`/`sync` 는 읽기 전용 — 데이터는 에이전트가 SQLite 캐시 테이블에 씀 ([ADR-0006](adr/ADR-0006-agent-owns-external-apis.md)).
+- `diagrams` 는 읽기 전용 — `services/diagrams.js` 가 `docs/**/*.md` 를 파싱만 함 (DB·에이전트 무관, [ADR-0014](adr/ADR-0014-dashboard-diagram-viewer.md)).
 
 ---
 
@@ -146,6 +150,7 @@ frontend/src/
     ProjectCard.jsx  (기존)
     CalendarWidget.jsx  신규
     BriefCard.jsx       신규
+    DiagramPanel.jsx    신규 (FR-UI-05, C4 — mermaid 동적 import)
     ErrorBanner.jsx     신규 (FR-UI-04, NFR-REL-02)
 ```
 
@@ -268,7 +273,7 @@ sequenceDiagram
 |---|---|---|---|
 | A | Week 1~2 | 기반 정리 (환경·테스트·커밋 체계) | A1~A3 ✅ |
 | B | Week 2~3 | 프론트 React 연결 + SQLite + 할일 CRUD | B1·B2 ✅ / B3 ⏳ |
-| C | Week 4~5 | 백엔드 미들웨어 · 프로젝트 · 캘린더 | ⏳ |
+| C | Week 4~5 | 백엔드 미들웨어 · 프로젝트 · 캘린더 · 다이어그램 뷰어 | ⏳ |
 | D | Week 6~7 | 에이전트 (수집·Claude·Notion·스케줄) | ⏳ |
 | — | Week 8 | 중간고사 · 과제 1 발표 | ⏳ |
 | E | Week 9~13 | 다중 사용자 · Supabase · Docker · 최적화 | ⏳ |
@@ -297,6 +302,7 @@ sequenceDiagram
 | C1 | 백엔드 미들웨어 정식화 (cors·requestLogger·errorHandler 분리) | NFR-SEC-06, NFR-OBS-01 |
 | C2 | 프로젝트 CRUD 프론트 배선 + ProjectCard 진행도 바 | FR-PROJ-01/02 |
 | C3 | 캘린더 위젯 + `/api/calendar/events` (더미→실 API 준비) | FR-CAL-01/02 |
+| C4 | 다이어그램 뷰어 — `GET /api/diagrams`(`services/diagrams.js` 가 `docs/**/*.md` 파싱) + `DiagramPanel.jsx`(mermaid 동적 import, 다크 테마, 4상태). **C1(CORS) 선행.** [ADR-0014](adr/ADR-0014-dashboard-diagram-viewer.md) | FR-UI-05, G9 |
 
 ### Phase D — 에이전트 (Week 6~7)
 

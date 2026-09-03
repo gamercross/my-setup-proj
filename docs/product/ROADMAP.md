@@ -206,6 +206,15 @@ flowchart LR
   - [ ] 일정 리스트 표시
   - [ ] 시간 표시
 
+#### 다이어그램 뷰어 (FR-UI-05 · Phase C4)
+
+CORS 미들웨어(Phase C1)가 선행돼야 한다. 설계는 [ADR-0014](adr/ADR-0014-dashboard-diagram-viewer.md).
+
+- [ ] **Backend** — `GET /api/diagrams` (`backend/src/services/diagrams.js` 가 `docs/**/*.md` 의 Mermaid 블록 파싱, 읽기 전용) + `routes/diagrams.js`
+- [ ] **Frontend** — `DiagramPanel.jsx` (패널 진입 시 `mermaid` 동적 import, 다크 테마, 로딩/비어있음/정상/에러 4상태)
+- [ ] **패키지** — `electron-builder` `extraResources` 에 `docs/` 동봉 여부 결정 (미동봉 시 prod 는 빈 배열)
+- [ ] **테스트** — TC-DIAG-01~03 (`backend/test/diagrams.test.js`), TC-UI-09 (수동)
+
 **Phase 2 마일스톤:**
 - ✅ 할일 CRUD 완료
 - ✅ Notion 연동 확인
