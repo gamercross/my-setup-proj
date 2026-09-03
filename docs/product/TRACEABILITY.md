@@ -16,7 +16,7 @@
 |---|---|---|---|:---:|
 | G1 | React 미연결 (번들러 없음) | FR-UI-02 | B1 | ✅ (Vite + `renderer.jsx` 마운트, 2026-09-02) |
 | G2 | DB 영속성 없음 (인메모리) | FR-TASK-05 | B2 | ✅ (better-sqlite3, WAL, DATABASE_PATH, 2026-09-02) |
-| G3 | 프론트↔백엔드 연결 코드 0 | FR-TASK-01~04, FR-UI-01 | B3 | ⏳ |
+| G3 | 프론트↔백엔드 연결 코드 0 | FR-TASK-01~04, FR-UI-01 | B3 | 🚧 코드 배선 완료 (2026-09-03), 브라우저 E2E 는 CORS(C1) 이후 |
 | G4 | 로컬 환경 미검증 | NFR-TEST-04 | A2 | ✅ (`verify.sh` 12/0/0, 2026-09-02) |
 | G5 | 경로 이관 변경분 미커밋 | — | A1 | ✅ (`fc4404c`) |
 | G6 | 자동화 테스트 없음 | NFR-TEST-01~03 | A3 | ✅ (backend 15 + agent 3, CI 연결, 2026-09-02) |
@@ -28,7 +28,7 @@
 
 [DESIGN.md](DESIGN.md) §8 대응표 참조. 요약: A=W1~2, B=W2~3, C=W4~5, D=W6~7, E=W9~13.
 
-C 세부: C1 미들웨어(CORS·로깅·에러) → C2 프로젝트 CRUD → C3 캘린더 위젯 → C4 다이어그램 뷰어(FR-UI-05, C1 선행). B 세부: B1 Vite·React ✅ / B2 SQLite ✅ / B3 할일 CRUD 배선 ⏳.
+C 세부: C1 미들웨어(CORS·로깅·에러) → C2 프로젝트 CRUD → C3 캘린더 위젯 → C4 다이어그램 뷰어(FR-UI-05, C1 선행). B 세부: B1 Vite·React ✅ / B2 SQLite ✅ / B3 할일 CRUD 프론트 배선 🚧(코드 ✅, 브라우저 E2E 는 C1 이후).
 
 ---
 
@@ -36,10 +36,10 @@ C 세부: C1 미들웨어(CORS·로깅·에러) → C2 프로젝트 CRUD → C3 
 
 | FR | 갭 | 설계 / ADR | Phase·단계 | 테스트 | 코드 위치 | 상태 |
 |---|---|---|---|---|---|:---:|
-| FR-TASK-01 | G3 | API_REFERENCE `POST /tasks`, [ADR-0004](adr/ADR-0004-front-back-http-rest.md) | B3 | TC-TASK-01~03 | `backend/src/routes/tasks.js`, `backend/src/db.js` (SQLite), `frontend/.../TaskForm.jsx` | 🚧 |
-| FR-TASK-02 | G3 | UI_SPEC §3.2 | B3 | TC-TASK-04,05 | `routes/tasks.js`, `backend/src/db.js` (SQLite), `components/TaskList.jsx` | 🚧 |
-| FR-TASK-03 | G3 | API_REFERENCE `PUT /tasks/:id` | B3 | TC-TASK-06 | `routes/tasks.js`, `backend/src/db.js` (SQLite), `Dashboard.jsx` | 🚧 |
-| FR-TASK-04 | G3 | API_REFERENCE | B3 | TC-TASK-07~11 | `routes/tasks.js`, `backend/src/db.js` (SQLite) | 🚧 |
+| FR-TASK-01 | G3 | API_REFERENCE `POST /tasks`, [ADR-0004](adr/ADR-0004-front-back-http-rest.md) | B3 | TC-TASK-01~03, TC-UI-13 | `backend/src/routes/tasks.js`, `backend/src/db.js` (SQLite), `frontend/src/api/client.js`, `frontend/src/store/useTaskStore.js`, `frontend/src/components/TaskForm.jsx` | 🚧 프론트 배선 ✅ / 정상경로 검증 C1 대기 |
+| FR-TASK-02 | G3 | UI_SPEC §3.2 | B3 | TC-TASK-04,05, TC-UI-10 | `routes/tasks.js`, `backend/src/db.js` (SQLite), `frontend/src/api/client.js`, `frontend/src/store/useTaskStore.js`, `components/TaskList.jsx`, `components/Dashboard.jsx` | 🚧 프론트 배선 ✅ / 정상경로 검증 C1 대기 |
+| FR-TASK-03 | G3 | API_REFERENCE `PUT /tasks/:id` | B3 | TC-TASK-06, TC-UI-11 | `routes/tasks.js`, `backend/src/db.js` (SQLite), `frontend/src/api/client.js`, `frontend/src/store/useTaskStore.js`, `Dashboard.jsx` | 🚧 프론트 배선 ✅ / 정상경로 검증 C1 대기 |
+| FR-TASK-04 | G3 | API_REFERENCE | B3 | TC-TASK-07~11, TC-UI-12 | `routes/tasks.js`, `backend/src/db.js` (SQLite), `frontend/src/api/client.js`, `frontend/src/store/useTaskStore.js` | 🚧 프론트 배선 ✅ / 정상경로 검증 C1 대기 |
 | FR-TASK-05 | G2 | [ADR-0002](adr/ADR-0002-local-db-better-sqlite3.md), [ADR-0003](adr/ADR-0003-schema-single-file.md), [ADR-0009](adr/ADR-0009-sqlite-file-location.md) | B2 | TC-DB-01~03 | `backend/db/index.js`, `backend/src/db.js` | ✅ (2026-09-02) |
 | FR-TASK-06 | — | API_REFERENCE 쿼리 파라미터 | C (W4) | TC-TASK-12 | `routes/tasks.js`, `db.js` | ⏳ |
 | FR-TASK-07 | — | requirements/TASK.md | C (W5) | — | `routes/tasks.js` | ⏳ |
@@ -66,10 +66,10 @@ C 세부: C1 미들웨어(CORS·로깅·에러) → C2 프로젝트 CRUD → C3 
 | FR-AUTH-01 | G7 | NFR-SEC-05 | D2 | TC-UI-06 | `agent/auth/google_oauth.py`(신규) | ⏳ |
 | FR-AUTH-02 | G8 | [ADR-0008](adr/ADR-0008-supabase-deferred.md) | E1 | — | 신규 | ⏳ |
 | FR-AUTH-03 | — | requirements(예정) | E1 | — | 신규 | ⏳ |
-| FR-UI-01 | G3 | UI_SPEC §2, DESIGN §3 (flowchart) | B3, C, D3 | TC-UI-02 | `components/Dashboard.jsx` | 🚧 |
+| FR-UI-01 | G3 | UI_SPEC §2, DESIGN §3 (flowchart) | B3, C, D3 | TC-UI-02, TC-UI-10 | `components/Dashboard.jsx`, `frontend/src/store/useTaskStore.js` | 🚧 배선·4상태 ✅, E2E C1 대기 |
 | FR-UI-02 | G1 | [ADR-0001](adr/ADR-0001-frontend-react-vite.md), [ADR-0010](adr/ADR-0010-vite-dev-vs-build.md), UI_SPEC §7 | B1 | TC-UI-01,05,07,08 | `frontend/src/{renderer.jsx,vite.config.js,main.js,App.jsx}` | ✅ (AC-5 는 에러표시 수준, 실제 200 은 CORS C1 대기) |
 | FR-UI-03 | — | requirements/UI.md | W2 (완료) | TC-UI-04 | `frontend/src/main.js` | ✅ |
-| FR-UI-04 | — | UI_SPEC §3.6 | B3 | TC-UI-02 | `components/ErrorBanner.jsx`(신규), `api/client.js` | ⏳ |
+| FR-UI-04 | — | UI_SPEC §3.6 | B3 | TC-UI-02, TC-UI-11,12 | `frontend/src/components/ErrorBanner.jsx`, `frontend/src/components/ErrorBoundary.jsx`, `frontend/src/api/client.js`, `frontend/src/store/useTaskStore.js` | ✅ AC-1~5 (ErrorBanner + ErrorBoundary), 단 실제 실패 트리거 확인은 로컬 대기 |
 | FR-UI-05 | G9 | [ADR-0014](adr/ADR-0014-dashboard-diagram-viewer.md), API_REFERENCE `GET /diagrams`, requirements/UI.md | C4 | TC-DIAG-01~03, TC-UI-09 | `backend/src/services/diagrams.js`(신규), `backend/src/routes/diagrams.js`(신규), `frontend/src/components/DiagramPanel.jsx`(신규) | ⏳ |
 
 ---
