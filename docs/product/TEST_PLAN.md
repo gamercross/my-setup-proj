@@ -109,6 +109,20 @@ CI(`.github/workflows/test.yml`)에 `npm test`(backend), `pytest -m "not network
 > 픽스처: 임시 디렉터리에 mermaid 블록 md 를 만들고 `services/diagrams.js` 의 docs 루트를 주입.
 > 파싱 로직(펜스 추출·heading 매칭)은 순수 함수로 분리해 단위 테스트 가능하게 한다.
 
+### 3.5b 미들웨어 — `backend/test/middleware.test.js` (Phase C1)
+
+| ID | 대상 | 절차 | 기대 결과 |
+|---|---|---|---|
+| TC-MW-01 | NFR-SEC-06 | 허용 오리진으로 `GET /api/tasks` | 200 + `Access-Control-Allow-Origin` 에코 + `Vary: Origin` |
+| TC-MW-02 | NFR-SEC-06 | 비허용 오리진으로 요청 | 응답에 CORS 헤더 없음 |
+| TC-MW-03 | NFR-SEC-06 | `OPTIONS` preflight (PUT, custom content-type) | 204 + `Access-Control-Allow-Methods`/`-Headers`/`-Max-Age` |
+| TC-MW-04 | NFR-SEC-06 | `Origin: null` (prod Electron `file://`) | 200 + `Access-Control-Allow-Origin: null` |
+| TC-MW-05 | NFR-SEC-07 | 정의되지 않은 경로 | 404 `{error:'요청한 경로를 찾을 수 없습니다.'}` (여분 키 없음) |
+| TC-MW-06 | NFR-SEC-07 | 깨진 JSON 본문 | 400 `{error:'요청 본문(JSON) 형식이 올바르지 않습니다.'}` |
+| TC-MW-07 | NFR-REL / OBS | `errorHandler` 직접 호출 (console.error mock) | 500 표준 봉투 |
+| TC-MW-08 | NFR-OBS-01 | 개발 환경 요청 1건 | `requestLogger` 가 `METHOD path status ms` 1줄 출력 |
+| TC-MW-09 | NFR-SEC-06 | 200KB 본문 POST | 413 `{error:'요청 본문이 너무 큽니다.'}` (영어 메시지 미매치) |
+
 ### 3.6 수동 체크리스트 (Electron / OAuth)
 
 | ID | 대상 | 절차 | 통과 조건 |
@@ -122,10 +136,10 @@ CI(`.github/workflows/test.yml`)에 `npm test`(backend), `pytest -m "not network
 | TC-UI-07 | FR-UI-02 AC-4 | `npm run build && npm start` | prod 번들(`dist/`)이 `file://` + `script-src 'self'` 로 로드, 콘솔 CSP 위반 0 |
 | TC-UI-08 | FR-UI-02 오류 시나리오 | Vite dev 서버 끄고 `NODE_ENV=development npm start` | 흰 화면 대신 `fallback.html` "개발 서버(:5173)에 연결할 수 없습니다" 안내 |
 | TC-UI-09 | FR-UI-05 AC-1~4 | 백엔드 켠 채 앱 실행 → 다이어그램 패널 열기 | 4개 그룹 선택 가능, SVG 렌더(다크), 백엔드 끄면 패널만 `ErrorBanner`, 문법 깨진 블록은 원문 폴백 |
-| TC-UI-10 | FR-UI-01 AC-2/4, FR-TASK-02 | CORS 적용 후 앱 실행 → 할일 패널 관찰 | 로딩 → 정상 전이, 목록 렌더. 0건이면 "할 일이 없습니다" 표시. 상태: 보류 — C1(CORS) 이후 |
-| TC-UI-11 | FR-TASK-03 AC-4 | 체크박스 클릭 후 백엔드 중단 | 즉시 UI 반영 후 요청 실패 시 원상복구 + `ErrorBanner`. 상태: 보류 — C1(CORS) 이후 |
-| TC-UI-12 | FR-TASK-04 AC-6 | 삭제 클릭 중 백엔드 중단 | 항목이 원위치로 복원됨 + `ErrorBanner`. 상태: 보류 — C1(CORS) 이후 |
-| TC-UI-13 | FR-TASK-01 | 폼에 제목만 입력 후 제출 | `POST` 201, 목록 맨 아래 append, 폼 초기화. 상태: 보류 — C1(CORS) 이후 |
+| TC-UI-10 | FR-UI-01 AC-2/4, FR-TASK-02 | CORS 적용 후 앱 실행 → 할일 패널 관찰 | 로딩 → 정상 전이, 목록 렌더. 0건이면 "할 일이 없습니다" 표시. 상태: C1 완료, 로컬 수동 확인 대기 |
+| TC-UI-11 | FR-TASK-03 AC-4 | 체크박스 클릭 후 백엔드 중단 | 즉시 UI 반영 후 요청 실패 시 원상복구 + `ErrorBanner`. 상태: C1 완료, 로컬 수동 확인 대기 |
+| TC-UI-12 | FR-TASK-04 AC-6 | 삭제 클릭 중 백엔드 중단 | 항목이 원위치로 복원됨 + `ErrorBanner`. 상태: C1 완료, 로컬 수동 확인 대기 |
+| TC-UI-13 | FR-TASK-01 | 폼에 제목만 입력 후 제출 | `POST` 201, 목록 맨 아래 append, 폼 초기화. 상태: C1 완료, 로컬 수동 확인 대기 |
 
 ---
 
@@ -166,13 +180,14 @@ supervisor 는 리뷰 시 "이 변경에 대응하는 테스트가 있는가"를
 
 ---
 
-## 7. 현재 상태 (2026-09-02, Phase B2 완료)
+## 7. 현재 상태 (2026-09-03, Phase C1 완료)
 
-- 백엔드 자동화 테스트: **18케이스 작성됨** — `backend/test/tasks.test.js` (TC-TASK-01,02,04~10), `backend/test/projects.test.js` (TC-PROJ-01~06), `backend/test/db.test.js` (TC-DB-01~03, Phase B2). `supertest` + `node --test`, `:memory:` DB.
+- 백엔드 자동화 테스트: **27케이스 작성됨** — `backend/test/tasks.test.js` (TC-TASK-01,02,04~10), `backend/test/projects.test.js` (TC-PROJ-01~06), `backend/test/db.test.js` (TC-DB-01~03), `backend/test/middleware.test.js` (TC-MW-01~09, Phase C1). `supertest` + `node --test`, `:memory:` DB.
 - 에이전트 자동화 테스트: **3케이스 작성됨** — `agent/tests/test_daily_brief.py` (TC-AGENT-01~03). `test_claude.py` 는 `agent/tests/` 로 이동(연결 확인용, 키 없으면 skip).
 - CI: 문법 검사 + `npm test`(backend) + `pytest -m "not network"`(agent) 연결됨. `node -c src/app.js`, `src/db.js`, `db/index.js` 추가.
-- `verify.sh`: `db.js`·`db/index.js` 문법 체크 추가 (15/0/0).
+- `verify.sh`: `db.js`·`db/index.js` + C1 미들웨어 3종 문법 체크 (18/0/0, SKIP 없음).
 - 미작성(후속): TC-TASK-03/11/12, TC-DB-04, TC-AGENT-04~06, 수동 체크리스트.
+- Phase C1(2026-09-03): `backend/src/middleware/{cors,requestLogger,errorHandler}.js` 분리, `backend/src/app.js` 미들웨어 체인 정식화(`requestLogger` 최상단), `backend/test/middleware.test.js` 신규(TC-MW-01~09). `npm test` 27/27, `verify.sh` 18/0/0. 브라우저 E2E(TC-UI-10~13)는 로컬 수동 확인 대기.
 - Phase B2(2026-09-02): `backend/src/db.js` 를 better-sqlite3 로 재작성, `backend/db/index.js` 신규(커넥션 싱글턴 + WAL + `DATABASE_PATH`), `backend/test/db.test.js` 추가. `npm test` 18/18 (node 26·22), `verify.sh` 15/0/0, frontend `npm run build` 회귀 없음, agent pytest 3 pass.
 - Phase B1(2026-09-02): `frontend/vite.config.js` + `renderer.jsx` 마운트. `npm run build` 성공(`dist/index.html` + `dist/assets/*.js`), prod CSP 지시어 확인, `verify.sh` 13/0/0. 프론트 수동 체크리스트(TC-UI-01, TC-UI-07 prod 스모크)는 **로컬 수행 대기** — 샌드박스에서 electron 바이너리 postinstall 차단으로 창 기동 불가. `main.js` dev/prod 분기·`fallback.html` 폴백은 코드 리뷰로 판정.
 

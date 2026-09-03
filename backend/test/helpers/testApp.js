@@ -20,6 +20,8 @@ function clearModuleCache() {
 // 새로 조립한 Express 앱을 반환한다.
 // dbPath 미지정 시 인메모리 DB 로 강제 (테스트 격리).
 function createTestApp(options = {}) {
+  // 요청 로깅을 억제한다 (requestLogger 는 NODE_ENV==='test' 면 no-op).
+  process.env.NODE_ENV = 'test';
   process.env.DATABASE_PATH = options.dbPath || ':memory:';
   clearModuleCache();
   return require('../../src/app').createApp();

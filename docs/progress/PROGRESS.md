@@ -89,7 +89,7 @@
 개발: 72%
 ```
 
-> Phase A2·A3·B1·B2 완료, B3 코드 배선 완료 (2026-09-03). 다음: C1(CORS) → B3 브라우저 E2E·GUI 수동체크.
+> Phase A2·A3·B1·B2·C1 완료, B3 코드 배선 완료 (2026-09-03). 다음: B3 브라우저 E2E·GUI 수동체크(로컬) 또는 C2(프로젝트 CRUD 프론트 배선).
 > 검증 스냅샷: `node v26.8.1 / npm 11.19.0 / python 3.14.4`, `verify.sh` 15/0/0, `npm test` 18/0, `pytest -m "not network"` 3 pass.
 
 ---
@@ -97,7 +97,7 @@
 ## 🗓️ Week 2: 기본 프로젝트 구축 (09-09 ~ 09-15)
 
 **목표:** Electron + React 기본 UI 완성, Express 서버 실행  
-**진행도:** 75% 🚧 (진행 중 — Phase B1·B2 완료, B3 코드 배선 완료 / E2E·수동체크 C1·로컬 대기)
+**진행도:** 80% 🚧 (진행 중 — Phase B1·B2·C1 완료, B3 코드 배선 완료 / 브라우저 E2E·수동체크 로컬 대기)
 
 ### 강의
 - [ ] Chapter 02: 디렉토리와 파일 사용법
@@ -125,13 +125,19 @@
   - [x] `DATABASE_PATH` 규약, WAL 모드 (`backend/db/index.js` 커넥션 싱글턴, `schema.sql` 런타임 멱등 적용)
   - [x] `backend/test/db.test.js` — TC-DB-01~03 (재시작 영속 / 인터페이스 불변 / 스키마 멱등+WAL)
   - [ ] 샘플 데이터 입력 (유보)
-- [x] 프론트↔백엔드 배선 (Phase B3) → 코드 배선 완료 (2026-09-03), E2E·수동체크는 C1(CORS)·로컬 대기
+- [x] 백엔드 미들웨어 정식화 (Phase C1) → 완료 (2026-09-03, feature/c1-middleware)
+  - [x] `backend/src/middleware/cors.js` — 로컬 오리진 화이트리스트 + `Origin: null` (prod Electron `file://`), NFR-SEC-06
+  - [x] `backend/src/middleware/requestLogger.js` — 모든 요청 1줄, 체인 최상단, NFR-OBS-01
+  - [x] `backend/src/middleware/errorHandler.js` — 404 / 깨진 JSON 400 / 413 / 500 표준 봉투
+  - [x] `backend/test/middleware.test.js` — TC-MW-01~09. `npm test` 27/27, `verify.sh` 18/0/0
+  - [x] dotenv 미도입 결정 (env 3개 기본값, 시크릿 0 — 재검토 D2)
+- [x] 프론트↔백엔드 배선 (Phase B3) → 코드 배선 완료 (2026-09-03), 브라우저 E2E·수동체크는 로컬 대기
   - [x] `frontend/src/api/client.js` — fetch 래퍼 + 에러 정규화
   - [x] `frontend/src/store/useTaskStore.js` — zustand, fetch/add/toggle/remove (낙관적 갱신 + 롤백)
   - [x] `frontend/src/components/TaskForm.jsx` — 제목 입력·제출
   - [x] `frontend/src/components/ErrorBanner.jsx` / `ErrorBoundary.jsx` — FR-UI-04
   - [x] `Dashboard.jsx` / `App.jsx` 스토어·헬스체크 배선 (로딩/정상/빈/에러 4상태)
-  - [ ] 브라우저 E2E (TC-UI-10~13) — C1(CORS) 이후
+  - [ ] 브라우저 E2E (TC-UI-10~13) — C1 완료, 로컬 수동 확인 대기
   - [ ] GUI 수동 체크 M1~M7 — 로컬 수행 대기 (샌드박스 창 기동 불가)
 
 ### 배운 Linux 명령어
@@ -145,13 +151,13 @@ wc -l                  # 줄 수 세기
 
 ### 진행 상황 요약
 ```
-완료한 작업: 6개 (React 컴포넌트 스캐폴드, 번들러(Vite) 연결 = B1, Express CRUD 라우트, 자동화 테스트 골격 + CI, SQLite 교체 = B2, 프론트↔백엔드 코드 배선 = B3)
-진행 중: 1개 (B3 브라우저 E2E·GUI 수동체크 — C1(CORS)·로컬 대기)
-예정된 작업: 2개 (C1 CORS, 샘플 데이터)
+완료한 작업: 7개 (React 컴포넌트 스캐폴드, 번들러(Vite) 연결 = B1, Express CRUD 라우트, 자동화 테스트 골격 + CI, SQLite 교체 = B2, 프론트↔백엔드 코드 배선 = B3, 백엔드 미들웨어 정식화 = C1)
+진행 중: 1개 (B3 브라우저 E2E·GUI 수동체크 — 로컬 대기)
+예정된 작업: 2개 (C2 프로젝트 CRUD 프론트 배선, 샘플 데이터)
 
-진행도: 75%
+진행도: 80%
 강의 수강: 0%
-개발: 88%
+개발: 90%
 ```
 
 ---

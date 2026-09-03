@@ -61,7 +61,7 @@ flowchart TB
   end
 
   subgraph BE["Backend (backend/, Express)"]
-    SRV["server.js<br/>cors → json → logger → routes → 404 → errorHandler"]
+    SRV["app.js<br/>requestLogger → cors → json → routes → 404 → errorHandler"]
     SRV --> RT["routes/<br/>tasks · projects · calendar · mail · brief · sync · diagrams"]
     RT --> SVC["services/"]
     SVC --> DBM["db/ (better-sqlite3)"]
@@ -123,7 +123,7 @@ Base: `http://localhost:3000/api` · 응답은 JSON · 오류는 `{ "error": "�
 
 설계 규칙:
 - 검증(NFR-SEC-07): `title`/`name` 필수, `priority ∈ {high,medium,low}`, `status ∈ {todo,in_progress,done}`, `progress ∈ [0,100]`. 위반 시 400.
-- 미들웨어 순서: `cors(로컬 오리진만)` → `express.json()` → `requestLogger` → 라우트 → `404` → `errorHandler`.
+- 미들웨어 순서 (C1, `backend/src/app.js`): `requestLogger` → `cors(로컬 오리진만)` → `express.json()` → 라우트 → `404` → `errorHandler`. `requestLogger` 를 맨 앞에 두어 preflight·본문 파싱 실패(400/413) 요청까지 NFR-OBS-01 "모든 요청 1줄" 을 충족한다.
 - `calendar`/`mail`/`brief`/`sync` 는 읽기 전용 — 데이터는 에이전트가 SQLite 캐시 테이블에 씀 ([ADR-0006](adr/ADR-0006-agent-owns-external-apis.md)).
 - `diagrams` 는 읽기 전용 — `services/diagrams.js` 가 `docs/**/*.md` 를 파싱만 함 (DB·에이전트 무관, [ADR-0014](adr/ADR-0014-dashboard-diagram-viewer.md)).
 
