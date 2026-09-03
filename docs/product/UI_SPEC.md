@@ -111,15 +111,17 @@
 | 항목 | 내용 |
 |---|---|
 | 목적 | 프로젝트 진행도·상태 표시 |
-| 요소 | 섹션 제목 "프로젝트", `ProjectCard` 목록 |
-| 데이터 출처 | `GET /api/projects` → `useAppStore.projects` |
+| 요소 | 섹션 제목 "프로젝트", `ProjectCard` 목록, `ProjectForm`(하단) |
+| 데이터 출처 | `GET /api/projects` → `useProjectStore.projects` (C2, 2026-09-03) |
 | 관련 FR | FR-PROJ-01/02, FR-UI-01 |
 
-**렌더 상태:** 로딩 / 비어있음("프로젝트가 없습니다" — 🔷, 현재 미구현) / 정상 / 에러.
+**렌더 상태:** 로딩("불러오는 중…") / 비어있음("프로젝트가 없습니다" — ✅ 구현됨) / 정상 / 에러(`ErrorBanner` + 재시도, 할일 패널 렌더는 막지 않음).
 
-**`ProjectCard` 표시 요소:** 이름, 상태 배지, 진행도 바(`width: progress%`, accent 색), `{progress}%` 텍스트.
+**`ProjectCard` 표시 요소:** 이름, 상태 `select`(진행 중/완료/보류 — `onStatusChange` 콜백 주입 시), 삭제 버튼(`onDelete` 주입 시), 진행도 바(`width: progress%`, accent 색), `{progress}%` 텍스트, 진행도 슬라이더(`type=range`, step 5 — `onProgressChange` 주입 시, 확정 시점 onMouseUp/onBlur 에만 커밋). 콜백 미주입 시 읽기 전용(상태 배지만).
 
-> ⚠️ 현재 `ProjectCard.statusLabel` 은 `'hold'` 를 "보류"로 처리하지만 [GLOSSARY.md](GLOSSARY.md)·`schema.sql` 은 `'on_hold'` 다. **불일치 — 코드를 `on_hold` 로 맞춘다** (Week 4).
+**`ProjectForm` (신설, C2):** 이름 입력(필수 — 빈값이면 "이름을 입력하세요" 힌트), 진행도 입력(선택, `type=number` 0–100), "+ 프로젝트 추가" 버튼. 제출 payload snake_case `{ name, progress? }`. 비낙관적 — `addProject` 가 `true` 반환 시에만 폼 초기화.
+
+**상태값:** `active`/`done`/`on_hold` (schema·GLOSSARY 일치). `'hold'` 불일치는 C2 에서 `on_hold` 로 통일해 해소됨.
 
 ### 3.4 오늘 일정 위젯 🔷 예정 (Week 5)
 
@@ -178,7 +180,8 @@
 | `TaskForm` | `onSubmit(payload)`, `disabled` | `title, priority, dueDate` | `onSubmit` | ✅ B3 |
 | `ErrorBanner` | `message: string`, `onRetry()` | — | `onRetry` | ✅ B3 |
 | `ErrorBoundary` | `children` | `hasError` | — | ✅ B3 (class, FR-UI-04 AC-5) |
-| `ProjectCard` | `project: Project` | — | — | ✅ (status 값 `'hold'`→`'on_hold'` 수정 필요 — C2) |
+| `ProjectCard` | `project: Project`, `onDelete(id)?`, `onProgressChange(id, next)?`, `onStatusChange(id, value)?` | `draft` (슬라이더 로컬값) | `onDelete`, `onProgressChange`, `onStatusChange` | ✅ C2 (순수 프레젠테이션, 콜백 없으면 읽기 전용, `on_hold` 통일) |
+| `ProjectForm` | `onSubmit(payload): Promise<boolean>`, `disabled` | `name, progress, hint` | `onSubmit` | ✅ C2 (payload `{name, progress?}`) |
 | `CalendarWidget` | `events: Event[]` | — | — | 🔷 C3 |
 | `BriefCard` | `brief: Brief \| null` | — | — | 🔷 D3 |
 | `DiagramPanel` | — | `diagrams`, `activeGroup`, `loading`, `error` | — | 🔷 C4 |
@@ -214,11 +217,23 @@
 - 액션은 throw 하지 않고 `error` 에 문자열 저장. 성공하는 액션은 `error=null` (FR-UI-04 AC-4).
 - `Dashboard` 는 객체 리터럴 셀렉터 금지 — 필드별 개별 셀렉터로 구독 (zustand v4 리렌더 함정).
 
-### `useAppStore` 🔷 예정 (C2~D3)
+### `useProjectStore` ✅ C2 (2026-09-03, `frontend/src/store/useProjectStore.js`)
 ```
-상태:   projects, events, brief, 각 영역별 loading/error
-액션:   fetchProjects() fetchEvents() fetchBrief()
+상태:   projects: Project[]   loading: boolean   error: string | null
+액션:   fetchProjects()            → GET /api/projects    (실패해도 기존 projects 보존)
+        addProject(payload)       → POST /api/projects   (비낙관적, boolean 반환)
+        updateProject(id, patch)  → PUT /api/projects/:id (낙관적, 성공 시 서버 project 로 치환, 실패 롤백)
+        removeProject(id)         → DELETE /api/projects/:id (낙관적, 실패 시 원래 인덱스 복원)
+        clearError()
 ```
+- `useTaskStore` 패턴 복제. 필드명 snake_case 유지(`project_id`, `notion_id`).
+
+### `useAppStore` 🔷 예정 (C3~D3) — 캘린더/브리핑용
+```
+상태:   events, brief, 각 영역별 loading/error
+액션:   fetchEvents() fetchBrief()
+```
+> 방향: `useAppStore` 단일 스토어 대신 도메인별 스토어(`useTaskStore`/`useProjectStore`/…)로 분리 중.
 
 - 모든 액션은 `api/client.js`(fetch 래퍼) 경유. 에러는 문자열로 정규화해 `error` 에 저장 (NFR-REL-02).
 
@@ -242,9 +257,9 @@
 | # | 명세 | 현재 | 해소 |
 |---|---|---|---|
 | U1 | React 트리 렌더 | ✅ B1 — `renderer.jsx` → `createRoot().render(<App/>)` (`renderer.js` 삭제) |
-| U2 | `Dashboard` 가 store+API 사용 | 로컬 state, fetch 없음 | Week 3 B3 |
+| U2 | `Dashboard` 가 store+API 사용 | ✅ B3(할일)·C2(프로젝트) — `useTaskStore`+`useProjectStore` |
 | U3 | `apiBaseUrl` 브리지 | ✅ B1 — `preload.js` `apiBaseUrl: 'http://localhost:3000/api'` (3000 고정) |
-| U4 | `ProjectCard` status `on_hold` | `'hold'` 로 처리 | Week 4 |
+| ~~U4~~ | `ProjectCard` status `on_hold` | ✅ 해소 — C2 (2026-09-03), `'hold'`→`'on_hold'` 통일 |
 | U5 | 일정·브리핑·에러 영역 | 없음 | Week 5·7, FR-UI-04 |
 | U6 | CSP `connect-src` 허용 | ✅ B1 — prod `connect-src 'self' http://localhost:3000`, dev 는 `devCspPlugin` 완화 |
 | U7 | 로딩/에러 상태 렌더 | `App.jsx` 는 `/api/health` 3상태 렌더. Dashboard 영역 로딩/에러는 B3 | B3, FR-UI-04 |

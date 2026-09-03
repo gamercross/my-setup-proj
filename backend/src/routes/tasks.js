@@ -2,10 +2,21 @@
 
 const router = require('express').Router();
 const db = require('../db');
+const { isValidationError, toClientMessage } = require('../errors');
 
-// db 검증 오류를 400, 그 외를 500 으로 매핑하는 헬퍼
-function isValidationError(err) {
-  return err && /필수|0~100/.test(err.message || '');
+// project_id 입력값을 검증한다 (ADR-0012).
+// 반환: { ok: true } | { ok: false, error: '한국어 메시지' }
+// - undefined: 미지정(통과, 기본 null)   - null: 연결 해제(통과)
+// - 정수: 존재하는 프로젝트여야 통과      - 그 외: 400
+function checkProjectId(value) {
+  if (value === undefined || value === null) return { ok: true };
+  if (typeof value !== 'number' || !Number.isInteger(value)) {
+    return { ok: false, error: 'project_id 는 프로젝트 id(정수) 또는 null 이어야 합니다.' };
+  }
+  if (!db.getProject(value)) {
+    return { ok: false, error: '연결할 프로젝트를 찾을 수 없습니다.' };
+  }
+  return { ok: true };
 }
 
 // GET /api/tasks - 할일 전체 목록
@@ -38,11 +49,15 @@ router.post('/', (req, res) => {
     if (!req.body || !req.body.title) {
       return res.status(400).json({ error: 'title 은 필수입니다.' });
     }
+    if ('project_id' in req.body) {
+      const check = checkProjectId(req.body.project_id);
+      if (!check.ok) return res.status(400).json({ error: check.error });
+    }
     const task = db.addTask(req.body);
     res.status(201).json({ task });
   } catch (err) {
     if (isValidationError(err)) {
-      return res.status(400).json({ error: err.message });
+      return res.status(400).json({ error: toClientMessage(err) });
     }
     console.error('할일 생성 실패:', err);
     res.status(500).json({ error: '할일을 생성하지 못했습니다.' });
@@ -52,6 +67,14 @@ router.post('/', (req, res) => {
 // PUT /api/tasks/:id - 할일 수정
 router.put('/:id', (req, res) => {
   try {
+    // 없는 task 는 project_id 검증보다 먼저 404 를 반환한다
+    if (!db.getTask(req.params.id)) {
+      return res.status(404).json({ error: '할일을 찾을 수 없습니다.' });
+    }
+    if (req.body && 'project_id' in req.body) {
+      const check = checkProjectId(req.body.project_id);
+      if (!check.ok) return res.status(400).json({ error: check.error });
+    }
     const task = db.updateTask(req.params.id, req.body || {});
     if (!task) {
       return res.status(404).json({ error: '할일을 찾을 수 없습니다.' });
@@ -59,7 +82,7 @@ router.put('/:id', (req, res) => {
     res.json({ task });
   } catch (err) {
     if (isValidationError(err)) {
-      return res.status(400).json({ error: err.message });
+      return res.status(400).json({ error: toClientMessage(err) });
     }
     console.error('할일 수정 실패:', err);
     res.status(500).json({ error: '할일을 수정하지 못했습니다.' });

@@ -24,9 +24,9 @@
 |---|---|---|
 | Electron 메인 (`src/main.js`) | 800×600 창 생성, `preload.js` 통해 `contextIsolation` 적용, `index.html` 로드 | ✅ 동작 |
 | 렌더 진입 (`src/renderer.jsx`) | `createRoot(#root).render(<App/>)` — `renderer.js`(바닐라) 제거 | ✅ Vite + React 마운트 (B1) |
-| React 컴포넌트 (`App.jsx`, `components/Dashboard.jsx`, `TaskList.jsx`, `ProjectCard.jsx`) | `App.jsx` 는 마운트됨(appInfo + `/api/health` 3상태 렌더). Dashboard/TaskList/ProjectCard 배선은 B3 | 🚧 App 연결됨, 하위는 B3 |
+| React 컴포넌트 (`App.jsx`, `Dashboard.jsx`, `TaskList.jsx`, `TaskForm.jsx`, `ProjectCard.jsx`, `ProjectForm.jsx`) | `Dashboard` 가 `useTaskStore`(B3)·`useProjectStore`(C2)로 배선됨. 할일·프로젝트 4상태(로딩/빈/정상/에러) 렌더, 프로젝트 카드 상태·진행도·삭제 + 생성 폼 | ✅ 할일(B3)·프로젝트(C2) 배선 완료, 브라우저 E2E 로컬 대기 |
 | 번들러 | ✅ Vite + `@vitejs/plugin-react` (B1). `vite.config.js` root=src / base=./ / devCspPlugin | ✅ Vite + React 마운트 (B1) |
-| 상태 관리 | `zustand` 의존성만 선언, 사용처 없음 | ❌ 미사용 |
+| 상태 관리 | ✅ `zustand` — `useTaskStore`(B3), `useProjectStore`(C2). 도메인별 스토어 분리 방향 | ✅ 사용 중 |
 | 스타일링 | 인라인 style 만. Tailwind 미도입 | 🚧 |
 
 **핵심 문제:** (B1 해소) 번들러(Vite)가 도입되고 `renderer.jsx` 가 `App.jsx` 를 마운트한다. `renderer.js`(바닐라)는 삭제됐다. 남은 작업은 Dashboard 이하 컴포넌트 배선(B3).
@@ -38,7 +38,9 @@
 | 서버 (`src/server.js`) | 포트 3000, `express.json()`, `GET /` 헬스체크, `/api` 라우터, 404·에러 핸들러, `unhandledRejection` 방어 | ✅ 코드상 완성 |
 | API 라우터 (`src/routes/api.js`) | `GET /api/health`, `/api/tasks`·`/api/projects` 서브라우터 연결 | ✅ |
 | 할일 라우트 (`src/routes/tasks.js`) | GET(목록/단건)·POST·PUT·DELETE, 검증오류 400 / 그 외 500 매핑 | ✅ |
-| 프로젝트 라우트 (`src/routes/projects.js`) | tasks 와 동일 구조 CRUD | ✅ |
+| 프로젝트 라우트 (`src/routes/projects.js`) | tasks 와 동일 구조 CRUD. C2: `errors.js` 로 SQLite CHECK/FK → 400 한국어 매핑, status `on_hold` 통일 | ✅ + 프론트 배선(C2) |
+| 오류 매핑 (`src/errors.js`) | `isValidationError`/`toClientMessage` — 일반 Error + SQLite 제약 위반(CHECK/NOTNULL/FK) → 400 한국어 (C2) | ✅ |
+| `tasks.project_id` (ADR-0012) | `POST`/`PUT /api/tasks` 검증·API 응답 노출. `?project_id=` 필터는 이월 | ✅ (C2) |
 | 데이터 저장 (`src/db.js`) | ✅ **better-sqlite3 (B2)** — `db/index.js` 커넥션 싱글턴 경유, WAL 모드, `DATABASE_PATH` 로 경로 주입(기본 `backend/data/app.db`). 공개 함수 10개 시그니처 불변 | ✅ 영속화 |
 | CORS | `backend/src/middleware/cors.js` — 로컬 오리진 화이트리스트 + `Origin: null` | ✅ (C1, 2026-09-03) |
 | 로깅 미들웨어 | `backend/src/middleware/requestLogger.js` — 모든 요청 1줄 (`METHOD path status ms`) | ✅ (C1, 2026-09-03) |
@@ -146,7 +148,7 @@ flowchart TB
 |---|---|:---:|---|
 | G1 | React 미연결 (번들러 없음, `renderer.js` ↔ `App.jsx` 이원화) | 높음 | ✅ Phase B1 (Vite + `renderer.jsx` 마운트) |
 | G2 | DB 영속성 없음 (인메모리) | 높음 | ✅ Phase B2 (better-sqlite3, WAL, DATABASE_PATH) |
-| G3 | 프론트 ↔ 백엔드 연결 코드 0 (fetch/CORS/base URL 없음) | 높음 | 🚧 코드 배선 완료 (2026-09-03), 브라우저 E2E 는 CORS(C1) 이후 |
+| G3 | 프론트 ↔ 백엔드 연결 코드 0 (fetch/CORS/base URL 없음) | 높음 | 🚧 할일(B3)·프로젝트(C2) 배선 완료 (2026-09-03), 브라우저 E2E 로컬 수동 확인 대기 |
 | G4 | 로컬 환경 미검증 | 중간 | ✅ Phase A2 완료 (2026-09-02) |
 | G5 | 경로 이관 변경분 미커밋 | 낮음 | ✅ 커밋 `fc4404c` |
 | G6 | 자동화 테스트 없음 (CI 문법 검사만) | 중간 | ✅ Phase A3 (backend 15 + agent 3, CI 연결) |

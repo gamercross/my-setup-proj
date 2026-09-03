@@ -19,6 +19,7 @@ const TASK_KEYS = [
   'due_date',
   'priority',
   'status',
+  'project_id',
   'created_at',
   'updated_at',
 ];
@@ -82,6 +83,7 @@ describe('DB 계층', () => {
     assert.equal(task.due_date, null);
     assert.equal(task.priority, 'medium');
     assert.equal(task.status, 'todo');
+    assert.equal(task.project_id, null);
     assert.match(task.created_at, ISO8601);
     assert.match(task.updated_at, ISO8601);
 
@@ -132,5 +134,29 @@ describe('DB 계층', () => {
     ]);
 
     assert.equal(conn.pragma('journal_mode', { simple: true }), 'wal');
+  });
+
+  it('TC-DB-04c: CHECK 위반은 SqliteError(code=SQLITE_CONSTRAINT_CHECK) 로 던진다', () => {
+    const db = loadDb(':memory:');
+    let caught;
+    try {
+      db.addTask({ title: 'a', priority: 'x' });
+    } catch (e) {
+      caught = e;
+    }
+    assert.ok(caught, 'addTask 는 throw 해야 한다');
+    assert.equal(caught.code, 'SQLITE_CONSTRAINT_CHECK');
+  });
+
+  it('TC-DB-04d: 없는 project_id 로 addTask 하면 FK 위반으로 던진다', () => {
+    const db = loadDb(':memory:');
+    let caught;
+    try {
+      db.addTask({ title: 'a', project_id: 9999 });
+    } catch (e) {
+      caught = e;
+    }
+    assert.ok(caught, 'addTask 는 throw 해야 한다');
+    assert.equal(caught.code, 'SQLITE_CONSTRAINT_FOREIGNKEY');
   });
 });

@@ -38,10 +38,18 @@
 |---|---|---|
 | `title` (task) | 필수, 트림 후 길이 ≥ 1 | 400 `"title 은 필수입니다."` |
 | `name` (project) | 필수 | 400 `"name 은 필수입니다."` |
-| `priority` | `high` \| `medium` \| `low` | 400 (도입 예정 — [현재 구현과의 차이](#현재-구현과의-차이)) |
-| `status` (task) | `todo` \| `in_progress` \| `done` | 400 (도입 예정) |
+| `priority` | `high` \| `medium` \| `low` | 400 `"입력값이 허용된 값 범위를 벗어났습니다."` (DB CHECK → 400, `backend/src/errors.js`, C2) |
+| `status` (task) | `todo` \| `in_progress` \| `done` | 400 (DB CHECK → 400, `errors.js`) |
+| `status` (project) | `active` \| `done` \| `on_hold` | 400 `"입력값이 허용된 값 범위를 벗어났습니다."` (`PUT /api/projects/:id`, DB CHECK → 400) |
 | `progress` | 숫자, 0 ≤ n ≤ 100 | 400 `"progress 는 0~100 사이 숫자여야 합니다."` |
+| `project_id` (task) | 존재하는 프로젝트 id 또는 `null` | 400 `"연결할 프로젝트를 찾을 수 없습니다."` / `"project_id 는 프로젝트 id(정수) 또는 null 이어야 합니다."` |
 | `due_date` | `YYYY-MM-DD` 형식 | 400 (도입 예정) |
+
+**400 한국어 메시지 (C2 등록, `backend/src/errors.js`)**
+- `입력값이 허용된 값 범위를 벗어났습니다.` — SQLite CHECK 위반 (priority/status enum, progress 범위)
+- `연결할 프로젝트를 찾을 수 없습니다.` — 없는 `project_id` (라우트 사전 검증 또는 FK 위반)
+- `project_id 는 프로젝트 id(정수) 또는 null 이어야 합니다.` — 타입 오류
+- SQLite 영문 원문은 클라이언트에 노출하지 않는다.
 
 ---
 
@@ -93,10 +101,12 @@
   "due_date": "2026-09-10",
   "priority": "high",
   "status": "todo",
+  "project_id": null,
   "created_at": "2026-09-02T09:00:00.000Z",
   "updated_at": "2026-09-02T09:00:00.000Z"
 }
 ```
+- `project_id`: 연결된 프로젝트 id (정수) 또는 `null`(= 단독 할일). ADR-0012. `GET /api/tasks?project_id=` 필터는 FR-TASK-06 과 함께 이월.
 
 ### `GET /api/tasks` — 할일 목록 ✅
 
@@ -148,6 +158,7 @@ FR-TASK-01
 | `due_date` | string (`YYYY-MM-DD`) | — | `null` |
 | `priority` | string | — | `"medium"` |
 | `status` | string | — | `"todo"` |
+| `project_id` | number \| null | — | `null` (ADR-0012) |
 
 **요청 예시 (정상)**
 ```json
@@ -169,6 +180,10 @@ FR-TASK-01
 ```
 **응답 400** — `{ "error": "title 은 필수입니다." }`
 
+**`project_id` 검증 400 (ADR-0012, C2)**
+- 존재하지 않는 프로젝트: `{ "error": "연결할 프로젝트를 찾을 수 없습니다." }`
+- 정수/`null` 이 아닌 값(예: `"1"`): `{ "error": "project_id 는 프로젝트 id(정수) 또는 null 이어야 합니다." }`
+
 **부작용:** `tasks` 에 1행 추가. `id`·`created_at`·`updated_at` 은 서버가 채운다(클라이언트 값 무시).
 
 ---
@@ -177,8 +192,10 @@ FR-TASK-01
 
 FR-TASK-03, FR-TASK-04
 
-- 보낸 필드만 병합, 나머지 유지. 허용 필드: `title`, `description`, `due_date`, `priority`, `status`.
+- 보낸 필드만 병합, 나머지 유지. 허용 필드: `title`, `description`, `due_date`, `priority`, `status`, `project_id`.
 - `updated_at` 은 항상 갱신.
+- `project_id`: 존재하는 프로젝트 id 또는 `null`(연결 해제). 그 외 값은 400 (POST 와 동일한 3종 메시지, 아래).
+- 검증 순서: 없는 `:id` → 404 를 `project_id` 검증(400)보다 먼저 반환.
 
 **요청 예시** — 완료 토글
 ```json
@@ -245,10 +262,12 @@ FR-PROJ-02
 - 허용 필드: `name`, `progress`, `status`, `notion_id`.
 - 없는 `:id` 는 `progress` 값과 무관하게 **404 우선**.
 - `progress` 범위 위반 → 400.
+- `status` 허용값(`active`/`done`/`on_hold`) 밖 → 400 `"입력값이 허용된 값 범위를 벗어났습니다."` (DB CHECK → 400, `errors.js`, C2).
 
 ### `DELETE /api/projects/:id` — 삭제 ✅
 
 **응답 200** `{ "ok": true }` / **404** 없음.
+**부작용:** 하위 할일의 `project_id` 가 `null` 로 설정된다 (ADR-0012 `ON DELETE SET NULL`). 할일은 삭제되지 않음.
 
 ---
 
@@ -396,9 +415,9 @@ curl -s $BASE/tasks/99999
 
 | # | 명세 | 현재 코드 | 해소 |
 |---|---|---|---|
-| D1 | `priority`/`status` enum 위반 시 400 | 라우트 검증은 있으나 DB CHECK 매핑(→400)은 부분 | C2 (TC-DB-04, `isValidationError` 확장) |
-| D2 | `due_date` 형식 검증 | 없음 | C2 |
-| D3 | `PUT /tasks/:id` 빈 `title` 로 덮어쓰기 금지 | `updateTask` 가 허용 | B3~C2 (FR-TASK-04 AC-3) |
+| ~~D1~~ | `priority`/`status`/`progress` enum·범위 위반 시 400 | ✅ 해소 — `backend/src/errors.js` 가 SQLite CHECK/NOTNULL/FK → 400 + 한국어로 매핑 (C2, 2026-09-03, TC-DB-04a~d) | — |
+| D2 | `due_date` 형식 검증 | 없음 | 이월 (FR-TASK-06 즈음) |
+| D3 | `PUT /tasks/:id` 빈 `title` 로 덮어쓰기 금지 | `updateTask` 가 허용 | 이월 (FR-TASK-04 AC-3) |
 | ~~D4~~ | 데이터 영속 (재시작 후 유지) | ✅ 해소 — better-sqlite3 (B2, 2026-09-02, FR-TASK-05) | — |
 | D5 | 쿼리 필터/정렬 | 미구현 | Week 4 (FR-TASK-06) |
 | ~~D6~~ | CORS 화이트리스트 | ✅ 해소 — `middleware/cors.js` (C1, 2026-09-03) | — |

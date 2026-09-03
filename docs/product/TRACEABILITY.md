@@ -16,7 +16,7 @@
 |---|---|---|---|:---:|
 | G1 | React 미연결 (번들러 없음) | FR-UI-02 | B1 | ✅ (Vite + `renderer.jsx` 마운트, 2026-09-02) |
 | G2 | DB 영속성 없음 (인메모리) | FR-TASK-05 | B2 | ✅ (better-sqlite3, WAL, DATABASE_PATH, 2026-09-02) |
-| G3 | 프론트↔백엔드 연결 코드 0 | FR-TASK-01~04, FR-UI-01 | B3 | 🚧 코드 배선 완료 (2026-09-03), 브라우저 E2E 는 CORS(C1) 이후 |
+| G3 | 프론트↔백엔드 연결 코드 0 | FR-TASK-01~04, FR-UI-01, FR-PROJ-01/02 | B3, C2 | 🚧 할일·프로젝트 배선 완료 (B3 2026-09-03 / C2 2026-09-03), 브라우저 E2E 로컬 수동 확인 대기 |
 | G4 | 로컬 환경 미검증 | NFR-TEST-04 | A2 | ✅ (`verify.sh` 12/0/0, 2026-09-02) |
 | G5 | 경로 이관 변경분 미커밋 | — | A1 | ✅ (`fc4404c`) |
 | G6 | 자동화 테스트 없음 | NFR-TEST-01~03 | A3 | ✅ (backend 15 + agent 3, CI 연결, 2026-09-02) |
@@ -28,7 +28,7 @@
 
 [DESIGN.md](DESIGN.md) §8 대응표 참조. 요약: A=W1~2, B=W2~3, C=W4~5, D=W6~7, E=W9~13.
 
-C 세부: C1 미들웨어(CORS·로깅·에러) ✅(2026-09-03) → C2 프로젝트 CRUD → C3 캘린더 위젯 → C4 다이어그램 뷰어(FR-UI-05, C1 선행). B 세부: B1 Vite·React ✅ / B2 SQLite ✅ / B3 할일 CRUD 프론트 배선 🚧(코드 ✅, 브라우저 E2E 는 C1 이후).
+C 세부: C1 미들웨어(CORS·로깅·에러) ✅(2026-09-03) → C2 프로젝트 CRUD + `tasks.project_id` + `errors.js` ✅(2026-09-03) → C3 캘린더 위젯 → C4 다이어그램 뷰어(FR-UI-05, C1 선행). B 세부: B1 Vite·React ✅ / B2 SQLite ✅ / B3 할일 CRUD 프론트 배선 🚧(코드 ✅, 브라우저 E2E 는 C1 이후).
 
 ---
 
@@ -43,8 +43,8 @@ C 세부: C1 미들웨어(CORS·로깅·에러) ✅(2026-09-03) → C2 프로젝
 | FR-TASK-05 | G2 | [ADR-0002](adr/ADR-0002-local-db-better-sqlite3.md), [ADR-0003](adr/ADR-0003-schema-single-file.md), [ADR-0009](adr/ADR-0009-sqlite-file-location.md) | B2 | TC-DB-01~03 | `backend/db/index.js`, `backend/src/db.js` | ✅ (2026-09-02) |
 | FR-TASK-06 | — | API_REFERENCE 쿼리 파라미터 | C (W4) | TC-TASK-12 | `routes/tasks.js`, `db.js` | ⏳ |
 | FR-TASK-07 | — | requirements/TASK.md | C (W5) | — | `routes/tasks.js` | ⏳ |
-| FR-PROJ-01 | G3 | API_REFERENCE `/projects` | C2 | TC-PROJ-01~03,06 | `backend/src/routes/projects.js` | 🚧 |
-| FR-PROJ-02 | G3 | UI_SPEC §3.3, [ADR-0012](adr/ADR-0012-task-project-link.md) | C2 | TC-PROJ-04,05 | `routes/projects.js`, `components/ProjectCard.jsx` | 🚧 |
+| FR-PROJ-01 | G3 | [requirements/PROJ.md](requirements/PROJ.md), API_REFERENCE `/projects` | C2 | TC-PROJ-01~03,06,07,10,11, TC-DB-04b, TC-UI-14 | `backend/src/routes/projects.js`, `backend/src/errors.js`, `frontend/src/store/useProjectStore.js`, `frontend/src/components/ProjectForm.jsx`, `components/Dashboard.jsx` | ✅ C2 (2026-09-03) — 이름 인라인 수정 UI 는 이월. 브라우저 E2E(TC-UI-14) 로컬 대기 |
+| FR-PROJ-02 | G3 | [requirements/PROJ.md](requirements/PROJ.md), UI_SPEC §3.3, [ADR-0012](adr/ADR-0012-task-project-link.md) | C2 | TC-PROJ-04,05,08,09,09b~d, TC-UI-15,16 | `routes/projects.js`, `frontend/src/store/useProjectStore.js`, `components/ProjectCard.jsx`, `components/Dashboard.jsx` | ✅ C2 (2026-09-03) — 브라우저 E2E(TC-UI-15/16) 로컬 대기 |
 | FR-PROJ-03 | G7 | [ADR-0006](adr/ADR-0006-agent-owns-external-apis.md) | D2 | — | `agent/services/notion.py` | ⏳ |
 | FR-PROJ-04 | G7 | DATA_DICTIONARY `projects.notion_id` | D2 | — | `agent/services/notion.py` | ⏳ |
 | FR-CAL-01 | G7 | API_REFERENCE `/calendar/events`, [ADR-0006](adr/ADR-0006-agent-owns-external-apis.md) | C3, D2 | — | `agent/services/calendar.py`, `routes/calendar.js`(신규) | ⏳ |
@@ -83,7 +83,7 @@ C 세부: C1 미들웨어(CORS·로깅·에러) ✅(2026-09-03) → C2 프로젝
 | NFR-SEC-04 | Electron `contextIsolation:true`/`nodeIntegration:false` | 상시 | TC-UI-05 | ✅ |
 | NFR-SEC-05 | OAuth 토큰 암호화 저장 | D2 | TC-UI-06 | ⏳ |
 | NFR-SEC-06 | CORS 로컬 오리진 화이트리스트 (`backend/src/middleware/cors.js`) | C1 | TC-MW-01~04, TC-MW-09 | ✅ (2026-09-03) |
-| NFR-SEC-07 | API 경계 입력 검증 | C1, B2 | TC-TASK-02,03 / TC-PROJ-02,03 / TC-MW-05,06 | 🚧 (C1: 404/깨진 JSON → 400 매핑 반영) |
+| NFR-SEC-07 | API 경계 입력 검증 | C1, B2, C2 | TC-TASK-02,03 / TC-PROJ-02,03,09,09c,09d / TC-DB-04a~d / TC-MW-05,06 | 🚧 (C2: `backend/src/errors.js` 가 SQLite CHECK/NOTNULL/FK → 400 한국어 매핑, `project_id` 사전 검증. `due_date` 형식 검증·빈 title 덮어쓰기 금지는 이월) |
 | NFR-REL-01 | 모든 외부 호출·IO try/catch | 상시 | supervisor 리뷰 | 🚧 |
 | NFR-REL-02 | 외부 API 실패가 앱 크래시로 안 이어짐 | D1 | TC-AGENT-03, TC-UI-02 | 🚧 |
 | NFR-REL-03 | 백엔드 `unhandledRejection` 로깅·생존 | 상시 | 예외 주입 | ✅ (`server.js`) |
@@ -120,7 +120,7 @@ Phase A~D 를 막던 제안 ADR 4건은 **2026-09-02 채택** → `/build-next` 
 | [ADR-0009](adr/ADR-0009-sqlite-file-location.md) SQLite 위치 | FR-TASK-05 | ✅ 채택 |
 | [ADR-0010](adr/ADR-0010-vite-dev-vs-build.md) Vite 로드 방식 | FR-UI-02 | ✅ 채택 |
 | [ADR-0011](adr/ADR-0011-agent-backend-db-access.md) DB 동시 접근 | FR-AGENT-01 | ✅ 채택 |
-| [ADR-0012](adr/ADR-0012-task-project-link.md) `tasks.project_id` | FR-PROJ-02 | ✅ 채택 (스키마 반영, 라우트는 C2) |
+| [ADR-0012](adr/ADR-0012-task-project-link.md) `tasks.project_id` | FR-PROJ-01/02 | ✅ 채택 + ✅ C2 구현 (2026-09-03) — POST/PUT `/api/tasks` 검증·API 응답 노출. `?project_id=` 필터·TaskForm 드롭다운은 이월 |
 | [ADR-0013](adr/ADR-0013-dashboard-agent-queue.md) 에이전트 작업 큐 | FR-AGENT-08 | 제안 — 핵심 4기능 완성 후 |
 | [ADR-0014](adr/ADR-0014-dashboard-diagram-viewer.md) 다이어그램 뷰어 | FR-UI-05 | 제안 — Phase C1 이후 착수 |
 
@@ -130,8 +130,8 @@ Phase A~D 를 막던 제안 ADR 4건은 **2026-09-02 채택** → `/build-next` 
 |---|---|---|---|
 | **B3 전 CORS(C1) 순서** — C1을 B3에 포함할지 / 로드맵 순서 유지 | B3 착수 전 | 사용자 | 해소 — 로드맵 순서 유지, C1 별도 수행 (feature/c1-middleware, 2026-09-03) |
 | backend `.env` 자동 로딩(dotenv) | C1 즈음 | planner | 결정: 미도입 (C1, 2026-09-03) — 백엔드 env 3개(`DATABASE_PATH`·`PORT`·`NODE_ENV`) 전부 기본값 존재, 시크릿 0. 재검토 D2 |
-| TC-DB-04 (CHECK 위반 → 400 매핑) | C2 | planner | `routes/*.js` 의 `isValidationError` 정규식 확장 동반 |
-| `ProjectCard` 상태값 `'hold'` → `'on_hold'` | C2 | developer | schema·GLOSSARY 와 불일치 (UI_SPEC §3.3) |
+| TC-DB-04 (CHECK 위반 → 400 매핑) | C2 | planner | 해소 (C2, 2026-09-03) — `backend/src/errors.js` 로 판정·메시지 분리, SQLite CHECK/NOTNULL/FK → 400 한국어. TC-DB-04a~d 작성 |
+| `ProjectCard` 상태값 `'hold'` → `'on_hold'` | C2 | developer | 해소 (C2, 2026-09-03) — `statusLabel` 및 상태 `select` 를 `active`/`done`/`on_hold` 로 통일, schema·GLOSSARY 일치 |
 | `ARCHITECTURE.md` `SUPABASE_JWT_SECRET`/`DATABASE_URL` vs `.env.example` | Week 10 | planner | 어느 쪽 기준인지 |
 | **ADR-0014** 패키지 빌드에 `docs/` 동봉 여부 (`electron-builder extraResources`) vs 다이어그램 뷰어를 dev 전용으로 | C4 착수 전 | planner | 미동봉이면 prod 는 `GET /api/diagrams` 가 빈 배열 |
 | **ADR-0014** 뷰어 탭을 고정 목록으로 둘지 / `docs` 전체 자동 나열할지 | C4 (UI_SPEC) | developer | UI_SPEC §3.7 에 명세 |

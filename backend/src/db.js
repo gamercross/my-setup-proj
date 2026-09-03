@@ -10,12 +10,13 @@ const { getDb } = require('../db');
 const db = getDb();
 
 // 응답 키 순서까지 인메모리 구현과 동일하게 맞춘다. SELECT * 금지.
-// tasks 는 project_id 를 응답에 노출하지 않는다 (인메모리 구현과 동일).
-const TASK_COLS = 'id, title, description, due_date, priority, status, created_at, updated_at';
+// tasks 는 project_id 를 응답에 노출한다 (ADR-0012, NULL = 단독 할일).
+const TASK_COLS =
+  'id, title, description, due_date, priority, status, project_id, created_at, updated_at';
 const PROJECT_COLS = 'id, name, progress, status, notion_id, created_at, updated_at';
 
 // 병합 허용 필드 (라우트의 isValidationError 정규식이 오류 메시지에 의존하므로 문자열 불변)
-const TASK_FIELDS = ['title', 'description', 'due_date', 'priority', 'status'];
+const TASK_FIELDS = ['title', 'description', 'due_date', 'priority', 'status', 'project_id'];
 const PROJECT_FIELDS = ['name', 'progress', 'status', 'notion_id'];
 
 // prepared statement 는 모듈 로드 시 준비한다.
@@ -23,12 +24,12 @@ const stmts = {
   listTasks: db.prepare(`SELECT ${TASK_COLS} FROM tasks ORDER BY id`),
   getTask: db.prepare(`SELECT ${TASK_COLS} FROM tasks WHERE id = ?`),
   insertTask: db.prepare(
-    `INSERT INTO tasks (title, description, due_date, priority, status, created_at, updated_at)
-     VALUES (@title, @description, @due_date, @priority, @status, @created_at, @updated_at)`
+    `INSERT INTO tasks (title, description, due_date, priority, status, project_id, created_at, updated_at)
+     VALUES (@title, @description, @due_date, @priority, @status, @project_id, @created_at, @updated_at)`
   ),
   updateTask: db.prepare(
     `UPDATE tasks SET title = @title, description = @description, due_date = @due_date,
-       priority = @priority, status = @status, updated_at = @updated_at
+       priority = @priority, status = @status, project_id = @project_id, updated_at = @updated_at
      WHERE id = @id`
   ),
   deleteTask: db.prepare('DELETE FROM tasks WHERE id = ?'),
@@ -79,6 +80,7 @@ function addTask(task) {
     due_date: task.due_date || null,
     priority: task.priority || 'medium',
     status: task.status || 'todo',
+    project_id: task.project_id ?? null,
     created_at: now,
     updated_at: now,
   };

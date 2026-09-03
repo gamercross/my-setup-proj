@@ -125,7 +125,8 @@ Base: `http://localhost:3000/api` · 응답은 JSON · 오류는 `{ "error": "�
 요청·응답 예시, 검증 규칙, 상태코드, 현재 구현과의 차이는 [API_REFERENCE.md](API_REFERENCE.md).
 
 설계 규칙:
-- 검증(NFR-SEC-07): `title`/`name` 필수, `priority ∈ {high,medium,low}`, `status ∈ {todo,in_progress,done}`, `progress ∈ [0,100]`. 위반 시 400.
+- 검증(NFR-SEC-07): `title`/`name` 필수, `priority ∈ {high,medium,low}`, `status(task) ∈ {todo,in_progress,done}`, `status(project) ∈ {active,done,on_hold}`, `progress ∈ [0,100]`, `tasks.project_id` = 존재하는 프로젝트 id 또는 null. 위반 시 400.
+- 오류 매핑 계층 (`backend/src/errors.js`, C2): 라우트가 던지는 일반 Error(메시지에 `필수`/`0~100`)와 better-sqlite3 제약 위반(`SQLITE_CONSTRAINT_CHECK`/`NOTNULL`/`FOREIGNKEY`)을 함께 400 으로 판정(`isValidationError`)하고, 한국어 메시지로 치환(`toClientMessage`)한다. SQLite 영문 원문은 클라이언트에 노출하지 않는다. `project_id` 는 라우트에서 존재 여부를 사전 검증(FK 위반 도달 전에 400).
 - 미들웨어 순서 (C1, `backend/src/app.js`): `requestLogger` → `cors(로컬 오리진만)` → `express.json()` → 라우트 → `404` → `errorHandler`. `requestLogger` 를 맨 앞에 두어 preflight·본문 파싱 실패(400/413) 요청까지 NFR-OBS-01 "모든 요청 1줄" 을 충족한다.
 - `calendar`/`mail`/`brief`/`sync` 는 읽기 전용 — 데이터는 에이전트가 SQLite 캐시 테이블에 씀 ([ADR-0006](adr/ADR-0006-agent-owns-external-apis.md)).
 - `diagrams` 는 읽기 전용 — `services/diagrams.js` 가 `docs/**/*.md` 를 파싱만 함 (DB·에이전트 무관, [ADR-0014](adr/ADR-0014-dashboard-diagram-viewer.md)).
@@ -142,15 +143,17 @@ frontend/src/
   renderer.jsx       ReactDOM.createRoot(#root).render(<App/>)   ← renderer.js 대체
   App.jsx            레이아웃 + 라우팅(단일 화면)
   store/
-    useTaskStore.js  zustand: tasks, fetchTasks, addTask, toggleTask, removeTask
-    useAppStore.js   projects, events, brief
+    useTaskStore.js     zustand: tasks, fetchTasks, addTask, toggleTask, removeTask
+    useProjectStore.js  zustand: projects, fetchProjects, addProject, updateProject, removeProject (C2)
+    useAppStore.js      events, brief (C3~ — 도메인별 스토어로 분리하는 방향)
   api/
     client.js        fetch 래퍼 (base URL, 에러 정규화, 재시도)
   components/
     Dashboard.jsx    store 구독 → 하위 컴포넌트에 주입
     TaskList.jsx     (기존) props 인터페이스 유지
     TaskForm.jsx     신규: 할일 추가 폼
-    ProjectCard.jsx  (기존)
+    ProjectCard.jsx  props 확장 (onDelete/onProgressChange/onStatusChange, C2)
+    ProjectForm.jsx  신규: 프로젝트 추가 폼 (C2)
     CalendarWidget.jsx  신규
     BriefCard.jsx       신규
     DiagramPanel.jsx    신규 (FR-UI-05, C4 — mermaid 동적 import)
@@ -303,7 +306,7 @@ sequenceDiagram
 | 단계 | `/feature` 설명 | 커버 |
 |---|---|---|
 | C1 | 백엔드 미들웨어 정식화 (cors·requestLogger·errorHandler 분리) | NFR-SEC-06, NFR-OBS-01 |
-| C2 | 프로젝트 CRUD 프론트 배선 + ProjectCard 진행도 바 | FR-PROJ-01/02 |
+| C2 | ✅ 프로젝트 CRUD 프론트 배선 (`useProjectStore`, `ProjectForm`, `ProjectCard` 상태·진행도·삭제) + `tasks.project_id` 라우트/검증(ADR-0012) + `errors.js`(SQLite CHECK/FK→400 한국어) + `'hold'`→`'on_hold'` 통일 | FR-PROJ-01/02, ADR-0012, G3(프로젝트) |
 | C3 | 캘린더 위젯 + `/api/calendar/events` (더미→실 API 준비) | FR-CAL-01/02 |
 | C4 | 다이어그램 뷰어 — `GET /api/diagrams`(`services/diagrams.js` 가 `docs/**/*.md` 파싱) + `DiagramPanel.jsx`(mermaid 동적 import, 다크 테마, 4상태). **C1(CORS) 선행.** [ADR-0014](adr/ADR-0014-dashboard-diagram-viewer.md) | FR-UI-05, G9 |
 
@@ -335,7 +338,7 @@ Phase A~D 를 막던 제안 ADR 4건은 **2026-09-02 채택**:
 | [0009](adr/ADR-0009-sqlite-file-location.md) | `DATABASE_PATH` 환경변수 주입, 기본 `backend/data/app.db`, 패키지는 `userData` |
 | [0010](adr/ADR-0010-vite-dev-vs-build.md) | `NODE_ENV` 분기 — dev=Vite 서버(5173)+HMR, prod=`dist` 빌드 |
 | [0011](adr/ADR-0011-agent-backend-db-access.md) | WAL 모드 + `busy_timeout=5000`, 쓰기 주체 분리(agent=캐시, backend=tasks/projects) |
-| [0012](adr/ADR-0012-task-project-link.md) | `tasks.project_id` FK `ON DELETE SET NULL`, 스키마 반영 완료, 라우트는 C2 |
+| [0012](adr/ADR-0012-task-project-link.md) | `tasks.project_id` FK `ON DELETE SET NULL`. ✅ C2 (2026-09-03) — POST/PUT `/api/tasks` 배선·검증, API 응답 노출. `?project_id=` 필터·TaskForm 드롭다운은 이월 |
 
 남은 열린 질문: [ADR-0013](adr/ADR-0013-dashboard-agent-queue.md)(대시보드 에이전트 작업 큐) — 핵심 4기능 완성 후.
 

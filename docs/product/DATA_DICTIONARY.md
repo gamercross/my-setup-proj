@@ -35,7 +35,7 @@
 | `updated_at` | TEXT | NOT NULL | 마지막 수정 시각 | `"2026-09-02T10:15:00Z"` |
 
 - 인덱스: `idx_tasks_due(due_date)`, `idx_tasks_status(status)`, `idx_tasks_project(project_id)` — 필터/정렬용 (FR-TASK-06, FR-PROJ).
-- `project_id` 라우트·API 처리(`POST/PUT` 검증, `GET /api/tasks?project_id=`)는 Phase C2 에서. 스키마엔 이미 반영됨.
+- `project_id`: ✅ Phase C2 (2026-09-03) — `POST/PUT /api/tasks` 검증 배선, API 응답에 노출(NULL = 단독 할일). 없는 id/타입 오류는 400(`backend/src/errors.js`). `GET /api/tasks?project_id=` 쿼리 필터는 이월(FR-TASK-06 과 함께).
 - 완료 토글(FR-TASK-03): `status` 를 `todo` ↔ `done` 전환, `updated_at` 갱신.
 
 ## 2. `projects` — 프로젝트
