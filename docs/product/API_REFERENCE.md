@@ -17,7 +17,9 @@
 | 단건 응답 | `{ "<도메인단수>": { ... } }` — 예: `{ "task": {...} }` |
 | 삭제 응답 | `{ "ok": true }` |
 | 오류 응답 | `{ "error": "<사람이 읽을 메시지>" }` (한국어) |
-| CORS | 현재 미설정. Week 4(C1)에 로컬 오리진 화이트리스트 추가 (NFR-SEC-06) |
+| CORS | 구현 완료 (C1, `backend/src/middleware/cors.js`, NFR-SEC-06). 허용 오리진: `http://localhost:5173`, `http://127.0.0.1:5173`, `null`(prod Electron `file://`). 그 외 오리진은 CORS 헤더 미부여 |
+| 요청 로깅 | 모든 요청 1줄 (`METHOD path status ms`) — `backend/src/middleware/requestLogger.js` (C1, NFR-OBS-01) |
+| 본문 크기 | `express.json({ limit: '100kb' })`. 초과 시 413 |
 
 ### 상태 코드 정책
 
@@ -27,6 +29,7 @@
 | `201` | 생성 성공 (`POST`) |
 | `400` | 입력 검증 실패 (필수 누락, 타입/범위 위반, 잘못된 JSON) |
 | `404` | 경로의 `:id` 리소스 없음 / 정의되지 않은 경로 |
+| `413` | 요청 본문 크기 초과 (100KB) |
 | `500` | 서버 내부 오류 (DB 쓰기 실패 등). 본문은 일반 메시지, 상세는 서버 로그 |
 
 ### 공통 검증 규칙 (NFR-SEC-07)
@@ -46,7 +49,7 @@
 
 | 표시 | 의미 |
 |---|---|
-| ✅ 구현됨 | 코드 존재 (`backend/src/routes/`). 저장소는 현재 인메모리(`db.js`), Week 5 에 SQLite |
+| ✅ 구현됨 | 코드 존재 (`backend/src/routes/`). 저장소는 **better-sqlite3** (`backend/src/db.js` → `db/index.js`, WAL, `DATABASE_PATH`) — B2 완료(2026-09-02) |
 | 🔷 설계됨 | 명세만 존재. 코드 없음 |
 
 ---
@@ -389,17 +392,17 @@ curl -s $BASE/tasks/99999
 
 # 현재 구현과의 차이
 
-Week 5 이전 기준. 명세(위)와 실제 코드(`backend/src/`)의 갭:
+명세(위)와 실제 코드(`backend/src/`)의 갭 (2026-09-03 기준):
 
 | # | 명세 | 현재 코드 | 해소 |
 |---|---|---|---|
-| D1 | `priority`/`status` enum 위반 시 400 | `db.js` 가 값 그대로 저장 (검증 없음) | C1(Week 4) 또는 SQLite CHECK(Week 5) |
-| D2 | `due_date` 형식 검증 | 없음 | 동상 |
-| D3 | `PUT /tasks/:id` 빈 `title` 로 덮어쓰기 금지 | `updateTask` 가 허용 | Week 3 (FR-TASK-04 AC-3) |
-| D4 | 데이터 영속 (재시작 후 유지) | 인메모리 → 재시작 시 소멸 | Week 5 (FR-TASK-05) |
+| D1 | `priority`/`status` enum 위반 시 400 | 라우트 검증은 있으나 DB CHECK 매핑(→400)은 부분 | C2 (TC-DB-04, `isValidationError` 확장) |
+| D2 | `due_date` 형식 검증 | 없음 | C2 |
+| D3 | `PUT /tasks/:id` 빈 `title` 로 덮어쓰기 금지 | `updateTask` 가 허용 | B3~C2 (FR-TASK-04 AC-3) |
+| ~~D4~~ | 데이터 영속 (재시작 후 유지) | ✅ 해소 — better-sqlite3 (B2, 2026-09-02, FR-TASK-05) | — |
 | D5 | 쿼리 필터/정렬 | 미구현 | Week 4 (FR-TASK-06) |
-| D6 | CORS 화이트리스트 | 미설정 | Week 4 C1 |
-| D7 | 요청 로깅 미들웨어 | `console.error` 만 | Week 4 C1 (NFR-OBS-01) |
+| ~~D6~~ | CORS 화이트리스트 | ✅ 해소 — `middleware/cors.js` (C1, 2026-09-03) | — |
+| ~~D7~~ | 요청 로깅 미들웨어 | ✅ 해소 — `middleware/requestLogger.js` (C1, 2026-09-03) | — |
 | D8 | `calendar`/`mail`/`brief`/`sync` 라우트 | 없음 | Week 5~7 |
 | D9 | `diagrams` 라우트 + `services/diagrams.js` | 없음 | Week 4~5 C4 (C1 이후) |
 

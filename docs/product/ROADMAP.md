@@ -7,6 +7,8 @@
 ## 📅 전체 일정
 
 > 설계 Phase(A~E) ↔ Week 대응은 [DESIGN.md](DESIGN.md) §8. 다이어그램 안내: [DIAGRAMS.md](../setup/DIAGRAMS.md).
+>
+> ⚠️ **이 문서는 계획이다.** 세부 작업의 `[ ]` 체크박스는 실시간 상태로 유지하지 않는다 (그래서 마일스톤이 ✅ 여도 하위 항목이 `[ ]` 로 남아 있을 수 있다). **실제 진행 상태의 단일 원천은 [PROGRESS.md](progress/PROGRESS.md) · [TRACEABILITY.md](TRACEABILITY.md) · `git log`.** 날짜는 실제 달력 기준(2026-09-02 = 수요일).
 
 ```mermaid
 gantt
@@ -48,14 +50,14 @@ flowchart LR
 
 ### Week 1: 환경 설정 (09-02 ~ 09-08)
 
-#### 월요일 (09-02)
+#### 수요일 (09-02)
 - [ ] **강의:** Linux 기초 (1주 강의)
 - [ ] **개발:**
   - [ ] 프로젝트 저장소 생성 (GitHub)
   - [ ] 로컬 폴더 구조 정리
   - [ ] 이 문서들 (MD 파일) 저장소에 올리기
   
-#### 화/수 (09-03~04)
+#### 목/금 (09-03~04)
 - [ ] **강의:** Linux 기본 명령어 실습
   - [ ] `lsb_release`, `uname -r` 확인
   - [ ] 권한 설정 (`chmod`, `sudo`)
@@ -64,7 +66,7 @@ flowchart LR
   - [ ] Python 3.11+ 설치
   - [ ] 프로젝트 구조 생성
 
-#### 목/금 (09-05~06)
+#### 토/일 (09-05~06)
 - [ ] **강의:** WSL2 우분투 심화
 - [ ] **개발:**
   - [ ] Electron 프로젝트 초기화
@@ -77,7 +79,7 @@ flowchart LR
     ```
   - [ ] 첫 화면 띄우기
 
-#### 토/일 (09-07~08)
+#### 월/화 (09-07~08)
 - [ ] Claude API Key 발급
 - [ ] Supabase 프로젝트 생성
 - [ ] Google OAuth 설정
@@ -85,7 +87,7 @@ flowchart LR
 
 ### Week 2: 기본 프로젝트 구축 (09-09 ~ 09-15)
 
-#### 월/화 (09-09~10)
+#### 수/목 (09-09~10)
 - [ ] **강의:** 디렉토리와 파일 사용법 (2주)
 - [ ] **개발:**
   - [ ] SQLite 테이블 생성
@@ -95,7 +97,7 @@ flowchart LR
   - [ ] 기본 Express 서버 구축
   - [ ] localhost:3000에서 실행 확인
 
-#### 수/목 (09-11~12)
+#### 금/토 (09-11~12)
 - [ ] **개발:**
   - [ ] React 컴포넌트 기본 구조
     ```
@@ -110,7 +112,7 @@ flowchart LR
   - [ ] Electron 창 크기/위치 설정
   - [ ] 메뉴바 추가 (최소화, 최대화, 종료)
 
-#### 금/토/일 (09-13~15)
+#### 일/월/화 (09-13~15)
 - [ ] **개발:**
   - [ ] GitHub에 첫 커밋
   - [ ] CI/CD 파이프라인 설정 (GitHub Actions)
@@ -243,7 +245,7 @@ CORS 미들웨어(Phase C1)가 선행돼야 한다. 설계는 [ADR-0014](adr/ADR
   
   # 할일 분류 테스트
   response = client.messages.create(
-      model="claude-opus-4-6",
+      model="claude-opus-5",
       max_tokens=1024,
       messages=[{
           "role": "user",

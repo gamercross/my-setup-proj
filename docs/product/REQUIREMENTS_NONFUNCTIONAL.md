@@ -57,6 +57,8 @@
 | Electron 렌더러 | 원격 콘텐츠 로드로 RCE | NFR-SEC-04(`nodeIntegration:false`), 로컬 콘텐츠만 로드, CSP |
 | 에이전트 프로세스 | 무인 실행 중 예외로 조용히 죽음 | NFR-OBS-02(단계 로깅), `sync_logs`, FR-AGENT-06(실패 격리) |
 
+> 트레이드오프: prod Electron 은 `file://` 에서 렌더러를 로드해 `Origin: null` 로 요청하므로 CORS 에서 `null` 을 허용한다. 로컬·무인증 API 라 `null` 차단이 실효 방어가 아니라는 점을 감안한 결정이다.
+
 범위 밖(지금): 네트워크 공격자, 다중 사용자 권한 분리(Week 10+), 공급망 감사.
 
 ## 4. 유지보수성 / 코드 품질 (MAINT)

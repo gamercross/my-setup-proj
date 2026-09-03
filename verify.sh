@@ -66,6 +66,9 @@ syntax_check "backend db/index.js 문법" node    node -c backend/db/index.js
 syntax_check "frontend main.js 문법"    node    node -c frontend/src/main.js
 syntax_check "backend tasks.js 문법"    node    node -c backend/src/routes/tasks.js
 syntax_check "backend projects.js 문법" node    node -c backend/src/routes/projects.js
+syntax_check "backend middleware/cors.js 문법"          node node -c backend/src/middleware/cors.js
+syntax_check "backend middleware/requestLogger.js 문법" node node -c backend/src/middleware/requestLogger.js
+syntax_check "backend middleware/errorHandler.js 문법"  node node -c backend/src/middleware/errorHandler.js
 syntax_check "agent 파이썬 문법"        python3 python3 -m compileall -q agent
 
 echo ""

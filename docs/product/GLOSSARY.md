@@ -41,9 +41,9 @@
 | **작업로그 (worklog)** | 날짜별 **요약**(작성)과 **커밋**(git 이력에서 자동)을 모으는 파일. `<!-- SUMMARY:날짜 -->` 블록은 훅 갱신에도 보존. | `작업로그.md`, `scripts/worklog.sh` |
 | **Stop 훅** | 매 턴(대화 응답) 종료 시 자동 실행되는 명령. 여기서는 `worklog.sh` 를 호출해 오늘 섹션을 재생성한다. | `.claude/settings.json` |
 | **EOD (End of Day)** | 매일 23:50 launchd 예약 작업. 오늘 작업로그를 커밋·푸시하고 슬랙에 요약을 보낸다. | `scripts/worklog-eod.sh`, `scripts/com.aicomputeros.worklog.plist` |
-| **인메모리 DB** | 현재 백엔드가 쓰는 임시 저장소. 배열에 데이터를 담아 프로세스가 죽으면 사라진다. Week 5 에 SQLite 로 교체 예정. | `backend/src/db.js` |
+| **인메모리 DB** | B2(2026-09-02) **이전** 백엔드가 쓰던 임시 저장소 — 배열에 데이터를 담아 프로세스가 죽으면 사라졌다. 현재는 better-sqlite3 로 교체됨(영속). 역사적 용어. | (구) `backend/src/db.js` |
 | **증분 동기화 (incremental sync)** | 마지막 동기화 시각 이후 변경분만 주고받는 방식. 전체 재전송을 피한다. | [ARCHITECTURE.md](ARCHITECTURE.md) §성능 |
-| **갭 (G1~G8)** | AS-IS(현행)와 TO-BE(목표)의 차이. [AS_IS.md](AS_IS.md) §4 에 심각도별로 정리. | [AS_IS.md](AS_IS.md) |
+| **갭 (G1~G9)** | AS-IS(현행)와 TO-BE(목표)의 차이. [AS_IS.md](AS_IS.md) §4 에 심각도별로 정리. G1·G2·G4·G5·G6 해소, G3 코드 배선 완료. | [AS_IS.md](AS_IS.md) |
 
 ## 4. 요구사항 / 설계 표기
 

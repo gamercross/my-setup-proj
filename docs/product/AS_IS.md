@@ -40,9 +40,9 @@
 | 할일 라우트 (`src/routes/tasks.js`) | GET(목록/단건)·POST·PUT·DELETE, 검증오류 400 / 그 외 500 매핑 | ✅ |
 | 프로젝트 라우트 (`src/routes/projects.js`) | tasks 와 동일 구조 CRUD | ✅ |
 | 데이터 저장 (`src/db.js`) | ✅ **better-sqlite3 (B2)** — `db/index.js` 커넥션 싱글턴 경유, WAL 모드, `DATABASE_PATH` 로 경로 주입(기본 `backend/data/app.db`). 공개 함수 10개 시그니처 불변 | ✅ 영속화 |
-| CORS | 없음 | ❌ (프론트 연동 시 필요) |
-| 로깅 미들웨어 | 없음 (`console.error` 만) | 🚧 |
-| 실행 검증 | ✅ Phase A2에서 기동 + CRUD curl 왕복 확인 (인메모리 기준) | ✅ |
+| CORS | `backend/src/middleware/cors.js` — 로컬 오리진 화이트리스트 + `Origin: null` | ✅ (C1, 2026-09-03) |
+| 로깅 미들웨어 | `backend/src/middleware/requestLogger.js` — 모든 요청 1줄 (`METHOD path status ms`) | ✅ (C1, 2026-09-03) |
+| 실행 검증 | ✅ 기동 + CRUD curl 왕복 확인 (A2). C1 후 CORS·미들웨어 스모크(TC-MW) 통과. 브라우저 E2E 는 로컬 대기 | ✅ |
 
 **핵심 문제:** (B2 해소) `db.js` 내부가 better-sqlite3 로 교체돼 프로세스 재시작 후에도 데이터가 유지된다. 라우트·검증 로직은 무수정(NFR-MAINT-03).
 

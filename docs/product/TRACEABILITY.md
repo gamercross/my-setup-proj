@@ -28,7 +28,7 @@
 
 [DESIGN.md](DESIGN.md) §8 대응표 참조. 요약: A=W1~2, B=W2~3, C=W4~5, D=W6~7, E=W9~13.
 
-C 세부: C1 미들웨어(CORS·로깅·에러) → C2 프로젝트 CRUD → C3 캘린더 위젯 → C4 다이어그램 뷰어(FR-UI-05, C1 선행). B 세부: B1 Vite·React ✅ / B2 SQLite ✅ / B3 할일 CRUD 프론트 배선 🚧(코드 ✅, 브라우저 E2E 는 C1 이후).
+C 세부: C1 미들웨어(CORS·로깅·에러) ✅(2026-09-03) → C2 프로젝트 CRUD → C3 캘린더 위젯 → C4 다이어그램 뷰어(FR-UI-05, C1 선행). B 세부: B1 Vite·React ✅ / B2 SQLite ✅ / B3 할일 CRUD 프론트 배선 🚧(코드 ✅, 브라우저 E2E 는 C1 이후).
 
 ---
 
@@ -82,19 +82,19 @@ C 세부: C1 미들웨어(CORS·로깅·에러) → C2 프로젝트 CRUD → C3 
 | NFR-SEC-03 | Claude 키 백엔드/에이전트 전용, `preload.js` 화이트리스트 | B1 | 코드리뷰 | 🚧 |
 | NFR-SEC-04 | Electron `contextIsolation:true`/`nodeIntegration:false` | 상시 | TC-UI-05 | ✅ |
 | NFR-SEC-05 | OAuth 토큰 암호화 저장 | D2 | TC-UI-06 | ⏳ |
-| NFR-SEC-06 | CORS 로컬 오리진 화이트리스트 | C1 | 설정 리뷰 | ⏳ |
-| NFR-SEC-07 | API 경계 입력 검증 | C1, B2 | TC-TASK-02,03 / TC-PROJ-02,03 | 🚧 |
+| NFR-SEC-06 | CORS 로컬 오리진 화이트리스트 (`backend/src/middleware/cors.js`) | C1 | TC-MW-01~04, TC-MW-09 | ✅ (2026-09-03) |
+| NFR-SEC-07 | API 경계 입력 검증 | C1, B2 | TC-TASK-02,03 / TC-PROJ-02,03 / TC-MW-05,06 | 🚧 (C1: 404/깨진 JSON → 400 매핑 반영) |
 | NFR-REL-01 | 모든 외부 호출·IO try/catch | 상시 | supervisor 리뷰 | 🚧 |
 | NFR-REL-02 | 외부 API 실패가 앱 크래시로 안 이어짐 | D1 | TC-AGENT-03, TC-UI-02 | 🚧 |
 | NFR-REL-03 | 백엔드 `unhandledRejection` 로깅·생존 | 상시 | 예외 주입 | ✅ (`server.js`) |
 | NFR-REL-04 | 오프라인 로컬 캐시 조회 | C3, D2 | 수동 (비행기모드) | ⏳ |
 | NFR-REL-05 | 네트워크 재시도 (지수 백오프 ×3) | D2 | 단위(모킹) | ⏳ |
 | NFR-REL-06 | graceful shutdown (SIGTERM) | E4 (W9) | `kill -TERM` | ⏳ |
-| NFR-MAINT-02 | 계층 분리 routes→services→db | C1 | 코드리뷰 | 🚧 |
+| NFR-MAINT-02 | 계층 분리 routes→services→db | C1 | 코드리뷰 | 🚧 (미들웨어 계층 분리 ✅ — `backend/src/middleware/`, 2026-09-03) |
 | NFR-MAINT-03 | `db.js` 인터페이스 불변 | B2 | TC-DB-02 | ✅ (공개 함수 10개 시그니처·반환·오류 불변, 2026-09-02) |
 | NFR-MAINT-04 | 모델 상수 1곳 (`claude.py DEFAULT_MODEL`) | 상시 | grep | ✅ |
 | NFR-MAINT-05 | 한 기능 = `/feature` 1회 | 상시 | 커밋 히스토리 | 🚧 |
-| NFR-OBS-01 | 백엔드 요청 로깅 미들웨어 | C1 | 서버 콘솔 | ⏳ |
+| NFR-OBS-01 | 백엔드 요청 로깅 미들웨어 (`backend/src/middleware/requestLogger.js`) | C1 | TC-MW-08 | ✅ (2026-09-03) |
 | NFR-OBS-02 | 에이전트 4단계 로깅 | D1 | 실행 로그 | ⏳ |
 | NFR-OBS-03 | `sync_logs` 영속 | D2 | SQL | ⏳ |
 | NFR-TEST-01 | backend supertest | A3 | `npm test` | ✅ (15 pass, 2026-09-02) |
@@ -128,8 +128,8 @@ Phase A~D 를 막던 제안 ADR 4건은 **2026-09-02 채택** → `/build-next` 
 
 | 항목 | 언제 | 주체 | 메모 |
 |---|---|---|---|
-| **B3 전 CORS(C1) 순서** — C1을 B3에 포함할지 / 로드맵 순서 유지 | B3 착수 전 | 사용자 (대기 중) | 안 하면 dev `:5173`→`:3000` fetch 가 CORS 차단, B3 E2E 불가 |
-| backend `.env` 자동 로딩(dotenv) | C1 즈음 | planner | 현재 `DATABASE_PATH`·`PORT`·`NODE_ENV` 는 셸 env 로만 읽힘 |
+| **B3 전 CORS(C1) 순서** — C1을 B3에 포함할지 / 로드맵 순서 유지 | B3 착수 전 | 사용자 | 해소 — 로드맵 순서 유지, C1 별도 수행 (feature/c1-middleware, 2026-09-03) |
+| backend `.env` 자동 로딩(dotenv) | C1 즈음 | planner | 결정: 미도입 (C1, 2026-09-03) — 백엔드 env 3개(`DATABASE_PATH`·`PORT`·`NODE_ENV`) 전부 기본값 존재, 시크릿 0. 재검토 D2 |
 | TC-DB-04 (CHECK 위반 → 400 매핑) | C2 | planner | `routes/*.js` 의 `isValidationError` 정규식 확장 동반 |
 | `ProjectCard` 상태값 `'hold'` → `'on_hold'` | C2 | developer | schema·GLOSSARY 와 불일치 (UI_SPEC §3.3) |
 | `ARCHITECTURE.md` `SUPABASE_JWT_SECRET`/`DATABASE_URL` vs `.env.example` | Week 10 | planner | 어느 쪽 기준인지 |

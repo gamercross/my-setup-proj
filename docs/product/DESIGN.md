@@ -8,9 +8,12 @@
 
 ## 1. 설계 원칙
 
-1. **계층 고정** — `routes → services → db`. 라우트에 비즈니스 로직·SQL 금지 (NFR-MAINT-02).
+1. **계층 고정 (목표)** — `routes → services → db`. 라우트에 비즈니스 로직·SQL 금지 (NFR-MAINT-02).
+   - **현재(AS-IS):** `services/` 계층이 아직 없다. 라우트가 `db.js` 를 직접 호출한다. 도메인 로직이 커지는 시점(프로젝트 진행도 계산, 캘린더 병합 등 C2~)에 `backend/src/services/` 를 도입한다. 미들웨어(`backend/src/middleware/`, C1)는 이 계층과 별개인 횡단 관심사.
 2. **DB 인터페이스 불변** — `db.js` 의 `getX/addX/updateX/deleteX` 시그니처는 저장소가 바뀌어도 유지 (NFR-MAINT-03).
 3. **오프라인 우선** — 로컬 SQLite 가 진실의 원천, 클라우드/외부 API 는 그 위에 얹는 캐시·동기화 (NFR-REL-04).
+   - **보장 범위:** 네트워크가 없어도 (a) 할일·프로젝트는 완전한 CRUD, (b) 마지막으로 동기화된 일정·메일·브리핑은 **조회만** 가능. 캐시 최신성은 각 행의 `synced_at` 으로 표시.
+   - **범위 밖:** 백엔드 프로세스(:3000)가 죽은 상태는 "오프라인"이 아니라 **연결 오류**로 다룬다 — 앱은 `ErrorBanner` + 재시도를 보여준다(FR-UI-04). 백엔드 자동 기동 여부는 README "앱 실행" 의 미정 항목.
 4. **최소 구현** — 각 단계는 데모 가능한 최소 범위. 과설계 금지 (NFR-MAINT-01).
 5. **한 기능 = `/feature` 1회** — 에이전트 파이프라인으로만 변경 (NFR-MAINT-05).
 
@@ -61,7 +64,7 @@ flowchart TB
   end
 
   subgraph BE["Backend (backend/, Express)"]
-    SRV["server.js<br/>cors → json → logger → routes → 404 → errorHandler"]
+    SRV["app.js<br/>requestLogger → cors → json → routes → 404 → errorHandler"]
     SRV --> RT["routes/<br/>tasks · projects · calendar · mail · brief · sync · diagrams"]
     RT --> SVC["services/"]
     SVC --> DBM["db/ (better-sqlite3)"]
@@ -123,7 +126,7 @@ Base: `http://localhost:3000/api` · 응답은 JSON · 오류는 `{ "error": "�
 
 설계 규칙:
 - 검증(NFR-SEC-07): `title`/`name` 필수, `priority ∈ {high,medium,low}`, `status ∈ {todo,in_progress,done}`, `progress ∈ [0,100]`. 위반 시 400.
-- 미들웨어 순서: `cors(로컬 오리진만)` → `express.json()` → `requestLogger` → 라우트 → `404` → `errorHandler`.
+- 미들웨어 순서 (C1, `backend/src/app.js`): `requestLogger` → `cors(로컬 오리진만)` → `express.json()` → 라우트 → `404` → `errorHandler`. `requestLogger` 를 맨 앞에 두어 preflight·본문 파싱 실패(400/413) 요청까지 NFR-OBS-01 "모든 요청 1줄" 을 충족한다.
 - `calendar`/`mail`/`brief`/`sync` 는 읽기 전용 — 데이터는 에이전트가 SQLite 캐시 테이블에 씀 ([ADR-0006](adr/ADR-0006-agent-owns-external-apis.md)).
 - `diagrams` 는 읽기 전용 — `services/diagrams.js` 가 `docs/**/*.md` 를 파싱만 함 (DB·에이전트 무관, [ADR-0014](adr/ADR-0014-dashboard-diagram-viewer.md)).
 

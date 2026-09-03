@@ -124,64 +124,19 @@ agent/
 > ⚠️ 아래 DDL 은 초기 설계 스케치다. **실제 스키마의 단일 원천은 [`backend/db/schema.sql`](../../backend/db/schema.sql)**,
 > 필드 설명은 [DATA_DICTIONARY.md](DATA_DICTIONARY.md) 를 본다. 둘이 다르면 `schema.sql` 이 맞다.
 
-**테이블 구조(스케치):**
-```sql
--- 할일 (tasks)
-CREATE TABLE tasks (
-    id INTEGER PRIMARY KEY,
-    title TEXT NOT NULL,
-    description TEXT,
-    due_date DATE,
-    priority TEXT, -- 'high', 'medium', 'low'
-    status TEXT, -- 'todo', 'in_progress', 'done'
-    created_at TIMESTAMP,
-    updated_at TIMESTAMP
-);
+**테이블 목록** (6개 — 상세 DDL 은 [`backend/db/schema.sql`](../../backend/db/schema.sql), 필드 설명은 [DATA_DICTIONARY.md](DATA_DICTIONARY.md)):
 
--- 프로젝트 (projects)
-CREATE TABLE projects (
-    id INTEGER PRIMARY KEY,
-    name TEXT NOT NULL,
-    notion_id TEXT,
-    progress INTEGER, -- 0-100
-    status TEXT,
-    created_at TIMESTAMP,
-    updated_at TIMESTAMP
-);
+| 테이블 | 용도 | 비고 |
+|---|---|---|
+| `projects` | 프로젝트 | `progress` 0–100, `status ∈ {active,done,on_hold}` |
+| `tasks` | 할일 | `priority ∈ {high,medium,low}`, `status ∈ {todo,in_progress,done}`, `project_id` FK → `projects(id)` `ON DELETE SET NULL` (ADR-0012, NULL=단독 할일) |
+| `calendar_events` | Google Calendar 캐시 | `event_id` UNIQUE (upsert 키) |
+| `emails` | Gmail 미읽은 메일 캐시 | `email_id` UNIQUE, 읽음 여부 컬럼명은 **`is_read`** (0/1) |
+| `briefs` | 일일 브리핑 | `date` UNIQUE (하루 1건), `content` = Claude 생성 본문, `notion_url` NULL 허용 |
+| `sync_logs` | 동기화 시도 로그 | `service ∈ {gmail,calendar,notion,supabase}`, `status ∈ {success,failed}` |
 
--- 이메일 (emails)
-CREATE TABLE emails (
-    id INTEGER PRIMARY KEY,
-    email_id TEXT UNIQUE,
-    from_address TEXT,
-    subject TEXT,
-    snippet TEXT,
-    received_at TIMESTAMP,
-    read INTEGER, -- 0 or 1
-    synced_at TIMESTAMP
-);
-
--- 캘린더 (calendar_events)
-CREATE TABLE calendar_events (
-    id INTEGER PRIMARY KEY,
-    event_id TEXT UNIQUE,
-    title TEXT,
-    start_time TIMESTAMP,
-    end_time TIMESTAMP,
-    description TEXT,
-    location TEXT,
-    synced_at TIMESTAMP
-);
-
--- 동기화 로그 (sync_logs)
-CREATE TABLE sync_logs (
-    id INTEGER PRIMARY KEY,
-    service TEXT, -- 'gmail', 'calendar', 'notion'
-    status TEXT, -- 'success', 'failed'
-    last_sync TIMESTAMP,
-    error_message TEXT
-);
-```
+- 날짜/시간 컬럼은 모두 `TEXT` + ISO8601 (`schema.sql` 규칙). 위 스케치에 있던 `DATE`/`TIMESTAMP` 타입 표기는 폐기.
+- Week 10+ Supabase 동기화 시 `user_id` / `is_synced` / `synced_at` 컬럼을 추가한다 (`schema.sql` 하단 주석).
 
 #### 클라우드 저장소
 - **Supabase** (PostgreSQL)
@@ -296,6 +251,11 @@ flowchart TB
 키별 상세는 [ENV_REFERENCE.md](../setup/ENV_REFERENCE.md), 위협 모델은 [REQUIREMENTS_NONFUNCTIONAL.md](REQUIREMENTS_NONFUNCTIONAL.md) §3.
 
 ### 환경 변수 (.env)
+
+> ⚠️ 아래는 **Week 10+ 클라우드 도입까지 포함한 예시**다. 현재 실제로 쓰는 변수의 단일 원천은
+> [`.env.example`](../../.env.example) + [ENV_REFERENCE.md](../setup/ENV_REFERENCE.md).
+> 특히 로컬 SQLite 경로는 **`DATABASE_PATH`** (ADR-0009) 이고, 아래의 `DATABASE_URL=sqlite:///...`
+> 나 `SUPABASE_JWT_SECRET` 은 아직 도입 전 스케치다 (도입 시 이름 통일은 그때 ADR).
 
 ```bash
 # Google APIs

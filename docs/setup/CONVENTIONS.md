@@ -39,6 +39,7 @@
 | `frontend/src/api/` | fetch 래퍼, 에러 정규화 | UI 로직 |
 | `frontend/src/store/` | zustand 스토어 | 컴포넌트 |
 | `backend/src/routes/` | HTTP 요청/응답 매핑, 입력 검증 | 비즈니스 로직, SQL |
+| `backend/src/middleware/` | 횡단 관심사 (CORS · 요청 로깅 · 에러 봉투) | 도메인 로직, SQL |
 | `backend/src/services/` | 비즈니스 로직 | HTTP 객체(req/res) 참조 |
 | `backend/src/db.js` / `backend/db/` | 저장소 접근, 스키마 | 도메인 규칙 |
 | `agent/` | Python Claude 에이전트, 외부 API 연동 | 프론트/백엔드 코드 |

@@ -407,7 +407,7 @@ api_key = os.getenv("ANTHROPIC_API_KEY")
 client = Anthropic(api_key=api_key)
 
 response = client.messages.create(
-    model="claude-opus-4-6",
+    model="claude-opus-5",
     max_tokens=100,
     messages=[{"role": "user", "content": "Hello, Claude!"}]
 )
