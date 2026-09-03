@@ -19,7 +19,7 @@ model: opus
    - 보안: `.env`·비밀키 하드코딩, git에 올라가면 안 되는 파일
    - 재사용: 이미 있는 함수를 두고 중복 구현했는가
    - 수용 기준: 계획이 명시한 requirements AC 를 실제로 충족하는가
-   - 테스트: 이 변경 유형에 `docs/product/TEST_PLAN.md` §5 가 요구하는 테스트가 있는가
+   - 테스트: 이 변경 유형에 `docs/product/testing/TEST_PLAN.md` §5 가 요구하는 테스트가 있는가
 4. 가능한 검증을 실행한다: `bash verify.sh` (또는 문서만이면 `--code-only`), 있으면 `npm test`·`pytest`.
    검증 게이트 해석은 `docs/setup/GIT_WORKFLOW.md` §1 (환경 실패 vs 코드 실패 vs SKIP).
 5. 결과를 아래 형식으로 출력한다.

@@ -15,8 +15,8 @@ $ARGUMENTS
 ## 루프 (정지 상태까지 반복)
 
 ### 1. SELECT — 다음 스텝 고르기
-- [docs/product/DESIGN.md](../../docs/product/DESIGN.md) §8 의 Phase A~E 스텝 표와
-  [docs/product/TRACEABILITY.md](../../docs/product/TRACEABILITY.md) §3 상태를 읽는다.
+- [docs/product/architecture/DESIGN.md](../../docs/product/architecture/DESIGN.md) §8 의 Phase A~E 스텝 표와
+  [docs/product/requirements/TRACEABILITY.md](../../docs/product/requirements/TRACEABILITY.md) §3 상태를 읽는다.
 - **선행 스텝이 모두 ✅ 인 첫 번째 ⏳ 스텝**을 고른다.
 - 인자에 Phase 문자(예: `B`)가 있으면 그 Phase 스텝만 대상.
 - 남은 스텝이 없으면 → **STOP_DONE**: 완료 요약 후 종료.

@@ -45,14 +45,13 @@
 
 ## 2. 브랜치 정책
 
-| 시기 | 정책 |
-|---|---|
-| **지금 (초기 셋업 · Week 1~2)** | `main` 직접 커밋 허용. 저장소 정리·문서·스캐폴드 단계라 브랜치 오버헤드가 크다. |
-| **Week 3~ (기능 개발 시작)** | `main` 직접 커밋 **금지**. `feature/<짧은-이름>` 에서 작업 → 푸시 → (PR). `main` 은 통과된 것만. |
+**`feature/<짧은-이름>` → 푸시 → PR → `main`.** `develop`·Git Flow 미채택 ([ADR-0023](../product/architecture/adr/ADR-0023-branch-model.md)).
 
-- 오케스트레이터(`/feature`)가 단계 시작 시 어느 브랜치인지 확인하고, Week 3 이후인데 `main` 위라면 **먼저 브랜치를 만든다**.
-- 브랜치 전환·생성은 오케스트레이터 또는 finisher 가 하되, 사용자에게 브랜치명을 알린다.
-- `git push --force` 금지. `main` 에 강제 푸시 절대 금지.
+- 코드·문서 **모든 변경**은 `feature/*` 에서. `main` 직접 커밋 금지 (PR #1~#4 가 실제 선례이며, 작업로그에 `main` 직접 커밋을 "정책 위반" 으로 되돌린 기록이 있다).
+- `main` 병합 조건: CI(`Test & Build`) 통과 + §1 검증 게이트 통과.
+- 오케스트레이터(`/feature`·`/build-next`)가 단계 시작 시 브랜치를 확인하고, `main` 위면 **먼저 브랜치를 만든다**. 브랜치명은 사용자에게 알린다.
+- 스택 PR: 의존 순서대로 쌓고 아래부터 병합, 병합 때마다 상위 PR base 를 `main` 으로 재지정.
+- `git push --force` 금지. `main` 강제 푸시 절대 금지.
 
 ---
 
@@ -117,7 +116,7 @@
 [ ] git status / git diff --staged 로 스테이징 내용 확인
 [ ] 실행 코드 포함 여부 판단 → verify.sh 또는 verify.sh --code-only
 [ ] FAIL 0 확인 (SKIP 은 보고에 명시)
-[ ] 브랜치 정책 확인 (지금은 main OK, Week 3~ 는 feature 브랜치)
+[ ] 브랜치 정책 확인 (`feature/*` 위에서 작업 중인지 — `main` 직접 커밋 금지, ADR-0023)
 [ ] my-setup-proj/ 밖 파일 미포함, .gitignore 대상 미포함
 [ ] 커밋 메시지 형식 + 꼬리말 + (필요 시) "검증 일부 미실행" 명시
 [ ] PROGRESS.md 갱신 (대응 항목 있을 때)

@@ -57,8 +57,8 @@ flowchart LR
 
 ### `/build-next` — 로드맵 자동 진행 (`.claude/commands/build-next.md`)
 
-`/feature` 를 사람이 매번 부르는 대신, `/build-next` 가 [DESIGN.md](../product/DESIGN.md) §8 +
-[TRACEABILITY.md](../product/TRACEABILITY.md) 를 읽어 **다음 스텝을 스스로 골라** `/feature` 를 반복한다.
+`/feature` 를 사람이 매번 부르는 대신, `/build-next` 가 [DESIGN.md](../product/architecture/DESIGN.md) §8 +
+[TRACEABILITY.md](../product/requirements/TRACEABILITY.md) 를 읽어 **다음 스텝을 스스로 골라** `/feature` 를 반복한다.
 제안 상태 ADR 미결정·`.env` 키 누락·대화형 준비 필요 등 **사람이 결정할 지점에서만 멈춘다**
 (정지 상태와 보고 내용은 [ORCHESTRATION.md](ORCHESTRATION.md) §3). 한 호출당 최대 3스텝.
 

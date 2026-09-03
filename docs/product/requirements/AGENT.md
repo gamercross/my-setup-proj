@@ -1,7 +1,7 @@
 # FR-AGENT — AI 에이전트 (Daily Brief) 상세 명세
 
-> [REQUIREMENTS_FUNCTIONAL.md](../REQUIREMENTS_FUNCTIONAL.md) 의 AGENT 도메인 상세화.
-> 설계는 [DESIGN.md](../DESIGN.md) §7, Claude 사용 규칙은 [CONVENTIONS.md](../../setup/CONVENTIONS.md) §4.
+> [REQUIREMENTS_FUNCTIONAL.md](REQUIREMENTS_FUNCTIONAL.md) 의 AGENT 도메인 상세화.
+> 설계는 [DESIGN.md](../architecture/DESIGN.md) §7, Claude 사용 규칙은 [CONVENTIONS.md](../../setup/CONVENTIONS.md) §4.
 
 ## 공통 규칙
 
@@ -124,7 +124,7 @@ NFR-REL-02, NFR-REL-05, NFR-OBS-02
 
 ## FR-AGENT-08 — 대시보드 기반 작업 큐 (P2, 향후 확장)
 
-**우선순위** P2 · **목표 주차** W11+ · **상태** ⏳ (자리표시 — [VISION.md](../VISION.md) 향후 확장, [ADR-0013](../adr/ADR-0013-dashboard-agent-queue.md))
+**우선순위** P2 · **목표 주차** W11+ · **상태** ⏳ (자리표시 — [VISION.md](../vision/VISION.md) 향후 확장, [ADR-0013](../architecture/adr/ADR-0013-dashboard-agent-queue.md))
 
 **사용자 스토리:** 사용자로서 나는 대시보드에 요청을 입력하면 에이전트가 처리해 결과를 돌려주길 원한다 (Daily Brief 의 일반화).
 

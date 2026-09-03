@@ -1,7 +1,7 @@
 # FR-TASK — 할일 관리 상세 명세
 
-> [REQUIREMENTS_FUNCTIONAL.md](../REQUIREMENTS_FUNCTIONAL.md) 의 TASK 도메인 상세화.
-> 용어 [GLOSSARY.md](../GLOSSARY.md) · 데이터 [DATA_DICTIONARY.md](../DATA_DICTIONARY.md) · API [API_REFERENCE.md](../API_REFERENCE.md)(예정) · 화면 [UI_SPEC.md](../UI_SPEC.md)(예정).
+> [REQUIREMENTS_FUNCTIONAL.md](REQUIREMENTS_FUNCTIONAL.md) 의 TASK 도메인 상세화.
+> 용어 [GLOSSARY.md](../reference/GLOSSARY.md) · 데이터 [DATA_DICTIONARY.md](../reference/DATA_DICTIONARY.md) · API [API_REFERENCE.md](../reference/API_REFERENCE.md)(예정) · 화면 [UI_SPEC.md](../reference/UI_SPEC.md)(예정).
 
 ## 공통 규칙 (모든 FR-TASK 적용)
 
@@ -116,7 +116,7 @@ API `PUT`/`DELETE /api/tasks/:id` · UI `TaskList` `onDelete` · NFR-REL-02
 - **AC-2** ✅ SQLite 파일은 `backend/db/schema.sql` 로 초기화되며, 이미 있으면 데이터를 보존한다(`CREATE TABLE IF NOT EXISTS`). `db/index.js` 가 런타임 멱등 적용. (TC-DB-03)
 - **AC-3** ✅ `backend/src/db.js` 의 함수 시그니처(`getTasks/getTask/addTask/updateTask/deleteTask`)는 인메모리 때와 동일하게 유지된다 (NFR-MAINT-03) — 라우트·테스트 무수정. (TC-DB-02)
 - **AC-4** ✅ 기존 인메모리 기준 API 통합 테스트가 SQLite 로 교체 후에도 전부 통과한다(회귀). `npm test` 18/18.
-- **AC-5** ✅ DB 파일 경로는 `DATABASE_PATH` 환경변수로 주입한다 (기본 `backend/data/app.db`, 패키지는 `userData` — [ADR-0009](../adr/ADR-0009-sqlite-file-location.md)). 부팅 시 WAL 모드 ([ADR-0011](../adr/ADR-0011-agent-backend-db-access.md)).
+- **AC-5** ✅ DB 파일 경로는 `DATABASE_PATH` 환경변수로 주입한다 (기본 `backend/data/app.db`, 패키지는 `userData` — [ADR-0009](../architecture/adr/ADR-0009-sqlite-file-location.md)). 부팅 시 WAL 모드 ([ADR-0011](../architecture/adr/ADR-0011-agent-backend-db-access.md)).
 
 ### 관련
 ADR-02/03 · `backend/db/` · 데이터 `tasks` · NFR-MAINT-03, NFR-PERF-02
