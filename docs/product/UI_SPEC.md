@@ -43,7 +43,7 @@
 │  │ ☐ 회의 자료 준비  [high]│ │ │ AI OS 실습        [진행 중] │  │
 │  │ ☑ 슬라이드 검토  [med] 🗑│ │ │ ▓▓▓▓▓░░░░░ 40%             │  │
 │  └─────────────────────┘  │  └───────────────────────────┘  │
-│  [+ 할일 추가]  ← 예정      │                                 │
+│  [+ 할일 추가]  ← TaskForm  │                                 │
 ├───────────────────────────┴─────────────────────────────────┤
 │  오늘 일정 (🔷 예정)         │  오늘 브리핑 (🔷 예정)           │
 │  09:00 팀 미팅              │  ## 오늘의 우선순위 TOP 3        │
@@ -61,7 +61,7 @@
 - 상단 2열(할일 / 프로젝트): 현재 `Dashboard.jsx` 에 존재 (`display:flex; gap:24px`).
 - 하단 2열(일정 / 브리핑): 🔷 예정 (Week 5, 7).
 - 다이어그램 패널: 🔷 예정 (Phase C4, FR-UI-05). 전폭 섹션, 탭 전환.
-- `ErrorBanner`: 🔷 예정 (FR-UI-04). 영역별로 개별 표시 가능.
+- `ErrorBanner` + `ErrorBoundary`: ✅ B3 (2026-09-03, FR-UI-04). 영역별로 개별 표시. `App.jsx` 가 `<ErrorBoundary>` 로 `<Dashboard>` 를 감쌈. 브라우저 실제 트리거 확인은 로컬 대기(CORS/C1 이후).
 
 ---
 
@@ -81,19 +81,20 @@
 
 | 항목 | 내용 |
 |---|---|
-| 목적 | 할일 목록 조회·완료 토글·삭제·(예정) 추가 |
-| 요소 | 섹션 제목 "할 일", `TaskList`, 🔷 `TaskForm`("+ 할일 추가") |
-| 데이터 출처 | `GET /api/tasks` → `useTaskStore.tasks` |
-| 관련 FR | FR-TASK-02/03/04, FR-UI-01 |
+| 목적 | 할일 목록 조회·완료 토글·삭제·추가 |
+| 요소 | 섹션 제목 "할 일", `TaskList`, `TaskForm`("+ 할일 추가") — 모두 ✅ B3 (2026-09-03) |
+| 데이터 출처 | `GET /api/tasks` → `useTaskStore.tasks` (`frontend/src/store/useTaskStore.js`, `api/client.js` 경유) |
+| 관련 FR | FR-TASK-01/02/03/04, FR-UI-01 |
+| 상태 | ✅ 코드 배선 완료. 정상(200) 경로 브라우저 검증은 CORS/C1 이후 로컬 대기 |
 
 **렌더 상태 4종:**
 
 | 상태 | 조건 | 표시 |
 |---|---|---|
-| 로딩 | 첫 fetch 진행 중 | "불러오는 중…" (🔷) |
-| 비어있음 | `tasks.length === 0` | "할 일이 없습니다" (현재 `TaskList` 구현) |
-| 정상 | `tasks.length > 0` | 각 항목: 체크박스 + 제목 + priority 배지 + 삭제 버튼 |
-| 에러 | fetch 실패 | `ErrorBanner` "할일을 불러오지 못했습니다" + [재시도] (🔷) |
+| 로딩 | 첫 fetch 진행 중 (`loading && tasks.length === 0`) | "불러오는 중…" ✅ |
+| 비어있음 | `!loading && tasks.length === 0` | "할 일이 없습니다" (`TaskList`) ✅ |
+| 정상 | `tasks.length > 0` | 각 항목: 체크박스 + 제목 + priority 배지 + 삭제 버튼 ✅ |
+| 에러 | `error` 있음 | `ErrorBanner` (한국어 메시지) + [재시도]=`fetchTasks`. 에러가 있어도 기존 `tasks` 는 계속 렌더 ✅ |
 
 **인터랙션:**
 
@@ -101,7 +102,7 @@
 |---|---|
 | 체크박스 클릭 | `onToggle(id)` → `PUT /api/tasks/:id {status: done↔todo}` → 성공 시 해당 항목만 갱신 (낙관적 업데이트 허용, 실패 시 롤백) |
 | 삭제 버튼 클릭 | `onDelete(id)` → `DELETE /api/tasks/:id` → 목록에서 제거. 실패 시 복원 + `ErrorBanner` |
-| (예정) 추가 폼 제출 | `POST /api/tasks` → 201 시 목록에 append, 폼 초기화 |
+| 추가 폼 제출 (`TaskForm`) | `POST /api/tasks` → 201 시 목록에 append, 폼 초기화. `title` 빈값이면 제출 차단 + 인라인 안내. payload snake_case (`due_date`) |
 
 > ⚠️ 현재 `Dashboard.jsx` 의 `handleToggle`/`handleDelete` 는 **로컬 state 만** 변경한다. Week 3(B3)에 store + API 호출로 교체.
 
@@ -140,15 +141,17 @@
 | 관련 FR | FR-AGENT-04 |
 | 상태 | 로딩 / "오늘 브리핑이 아직 없습니다"(404) / 정상 / 에러 |
 
-### 3.6 ErrorBanner 🔷 예정 (FR-UI-04)
+### 3.6 ErrorBanner / ErrorBoundary ✅ B3 (FR-UI-04, 2026-09-03)
 
 | 항목 | 내용 |
 |---|---|
 | 목적 | API/네트워크 오류를 사용자 친화적으로 표시 |
-| 요소 | 아이콘 + 한국어 메시지 + [재시도] 버튼 |
-| 규칙 | 스택 트레이스·상태코드 원문 노출 금지. 재시도는 해당 API 만 재호출. 성공 시 배너 제거 |
-| 배치 | 영역별 개별 표시 (한 영역 실패가 다른 영역을 가리지 않음 — FR-UI-01 AC-2) |
-| 최상위 | React error boundary 로 렌더 예외를 잡아 앱 전체 크래시 방지 (FR-UI-04 AC-5) |
+| 요소 | 아이콘 + 한국어 메시지 + [재시도] 버튼. `message` 없으면 렌더 안 함, `onRetry` 있을 때만 버튼 |
+| 규칙 | 스택 트레이스·상태코드 원문 노출 금지 (`api/client.js` 가 정규화). 재시도는 해당 API 만 재호출. 성공 시 `error=null` → 배너 제거 |
+| 배치 | 영역별 개별 표시 (한 영역 실패가 다른 영역을 가리지 않음 — FR-UI-01 AC-2). 에러가 있어도 이미 받은 데이터는 계속 렌더 |
+| 최상위 | `ErrorBoundary` (class, `getDerivedStateFromError`+`componentDidCatch`→`console.error`) 가 렌더 예외를 잡아 앱 전체 크래시 방지 (FR-UI-04 AC-5). `App.jsx` 가 `<Dashboard>` 를 감쌈. fallback 은 `ErrorBanner` 재사용 |
+| 코드 | `frontend/src/components/{ErrorBanner,ErrorBoundary}.jsx` |
+| 미검증 | 실제 실패 트리거(백엔드 중단 등) 화면 확인은 로컬 대기 (CORS/C1 이후) |
 
 ### 3.7 다이어그램 패널 🔷 예정 (Phase C4, FR-UI-05)
 
@@ -169,14 +172,15 @@
 
 | 컴포넌트 | props | 내부 state | 방출 이벤트 | 상태 |
 |---|---|---|---|:---:|
-| `App` | — | `health` (loading/ok/error) | — | 🚧 B1 마운트됨 (appInfo + `/api/health` 렌더, error boundary·Dashboard 배선은 B3) |
-| `Dashboard` | — | store 구독 | — | 🚧 (로컬 state) |
+| `App` | — | `health` (loading/ok/error) | — | ✅ B3 (`/api/health` 는 헤더 연결표시로 축소, 본문은 `<ErrorBoundary><Dashboard/></ErrorBoundary>`) |
+| `Dashboard` | — | `useTaskStore` 필드별 개별 셀렉터 구독 | — | ✅ B3 (4상태 배선) |
 | `TaskList` | `tasks: Task[]`, `onToggle(id)`, `onDelete(id)` | — | `onToggle`, `onDelete` | ✅ |
-| `TaskForm` | `onSubmit(payload)` | `title, description, dueDate, priority` | `onSubmit` | 🔷 |
-| `ProjectCard` | `project: Project` | — | — | ✅ (status 값 수정 필요) |
-| `CalendarWidget` | `events: Event[]` | — | — | 🔷 |
-| `BriefCard` | `brief: Brief \| null` | — | — | 🔷 |
-| `ErrorBanner` | `message: string`, `onRetry()` | — | `onRetry` | 🔷 |
+| `TaskForm` | `onSubmit(payload)`, `disabled` | `title, priority, dueDate` | `onSubmit` | ✅ B3 |
+| `ErrorBanner` | `message: string`, `onRetry()` | — | `onRetry` | ✅ B3 |
+| `ErrorBoundary` | `children` | `hasError` | — | ✅ B3 (class, FR-UI-04 AC-5) |
+| `ProjectCard` | `project: Project` | — | — | ✅ (status 값 `'hold'`→`'on_hold'` 수정 필요 — C2) |
+| `CalendarWidget` | `events: Event[]` | — | — | 🔷 C3 |
+| `BriefCard` | `brief: Brief \| null` | — | — | 🔷 D3 |
 | `DiagramPanel` | — | `diagrams`, `activeGroup`, `loading`, `error` | — | 🔷 C4 |
 
 **타입 형태**는 [DATA_DICTIONARY.md](DATA_DICTIONARY.md) 및 [API_REFERENCE.md](API_REFERENCE.md) 의 리소스 객체와 동일 (필드명 snake_case 유지).
@@ -195,19 +199,22 @@
 
 ---
 
-## 6. zustand 스토어 계약 🔷 예정 (Week 3 B3)
+## 6. zustand 스토어 계약
 
-### `useTaskStore`
+### `useTaskStore` ✅ B3 (2026-09-03, `frontend/src/store/useTaskStore.js`)
 ```
 상태:   tasks: Task[]        loading: boolean    error: string | null
-액션:   fetchTasks()                     → GET /api/tasks
-        addTask(payload)                 → POST /api/tasks
-        toggleTask(id)                   → PUT /api/tasks/:id
-        updateTask(id, patch)            → PUT /api/tasks/:id
-        removeTask(id)                   → DELETE /api/tasks/:id
+액션:   fetchTasks()                     → GET /api/tasks     (실패해도 기존 tasks 보존)
+        addTask(payload)                 → POST /api/tasks    (비낙관적, boolean 반환)
+        toggleTask(id)                   → PUT /api/tasks/:id  (낙관적 + 실패 롤백)
+        updateTask(id, patch)            → PUT /api/tasks/:id  (낙관적, 성공 시 서버 task 로 치환)
+        removeTask(id)                   → DELETE /api/tasks/:id (낙관적, 실패 시 원래 인덱스 복원)
+        clearError()
 ```
+- 액션은 throw 하지 않고 `error` 에 문자열 저장. 성공하는 액션은 `error=null` (FR-UI-04 AC-4).
+- `Dashboard` 는 객체 리터럴 셀렉터 금지 — 필드별 개별 셀렉터로 구독 (zustand v4 리렌더 함정).
 
-### `useAppStore`
+### `useAppStore` 🔷 예정 (C2~D3)
 ```
 상태:   projects, events, brief, 각 영역별 loading/error
 액션:   fetchProjects() fetchEvents() fetchBrief()

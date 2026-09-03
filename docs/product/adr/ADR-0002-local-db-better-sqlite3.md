@@ -4,7 +4,9 @@
 - 관련: FR-TASK-05, [AS_IS.md](../AS_IS.md) G2, 강의 Week 5(SQLite)
 
 ## 맥락
-현재 `backend/src/db.js` 는 인메모리 배열이라 프로세스 재시작 시 데이터가 사라진다. 로컬 영속 저장소가 필요하다. Electron/Node 단일 프로세스 환경이고, 강의에서 SQLite 를 다룬다.
+(결정 시점) `backend/src/db.js` 가 인메모리 배열이라 프로세스 재시작 시 데이터가 사라졌다. 로컬 영속 저장소가 필요했다. Electron/Node 단일 프로세스 환경이고, 강의에서 SQLite 를 다룬다.
+
+> 이행 완료: B2(2026-09-02)에서 `db.js` 를 better-sqlite3 로 교체 (`db/index.js` 커넥션 싱글턴, WAL, `DATABASE_PATH`).
 
 ## 결정
 **better-sqlite3** (동기 API) 를 쓴다.

@@ -209,7 +209,7 @@ client = Anthropic(api_key=api_key)
 #### 간단한 메시지
 ```python
 response = client.messages.create(
-    model="claude-opus-4-6",
+    model="claude-opus-5",
     max_tokens=1024,
     messages=[
         {
@@ -225,7 +225,7 @@ print(response.content[0].text)
 #### 시스템 프롬프트 포함
 ```python
 response = client.messages.create(
-    model="claude-opus-4-6",
+    model="claude-opus-5",
     max_tokens=1024,
     system="당신은 생산성 코치입니다. 간결하고 실행 가능한 조언을 주세요.",
     messages=[
@@ -251,7 +251,7 @@ tasks = """
 """
 
 response = client.messages.create(
-    model="claude-opus-4-6",
+    model="claude-opus-5",
     max_tokens=1024,
     messages=[
         {
@@ -294,7 +294,7 @@ def chat_with_agent():
         
         # Claude 호출
         response = client.messages.create(
-            model="claude-opus-4-6",
+            model="claude-opus-5",
             max_tokens=1024,
             system="당신은 친절한 생산성 어시스턴트입니다.",
             messages=conversation_history
@@ -324,7 +324,7 @@ with open("screenshot.png", "rb") as f:
     image_data = base64.standard_b64encode(f.read()).decode("utf-8")
 
 response = client.messages.create(
-    model="claude-opus-4-6",
+    model="claude-opus-5",
     max_tokens=1024,
     messages=[
         {
@@ -376,7 +376,7 @@ const client = new Anthropic({
 ```javascript
 async function basicChat() {
   const response = await client.messages.create({
-    model: "claude-opus-4-6",
+    model: "claude-opus-5",
     max_tokens: 1024,
     messages: [
       {
@@ -408,7 +408,7 @@ router.post("/analyze", async (req, res) => {
     const { prompt, context } = req.body;
 
     const response = await client.messages.create({
-      model: "claude-opus-4-6",
+      model: "claude-opus-5",
       max_tokens: 1024,
       system: "당신은 생산성 코치입니다.",
       messages: [
@@ -503,7 +503,7 @@ def generate_daily_brief():
     
     # Claude에게 분석 요청
     response = client.messages.create(
-        model="claude-opus-4-6",
+        model="claude-opus-5",
         max_tokens=1024,
         system="""당신은 생산성 코치입니다.
         사용자의 이메일과 일정을 보고 오늘의 우선순위를 정리해주세요.
@@ -581,7 +581,7 @@ client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 def test_basic_message():
     """기본 메시지 테스트"""
     response = client.messages.create(
-        model="claude-opus-4-6",
+        model="claude-opus-5",
         max_tokens=100,
         messages=[
             {"role": "user", "content": "Hello!"}
@@ -593,7 +593,7 @@ def test_basic_message():
 def test_system_prompt():
     """시스템 프롬프트 테스트"""
     response = client.messages.create(
-        model="claude-opus-4-6",
+        model="claude-opus-5",
         max_tokens=100,
         system="You are a helpful assistant.",
         messages=[

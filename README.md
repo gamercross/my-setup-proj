@@ -91,6 +91,22 @@ bash setup.sh     # frontend/backend npm install + agent venv + .env 준비
 bash verify.sh    # 환경·문법 점검
 ```
 
+### 앱 실행 (개발 모드)
+
+현재는 **백엔드와 프론트를 각각 실행**한다 (한 번에 띄우는 통합 스크립트는 없음 — 아래 "미정" 참고).
+
+```bash
+# 터미널 A — 백엔드 API (:3000)
+cd backend && npm start
+
+# 터미널 B — Vite dev + Electron (:5173)
+cd frontend && npm run dev
+```
+
+- `frontend/` 의 `npm run dev` 는 Vite 와 Electron 만 띄운다. 백엔드가 안 떠 있으면 대시보드는 `ErrorBanner`("백엔드에 연결할 수 없습니다") 를 보여주고, 앱 자체는 죽지 않는다 (FR-UI-04).
+- CORS 는 C1(2026-09-03)에서 처리됨 — dev 오리진 `localhost:5173`, prod Electron `file://`(`Origin: null`) 허용.
+- **미정 (Week 5~ / 패키징 전 결정):** ① Electron 이 백엔드 프로세스를 자동 기동할지(`child_process`) vs 계속 분리. ② 패키징된 앱에서 백엔드 실행 주체. ③ 백엔드 비정상 종료 시 앱의 재연결 정책. → 결정 시 ADR + [DESIGN.md](docs/product/DESIGN.md) §실행 구조에 반영.
+
 전체 환경 구축 절차는 [SETUP.md](docs/setup/SETUP.md), 프로젝트 맥락은 [ONBOARDING.md](docs/ONBOARDING.md) 를 본다.
 
 ---
