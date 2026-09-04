@@ -16,7 +16,8 @@
 
 ## 문서 지도 (2026-09-03 카테고리화)
 
-`docs/` 는 목적별 폴더로 나뉜다. 화살표 = 읽는 순서(위 → 아래로 갈수록 구체).
+`docs/` 는 목적별 폴더로 나뉜다. **각 폴더에 `README.md` 가 있고**, 그 안의 문서를 `무엇 / 언제 참조 / ⚠️ 놓치기 쉬운 것` 표로 안내한다 — 훑고 바로 필요한 문서로 간다. 폴더 README 는 서로 링크된다 ([docs/README.md](README.md) 가 최상위 허브).
+화살표 = 읽는 순서(위 → 아래로 갈수록 구체).
 
 ```mermaid
 flowchart TB
@@ -51,15 +52,17 @@ flowchart TB
   PROD -. "상태 갱신" .-> PRG
 ```
 
-| 폴더 | 질문 | 대표 문서 |
+| 폴더 (README) | 질문 | 대표 문서 |
 |---|---|---|
-| `product/vision/` | 왜·누구를 위해 만드나 | VISION, DASHBOARD_OS(위젯 셸 방향), USE_SCENARIOS, AS_IS |
-| `product/requirements/` | 무엇을 만족해야 하나 | FR, NFR, TRACEABILITY |
-| `product/architecture/` | 어떻게 만드나 (구조·결정) | ARCHITECTURE §0 → 뷰별 문서, adr/ |
-| `product/reference/` | 정확한 계약 (필드·엔드포인트·용어) | API_REFERENCE, UI_SPEC, DATA_DICTIONARY, GLOSSARY |
-| `product/testing/` | 어떻게 검증하나 | TEST_PLAN |
-| `setup/` | 환경·도구·규칙 | SETUP, CONVENTIONS, ORCHESTRATION |
-| `progress/` | 지금 어디까지 | PROGRESS, COURSE_MAPPING |
+| [`docs/`](README.md) | 전체 진입점 (허브) | ONBOARDING, STUDY_GUIDE |
+| [`product/`](product/README.md) | 무엇을 만드나 (5 카테고리 허브) | — |
+| [`product/vision/`](product/vision/README.md) | 왜·누구를 위해 만드나 | VISION, DASHBOARD_OS(위젯 셸 방향), AS_IS, RISKS |
+| [`product/requirements/`](product/requirements/README.md) | 무엇을 만족해야 하나 | FR, NFR, TRACEABILITY, WIDGET |
+| [`product/architecture/`](product/architecture/README.md) | 어떻게 만드나 (구조·결정) | ARCHITECTURE §0 → 뷰별 문서, [adr/](product/architecture/adr/README.md) |
+| [`product/reference/`](product/reference/README.md) | 정확한 계약 (필드·엔드포인트·용어) | API_REFERENCE, UI_SPEC, DATA_DICTIONARY, GLOSSARY |
+| [`product/testing/`](product/testing/README.md) | 어떻게 검증하나 | TEST_PLAN |
+| [`setup/`](setup/README.md) | 환경·도구·규칙 | SETUP, CONVENTIONS, GIT_WORKFLOW, ORCHESTRATION |
+| [`progress/`](progress/README.md) | 지금 어디까지 | PROGRESS, COURSE_MAPPING |
 
 ---
 

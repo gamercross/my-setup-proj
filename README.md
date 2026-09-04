@@ -28,10 +28,19 @@
 
 ## 📚 문서 지도
 
-**처음이면 → [docs/ONBOARDING.md](docs/ONBOARDING.md)** (읽는 순서·규칙·명령 요약).
+**처음이면 → [docs/ONBOARDING.md](docs/ONBOARDING.md)** (읽는 순서·규칙·명령 요약 + 폴더 지도 다이어그램).
+**폴더 탐색 → [docs/README.md](docs/README.md)** (최상위 허브). 각 폴더에 `README.md` 가 있고, 그 안의 문서를 `무엇 / 언제 참조 / ⚠️ 놓치기 쉬운 것` 표로 안내한다.
 **아키텍처를 더 공부하려면 → [docs/STUDY_GUIDE.md](docs/STUDY_GUIDE.md)** (부족한 부분 진단 + 학습 목록).
 
-문서는 목적별로 세 갈래(`product/` · `setup/` · `progress/`)로 나뉘고, `product/` 는 다시 5개 폴더로 카테고리화돼 있다. 폴더 지도(다이어그램)는 [ONBOARDING.md](docs/ONBOARDING.md#문서-지도-2026-09-03-카테고리화).
+문서는 목적별로 세 갈래로 나뉘고, `product/` 는 다시 5개 폴더로 카테고리화돼 있다:
+
+| 폴더 README | 질문 |
+|---|---|
+| [docs/product/](docs/product/README.md) → [vision/](docs/product/vision/README.md) · [requirements/](docs/product/requirements/README.md) · [architecture/](docs/product/architecture/README.md) (+[adr/](docs/product/architecture/adr/README.md)) · [reference/](docs/product/reference/README.md) · [testing/](docs/product/testing/README.md) | 무엇을 만드나 |
+| [docs/setup/](docs/setup/README.md) | 어떤 세팅·규칙 |
+| [docs/progress/](docs/progress/README.md) | 지금 어디까지 |
+
+아래는 문서별 상세 목록 (폴더 README 와 중복되지만 한눈에 보기용).
 
 ### 1. 무엇을 만드는가 — [`docs/product/`](docs/product/)
 
