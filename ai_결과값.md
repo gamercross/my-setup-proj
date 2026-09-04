@@ -1,230 +1,261 @@
-# 문제 재확인 및 해결 방향
+# 현재 프로젝트 점검 결과
 
-## 검토 범위
+## 점검 기준
 
-- 기준일: 2026-09-03
-- 검토 대상: 저장소 문서, 실제 코드, 작업 중 확인된 Slack·launchd 동작
-- 수정 대상: 이 파일(`ai_결과값.md`)만
-- 목적: 확인된 문제를 질문과 답변 형식으로 정리하고, 로드맵상 진행 시점을 제안
+- 기준일: 2026-09-04
+- 확인 대상: `작업로그.md`, `README.md`, `docs/progress/PROGRESS.md`, 실제 코드·스크립트·최근 Git 상태
+- 목적: 현재까지 한 일과 남은 문제를 구분하고, 다음 해결 순서를 정리하는 것
 
-## 종합 답변
+## 한눈에 보는 현재 상태
 
-제품의 큰 방향은 유지해도 됩니다. 현재 문제는 설계 방향보다 다음 세 영역에 집중되어 있습니다.
+프로젝트는 초기 세팅을 넘어 로컬 생산성 대시보드의 핵심 기반을 구현한 상태입니다.
 
-1. 앱 실행 시 Electron과 백엔드의 실행 책임이 확정되지 않음
-2. 일부 문서에 과거 구현 상태가 남아 있음
-3. Slack 알림과 launchd 예약 작업이 실제 운영 환경에서 정상 작동하지 않음
+- 완료: Phase A2·A3·B1·B2·B3·C1·C2
+- 구현: SQLite 영속화, 할일 CRUD 프론트 배선, 프로젝트 CRUD 프론트 배선, CORS·요청 로깅·공통 오류 처리
+- 검증: backend 테스트 39개 통과, `verify.sh` 19/0/0, frontend `npm run build` 성공
+- Git: B3·C1·C2 스택 PR 병합 완료, `main`과 `origin/main` 일치
+- 미검증: 브라우저 E2E와 Electron GUI 수동 확인
+- 다음 개발 후보: C3 캘린더 위젯·API, 그다음 C4 다이어그램 뷰어
 
-문서 일관성 문제는 다음 기능 구현 전에 정리해야 하고, Slack 운영 장애는 기다리지 말고 현재 바로 확인하는 것이 좋습니다.
+현재 가장 큰 위험은 기능 부재가 아니라 **제품 범위가 위젯 셸로 넓어지는 동안 환경 재현성과 실제 화면 검증이 뒤따르지 못하고 있다는 점**입니다.
 
-## 문제와 답변
+## 지금 놓치고 있는 부분
 
-### Q1. Electron 앱을 실행하면 백엔드도 함께 실행되는가?
+### 1. 제품 범위가 대시보드에서 위젯 셸로 확장됨
 
-**답:** 현재 문서와 실행 명령만 보면 보장되지 않습니다.
+최근 문서에는 `DASHBOARD_OS.md`와 위젯 셸 요구사항(FR-WIDGET-01·02·04·05)이 추가되어 있습니다. 그러나 현재 코드 상태와 결과 문서는 할일·프로젝트 중심 대시보드로만 설명하고 있습니다.
 
-Electron 렌더러는 `http://localhost:3000/api`를 호출하지만 `frontend/package.json`의 개발 명령은 Vite와 Electron만 실행합니다. 백엔드는 별도로 `cd backend && npm start`를 실행해야 합니다.
+**문제**
 
-**문제점:**
+- 위젯을 고정 배치할지, 드래그·리사이즈할지 결정되지 않음
+- 위젯 설정의 저장 위치와 형식이 결정되지 않음
+- 위젯 오류 격리, 순서 변경, 초기화, 모바일 화면 정책이 아직 구현 계획에 충분히 반영되지 않음
+- C3 캘린더를 만들기 전에 위젯 공통 계약을 정하지 않으면 기능마다 다른 상태·크기·오류 처리가 생길 수 있음
 
-- 앱만 실행하면 API 연결 오류가 발생할 수 있음
-- 개발 환경에서 백엔드 시작 담당이 불명확함
-- 패키징된 앱에서 백엔드를 어떻게 시작할지 정의되지 않음
-- 백엔드 종료와 네트워크 단절을 어떻게 구분할지 실행 흐름이 필요함
+**해결책**
 
-**해결 방향:**
+`DASHBOARD_OS.md`의 DO-1~6을 먼저 결정하고, 위젯 공통 모델(`id`, `type`, `position`, `size`, `enabled`, `config`)과 렌더 상태 계약을 확정합니다. 그 후 C3 캘린더를 첫 번째 실제 위젯으로 구현하는 편이 안전합니다.
 
-- 개발 환경: Vite, Electron, Express를 각각 실행할지 `frontend` 명령에서 함께 실행할지 결정
-- 패키징 환경: Electron main process가 백엔드를 child process로 시작할지, 백엔드를 별도 서비스로 둘지 결정
-- 백엔드 종료 시 `ErrorBanner`를 표시하고 재시도 또는 재기동하는 정책 정의
-- 실행 명령과 프로세스 관계를 README·ARCHITECTURE·DESIGN에 같은 방식으로 기록
+**우선순위:** 높음. C3 착수 전에 사용자 결정이 필요합니다.
 
-**로드맵 시점:** 지금 결정해야 하며, 실제 구현은 **Phase C2 이전**이 적절합니다. 프로젝트 화면 연결 전에 실행 구조가 확정되어야 합니다.
+### 2. 환경 설정 문서와 실제 작업 OS가 맞지 않음
 
-### Q2. 문서의 완료·예정 상태가 서로 다른 이유는 무엇인가?
+`SETUP.md`는 Ubuntu/WSL 중심인데 현재 작업 환경은 macOS입니다. Homebrew Node, macOS Python, launchd, Electron 권한·창 실행 문제는 Ubuntu 절차만으로 재현할 수 없습니다.
 
-**답:** 구현이 진행된 뒤 과거 상태 설명이 일부 남아 있기 때문입니다.
+**해결책**
 
-**확인된 예:**
+- SETUP을 macOS, Ubuntu/WSL로 나누고 공통 단계와 OS별 단계를 분리합니다.
+- macOS에서는 `brew`, `python3`, `launchctl`, Electron 권한을 명시합니다.
+- Ubuntu/WSL에서는 `apt`, systemd/cron 차이, WSL에서 Electron GUI 제한을 명시합니다.
+- CI 기준(Node 22, Python 3.12)과 로컬 권장 버전을 표로 고정합니다.
 
-- `API_REFERENCE.md`의 enum 검증 및 구현 차이 표에 과거 상태가 남아 있음
-- `GLOSSARY.md`에 인메모리 DB와 `schema.sql` 예정 표현이 남아 있음
-- `UI_SPEC.md`에는 `TaskForm`과 `ErrorBanner` 완료 내용과 과거 미구현 설명이 함께 있음
-- `AS_IS.md`, `TRACEABILITY.md`, `PROGRESS.md`의 B1·B2·C1·B3 상태가 완전히 같지 않음
+**우선순위:** 높음. 다른 컴퓨터에서 설치를 재현하기 전에 정리해야 합니다.
 
-**해결 방향:** 상태를 다음 세 가지로 나눠 기록하는 것이 좋습니다.
+### 3. `setup.sh`가 만든 `.env`가 backend 실행에 자동으로 사용되지 않음
 
-- 코드 구현 여부
-- 자동 테스트 통과 여부
-- GUI·브라우저 수동 검증 여부
+`setup.sh`는 `.env.example`을 `.env`로 복사하지만 backend에는 dotenv 로딩이 없습니다. 따라서 `PORT`와 `DATABASE_PATH`는 `.env`에 적어도 `npm start`만으로는 반영되지 않고, 셸에서 직접 주입해야 합니다. 반면 Slack 스크립트는 `.env`를 직접 읽습니다.
 
-과거 상태가 필요한 경우에는 “과거 기록”이라고 표시하고, 현재 상태와 섞지 않아야 합니다.
+**문제**
 
-**로드맵 시점:** 현재 진행 중인 C2 착수 전 정리하는 것이 가장 좋습니다. 늦어도 다음 기능의 finisher 단계에서 관련 문서를 함께 갱신해야 합니다.
+- 같은 `.env`를 사용해도 스크립트와 backend의 동작이 다름
+- 사용자는 설정이 적용됐다고 생각하지만 backend는 기본 포트·기본 DB 경로로 실행될 수 있음
+- `DATABASE_PATH`를 바꿔도 실제 DB가 계속 `backend/data/app.db`에 만들어질 수 있음
 
-### Q3. 데이터 모델 문제는 아직 남아 있는가?
+**해결책**
 
-**답:** 이전에 지적한 `emails.read`와 `emails.is_read` 문제는 `ARCHITECTURE.md`의 테이블 목록에서 상당 부분 보완되었습니다.
+현재 결정대로 dotenv를 당장 도입하지 않는다면 문서와 `setup.sh`에서 backend 실행 전에 명시적으로 환경변수를 export하는 방식을 안내해야 합니다. dotenv를 도입하기로 결정한다면 backend와 agent의 로딩 위치·우선순위·테스트를 함께 표준화해야 합니다. 둘 중 하나를 선택하고 혼용하지 않아야 합니다.
 
-다만 환경 설정 예시는 아직 정리되지 않았습니다.
+**우선순위:** 높음. 브라우저 E2E 전에 확인해야 합니다.
 
-- 실제 SQLite 경로 기준: `DATABASE_PATH`
-- 일부 문서 예시: `DATABASE_URL`
-- 실제 기준 문서: `ADR-0009`, `ENV_REFERENCE.md`, `backend/db/index.js`
+### 4. `PORT` 설정과 frontend API 주소가 분리되어 있음
 
-**해결 방향:** 현재 실행 기준을 `DATABASE_PATH`로 고정하고, `DATABASE_URL`은 향후 별도 도입 여부가 결정되기 전까지 예시에서 혼용하지 않는 것이 좋습니다. Supabase 관련 변수는 Supabase 도입 단계에서 별도 기준을 확정해야 합니다.
+backend는 `PORT` 환경변수를 읽지만 Electron preload의 API 주소는 `http://localhost:3000/api`로 고정되어 있습니다. backend를 다른 포트로 실행하면 frontend가 계속 3000번으로 요청합니다.
 
-**로드맵 시점:** SQLite는 이미 B2에서 완료되었으므로, 설정 이름 정리는 **현재 문서 정리 작업**에서 처리해야 합니다. Supabase 변수와 동기화 규칙은 **Phase E1~E2, Week 10 전**에 확정하면 됩니다.
+**해결책**
 
-### Q4. Claude 모델 예시가 다른 이유는 무엇인가?
+- 개발 환경의 포트를 3000으로 고정하고 문서·검증에서 변경하지 않도록 하거나
+- Vite/Electron 실행 시 동일한 `BACKEND_PORT`를 주입해 preload와 backend가 같은 값을 사용하게 합니다.
 
-**답:** 현재 운영 규칙은 `claude-opus-5`인데 일부 예시 문서에 `claude-opus-4-6`이 남아 있습니다.
+포트 변경 가능성을 남길 경우, health check도 같은 설정값을 사용하고 포트 불일치를 자동으로 실패시키는 검사를 추가해야 합니다.
 
-**해결 방향:**
+**우선순위:** 높음. 환경별 실행 전에 결정합니다.
 
-- 실제 코드의 `DEFAULT_MODEL`을 현재 기준으로 사용
-- 문서 예시와 테스트 예시의 모델명을 동일하게 맞춤
-- 모델 변경 시 `CONVENTIONS.md`, `CLAUDE_INTEGRATION.md`, 요구사항을 함께 검토
+### 5. 설치는 되지만 재현 가능한 버전 관리가 약함
 
-**로드맵 시점:** Claude 에이전트 구현을 시작하는 **Phase D1, Week 6** 전에 정리해야 합니다.
+Node와 Python 의존성은 대부분 범위 버전(`^`, `>=`)이고 설치 스크립트는 `npm install`을 사용합니다. 새 컴퓨터나 시간이 지난 뒤 설치하면 서로 다른 버전이 설치될 수 있습니다. native 모듈인 `better-sqlite3`는 Node ABI와 OS별 빌드 도구의 영향을 받습니다.
 
-### Q5. Slack 알림이 아무것도 보이지 않는 이유는 무엇인가?
+**해결책**
 
-**답:** 현재 확인된 핵심 원인은 `SLACK_WEBHOOK_URL`이 비어 있기 때문입니다.
+- `package-lock.json`을 커밋하고 CI·초기 설치는 `npm ci`를 사용합니다.
+- Python은 최소 버전 정책과 함께 lock 또는 검증 가능한 requirements 관리 방식을 결정합니다.
+- Node 22와 Python 3.12를 기준으로 로컬·CI를 먼저 맞춥니다.
+- macOS/Ubuntu에서 `better-sqlite3` 설치 실패 시 필요한 Xcode Command Line Tools/build-essential을 환경 문서에 추가합니다.
 
-`slack-notify.sh`는 URL이 없으면 조용히 종료하도록 작성되어 있습니다. 따라서 오류 메시지 없이 다음 알림이 모두 생략됩니다.
+**우선순위:** 중간. 다음 환경을 재구성하기 전에 처리합니다.
 
-- `/feature` 단계별 알림
-- 매일 23:50 작업로그 요약
+### 6. 현재 검증 스크립트가 실행 동작까지 보장하지 않음
 
-**해결 방향:**
+`verify.sh`는 파일 존재와 문법을 확인하지만 backend 기동, 포트 응답, frontend와 API의 연결, SQLite 쓰기 권한, Electron 창 실행까지는 확인하지 않습니다. 자동 테스트와 빌드가 성공해도 실제 앱 실행 실패를 놓칠 수 있습니다.
 
-1. Slack Incoming Webhook을 발급
-2. 사용자가 직접 `.env`에 `SLACK_WEBHOOK_URL` 설정
-3. 다음 명령으로 알림 테스트
+**해결책**
+
+검증을 세 층으로 나눕니다.
+
+1. 정적 검사: 현재 `verify.sh`와 문법 검사
+2. 서비스 검사: 임시 포트에서 backend 기동 후 `/api/health` 확인 및 종료
+3. 사용자 흐름 검사: 브라우저/Electron에서 TC-UI-10~16과 GUI 체크 수행
+
+서비스 검사에는 포트 충돌, 종료 시 cleanup, 임시 DB 경로를 포함해야 합니다.
+
+**우선순위:** 높음. C3 구현 전 최소한 서비스 검사를 추가합니다.
+
+## 문제와 해결책
+
+### 7. `.env.example`에 비밀값이 들어갈 위험이 있음
+
+**문제**
+
+`.env.example`의 `SLACK_WEBHOOK_URL`에 실제 형식의 Webhook URL이 들어 있습니다. 예시 파일은 저장소에 공유될 수 있으므로 실제 URL이라면 이미 노출된 것으로 간주해야 합니다. 또한 `SLACK_WEBHOOK_URL= https://...`처럼 `=` 뒤에 공백이 있어 shell 방식으로 `.env`를 읽을 때 올바른 값으로 처리되지 않을 수 있습니다.
+
+**해결책**
+
+1. Slack 관리자 화면에서 해당 Webhook을 즉시 폐기하고 새로 발급합니다.
+2. `.env.example`에는 `SLACK_WEBHOOK_URL=`만 남깁니다.
+3. 실제 값은 추적하지 않는 로컬 `.env`에만 입력합니다.
+4. `setup.sh` 또는 검증 스크립트에서 예시 파일에 URL이 들어갔는지 검사합니다.
+
+**우선순위:** 즉시. 기능 개발보다 먼저 처리해야 하는 보안 문제입니다.
+
+### 8. 브라우저에서 실제 CRUD 왕복 검증이 아직 남아 있음
+
+**문제**
+
+코드와 자동 테스트는 통과했지만, 브라우저에서 frontend와 backend를 함께 실행해 다음 흐름을 직접 확인하지 않았습니다.
+
+- 할일 생성·완료·삭제
+- 프로젝트 생성·상태 변경·진행도 변경·삭제
+- 빈 목록·로딩·정상·오류 상태
+- 한 패널 오류가 다른 패널을 가리지 않는지
+
+**해결책**
+
+로컬에서 두 프로세스를 실행하고 TC-UI-10~16을 수행합니다.
+
+```bash
+# 터미널 A
+cd backend && npm start
+
+# 터미널 B
+cd frontend && npm run dev
+```
+
+확인 결과를 `TRACEABILITY.md`, `PROGRESS.md`, `README.md`에 반영합니다. 문제가 생기면 브라우저 콘솔, Network 응답, backend 로그를 같은 시각 기준으로 대조합니다.
+
+**우선순위:** 높음. C3 착수 전에 현재 화면의 기본 동작을 확정하는 것이 좋습니다.
+
+### 9. 문서에 과거 상태가 일부 남아 있음
+
+**문제**
+
+실제 구현은 B3·C1·C2까지 완료됐지만 `README.md`와 일부 진행 문서에는 B3/C2가 예정 또는 진행 중인 것처럼 표시된 부분이 있습니다. 문서 구조를 `docs/product/` 아래로 재배치한 변경도 커서, 현재 상태를 찾는 사용자가 서로 다른 결론을 낼 수 있습니다.
+
+**해결책**
+
+- 현재 상태의 기준 순서를 `작업로그.md` → `TRACEABILITY.md` → `DESIGN.md`로 고정합니다.
+- 완료 여부를 `코드 구현`, `자동 테스트`, `브라우저 수동 검증` 세 단계로 나눠 표기합니다.
+- 기능을 마칠 때마다 README·PROGRESS·TRACEABILITY를 한 번에 갱신합니다.
+- 과거 기록은 삭제하지 말고 날짜가 있는 작업로그로 남깁니다.
+
+**우선순위:** 중간. 브라우저 검증 결과를 반영하는 시점에 함께 정리합니다.
+
+### 10. Electron과 backend의 실행 책임이 아직 결정되지 않음
+
+**문제**
+
+현재 개발 모드에서는 backend와 frontend/Electron을 각각 실행해야 합니다. frontend만 실행하면 앱은 열리지만 API 연결 오류를 표시합니다. 패키징된 앱에서 backend를 누가 시작하고 종료할지, backend 비정상 종료를 어떻게 복구할지는 아직 확정되지 않았습니다.
+
+**해결책**
+
+- 개발 모드: 현재처럼 두 프로세스를 별도 실행하는 방식을 공식 절차로 유지합니다.
+- 패키징 전: Electron main process가 backend child process를 시작할지, 별도 서비스로 운영할지 결정합니다.
+- 결정 후 ADR과 `RUNTIME_VIEW.md`에 시작·종료·재연결 정책을 기록합니다.
+- backend가 꺼진 경우는 오프라인 데이터 상태와 구분해 연결 오류로 표시합니다.
+
+**우선순위:** 중간. C3/C4 이후, 패키징 단계 전에 결정합니다.
+
+### 11. 환경변수 이름과 외부 서비스 도입 시점이 완전히 정리되지 않음
+
+**문제**
+
+현재 SQLite 실행 기준은 `DATABASE_PATH`이고 dotenv는 도입하지 않기로 결정했지만, 일부 설계 문서에는 향후 Supabase용 `DATABASE_URL`과 `SUPABASE_JWT_SECRET`이 함께 언급됩니다. 현재 로컬 구현과 미래 클라우드 구성을 섞으면 설정 오류가 생길 수 있습니다.
+
+**해결책**
+
+- 현재 단계에서는 `DATABASE_PATH`, `PORT`, `NODE_ENV`만 로컬 실행 기준으로 사용합니다.
+- `DATABASE_URL`과 Supabase 인증 변수는 Phase E에서 실제 도입할 때 별도 설정 묶음으로 확정합니다.
+- 외부 API 연동 전에는 토큰 저장 위치, 만료·갱신, 동기화 충돌, 실패 시 캐시 정책을 먼저 결정합니다.
+
+**우선순위:** 낮음에서 중간. D2 및 Supabase 착수 전 결정합니다.
+
+### 12. Slack 알림과 launchd는 설정과 동작 확인을 분리해야 함
+
+**현재 판단**
+
+`slack-notify.sh`는 Webhook이 없으면 조용히 종료하도록 되어 있습니다. 따라서 URL이 없거나 잘못돼도 사용자는 알림 누락만 보게 됩니다. launchd plist는 현재 저장소 경로를 가리키도록 보이지만, 다른 컴퓨터에서는 절대 경로가 다시 깨질 수 있습니다.
+
+**해결책**
+
+1. 노출된 Webhook을 폐기하고 새 값을 로컬 `.env`에 설정합니다.
+2. 테스트 메시지를 보냅니다.
 
 ```bash
 bash scripts/slack-notify.sh "테스트" "연결 확인"
 ```
 
-Webhook URL은 비밀값이므로 채팅에 공유하지 않고 직접 `.env`에 입력하는 방식이 안전합니다.
+3. `launchctl list | grep com.aicomputeros.worklog`로 등록 상태를 확인합니다.
+4. plist의 `ProgramArguments`, `WorkingDirectory`, 로그 경로가 현재 저장소와 맞는지 확인합니다.
+5. 다른 컴퓨터에서 재사용할 때는 사용자 경로를 해당 환경에 맞게 바꿉니다.
 
-**로드맵 시점:** 제품 기능을 기다릴 필요 없이 **현재 즉시** 처리합니다. 기존 Phase 1 자동화 인프라의 운영 보완 작업입니다.
+**우선순위:** Webhook 보안 조치는 즉시, launchd 재검증은 그 직후입니다.
 
-### Q6. Slack Webhook을 설정했는데도 매일 요약이 안 오면 무엇을 확인해야 하는가?
+## 해결 순서
 
-**답:** launchd에 등록된 plist가 오래된 경로를 가리키는지 확인해야 합니다.
+| 순서 | 할 일 | 완료 기준 |
+|---:|---|---|
+| 1 | Slack Webhook 폐기·재발급 및 `.env.example` 정리 | 예시 파일에 비밀값이 없고 테스트 메시지 수신 |
+| 2 | 위젯 셸 DO-1~6 결정 | 위젯 모델·배치·저장·오류 정책 확정 |
+| 3 | macOS/Ubuntu 환경 문서 분리 | 다른 OS에서 설치 절차 재현 가능 |
+| 4 | `.env` 로딩과 포트 정책 통일 | 설정한 DB 경로·포트로 실제 실행 |
+| 5 | B3·C2 브라우저 E2E와 GUI 수동 확인 | TC-UI-10~16 및 M1~M7 기록 완료 |
+| 6 | 서비스 수준 검증 추가 | backend health와 cleanup 자동 확인 |
+| 7 | 상태 문서 동기화 | README·PROGRESS·TRACEABILITY의 상태 일치 |
+| 8 | C3 캘린더 위젯·더미 API 구현 | 캘린더 빈 목록·정상·오류 테스트 통과 |
+| 9 | C4 다이어그램 뷰어 구현 | ADR-0014와 FR-UI-05 수용 기준 충족 |
+| 10 | 패키징 전 실행 구조 결정 | Electron/backend 시작·종료 정책과 ADR 확정 |
 
-현재 확인된 상태는 다음과 같습니다.
+## 최종 결론
 
-- `launchctl list`에는 `com.aicomputeros.worklog`가 등록되어 있음
-- 마지막 실행 결과가 `exit 127`로 확인됨
-- 설치된 plist가 이전 경로(`/Users/jaeyeup/2026project/...`)를 가리킴
-- 현재 저장소 경로와 설치된 plist의 경로가 다름
+현재 프로젝트는 기반 구현이 완료된 개발 중반 상태이며 자동 검증도 정상입니다. 하지만 다음 기능으로 넘어가기 전에 **위젯 셸 범위 결정**, **macOS와 Ubuntu 환경 구성 분리**, **`.env`·포트 동작 통일**, **실제 서비스 검증 추가**가 필요합니다. 여기에 **노출 가능성이 있는 Slack Webhook 처리**, **브라우저 실제 동작 검증**, **문서 상태 동기화**가 남아 있습니다.
 
-`exit 127`은 명령 또는 파일을 찾지 못한 경우에 발생하므로, 예약 작업이 등록되어 있어도 실제 스크립트가 실행되지 않는 상태로 판단됩니다.
+이 항목들을 정리한 뒤 C3 캘린더 기능으로 진행하는 것이 합리적입니다. Electron이 backend를 자동 실행하는 문제와 Supabase·OAuth 설정은 지금 바로 코드를 늘리기보다, 해당 기능 또는 패키징 단계에 진입할 때 결정하는 편이 변경 비용이 적습니다.
 
-**해결 방향:**
+---
 
-```bash
-launchctl unload ~/Library/LaunchAgents/com.aicomputeros.worklog.plist
-cp scripts/com.aicomputeros.worklog.plist ~/Library/LaunchAgents/
-launchctl load ~/Library/LaunchAgents/com.aicomputeros.worklog.plist
-```
+## 처리 현황 (2026-09-04, `fix/review-followups` — PR #7)
 
-그 다음 plist의 `ProgramArguments`, `WorkingDirectory`, 로그 경로가 현재 저장소 경로를 가리키는지 확인해야 합니다. 다른 컴퓨터에서는 사용자 경로가 달라지므로 하드코딩된 경로를 그대로 재사용하면 안 됩니다.
+| # | 항목 | 상태 | 처리 내용 |
+|:-:|---|:---:|---|
+| 7 | `.env.example` 비밀값 | ✅ 해결 | 유출된 Webhook URL + `= ` 공백 제거(커밋된 깨끗한 버전으로 복원). 실제 값은 `.env`(gitignore). `scripts/check_docs.py` DRIFT-3 이 재발 방지 검사. **Webhook 폐기·재발급은 사용자 조치 필요** |
+| 12 | Slack 알림 / launchd | ✅ 대부분 | Slack: `.env` 에 URL 입력, `slack-notify.sh` + curl HTTP 200 확인. launchd: `scripts/install-worklog-launchd.sh` 신설 — 경로를 현재 저장소로 자동 생성해 하드코딩 제거. plist 는 "템플릿" 으로 명시. **사용자가 새 머신에서 이 스크립트 실행** |
+| 2 | SETUP.md OS 불일치 | ✅ 해결 | `SETUP.md` 전면 개편 — §0 버전 기준표 · §1 공통 · §2 macOS · §3 Ubuntu/WSL · §5 앱 실행·포트 규칙 · §6 트러블슈팅. obsolete "프로젝트 새로 만들기" 절 제거, `.env` 예시의 `SUPABASE_JWT_SECRET`/`DATABASE_URL` 제거 |
+| 5 | 재현 가능한 버전 관리 | ✅ 해결 | `package-lock.json` 은 이미 커밋돼 있었음. `setup.sh` 와 CI(`test.yml`)를 `npm ci` 로 변경(락파일 없으면 `npm install` 폴백). SETUP §0 에 CI/로컬 버전표, §2/§3 에 빌드 도구(Xcode CLT / build-essential) 명시 |
+| 3 | `.env` 가 backend 에 자동 반영 안 됨 | ✅ 문서화 | dotenv 미도입 결정 유지. `ENV_REFERENCE.md` §5 신설 — "주체마다 `.env` 로딩이 다르다" 표 + `export` override 방법. `setup.sh` 출력에도 경고. **dotenv 도입 여부는 D2 재검토(사용자)** |
+| 4 | `PORT` vs frontend 고정 3000 | ✅ 문서화 | "개발 포트 3000 고정" 을 `ENV_REFERENCE.md` §5 · `SETUP.md` §5 에 명시(preload·CSP 가 3000 하드코딩). 가변 포트는 범위 밖으로 명확화 |
+| 6 | 검증이 실행 동작 미보장 | ✅ 해결 | `scripts/smoke.sh` 신설 — 임시 포트+임시 DB 로 backend 기동 → `/api/health` → task 생성/조회/삭제 왕복(SQLite 쓰기) → 정리. `verify.sh` "▶ 서비스 확인"(21/0/0) + CI `backend` 잡에 포함. `TEST_PLAN.md` §0 에 3층(정적·서비스·사용자 흐름) 반영 |
+| 9 | 문서에 과거 상태 잔존 | ✅ 대부분 | 루트 `README.md` 현재 상태 표·ADR 범위 최신화(이전 PR). `scripts/check_docs.py` DRIFT 검사로 재발 억제. **TC-UI 상태는 브라우저 검증(#8) 결과 반영 시 함께** |
+| 11 | env 이름·외부 서비스 시점 | ✅ 문서화 | `ENV_REFERENCE.md` §4 에 "현재 기준은 `DATABASE_PATH`·`PORT`·`NODE_ENV` 셋뿐, Supabase 변수는 Week 10 별도 확정" 명시. `ARCHITECTURE.md` §보안 캐비엇은 기존 유지 |
+| 1 | 위젯 셸 범위 (DO-1~6) | 👤 사용자 | `DASHBOARD_OS.md` §8 에 DO-1~6 + 권고안 이미 정리됨. **착수 전 사용자 결정 필요** (배치=RGL 권고, 저장=localStorage 권고 등) |
+| 8 | 브라우저 CRUD 왕복 검증 | 👤 사용자 | 디스플레이가 필요해 자동화 불가. `SETUP.md` §5 에 실행 절차, `TEST_PLAN.md` §5 체크리스트. 서비스 스모크(#6)가 backend 쪽은 자동 커버 |
+| 10 | Electron/backend 실행 책임 | 👤 사용자 / ⏸ | `RUNTIME_VIEW.md` §5 + `ADR-0016`(제안)에 선택지·권고 정리됨. **패키징(Phase E) 전 결정** |
 
-**로드맵 시점:** **현재 즉시** 처리합니다. Daily Brief 스케줄러와 별개로, 이미 존재하는 작업로그 자동화의 장애 복구입니다.
-
-### Q7. planner·developer·supervisor·finisher가 Slack 봇으로 등록되어야 하는가?
-
-**답:** 아닙니다.
-
-이 네 역할은 Slack 봇이 아니라 Claude Code 서브에이전트입니다. 현재 Slack에는 웹훅을 통해 작업 단계 알림이 메시지로 전달될 뿐이며, Slack 사이드바에 네 개의 봇이 자동으로 나타나는 구조가 아닙니다.
-
-**해결 방향:** Slack에서 필요한 것은 우선 Incoming Webhook 알림이며, 각 서브에이전트를 별도의 Slack 앱으로 만들 필요는 없습니다.
-
-**로드맵 시점:** 별도 개발 작업이 필요하지 않습니다. Webhook 설정과 문서 설명만으로 현재 목적을 충족합니다.
-
-### Q8. Slack에서 `@Claude /feature`를 직접 실행할 수 있는가?
-
-**답:** 현재는 설정되어 있지 않습니다.
-
-Slack 읽기 커넥터가 연결되어 있는 것과 Slack에서 Claude 명령을 실행하는 것은 별개입니다. 양방향 실행을 사용하려면 별도의 Slack 앱 설치와 인증 절차가 필요합니다.
-
-**해결 방향:**
-
-- 기본 운영: Claude Code에서 `/feature` 실행, Slack은 알림 수신만 담당
-- 선택 운영: 대화형 세션에서 `/install-slack-app` 설정 후 Slack 명령 실행을 검토
-- Slack 앱 도입 시 명령 권한, 채널 제한, 실행 결과, 실패 응답을 별도로 정의
-
-**로드맵 시점:** 핵심 기능 완료 전에는 필요하지 않습니다. **Week 11 Mini Agent 단계 이후 또는 Phase E**에서 선택적으로 검토합니다.
-
-### Q9. 오프라인 범위와 현재/목표 계층 문제는 아직 유효한가?
-
-**답:** 이전보다 정리되었습니다.
-
-`DESIGN.md`는 다음을 명시하고 있습니다.
-
-- 네트워크가 없어도 할일·프로젝트 CRUD 가능
-- 마지막으로 동기화된 일정·메일·브리핑은 조회 가능
-- 백엔드 프로세스 종료는 오프라인이 아니라 연결 오류로 처리
-- 목표 계층은 `routes → services → db`이고, 현재는 라우트가 DB를 직접 호출
-
-따라서 이 두 항목은 현재 핵심 결함이라기보다, 향후 구현 시 정책을 유지해야 하는 사항입니다.
-
-**남은 확인 사항:** Supabase 도입 전 동기화 충돌 정책과 캐시 보관 기간은 여전히 결정해야 합니다.
-
-**로드맵 시점:** 오프라인 정책은 C3~D2에서 캐시 기능을 구현할 때 검증하고, 동기화 충돌은 **Phase E2, Week 10 전**에 결정합니다.
-
-### Q10. 테스트가 부족한 기능은 언제 검증해야 하는가?
-
-**답:** 기능 구현과 같은 Phase에서 최소 테스트를 함께 작성해야 합니다.
-
-| 대상 | 권장 시점 |
-|---|---|
-| C2 프로젝트 프론트 배선 | C2 구현과 동시에 API·UI 상태 테스트 |
-| C3 캘린더 API·위젯 | C3 구현과 동시에 캐시·빈 목록·오류 테스트 |
-| D1 Daily Brief | D1 구현과 동시에 Claude 실패·컨텍스트 테스트 |
-| D2 OAuth·Gmail·Calendar | D2 구현과 동시에 모킹·토큰 실패 테스트 |
-| D3 Notion·스케줄·BriefCard | D3 구현과 동시에 저장 실패·재실행 테스트 |
-| E1~E2 인증·Supabase | 구현 전 충돌·권한 정책 결정 후 통합 테스트 |
-| E3 Docker·Electron 패키징 | 패키징 단계에서 실제 실행 스모크 테스트 |
-
-## Slack 문제의 권장 처리 순서
-
-| 순서 | 작업 | 시점 | 성격 |
-|---:|---|---|---|
-| 1 | `.env`에 `SLACK_WEBHOOK_URL` 직접 설정 | 지금 | 필수 운영 설정 |
-| 2 | `slack-notify.sh` 테스트 메시지 확인 | 지금 | 연결 검증 |
-| 3 | launchd plist 교체 및 재등록 | 지금 | 현재 장애 복구 |
-| 4 | 작업로그 23:50 실행·Slack 요약 확인 | 설정 직후 | 운영 검증 |
-| 5 | Daily Brief 스케줄 연결 | Week 7, Phase D3 | 제품 기능 |
-| 6 | `@Claude /feature` 양방향 연동 검토 | Week 11 이후 | 선택 확장 |
-
-## 전체 로드맵에 배치한 결론
-
-| 문제 | 진행 시점 | 관련 Phase |
-|---|---|---|
-| Slack Webhook 비어 있음 | 지금 즉시 | Phase 1 자동화 보완 |
-| launchd 경로 오류 | 지금 즉시 | Phase 1 자동화 보완 |
-| Electron·백엔드 실행 책임 | 지금 결정, C2 전 구현 | Phase B~C |
-| 문서 상태 동기화 | 지금 정리, 이후 매 기능 완료 시 갱신 | 전 Phase 공통 |
-| 상세 요구사항·테스트 공백 | 각 기능 구현 직전 | C2~E3 |
-| Daily Brief 자동 실행 | Week 7 | Phase D3 |
-| 동기화 충돌 정책 | Week 10 전 | Phase E2 준비 |
-| Slack 양방향 명령 | Week 11 이후 선택 | Phase E 또는 Mini Agent |
-
-## 최종 답변
-
-지금 당장 처리할 것은 **Slack Webhook 설정과 launchd plist 복구**입니다. 둘 다 기존 Phase 1 자동화가 깨진 상태이므로 C2나 Daily Brief까지 기다릴 이유가 없습니다.
-
-제품 로드맵에서 새로 진행할 항목은 다음과 같이 보면 됩니다.
-
-- 실행 구조 확정: 현재 결정, C2 이전 구현
-- 문서 상태 정리: 현재 정리, 이후 각 기능 완료 시 갱신
-- 상세 요구사항과 테스트: C2부터 각 기능과 함께 진행
-- Daily Brief 예약 실행: Week 7 / D3
-- Slack 양방향 `@Claude /feature`: Week 11 이후 선택 사항
-
-이번 문서는 문제와 해결 방향을 정리한 결과 기록이며, `ai_결과값.md` 외의 파일은 수정하지 않았습니다.
+**요약:** 7건 해결/문서화 완료, 1건(Slack Webhook 재발급)·3건(DO-1~6, 브라우저 E2E, 실행 책임)은 사용자 조치·결정 필요.

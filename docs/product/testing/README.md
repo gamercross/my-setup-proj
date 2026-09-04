@@ -20,11 +20,13 @@
 
 | 무엇 | 명령 | 대상 |
 |---|---|---|
-| 환경 + 문법 + 테스트 | `bash verify.sh` | 로컬 전체 (현재 19/0/0) |
-| 문법만 (문서 커밋) | `bash verify.sh --code-only` | 12개 검사 |
+| 정적(환경·문법·문서 정합) + 서비스 | `bash verify.sh` | 로컬 전체 (현재 21/0/0) |
+| 정적만 (문서 커밋) | `bash verify.sh --code-only` | 문법 + 문서 정합 |
+| 문서 정합만 | `bash scripts/check-docs.sh` | 링크·ADR표·FR추적·README·드리프트 ([DOC_HEALTH](../../setup/DOC_HEALTH.md)) |
+| 서비스 스모크 | `bash scripts/smoke.sh` | backend 기동·`/api/health`·SQLite 쓰기 왕복 |
 | 백엔드 테스트 | `cd backend && npm test` | supertest + node:test (TC-TASK/PROJ/DB/MW) |
 | 에이전트 테스트 | `cd agent && pytest` | 순수 로직 (TC-AGENT-*) |
-| CI | GitHub Actions `Test & Build` | node 22 / python 3.12, 모든 push·PR |
+| CI | GitHub Actions `Test & Build` | `docs`·`backend`(+smoke)·`frontend`·`agent` 잡, 모든 push·PR |
 
 ## 머지 게이트 (요약 — 전문은 [GIT_WORKFLOW.md](../../setup/GIT_WORKFLOW.md) §1)
 

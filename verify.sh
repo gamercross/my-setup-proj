@@ -82,6 +82,21 @@ else
   echo "❌ 문서 정합 (위 [XREF]/[STRUCT]/[DRIFT] 항목 참고)"; FAIL=$((FAIL + 1))
 fi
 
+# 서비스 스모크 — backend 가 실제로 뜨고 응답하고 SQLite 에 쓰는가.
+# 코드 변경 검증(--code-only 아님)일 때만. 도구·의존성 없으면 스크립트가 SKIP(exit 0).
+if [ "$CODE_ONLY" -eq 0 ]; then
+  echo "▶ 서비스 확인"
+  bash scripts/smoke.sh
+  rc=$?
+  if [ "$rc" -eq 0 ]; then
+    echo "✅ 서비스 스모크"; PASS=$((PASS + 1))
+  elif [ "$rc" -eq 2 ]; then
+    echo "⏭️  서비스 스모크 — SKIP (도구/의존성 없음)"; SKIP=$((SKIP + 1))
+  else
+    echo "❌ 서비스 스모크 (위 로그 참고)"; FAIL=$((FAIL + 1))
+  fi
+fi
+
 echo ""
 echo "결과: 통과 $PASS / 실패 $FAIL / 건너뜀 $SKIP"
 if [ "$FAIL" -ne 0 ]; then

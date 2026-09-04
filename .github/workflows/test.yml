@@ -25,12 +25,13 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: '22'
-      - run: npm install
+      - run: npm ci   # 락파일 그대로 (재현 가능)
       - run: node -c src/server.js  # 문법 검사
       - run: node -c src/app.js  # 문법 검사
       - run: node -c src/db.js  # 문법 검사
       - run: node -c db/index.js  # 문법 검사
       - run: npm test
+      - run: bash ../scripts/smoke.sh   # 서비스 스모크 (기동·health·SQLite 쓰기)
 
   frontend:
     runs-on: ubuntu-latest
@@ -42,7 +43,7 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: '22'
-      - run: npm install
+      - run: npm ci   # 락파일 그대로 (재현 가능)
       - run: node -c src/main.js  # 문법 검사
       - run: npm run build  # Vite 빌드 검증
 

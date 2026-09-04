@@ -62,9 +62,34 @@
 ## 4. `.env.example` 과의 동기화
 
 - 새 키를 코드에서 읽기 시작하면 **같은 PR 에서** `.env.example`(빈 값)과 이 문서를 갱신한다.
-- `.env.example` 에 값을 넣지 않는다(플레이스홀더/기본값만).
-- **확인 필요:** [ARCHITECTURE.md](../product/architecture/ARCHITECTURE.md) §보안 예시에는 `SUPABASE_JWT_SECRET`, `DATABASE_URL` 이 있으나 현재 `.env.example` 에는 없다. 실제 도입 시 어느 쪽을 기준으로 할지 정한다.
+- `.env.example` 에 값을 넣지 않는다(플레이스홀더/기본값만). `scripts/check_docs.py` DRIFT-3 이 시크릿·`= ` 공백을 검사한다.
+- **현재 로컬 실행 기준 변수는 `DATABASE_PATH`·`PORT`·`NODE_ENV` 셋뿐이다.**
+  [ARCHITECTURE.md](../product/architecture/ARCHITECTURE.md) §보안 예시의 `SUPABASE_JWT_SECRET`·`DATABASE_URL` 은
+  **Week 10 Supabase 도입 시** 별도 설정 묶음으로 그때 확정한다 (지금은 예시에서도 쓰지 않는다 — [CROSSCUTTING.md](../product/architecture/CROSSCUTTING.md) §1).
+
+## 5. 실행 시 주의 — 포트·`.env` 로딩 방식
+
+같은 `.env` 라도 **읽는 주체마다 동작이 다르다.** 헷갈리면 여기를 본다.
+
+| 주체 | `.env` 로딩 | 결과 |
+|---|---|---|
+| **backend** (`npm start`) | ❌ 자동 로딩 없음 (dotenv 미도입 — [ADR 재검토 D2](../product/architecture/CROSSCUTTING.md#1-설정-configuration)) | `PORT`·`DATABASE_PATH`·`NODE_ENV` 는 **셸 환경변수**로만 읽힌다. `.env` 에 적어도 반영 안 됨 |
+| **agent** (`daily_brief.py` 등) | `python-dotenv` 로 로딩 예정 (D 단계) | `.env` 값 사용 |
+| **`scripts/slack-notify.sh`·`worklog-eod.sh`** | `. .env` 로 직접 로딩 | `SLACK_WEBHOOK_URL` 은 `.env` 에 넣으면 동작 |
+
+**backend 설정을 바꾸려면 셸에서 export:**
+```bash
+DATABASE_PATH=/tmp/test.db NODE_ENV=production node backend/src/server.js
+# 또는
+export PORT=3000 DATABASE_PATH=... && cd backend && npm start
+```
+
+**개발 포트는 3000 고정.** Electron `preload.js` 의 `apiBaseUrl` 과 prod CSP `connect-src` 가 3000 으로 하드코딩돼 있다.
+`PORT` 를 바꾸면 frontend 는 여전히 3000 으로 요청한다 → **바꾸지 않는다** ([UI_SPEC.md](../product/reference/UI_SPEC.md) §5).
+포트를 가변으로 만들려면 Vite/Electron 실행 시 같은 `BACKEND_PORT` 를 preload 로 주입하는 별도 작업이 필요하다 (현재 범위 밖).
+
+> dotenv 를 도입하기로 결정하면 backend·agent 의 로딩 위치·우선순위·테스트를 함께 표준화하고, 스크립트 방식과 혼용하지 않는다.
 
 ---
 
-**작성:** 2026-09-02
+**작성:** 2026-09-02 · **보강:** 2026-09-04 (§5 포트·로딩 방식)

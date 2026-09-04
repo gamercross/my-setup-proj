@@ -1,636 +1,150 @@
 # ⚙️ 개발 환경 설정 가이드
 
-> Ubuntu Linux에서 AI Computer OS 프로젝트 개발 환경 완전 설정
+> 이 저장소를 **새 컴퓨터에서 개발 가능한 상태**로 만드는 절차. macOS 와 Ubuntu/WSL 을 분리한다.
+> 프로젝트는 이미 존재하므로 "프로젝트를 새로 만드는" 단계는 없다 — clone 후 의존성만 설치한다.
+
+**📂 이동:** [⬆ setup/](README.md) · [docs/](../README.md) · [🚀 ONBOARDING](../ONBOARDING.md) · 환경변수: [ENV_REFERENCE.md](ENV_REFERENCE.md)
 
 ---
 
-## 📋 체크리스트
+## 0. 버전 기준
 
-이 가이드를 따라하면서 각 단계를 체크하세요:
+| 구분 | Node | Python | 비고 |
+|---|---|---|---|
+| **CI (고정)** | 22 | 3.12 | `.github/workflows/test.yml` — 이 버전에서 반드시 통과해야 함 |
+| **로컬 (최소)** | 22 이상 | 3.12 이상 | 상위 버전 허용. `agent/venv` 로 격리되므로 Python 은 시스템에 여러 개 있어도 됨 |
+| **현재 개발 머신** | 26 (Homebrew) | 3.14 | 참고값 |
 
-- [ ] **Section 1: Ubuntu 기본 설정**
-- [ ] **Section 2: Node.js + npm**
-- [ ] **Section 3: Python 환경**
-- [ ] **Section 4: GitHub 설정**
-- [ ] **Section 5: 프로젝트 초기화**
-- [ ] **Section 6: API 키 설정**
-- [ ] **Section 7: 첫 실행**
-
----
-
-## 1️⃣ Ubuntu 기본 설정
-
-### 시스템 정보 확인
-
-```bash
-# Ubuntu 버전 확인
-lsb_release -a
-
-# 커널 버전
-uname -r
-
-# 시스템 업데이트
-sudo apt update
-sudo apt upgrade -y
-```
-
-**예상 출력:**
-```
-Release: 26.04 LTS
-Kernel: 5.15.x 또는 6.x
-```
-
-### 필수 도구 설치
-
-```bash
-# 빌드 도구
-sudo apt install -y build-essential
-sudo apt install -y curl wget git
-
-# 텍스트 편집기
-sudo apt install -y gedit vim nano
-
-# 개발 라이브러리
-sudo apt install -y libssl-dev libffi-dev
-```
-
-### WSL2 (Windows 사용자만)
-
-WSL2를 사용하는 경우:
-
-```bash
-# WSL 업데이트
-wsl --update --pre-release
-
-# 현재 버전 확인
-wsl --version
-
-# Ubuntu 계정 생성
-wslc run -it ubuntu:26.04 bash
-```
+- 의존성 버전은 `package-lock.json`(커밋됨) + `agent/requirements.txt`(핀 고정) 이 기준.
+- 설치는 **`npm ci`**(락파일 그대로) 를 쓴다. `setup.sh` 가 이를 처리하고, 없으면 `npm install` 로 폴백한다.
 
 ---
 
-## 2️⃣ Node.js + npm 설치
-
-### Node.js 설치 (권장: LTS 버전)
-
-> **버전 정책:** CI는 Node 22로 고정. 로컬은 22 이상이면 된다 (개발 머신은 Homebrew `node`로 26 사용 중). macOS는 `brew install node`.
-
-**방법 1: NodeSource에서 설치 (권장, Ubuntu/WSL)**
+## 1. 공통 (OS 무관)
 
 ```bash
-# Node 22 LTS
+git clone https://github.com/gamercross/my-setup-proj.git
+cd my-setup-proj
+
+bash setup.sh     # frontend/backend 의존성(npm ci) + agent venv + .env 준비
+bash verify.sh    # 환경·문법·문서 정합 점검 (현재 13/0/0)
+```
+
+- `setup.sh` 는 `node` / `npm` / `python3` 가 PATH 에 있어야 동작한다 (없으면 아래 OS별 절차로 먼저 설치).
+- `.env` 는 `.env.example` 을 복사해 만든다. **값 채우기는 각 기능 착수 시점** — 지금은 비어 있어도 로컬 개발이 된다 ([ENV_REFERENCE.md](ENV_REFERENCE.md)).
+- 앱 실행법·포트 규칙은 [§5](#5-앱-실행).
+
+---
+
+## 2. macOS
+
+```bash
+# Homebrew (없으면)
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# Xcode Command Line Tools — better-sqlite3 네이티브 빌드에 필요
+xcode-select --install
+
+# Node / Python / gh
+brew install node python@3.12 gh
+
+# (선택) 버전 고정이 필요하면 nodenv/pyenv
+brew install nodenv pyenv
+```
+
+- **better-sqlite3** 는 Node ABI 에 맞춰 네이티브 빌드/prebuild 를 받는다. 실패하면 `xcode-select --install` 을 먼저 확인.
+- 스케줄러는 **launchd**. Daily Brief·작업로그 EOD 는 `scripts/install-worklog-launchd.sh` 로 등록한다 (경로를 현재 저장소로 자동 설정 — 하드코딩 방지).
+- Electron 창은 그냥 뜬다 (별도 디스플레이 설정 불필요).
+
+## 3. Ubuntu / WSL
+
+```bash
+sudo apt update && sudo apt install -y \
+  build-essential curl git python3.12 python3.12-venv python3.12-dev
+
+# Node 22 (NodeSource)
 curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
 sudo apt install -y nodejs
+
+# gh (GitHub CLI)
+sudo apt install -y gh   # 또는 https://github.com/cli/cli 설치 안내
 ```
 
-**방법 2: apt에서 설치**
-
-```bash
-sudo apt install -y nodejs npm
-```
-
-### 버전 확인
-
-```bash
-node --version  # v18.x.x 또는 v20.x.x
-npm --version   # 9.x.x 또는 10.x.x
-```
-
-### npm 업그레이드
-
-```bash
-# npm 최신 버전으로 업그레이드
-npm install -g npm@latest
-
-# yarn 설치 (선택)
-npm install -g yarn
-```
-
-### 권한 설정 (선택)
-
-npm이 권한 오류를 내면:
-
-```bash
-# npm 글로벌 디렉토리 생성
-mkdir ~/.npm-global
-
-# npm 설정
-npm config set prefix '~/.npm-global'
-
-# PATH에 추가 (~/.bashrc 또는 ~/.zshrc)
-export PATH=~/.npm-global/bin:$PATH
-
-# 적용
-source ~/.bashrc  # 또는 source ~/.zshrc
-```
+- **better-sqlite3** 빌드에 `build-essential`(gcc·make) 필요 — 위에 포함.
+- 스케줄러는 **cron** (launchd 없음). `crontab -e` 로 `scripts/worklog-eod.sh` 를 등록한다.
+- **WSL 에서 Electron GUI 는 제약이 있다** — WSLg(최신 Windows) 가 있으면 창이 뜨고, 없으면 `DISPLAY` 설정 또는 X 서버가 필요하다. 브라우저 E2E(TC-UI-*)는 Windows 쪽 브라우저로 하거나 네이티브 Linux/macOS 에서 한다.
 
 ---
 
-## 3️⃣ Python 환경 설정
-
-### Python 설치
-
-> **버전 정책:** CI는 Python 3.12 고정. 로컬은 3.12 이상이면 된다 (개발 머신은 3.14 사용 중 — `agent/venv` 로 격리되므로 무방).
-> macOS 는 python.org 설치본 또는 `brew install python@3.12`.
+## 4. Git·GitHub
 
 ```bash
-# Ubuntu/WSL — Python 3.12
-sudo apt install -y python3.12 python3.12-venv python3.12-dev
-sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 2
+git config --global user.name "이름"
+git config --global user.email "you@example.com"
+
+gh auth login          # HTTPS + 브라우저 인증 권장
 ```
 
-### pip 업그레이드
-
-```bash
-# pip, setuptools, wheel 업그레이드
-python3 -m pip install --upgrade pip setuptools wheel
-```
-
-### 가상 환경 생성
-
-```bash
-# 프로젝트 디렉토리 생성
-mkdir -p ~/my-setup-proj
-cd ~/my-setup-proj
-
-# 가상 환경 생성
-python3 -m venv venv
-
-# 활성화
-source venv/bin/activate
-
-# 비활성화 (나중에)
-deactivate
-```
-
-**확인:**
-```bash
-which python  # .../my-setup-proj/agent/venv/bin/python
-python --version  # Python 3.12 이상
-```
-
-> 실제로는 `bash setup.sh` 가 `agent/venv` 생성과 `pip install -r agent/requirements.txt` 를 한 번에 처리한다.
+- 브랜치 정책: `feature/<짧은-이름>` → 푸시 → PR → `main` ([ADR-0023](../product/architecture/adr/ADR-0023-branch-model.md)). `main` 직접 커밋·`--force` 금지.
+- 커밋·푸시 절차: [GIT_WORKFLOW.md](GIT_WORKFLOW.md).
 
 ---
 
-## 4️⃣ GitHub 설정
+## 5. 앱 실행
 
-### Git 설치
-
-```bash
-sudo apt install -y git git-lfs
-```
-
-### Git 사용자 설정
+**개발 모드는 backend 와 frontend 를 각각 실행한다** (통합 스크립트 없음 — [RUNTIME_VIEW.md](../product/architecture/RUNTIME_VIEW.md), [ADR-0016](../product/architecture/adr/ADR-0016-desktop-process-topology.md) 미결).
 
 ```bash
-# 사용자 정보 설정
-git config --global user.name "당신의 이름"
-git config --global user.email "당신의이메일@example.com"
+# 터미널 A — 백엔드 API
+cd backend && npm start          # http://localhost:3000
 
-# 확인
-git config --global user.name
-git config --global user.email
-
-# 기본 에디터 설정 (선택)
-git config --global core.editor "vim"
+# 터미널 B — Vite dev + Electron
+cd frontend && npm run dev       # Vite :5173, Electron 창
 ```
 
-### SSH 키 생성 (추천)
+### 포트·환경변수 규칙 (중요)
+
+| 사실 | 설명 |
+|---|---|
+| **개발 포트는 3000 고정** | Electron `preload.js` 의 `apiBaseUrl` 이 `http://localhost:3000/api` 로 고정돼 있고, prod CSP `connect-src` 도 3000 이다. `PORT` 를 바꾸면 frontend 가 여전히 3000 으로 요청한다 — **바꾸지 않는다.** |
+| **backend 는 `.env` 를 자동 로딩하지 않는다** | dotenv 미도입 결정 ([ADR 재검토 D2](../product/architecture/CROSSCUTTING.md#1-설정-configuration)). `PORT`·`DATABASE_PATH`·`NODE_ENV` 는 **셸 환경변수**로만 읽힌다. `.env` 에 적어도 `npm start` 에는 반영되지 않는다. |
+| **override 하려면 export** | `DATABASE_PATH=/tmp/test.db NODE_ENV=production node src/server.js` 처럼 명령 앞에 붙이거나 `export` 한다. |
+| **`slack-notify.sh` 는 `.env` 를 읽는다** | 스크립트는 `. .env` 로 직접 로딩 → `SLACK_WEBHOOK_URL` 은 `.env` 에 넣으면 동작한다. (backend 와 로딩 방식이 다르다는 점 유의) |
+
+### 실행이 실제로 되는지 확인
 
 ```bash
-# SSH 키 생성 (엔터 4번 누르면 기본값으로)
-ssh-keygen -t ed25519 -C "당신의이메일@example.com"
-
-# 생성된 공개 키 확인
-cat ~/.ssh/id_ed25519.pub
-
-# 이 키를 GitHub에 등록:
-# 1. https://github.com/settings/keys 접속
-# 2. "New SSH key" 클릭
-# 3. 위의 공개 키 내용 복사해서 붙여넣기
+bash scripts/smoke.sh    # 임시 포트+임시 DB 로 backend 기동 → /api/health 확인 → 정리
 ```
 
-### SSH 연결 테스트
-
-```bash
-# SSH 에이전트 시작 (이미 켜져있을 수 있음)
-eval "$(ssh-agent -s)"
-
-# 키 추가
-ssh-add ~/.ssh/id_ed25519
-
-# GitHub 연결 테스트
-ssh -T git@github.com
-
-# 예상 출력:
-# Hi [username]! You've successfully authenticated...
-```
-
-### GitHub 저장소 생성
-
-```bash
-# 웹브라우저에서: https://github.com/new
-
-# 저장소명: my-setup-proj
-# 설명: Personal productivity AI agent
-# 공개/비공개: 비공개
-# README: 체크
-# .gitignore: Node 선택
-# License: MIT
-
-# 클론
-git clone git@github.com:YOUR_USERNAME/my-setup-proj.git
-cd my-setup-proj
-```
+`verify.sh` 는 파일·문법·문서 정합만 본다. `smoke.sh` 가 "backend 가 실제로 뜨고 응답하는가"를 본다.
 
 ---
 
-## 5️⃣ 프로젝트 초기화
+## 6. 트러블슈팅
 
-### 폴더 구조 생성
-
-```bash
-cd ~/my-setup-proj
-
-# 폴더 생성
-mkdir -p frontend backend agent tests docs
-
-# 파일 생성
-touch frontend/.gitkeep backend/.gitkeep agent/.gitkeep
-```
-
-### Node.js 프로젝트 초기화
-
-```bash
-# frontend 디렉토리에서
-cd frontend
-npm create electron-app . --template=webpack
-npm install react react-dom
-npm install -D tailwindcss postcss autoprefixer
-npm install zustand
-
-# 설치 확인
-npm list
-```
-
-### Python 프로젝트 초기화
-
-```bash
-# backend 또는 agent 디렉토리에서
-cd ../agent
-
-# 가상 환경이 활성화 되어있는지 확인
-which python  # should show venv/bin/python
-
-# 필수 라이브러리 설치
-pip install --upgrade pip
-
-# requirements.txt 생성
-cat > requirements.txt << EOF
-anthropic==0.25.0
-google-auth-oauthlib==1.0.0
-google-auth-httplib2==0.2.0
-google-api-python-client==2.100.0
-notion-client==2.2.0
-python-dotenv==1.0.0
-apscheduler==3.10.0
-supabase==2.0.0
-pytest==7.4.0
-black==23.9.0
-flake8==6.1.0
-EOF
-
-# 설치
-pip install -r requirements.txt
-```
-
-### .gitignore 설정
-
-```bash
-cd ~/my-setup-proj
-
-cat > .gitignore << EOF
-# Environment
-.env
-.env.local
-.env.*.local
-
-# Dependencies
-node_modules/
-venv/
-__pycache__/
-*.pyc
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Build
-dist/
-build/
-*.egg-info/
-
-# Logs
-*.log
-npm-debug.log
-
-# Database
-*.db
-*.sqlite3
-
-# Temporary
-tmp/
-temp/
-.cache/
-EOF
-```
+| 증상 | 확인 |
+|---|---|
+| `command not found: node` | OS별 §2/§3 로 설치. `which node` |
+| `better-sqlite3` 빌드 실패 | macOS: `xcode-select --install` / Ubuntu: `sudo apt install build-essential`. Node 버전이 22 계열인지 |
+| 대시보드가 전부 "백엔드에 연결할 수 없습니다" | 터미널 A 에서 `cd backend && npm start` 를 안 띄웠거나 3000 포트 충돌 |
+| `DATABASE_PATH` 를 바꿨는데 DB 가 여전히 `backend/data/app.db` | `.env` 가 아니라 셸 환경변수로 export 해야 함 (위 §5 표) |
+| Slack 알림이 안 옴 | `.env`(`.env.example` 아님)의 `SLACK_WEBHOOK_URL` 확인 → `bash scripts/slack-notify.sh "✅" "test" "hi"` |
+| WSL 에서 Electron 창이 안 뜸 | WSLg 확인 (`wsl --version`), 없으면 X 서버·`DISPLAY` 필요. E2E 는 다른 환경에서 |
 
 ---
 
-## 6️⃣ API 키 설정
+## 7. 완료 체크리스트
 
-### .env 파일 생성
+- [ ] `node --version` ≥ 22, `python3 --version` ≥ 3.12
+- [ ] `bash setup.sh` 성공
+- [ ] `bash verify.sh` 13/0/0
+- [ ] `bash scripts/smoke.sh` — backend health OK
+- [ ] `gh auth status` 인증됨
+- [ ] (선택) 스케줄러 등록 — macOS `scripts/install-worklog-launchd.sh` / Ubuntu `crontab`
 
-```bash
-# 프로젝트 루트에서
-cat > .env << EOF
-# Google APIs
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
-GOOGLE_REDIRECT_URI=http://localhost:3000/auth/callback
-
-# Notion
-NOTION_API_KEY=
-
-# Claude API
-ANTHROPIC_API_KEY=
-
-# Supabase
-SUPABASE_URL=
-SUPABASE_KEY=
-SUPABASE_JWT_SECRET=
-
-# Database
-DATABASE_URL=sqlite:///./app.db
-
-# App Config
-NODE_ENV=development
-PORT=3000
-PYTHONPATH=$(pwd)/agent
-EOF
-```
-
-### 각 API 키 발급
-
-#### Claude API
-```bash
-# 1. https://console.anthropic.com 접속
-# 2. 로그인 또는 회원가입
-# 3. API Keys 섹션에서 키 생성
-# 4. 키를 .env의 ANTHROPIC_API_KEY에 붙여넣기
-
-# 테스트
-cat > test_claude.py << 'PYTHON'
-from anthropic import Anthropic
-import os
-
-api_key = os.getenv("ANTHROPIC_API_KEY")
-client = Anthropic(api_key=api_key)
-
-response = client.messages.create(
-    model="claude-opus-5",
-    max_tokens=100,
-    messages=[{"role": "user", "content": "Hello, Claude!"}]
-)
-print(response.content[0].text)
-PYTHON
-
-python test_claude.py
-```
-
-#### Google APIs
-```bash
-# 1. https://console.cloud.google.com 접속
-# 2. 새 프로젝트 생성: "my-setup-proj"
-# 3. Google Calendar API 활성화
-# 4. Google Gmail API 활성화
-# 5. OAuth 2.0 동의 화면 설정
-# 6. 클라이언트 ID (데스크톱 앱) 생성
-# 7. 다운로드한 JSON에서 값 복사
-```
-
-#### Supabase
-```bash
-# 1. https://supabase.com 접속
-# 2. 로그인 또는 회원가입
-# 3. 새 프로젝트 생성: "my-setup-proj"
-# 4. 프로젝트 설정에서 URL과 API Key 복사
-# 5. .env에 붙여넣기
-```
-
-#### Notion API
-```bash
-# 1. https://www.notion.so/my-integrations 접속
-# 2. "+ Create new integration" 클릭
-# 3. 이름: "AI Computer OS"
-# 4. 권한: read, update, insert, delete 체크
-# 5. 생성된 Internal Integration Token 복사
-```
+완료 후 → [ONBOARDING.md](../ONBOARDING.md) → [ROADMAP.md](../product/ROADMAP.md)
 
 ---
 
-## 7️⃣ 첫 실행
-
-### Electron 앱 실행
-
-```bash
-cd ~/my-setup-proj/frontend
-
-# 개발 모드로 실행
-npm start
-
-# 또는
-npm run dev
-```
-
-**기대 결과:** Electron 창이 열리고 "Welcome to Electron" 메시지 표시
-
-### Express 서버 실행
-
-```bash
-cd ~/my-setup-proj/backend
-
-# 서버 시작
-npm start
-
-# 또는 nodemon 설치 후
-npm install -D nodemon
-npm run dev
-```
-
-**확인:**
-```bash
-curl http://localhost:3000
-
-# 또는
-curl http://localhost:3000/api/tasks
-```
-
-### Python 에이전트 테스트
-
-```bash
-# 가상 환경 활성화
-source ~/my-setup-proj/venv/bin/activate
-
-cd ~/my-setup-proj/agent
-
-# 테스트 실행
-python test_claude.py
-
-# 또는 pytest
-pytest tests/ -v
-```
-
----
-
-## 🔧 트러블슈팅
-
-### Node.js 설치 문제
-
-```bash
-# 문제: "command not found: node"
-# 해결: 경로 확인
-which node
-which npm
-
-# 또는 재설치
-sudo apt remove -y nodejs npm
-curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-sudo apt install -y nodejs
-```
-
-### Python 가상 환경 문제
-
-```bash
-# 문제: 가상 환경이 활성화 안 됨
-# 해결:
-source ~/my-setup-proj/venv/bin/activate
-
-# 확인
-which python  # should show venv path
-```
-
-### Git SSH 권한
-
-```bash
-# 문제: "Permission denied (publickey)"
-# 해결:
-# 1. SSH 에이전트 확인
-eval "$(ssh-agent -s)"
-ssh-add ~/.ssh/id_ed25519
-
-# 2. 키 권한 확인
-chmod 600 ~/.ssh/id_ed25519
-chmod 644 ~/.ssh/id_ed25519.pub
-```
-
-### Electron 실행 안 됨
-
-```bash
-# 문제: Electron 창이 안 뜸
-# 해결:
-npm list electron
-npm install
-
-# X11 문제 (WSL)
-export DISPLAY=:0
-npm start
-```
-
----
-
-## ✅ 설정 완료 체크리스트
-
-모든 항목을 완료했나요?
-
-- [ ] Ubuntu 26.04 LTS 확인
-- [ ] Node.js v18+ 설치
-- [ ] npm 10+ 설치
-- [ ] Python 3.11+ 설치
-- [ ] pip 최신 버전
-- [ ] Git 설정 완료
-- [ ] SSH 키 생성 및 GitHub 등록
-- [ ] GitHub 저장소 클론
-- [ ] .env 파일 생성
-- [ ] 모든 API 키 추가
-- [ ] Electron 앱 실행 확인
-- [ ] Express 서버 실행 확인
-- [ ] Python 에이전트 테스트 완료
-
-**모두 완료했다면 다음으로 이동:**
-→ [ROADMAP.md](../product/ROADMAP.md) 에서 Phase 1 시작!
-
----
-
-## 📚 추가 자료
-
-### Ubuntu 명령어 학습
-```bash
-# 도움말 보기
-man ls
-man cd
-man mkdir
-
-# 온라인 리소스
-# - https://wikidocs.net/book/10238
-# - https://ubuntu.com/tutorials
-```
-
-### Node.js 학습
-```bash
-# Node.js 공식 문서
-# - https://nodejs.org/en/docs/
-
-# NPM 공식 문서
-# - https://docs.npmjs.com/
-```
-
-### Python 학습
-```bash
-# Python 공식 문서
-# - https://docs.python.org/3/
-
-# Virtual Environment
-# - https://docs.python.org/3/tutorial/venv.html
-```
-
----
-
-## 💾 환경 백업
-
-설정을 백업하려면:
-
-```bash
-# 현재 설정 내보내기
-npm list -g --depth=0 > npm-global.txt
-pip freeze > requirements.txt
-git config --global -l > git-config.txt
-
-# 복원 (새 머신)
-npm install -g $(cat npm-global.txt)
-pip install -r requirements.txt
-```
-
----
-
-**마지막 업데이트:** 2026-09-02  
-**다음 단계:** 프로젝트 초기화 후 [ROADMAP.md](../product/ROADMAP.md) 참고
+**작성:** 2026-09-02 · **개편:** 2026-09-04 (OS 분리, obsolete 절 제거, 포트·`.env` 로딩 규칙 명시)
