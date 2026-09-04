@@ -45,6 +45,7 @@ vision  →  requirements  →  architecture  →  reference · testing
 - 각 폴더 `README.md` 상단에 **네비게이션 바**(⬆ 상위 · 카테고리 형제 · 🚀 ONBOARDING)가 있다.
 - 각 문서 표에는 **`언제 참조`** 와 **`⚠️ 놓치기 쉬운 것`** 열이 있다 — 에이전트/사람이 훑고 바로 필요한 문서로 간다.
 - "이 문서와 코드가 다르면 코드가 맞다" — 단일 원천은 `backend/db/schema.sql`(스키마), `.env.example`+[ENV_REFERENCE](setup/ENV_REFERENCE.md)(환경변수), 각 라우트 코드(API 동작).
+- 이 구조가 실제로 일관되고 완결돼 있는지는 **`bash scripts/check-docs.sh`** 가 검사한다 (링크·ADR표·FR추적·폴더 README 커버리지·드리프트 — `verify.sh`·CI 포함). 작업 착수 전 `--bundle <FR-ID>` 로 필요한 문서를 한 번에 모을 수 있다. → [setup/DOC_HEALTH.md](setup/DOC_HEALTH.md)
 
 ---
 

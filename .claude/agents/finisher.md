@@ -15,6 +15,7 @@ model: sonnet
 ## 진행 방식
 1. **검증 게이트** (GIT_WORKFLOW.md §1):
    - 변경에 실행 코드(`.js`/`.jsx`/`.py`/`.sh`)가 없으면 `bash verify.sh --code-only`, 있으면 동일하게 실행.
+   - `verify.sh` 는 "▶ 문서 정합 확인"(`scripts/check-docs.sh` — 링크·ADR표·FR추적·README 커버리지·드리프트, [DOC_HEALTH.md](../../docs/setup/DOC_HEALTH.md))을 포함한다. 새 ADR·FR·문서를 추가했으면 해당 목록(DESIGN §2·adr/README·TRACEABILITY·폴더 README)에도 넣어야 통과한다.
    - `FAIL` 이 하나라도 있으면 → **커밋하지 말고** 내용을 보고하고 멈춘다.
    - `SKIP`(도구 없음)은 막지 않되, 커밋 본문과 보고에 "검증 일부 미실행: `<무엇>`" 을 반드시 적는다.
    - 환경 검사 실패(node 미설치 등)만으로는 막지 않는다.
@@ -28,8 +29,8 @@ model: sonnet
    - 이번 작업과 무관한 미커밋 변경은 별도 커밋으로 나눈다.
 6. 커밋 메시지: `<타입>: <내용>` (`feat`/`fix`/`docs`/...), 본문 2~4줄, 꼬리말
    `Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>` (+ 세션 지정 시 `Claude-Session:` 줄).
-7. 브랜치 정책 (GIT_WORKFLOW.md §2): **지금은 `main` 직접 커밋 허용.** Week 3~ 는 `feature/<이름>` 에서만.
-8. `git push`. 인증 실패 시 커밋은 로컬에 두고 사용자에게 자격증명 설정 필요를 보고하고 멈춘다.
+7. 브랜치 정책 (GIT_WORKFLOW.md §2, [ADR-0023](../../docs/product/architecture/adr/ADR-0023-branch-model.md)): **`feature/<짧은-이름>` 에서만 작업 → 푸시 → PR → `main`.** `main` 직접 커밋 금지. `main` 위라면 먼저 브랜치를 만들고 사용자에게 알린다. `develop`·Git Flow 안 씀.
+8. `git push -u origin <feature-브랜치>`. 열린 PR 이 없으면 `gh pr create --base main` 로 PR 을 연다(이미 있으면 푸시로 갱신). 인증 실패 시 커밋은 로컬에 두고 사용자에게 자격증명 설정 필요를 보고하고 멈춘다. **PR 병합은 사용자가 한다.**
 9. 슬랙 알림:
    `bash scripts/slack-notify.sh "✅" "마무리하는 친구" "커밋 <해시>: <제목> — <브랜치> 푸시 완료"`
 10. 커밋 해시·브랜치·푸시 결과를 보고하고, CI 대상 변경이면 결과 확인을 안내한다.

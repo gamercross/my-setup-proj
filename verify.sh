@@ -72,6 +72,16 @@ syntax_check "backend middleware/requestLogger.js 문법" node node -c backend/s
 syntax_check "backend middleware/errorHandler.js 문법"  node node -c backend/src/middleware/errorHandler.js
 syntax_check "agent 파이썬 문법"        python3 python3 -m compileall -q agent
 
+echo "▶ 문서 정합 확인"
+# 문서·오케스트레이션 정합 (링크·ADR표·FR추적·README커버리지·드리프트) — docs/setup/DOC_HEALTH.md
+if ! command -v python3 >/dev/null 2>&1; then
+  echo "⏭️  문서 정합 — SKIP (python3 없음)"; SKIP=$((SKIP + 1))
+elif bash scripts/check-docs.sh; then
+  echo "✅ 문서 정합"; PASS=$((PASS + 1))
+else
+  echo "❌ 문서 정합 (위 [XREF]/[STRUCT]/[DRIFT] 항목 참고)"; FAIL=$((FAIL + 1))
+fi
+
 echo ""
 echo "결과: 통과 $PASS / 실패 $FAIL / 건너뜀 $SKIP"
 if [ "$FAIL" -ne 0 ]; then
