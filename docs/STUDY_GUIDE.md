@@ -3,6 +3,8 @@
 > "프로세스는 잡혀 있는데 더 큰 틀의 아키텍처가 부족하다" 는 피드백에 대응하기 위한 공부 목록.
 > 이 프로젝트의 어느 문서가 그 개념을 쓰는지 같이 표시한다.
 
+**📂 이동:** [⬆ docs/](README.md) · [🚀 ONBOARDING](ONBOARDING.md) · [🏛 architecture/](product/architecture/README.md) · [📐 adr/](product/architecture/adr/README.md)
+
 ---
 
 ## 1. 지금 부족한 것 (한눈에)

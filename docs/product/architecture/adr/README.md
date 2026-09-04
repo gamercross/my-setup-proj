@@ -3,6 +3,11 @@
 > 하나의 설계 결정 = 하나의 파일. 이후 모든 아키텍처 결정은 여기에 ADR 추가로만 남긴다.
 > 배경 전체는 [DESIGN.md](../DESIGN.md), 용어는 [GLOSSARY.md](../../reference/GLOSSARY.md).
 
+**📂 이동:** [⬆ architecture/](../README.md) · [product/](../../README.md) · [docs/](../../../README.md) · [🚀 ONBOARDING](../../../ONBOARDING.md)
+**형제 뷰:** [DESIGN](../DESIGN.md) · [ARCHITECTURE_DRIVERS](../ARCHITECTURE_DRIVERS.md) · [RUNTIME_VIEW](../RUNTIME_VIEW.md) · [DATA_ARCHITECTURE](../DATA_ARCHITECTURE.md) · [CROSSCUTTING](../CROSSCUTTING.md) · [ARCHITECTURE_EVOLUTION](../ARCHITECTURE_EVOLUTION.md)
+
+> **상태 요약:** 0001~0012 채택 · 0013~0022 제안(착수 전 결정) · 0023 채택. 제안 ADR 은 관련 Phase 착수 전에 사용자가 결정한다.
+
 ## 템플릿
 
 ```markdown

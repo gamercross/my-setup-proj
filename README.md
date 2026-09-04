@@ -26,77 +26,49 @@
 
 ---
 
-## 📚 문서 지도
+## 📚 문서 지도 — 어디로 갈까
 
-**처음이면 → [docs/ONBOARDING.md](docs/ONBOARDING.md)** (읽는 순서·규칙·명령 요약).
-**아키텍처를 더 공부하려면 → [docs/STUDY_GUIDE.md](docs/STUDY_GUIDE.md)** (부족한 부분 진단 + 학습 목록).
+**모든 폴더에 `README.md` 가 있고 서로 링크된다.** 어느 README 에서 시작해도 상단 네비게이션 바로 상위·형제 폴더로 이동할 수 있다. 이 표에서 원하는 폴더 README 로 들어가면, 그 안에 문서별 `무엇 / 언제 참조 / ⚠️ 놓치기 쉬운 것` 표가 있다.
 
-문서는 목적별로 세 갈래(`product/` · `setup/` · `progress/`)로 나뉘고, `product/` 는 다시 5개 폴더로 카테고리화돼 있다. 폴더 지도(다이어그램)는 [ONBOARDING.md](docs/ONBOARDING.md#문서-지도-2026-09-03-카테고리화).
+### 진입점
 
-### 1. 무엇을 만드는가 — [`docs/product/`](docs/product/)
-
-#### `vision/` — 왜·누구를 위해
-
-| 문서 | 내용 |
+| 나는… | → |
 |---|---|
-| [vision/VISION.md](docs/product/vision/VISION.md) | 제품 정의 (대시보드 OS), 목표, 핵심 기능 4종, 완료 기준 (큰 그림 다이어그램) |
-| [vision/DASHBOARD_OS.md](docs/product/vision/DASHBOARD_OS.md) | 🆕 위젯 셸 개념 분석 — 각 데이터가 위젯으로 움직이고 위젯마다 디자인. 벤치마크·위젯 모델·공부 목록·열린 질문 |
-| [vision/AS_IS.md](docs/product/vision/AS_IS.md) | 현행 구현 상태 분석, 모듈 의존 그래프, 갭 G1~G9 |
-| [vision/USE_SCENARIOS.md](docs/product/vision/USE_SCENARIOS.md) | 이해관계자, 사용 여정 S-1~S-6 |
-| [vision/CONSTRAINTS.md](docs/product/vision/CONSTRAINTS.md) | 제약·가정, 규모/비용 추정 |
-| [vision/RISKS.md](docs/product/vision/RISKS.md) | 리스크 레지스터 (R-1~R-16, Phase 축 타임라인) |
+| **처음이다** (15분 온보딩 — 읽는 순서·규칙·명령) | [docs/ONBOARDING.md](docs/ONBOARDING.md) |
+| **폴더를 훑고 싶다** (최상위 허브) | [docs/README.md](docs/README.md) |
+| **아키텍처를 더 공부하고 싶다** | [docs/STUDY_GUIDE.md](docs/STUDY_GUIDE.md) |
 
-#### `requirements/` — 무엇을 만족해야
+### 폴더 README (여기서 각 폴더 안으로)
 
-| 문서 | 내용 |
-|---|---|
-| [requirements/REQUIREMENTS_FUNCTIONAL.md](docs/product/requirements/REQUIREMENTS_FUNCTIONAL.md) + [TASK·UI·AGENT·PROJ·WIDGET](docs/product/requirements/) | 기능 요구사항(FR) 요약표 (도메인 지도) + 도메인별 수용 기준. WIDGET = 위젯 셸(대시보드 OS) |
-| [requirements/REQUIREMENTS_NONFUNCTIONAL.md](docs/product/requirements/REQUIREMENTS_NONFUNCTIONAL.md) | 비기능 요구사항(NFR) 8범주 (범주→아키텍처 대응 지도) |
-| [requirements/TRACEABILITY.md](docs/product/requirements/TRACEABILITY.md) | FR/NFR ↔ 갭 ↔ 설계 ↔ 단계 ↔ 테스트 ↔ 코드 (추적 사슬 다이어그램) |
+```mermaid
+flowchart TB
+  ROOT["📕 README.md (여기)"] --> DOCS["📚 docs/README.md<br/>최상위 허브"]
+  DOCS --> P["📦 product/README.md"]
+  DOCS --> SET["🔧 setup/README.md"]
+  DOCS --> PRG["📈 progress/README.md"]
+  P --> V["🎯 vision/"] --> R["✅ requirements/"] --> A["🏛 architecture/"]
+  A --> ADR["📐 adr/"]
+  A --> REF["📚 reference/"]
+  A --> T["🧪 testing/"]
+  V -.-> SET
+  R -.-> PRG
+  A -.-> STUDY["📖 STUDY_GUIDE.md"]
+```
 
-#### `architecture/` — 어떻게 만드나
+| README | 질문 | 대표 문서 | 바로 이럴 때 |
+|---|---|---|---|
+| [docs/](docs/README.md) | 전체 허브 | ONBOARDING · STUDY_GUIDE | 어디로 갈지 모를 때 |
+| [product/](docs/product/README.md) | 무엇을 만드나 (5 카테고리 허브) | — | 제품 전반 |
+| [product/vision/](docs/product/vision/README.md) | 왜·완료의 정의 | VISION · DASHBOARD_OS · AS_IS · RISKS | 방향·범위 판단 |
+| [product/requirements/](docs/product/requirements/README.md) | 무엇을 만족해야 | FR · NFR · TRACEABILITY · TASK/UI/AGENT/PROJ/WIDGET | "이거 어느 FR인가" |
+| [product/architecture/](docs/product/architecture/README.md) | 어떻게 만드나 (구조·결정) | ARCHITECTURE §0 뷰 지도 · DESIGN · DRIVERS · RUNTIME/DATA/CROSSCUTTING/EVOLUTION | 구현 착수 전 |
+| [product/architecture/adr/](docs/product/architecture/adr/README.md) | 결정 이력 | ADR-0001~0023 (채택/제안) | "왜 이렇게 정했나" |
+| [product/reference/](docs/product/reference/README.md) | 정확한 계약 | API_REFERENCE · UI_SPEC · DATA_DICTIONARY · GLOSSARY | 코드 작성 중 |
+| [product/testing/](docs/product/testing/README.md) | 어떻게 검증 | TEST_PLAN (피라미드·TC-·머지 게이트) | PR 전 자기 점검 |
+| [setup/](docs/setup/README.md) | 환경·도구·규칙 | SETUP · CONVENTIONS · GIT_WORKFLOW · ORCHESTRATION · AUTOMATION · DIAGRAMS · CLAUDE_INTEGRATION | 세팅·커밋·파이프라인 |
+| [progress/](docs/progress/README.md) | 지금 어디까지 | PROGRESS · COURSE_MAPPING · (루트 [작업로그.md](작업로그.md)) | 다음 할 일 |
 
-| 문서 | 내용 |
-|---|---|
-| [architecture/ARCHITECTURE.md](docs/product/architecture/ARCHITECTURE.md) | 기술 스택 큰 그림 + **§0 아키텍처 뷰 지도** (여기서 아래로 분기) |
-| [architecture/DESIGN.md](docs/product/architecture/DESIGN.md) + [adr/](docs/product/architecture/adr/) | 컴포넌트·데이터 모델·흐름 시퀀스·Phase 계획 · 결정 이력(ADR-0001~0019) |
-| [architecture/ARCHITECTURE_DRIVERS.md](docs/product/architecture/ARCHITECTURE_DRIVERS.md) | ASR·품질 속성 시나리오·피트니스 함수·트레이드오프 |
-| [architecture/RUNTIME_VIEW.md](docs/product/architecture/RUNTIME_VIEW.md) | 프로세스·시작/종료·연결 상태 머신 |
-| [architecture/DATA_ARCHITECTURE.md](docs/product/architecture/DATA_ARCHITECTURE.md) | 스키마 진화·캐시·동기화 충돌·데이터 분류 (수명주기 다이어그램) |
-| [architecture/CROSSCUTTING.md](docs/product/architecture/CROSSCUTTING.md) | 설정·오류 계약·로깅·복원력 (관심사 관통 다이어그램) |
-| [architecture/ARCHITECTURE_EVOLUTION.md](docs/product/architecture/ARCHITECTURE_EVOLUTION.md) | 로컬 → 다중 사용자/클라우드 진화 경로 |
-
-#### `reference/` — 정확한 계약 · `testing/` — 검증
-
-| 문서 | 내용 |
-|---|---|
-| [reference/GLOSSARY.md](docs/product/reference/GLOSSARY.md) | 도메인·상태값·시스템 용어 |
-| [reference/DATA_DICTIONARY.md](docs/product/reference/DATA_DICTIONARY.md) | DB 필드 단위 설명 (원천: `backend/db/schema.sql`) |
-| [reference/API_REFERENCE.md](docs/product/reference/API_REFERENCE.md) | 백엔드 REST 엔드포인트별 요청/응답·검증·curl |
-| [reference/UI_SPEC.md](docs/product/reference/UI_SPEC.md) | 화면·컴포넌트 트리·스토어 계약, 렌더 상태 다이어그램 |
-| [testing/TEST_PLAN.md](docs/product/testing/TEST_PLAN.md) | 테스트 피라미드·케이스(TC-xx)·머지 게이트 |
-| [ROADMAP.md](docs/product/ROADMAP.md) · [DOC_PLAN.md](docs/product/DOC_PLAN.md) | 주차별 일정 (product/ 루트) · 문서 계획(메타) |
-
-### 2. 어떤 세팅이 필요한가 — [`docs/setup/`](docs/setup/)
-
-| 문서 | 내용 |
-|---|---|
-| [SETUP.md](docs/setup/SETUP.md) | 개발 환경 구축 (Node.js / Python / Git / API 키) |
-| [ENV_REFERENCE.md](docs/setup/ENV_REFERENCE.md) | `.env` 키별 용도·발급 방법·보안 규칙 |
-| [CONVENTIONS.md](docs/setup/CONVENTIONS.md) | 코드·구조·커밋·에이전트 작업 규칙 (단일 원천) |
-| [GIT_WORKFLOW.md](docs/setup/GIT_WORKFLOW.md) | 에이전트 커밋·푸시 절차, 검증 게이트 해석 |
-| [ORCHESTRATION.md](docs/setup/ORCHESTRATION.md) | 에이전트 파이프라인 상태 그래프, `/build-next` 자동 진행 |
-| [AUTOMATION.md](docs/setup/AUTOMATION.md) | 에이전트 팀 · `/feature` · `/build-next` · 작업로그 · 슬랙 · CI |
-| [DIAGRAMS.md](docs/setup/DIAGRAMS.md) | Mermaid 다이어그램 작성·열람·이미지 내보내기 |
-| [CLAUDE_INTEGRATION.md](docs/setup/CLAUDE_INTEGRATION.md) | Claude API·MCP 설정, Daily Brief 에이전트 |
-
-### 3. 얼마나 됐는가 — [`docs/progress/`](docs/progress/)
-
-| 문서 | 내용 |
-|---|---|
-| [PROGRESS.md](docs/progress/PROGRESS.md) | 주간 진행 상황, 체크리스트, 마일스톤 (매주 월요일 갱신) |
-| [COURSE_MAPPING.md](docs/progress/COURSE_MAPPING.md) | 강의 주차 ↔ 프로젝트 작업 매핑 |
-| [작업로그.md](작업로그.md) | 날짜별 요약(작성) + 커밋(자동). 매 턴 갱신, 매일 23:50 커밋·슬랙 |
+카테고리 밖 (product/ 루트): [ROADMAP.md](docs/product/ROADMAP.md) 주차별 일정 · [DOC_PLAN.md](docs/product/DOC_PLAN.md) 문서 계획(메타)
 
 ---
 
@@ -144,20 +116,20 @@ my-setup-proj/
 
 ---
 
-## 📊 현재 상태 (2026-09-03)
+## 📊 현재 상태 (2026-09-04)
 
 | 영역 | 상태 |
 |---|---|
-| 개념 설계 · 요구사항 · 아키텍처 문서 | ✅ 완료 (`docs/product/`) |
+| 개념 설계 · 요구사항 · 아키텍처 문서 (뷰별 심화 + ADR-0001~0023) | ✅ (`docs/product/`) |
 | 자동화 인프라 (에이전트 팀 · 작업로그 · CI · GIT_WORKFLOW) | ✅ 동작 |
-| 로컬 개발 환경 (node 26 · python 3.14 · venv) | ✅ Phase A2 (`verify.sh` 15/0/0) |
-| 자동화 테스트 | ✅ Phase A3 — backend 18 · agent 3, CI 초록 |
-| 프론트엔드 React | ✅ Phase B1 — Vite + `renderer.jsx` 마운트 (창 수동 확인만 남음) |
-| DB (SQLite) | ✅ Phase B2 — better-sqlite3, WAL, `DATABASE_PATH` |
-| 백엔드 tasks/projects CRUD | 🚧 라우트 ✅ + SQLite ✅ · 미들웨어(CORS/로깅) 정식화는 C1 |
-| 프론트↔백엔드 배선 (할일 CRUD E2E) | ⏳ Phase B3 (다음) — CORS(C1) 결정 대기 |
-| AI 에이전트 | 🚧 뼈대 + 스텁 (모듈 import 확인) |
-| 다이어그램 뷰어 (FR-UI-05) | ⏳ Phase C4 — [ADR-0014](docs/product/architecture/adr/ADR-0014-dashboard-diagram-viewer.md) 제안 |
+| 로컬 개발 환경 (node 26 · python 3.14 · venv) | ✅ Phase A2 |
+| 자동화 테스트 | ✅ backend 39 · agent 3, CI 초록 (A3·B2·C1·C2) |
+| 프론트엔드 React (Vite 마운트) | ✅ Phase B1 |
+| DB (SQLite, better-sqlite3 · WAL · `DATABASE_PATH`) | ✅ Phase B2 |
+| 백엔드 tasks/projects CRUD + 미들웨어(CORS·로깅·에러) + 오류 매핑 | ✅ B2·C1·C2 |
+| 프론트↔백엔드 배선 (할일 B3 · 프로젝트 C2) | ✅ 코드 — 브라우저 E2E(TC-UI-10~16) 로컬 수동 확인 대기 |
+| AI 에이전트 | 🚧 뼈대 + 스텁 |
+| 캘린더 위젯 / 다이어그램 뷰어 / 위젯 셸 | ⏳ C3 / C4 ([ADR-0014](docs/product/architecture/adr/ADR-0014-dashboard-diagram-viewer.md)) / C5~C6 ([ADR-0020~0022](docs/product/architecture/adr/README.md), 제안) |
 
 정확한 최신은 [AS_IS.md](docs/product/vision/AS_IS.md) · [TRACEABILITY.md](docs/product/requirements/TRACEABILITY.md) · `git log`. 다음 할 일은 [PROGRESS.md](docs/progress/PROGRESS.md).
 
@@ -176,7 +148,8 @@ planner(계획) → developer(구현) → supervisor(리뷰·검증) → finishe
 
 - 상태 그래프·정지 조건: [ORCHESTRATION.md](docs/setup/ORCHESTRATION.md)
 - 규칙: [CONVENTIONS.md](docs/setup/CONVENTIONS.md) · 커밋·푸시: [GIT_WORKFLOW.md](docs/setup/GIT_WORKFLOW.md) · 전체: [AUTOMATION.md](docs/setup/AUTOMATION.md)
-- 미결정 설계 사항은 제안 상태 [ADR](docs/product/architecture/adr/) (0013 에이전트 작업 큐 · 0014 다이어그램 뷰어) — 착수 전 결정. 0009~0012 는 채택 완료.
+- 브랜치: `feature/* → PR → main` ([ADR-0023](docs/product/architecture/adr/ADR-0023-branch-model.md)). `main` 직접 커밋·`develop`·Git Flow 안 씀.
+- 미결정 설계는 **제안** 상태 ADR ([목록·상태](docs/product/architecture/adr/README.md)) — 관련 Phase 착수 전 사용자 결정. 0013~0022 제안 / 0001~0012·0023 채택.
 
 ---
 
@@ -185,3 +158,7 @@ planner(계획) → developer(구현) → supervisor(리뷰·검증) → finishe
 - 강의 자료: https://wikidocs.net/book/10238
 - Claude 문서: https://docs.claude.com
 - 개인 학습 목적 프로젝트
+
+---
+
+> 📚 **문서 탐색:** [docs/README.md](docs/README.md) (허브) · [ONBOARDING](docs/ONBOARDING.md) · [product/](docs/product/README.md) · [setup/](docs/setup/README.md) · [progress/](docs/progress/README.md)
