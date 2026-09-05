@@ -37,13 +37,13 @@ flowchart LR
 | G6 | 자동화 테스트 없음 | NFR-TEST-01~03 | A3 | ✅ (backend 15 + agent 3, CI 연결, 2026-09-02) |
 | G7 | 외부 API 스텁 | FR-CAL, FR-MAIL, FR-PROJ-03 | C3, D2 | 🚧 캘린더 더미 API ✅ C3 (2026-09-06), 나머지 D2 |
 | G8 | 다중 사용자·Supabase·Docker 미착수 | FR-AUTH-02, FR-SYNC, NFR-DEPLOY | E1~E3 | ⏳ |
-| G9 | 앱에서 프로젝트 다이어그램 열람 불가 | FR-UI-05 | C4 | ⏳ |
+| G9 | 앱에서 프로젝트 다이어그램 열람 불가 | FR-UI-05 | C4 | ✅ `GET /api/diagrams` + `DiagramPanel` 구현·채택 (2026-09-06). 브라우저 수동 확인(TC-UI-09 계열) 로컬 대기 |
 
 ## 2. Week ↔ Phase
 
 [DESIGN.md](../architecture/DESIGN.md) §8 대응표 참조. 요약: A=W1~2, B=W2~3, C=W4~5, D=W6~7, E=W9~13.
 
-C 세부: C1 미들웨어(CORS·로깅·에러) ✅(2026-09-03) → C2 프로젝트 CRUD + `tasks.project_id` + `errors.js` ✅(2026-09-03) → C3 캘린더 위젯 → C4 다이어그램 뷰어(FR-UI-05, C1 선행). B 세부: B1 Vite·React ✅ / B2 SQLite ✅ / B3 할일 CRUD 프론트 배선 🚧(코드 ✅, 브라우저 E2E 는 C1 이후).
+C 세부: C1 미들웨어(CORS·로깅·에러) ✅(2026-09-03) → C2 프로젝트 CRUD + `tasks.project_id` + `errors.js` ✅(2026-09-03) → C3 캘린더 위젯 → C4 다이어그램 뷰어(FR-UI-05) ✅ 구현·ADR-0014 채택(2026-09-06), 브라우저 수동 확인 로컬 대기. B 세부: B1 Vite·React ✅ / B2 SQLite ✅ / B3 할일 CRUD 프론트 배선 🚧(코드 ✅, 브라우저 E2E 는 C1 이후).
 
 ---
 
@@ -85,7 +85,7 @@ C 세부: C1 미들웨어(CORS·로깅·에러) ✅(2026-09-03) → C2 프로젝
 | FR-UI-02 | G1 | [ADR-0001](../architecture/adr/ADR-0001-frontend-react-vite.md), [ADR-0010](../architecture/adr/ADR-0010-vite-dev-vs-build.md), UI_SPEC §7 | B1 | TC-UI-01,05,07,08 | `frontend/src/{renderer.jsx,vite.config.js,main.js,App.jsx}` | ✅ (AC-5 는 에러표시 수준, 실제 200 은 CORS C1 대기) |
 | FR-UI-03 | — | requirements/UI.md | W2 (완료) | TC-UI-04 | `frontend/src/main.js` | ✅ |
 | FR-UI-04 | — | UI_SPEC §3.6 | B3 | TC-UI-02, TC-UI-11,12 | `frontend/src/components/ErrorBanner.jsx`, `frontend/src/components/ErrorBoundary.jsx`, `frontend/src/api/client.js`, `frontend/src/store/useTaskStore.js` | ✅ AC-1~5 (ErrorBanner + ErrorBoundary), 단 실제 실패 트리거 확인은 로컬 대기 |
-| FR-UI-05 | G9 | [ADR-0014](../architecture/adr/ADR-0014-dashboard-diagram-viewer.md), API_REFERENCE `GET /diagrams`, requirements/UI.md | C4 | TC-DIAG-01~03, TC-UI-09 | `backend/src/services/diagrams.js`(신규), `backend/src/routes/diagrams.js`(신규), `frontend/src/components/DiagramPanel.jsx`(신규) | ⏳ |
+| FR-UI-05 | G9 | [ADR-0014](../architecture/adr/ADR-0014-dashboard-diagram-viewer.md), API_REFERENCE `GET /diagrams`, requirements/UI.md | C4 | TC-DIAG-01~05, TC-UI-09 | `backend/src/services/diagrams.js`, `backend/src/routes/diagrams.js`, `backend/test/diagrams.test.js`, `frontend/src/components/DiagramPanel.jsx`, `frontend/src/components/Dashboard.jsx` | ✅ C4 (2026-09-06) — 구현·백엔드 테스트(TC-DIAG-01~05)·ADR-0014 채택. 브라우저 수동(TC-UI-09 계열) 로컬 대기 |
 | FR-WIDGET-01~04 | — | [DASHBOARD_OS.md](../vision/DASHBOARD_OS.md), [ADR-0020](../architecture/adr/ADR-0020-widget-shell-architecture.md)/[0021](../architecture/adr/ADR-0021-widget-layout-persistence.md), UI_SPEC §3.8 | C5 | TC-WIDGET-01~ (예정) | `frontend/src/widgets/*`(신규), `components/Widget{Shell,Host,Frame}.jsx`(신규), `store/useLayoutStore.js`(신규) | ⏳ 제안 |
 | FR-WIDGET-05~06 | — | [ADR-0022](../architecture/adr/ADR-0022-per-widget-theming.md), UI_SPEC §3.10, §1(디자인 토큰) | C6 | TC-WIDGET- (예정) | `components/WidgetSettings.jsx`(신규), `widgets/themePresets.js`(신규), 전역 CSS 변수화 | ⏳ 제안 |
 | FR-WIDGET-07~08 | — | [ADR-0020](../architecture/adr/ADR-0020-widget-shell-architecture.md), WIDGET.md | C5 | TC-WIDGET- (예정) | 위젯별 `ErrorBoundary`, `widgets/registry.js` | ⏳ 제안 |
@@ -140,7 +140,7 @@ Phase A~D 를 막던 제안 ADR 4건은 **2026-09-02 채택** → `/build-next` 
 | [ADR-0011](../architecture/adr/ADR-0011-agent-backend-db-access.md) DB 동시 접근 | FR-AGENT-01 | ✅ 채택 |
 | [ADR-0012](../architecture/adr/ADR-0012-task-project-link.md) `tasks.project_id` | FR-PROJ-01/02 | ✅ 채택 + ✅ C2 구현 (2026-09-03) — POST/PUT `/api/tasks` 검증·API 응답 노출. `?project_id=` 필터·TaskForm 드롭다운은 이월 |
 | [ADR-0013](../architecture/adr/ADR-0013-dashboard-agent-queue.md) 에이전트 작업 큐 | FR-AGENT-08 | 제안 — 핵심 4기능 완성 후 |
-| [ADR-0014](../architecture/adr/ADR-0014-dashboard-diagram-viewer.md) 다이어그램 뷰어 | FR-UI-05 | 제안 — Phase C1 이후 착수 |
+| [ADR-0014](../architecture/adr/ADR-0014-dashboard-diagram-viewer.md) 다이어그램 뷰어 | FR-UI-05 | ✅ 채택 (2026-09-06) + C4 구현 — `GET /api/diagrams`(`services/diagrams.js` 가 `docs/` 를 의존성 없이 재귀 파싱) + `DiagramPanel.jsx`(`mermaid@11.17.2` 동적 import, 별도 청크). prod `docs/` 동봉(electron-builder `extraResources`)은 Phase E3 로 이월 — 미동봉 시 빈 배열 200 |
 | [ADR-0020](../architecture/adr/ADR-0020-widget-shell-architecture.md) 위젯 셸 아키텍처 (react-grid-layout) | FR-WIDGET | 제안 — Phase C5 착수 전 |
 | [ADR-0021](../architecture/adr/ADR-0021-widget-layout-persistence.md) 위젯 레이아웃 영속화 (localStorage→SQLite) | FR-WIDGET-04~06 | 제안 |
 | [ADR-0022](../architecture/adr/ADR-0022-per-widget-theming.md) 위젯별 테마 (스코프 CSS 변수) | FR-WIDGET-05 | 제안 |
@@ -154,12 +154,12 @@ Phase A~D 를 막던 제안 ADR 4건은 **2026-09-02 채택** → `/build-next` 
 | TC-DB-04 (CHECK 위반 → 400 매핑) | C2 | planner | 해소 (C2, 2026-09-03) — `backend/src/errors.js` 로 판정·메시지 분리, SQLite CHECK/NOTNULL/FK → 400 한국어. TC-DB-04a~d 작성 |
 | `ProjectCard` 상태값 `'hold'` → `'on_hold'` | C2 | developer | 해소 (C2, 2026-09-03) — `statusLabel` 및 상태 `select` 를 `active`/`done`/`on_hold` 로 통일, schema·GLOSSARY 일치 |
 | `ARCHITECTURE.md` `SUPABASE_JWT_SECRET`/`DATABASE_URL` vs `.env.example` | Week 10 | planner | 어느 쪽 기준인지 |
-| **ADR-0014** 패키지 빌드에 `docs/` 동봉 여부 (`electron-builder extraResources`) vs 다이어그램 뷰어를 dev 전용으로 | C4 착수 전 | planner | 미동봉이면 prod 는 `GET /api/diagrams` 가 빈 배열 |
-| **ADR-0014** 뷰어 탭을 고정 목록으로 둘지 / `docs` 전체 자동 나열할지 | C4 (UI_SPEC) | developer | UI_SPEC §3.7 에 명세 |
+| **ADR-0014** 패키지 빌드에 `docs/` 동봉 여부 (`electron-builder extraResources`) vs 다이어그램 뷰어를 dev 전용으로 | C4 착수 전 | planner | 해소 (C4, 2026-09-06) — 동봉 방향 확정, 서비스는 `process.resourcesPath/docs` 조회(undefined 가드). electron-builder 실제 설정은 Phase E3 로 이월. 못 찾으면 빈 배열 200 |
+| **ADR-0014** 뷰어 탭을 고정 목록으로 둘지 / `docs` 전체 자동 나열할지 | C4 (UI_SPEC) | developer | 해소 (C4, 2026-09-06) — `docs/**/*.md` 자동 나열, 문서 basename 별 선택 바. UI_SPEC §3.7 참조 |
 | **DASHBOARD_OS DO-1** 위젯 배치: 그리드 스냅(RGL) / 자유 배치 / 타일링 | C5 착수 전 | 사용자 | [DASHBOARD_OS.md](../vision/DASHBOARD_OS.md) §8. 권고: RGL |
 | **DASHBOARD_OS DO-2** 같은 타입 위젯 다중 인스턴스 허용 여부 | WIDGET 상세화 | planner | — |
 | **DASHBOARD_OS DO-3** 레이아웃 1차 저장: localStorage / SQLite 즉시 | C5 (ADR-0021) | 사용자 | 권고: localStorage |
-| **DASHBOARD_OS DO-6** 다이어그램 뷰어(FR-UI-05)를 위젯으로 통합할지 | C4/C5 | planner | — |
+| **DASHBOARD_OS DO-6** 다이어그램 뷰어(FR-UI-05)를 위젯으로 통합할지 | C4/C5 | planner | C4 는 전체 폭 패널로 우선 구현. 위젯 통합 판단은 C5(위젯 셸) 로 이월 |
 
 **남은 정지 요인:** `.env` API 키 (D2 부터 — Google OAuth / Notion / Anthropic), 대화형 준비(OAuth 앱 등록).
 

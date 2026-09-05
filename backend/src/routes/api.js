@@ -12,5 +12,6 @@ router.get('/health', (req, res) => {
 router.use('/tasks', require('./tasks'));
 router.use('/projects', require('./projects'));
 router.use('/calendar', require('./calendar'));
+router.use('/diagrams', require('./diagrams'));
 
 module.exports = router;

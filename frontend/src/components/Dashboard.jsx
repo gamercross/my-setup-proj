@@ -7,6 +7,7 @@ import TaskForm from './TaskForm';
 import ProjectForm from './ProjectForm';
 import ErrorBanner from './ErrorBanner';
 import CalendarWidget from './CalendarWidget';
+import DiagramPanel from './DiagramPanel';
 import { useTaskStore } from '../store/useTaskStore.js';
 import { useProjectStore } from '../store/useProjectStore.js';
 import { useCalendarStore } from '../store/useCalendarStore.js';
@@ -119,6 +120,12 @@ export default function Dashboard() {
           )}
         </section>
       </div>
+
+      {/* 다이어그램 뷰어 (전체 폭). 상태/effect 는 DiagramPanel 이 소유한다. */}
+      <section style={{ marginTop: 24 }}>
+        <h2 style={{ fontSize: '16px', color: '#94a3b8' }}>다이어그램</h2>
+        <DiagramPanel />
+      </section>
     </div>
   );
 }

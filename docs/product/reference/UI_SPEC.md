@@ -97,7 +97,7 @@ stateDiagram-v2
 └─────────────────────────────────────────────────────────────┘
 ```
 
-`Dashboard.jsx` 가 할일·프로젝트를 `flex` 로 고정 배치. 일정·브리핑·다이어그램은 예정.
+`Dashboard.jsx` 가 할일·프로젝트·일정을 `flex` 로 고정 배치, 그 아래 전체 폭 다이어그램 패널(C4). 브리핑은 예정.
 
 ### 2.2 전환 후 (위젯 셸 — C5~C6 목표)
 
@@ -215,18 +215,19 @@ stateDiagram-v2
 | 코드 | `frontend/src/components/{ErrorBanner,ErrorBoundary}.jsx` |
 | 미검증 | 실제 실패 트리거(백엔드 중단 등) 화면 확인은 로컬 대기 (CORS/C1 이후) |
 
-### 3.7 다이어그램 패널 🔷 예정 (Phase C4, FR-UI-05)
+### 3.7 다이어그램 패널 ✅ C4 (FR-UI-05, 2026-09-06)
 
 | 항목 | 내용 |
 |---|---|
 | 목적 | `docs/**/*.md` 의 Mermaid 다이어그램을 앱에서 열람 — 프로젝트 구조·진행을 그림으로 |
-| 요소 | `DiagramPanel` — 그룹 탭(아키텍처 / 로드맵 gantt / 오케스트레이션 / 모듈 의존) + 선택 SVG |
-| 데이터 출처 | `GET /api/diagrams` → 로컬 컴포넌트 state (스토어 불필요 — 읽기 전용·정적) |
-| 렌더 | `import('mermaid')` 동적 로딩(별도 청크), `mermaid.initialize({ startOnLoad:false, theme:'dark', securityLevel:'strict' })` 후 블록별 `render()` |
+| 위치 | `Dashboard.jsx` 하단, 3패널 행 아래 전체 폭 `<section>` |
+| 요소 | `DiagramPanel` — 문서 선택 바(문서 basename 버튼, 활성 `#38bdf8`) + 선택 문서의 블록별 제목 + SVG |
+| 데이터 출처 | `apiGet('/diagrams')` → 로컬 컴포넌트 state (스토어 없음 — 읽기 전용·정적) |
+| 렌더 | `import('mermaid')` 동적 로딩(별도 청크, 최초 1회 `initialize`), `mermaid.initialize({ startOnLoad:false, theme:'dark', securityLevel:'strict' })` 후 선택 문서 블록만 순차 `render()` |
 | 관련 FR | FR-UI-05 · [ADR-0014](../architecture/adr/ADR-0014-dashboard-diagram-viewer.md) |
-| 상태 | 로딩 / "다이어그램 없음"(빈 배열) / 정상 / 에러(API 실패 → `ErrorBanner`) |
-| 폴백 | 개별 블록 렌더 실패 시 그 항목만 "이 다이어그램을 그릴 수 없습니다" + 원문 코드 (`<pre>`) |
-| 미결 | 탭 고정 목록 vs `docs` 전체 자동 나열 — C4 착수 시 확정 |
+| 상태 | 로딩 / "다이어그램이 없습니다"(빈 배열) / 정상 / 에러(API·렌더러 로드 실패 → `ErrorBanner`, 재시도=목록 재조회) |
+| 폴백 | 개별 블록 렌더 실패 시 그 항목만 "⚠️ 이 다이어그램을 그릴 수 없습니다" + 원문 코드 (`<pre>`); 미완료는 "그리는 중…" |
+| 범위 밖 | 줌·패닝·복사 (후속) |
 
 ### 3.8 위젯 셸 (`WidgetShell`) 🔷 예정 (Phase C5, FR-WIDGET-01~04·07·08)
 
@@ -281,7 +282,7 @@ stateDiagram-v2
 | `ProjectForm` | `onSubmit(payload): Promise<boolean>`, `disabled` | `name, progress, hint` | `onSubmit` | ✅ C2 (payload `{name, progress?}`) |
 | `CalendarWidget` | `events: Event[]` | — | — | ✅ C3 |
 | `BriefCard` | `brief: Brief \| null` | — | — | 🔷 D3 |
-| `DiagramPanel` | — | `diagrams`, `activeGroup`, `loading`, `error` | — | 🔷 C4 |
+| `DiagramPanel` | — (props 없음) | `diagrams`, `activeDoc`, `loading`, `error`, `rendered` | — | ✅ C4 (자체 fetch·4상태 소유, 스토어 없음) |
 
 **타입 형태**는 [DATA_DICTIONARY.md](DATA_DICTIONARY.md) 및 [API_REFERENCE.md](API_REFERENCE.md) 의 리소스 객체와 동일 (필드명 snake_case 유지).
 

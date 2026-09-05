@@ -9,7 +9,7 @@
 ## 1. 설계 원칙
 
 1. **계층 고정 (목표)** — `routes → services → db`. 라우트에 비즈니스 로직·SQL 금지 (NFR-MAINT-02).
-   - **현재(AS-IS):** `services/` 계층은 C3 에서 도입됐다(`backend/src/services/calendar.js` — 더미 이벤트 생성). 할일·프로젝트 라우트는 아직 `db.js` 를 직접 호출한다. 도메인 로직이 커지는 시점에 점진적으로 이관한다. 미들웨어(`backend/src/middleware/`, C1)는 이 계층과 별개인 횡단 관심사.
+   - **현재(AS-IS):** `services/` 계층은 C3 에서 도입됐다(`backend/src/services/calendar.js` — 더미 이벤트 생성; C4 에서 `services/diagrams.js` — `docs/` mermaid 파싱 추가). 할일·프로젝트 라우트는 아직 `db.js` 를 직접 호출한다. 도메인 로직이 커지는 시점에 점진적으로 이관한다. 미들웨어(`backend/src/middleware/`, C1)는 이 계층과 별개인 횡단 관심사.
 2. **DB 인터페이스 불변** — `db.js` 의 `getX/addX/updateX/deleteX` 시그니처는 저장소가 바뀌어도 유지 (NFR-MAINT-03).
 3. **오프라인 우선** — 로컬 SQLite 가 진실의 원천, 클라우드/외부 API 는 그 위에 얹는 캐시·동기화 (NFR-REL-04).
    - **보장 범위:** 네트워크가 없어도 (a) 할일·프로젝트는 완전한 CRUD, (b) 마지막으로 동기화된 일정·메일·브리핑은 **조회만** 가능. 캐시 최신성은 각 행의 `synced_at` 으로 표시.
@@ -38,7 +38,7 @@
 | [0011](adr/ADR-0011-agent-backend-db-access.md) | 에이전트–백엔드 SQLite: WAL + 쓰기 주체 분리 | 채택 |
 | [0012](adr/ADR-0012-task-project-link.md) | `tasks.project_id` FK (`ON DELETE SET NULL`) | 채택 |
 | [0013](adr/ADR-0013-dashboard-agent-queue.md) | 대시보드 에이전트 작업 큐 (향후 확장) | **제안** |
-| [0014](adr/ADR-0014-dashboard-diagram-viewer.md) | 대시보드 다이어그램 뷰어 (mermaid 클라이언트 렌더 + `/api/diagrams`) | **제안** |
+| [0014](adr/ADR-0014-dashboard-diagram-viewer.md) | 대시보드 다이어그램 뷰어 (mermaid 클라이언트 렌더 + `/api/diagrams`) | 채택 |
 | [0015](adr/ADR-0015-local-first-architecture.md) | 아키텍처 스타일 — 로컬 우선 + 프로세스 분리 | **제안** |
 | [0016](adr/ADR-0016-desktop-process-topology.md) | 데스크톱 프로세스 토폴로지 (백엔드 실행 주체) | **제안** |
 | [0017](adr/ADR-0017-rest-error-contract.md) | REST 오류 응답 계약 (RFC 9457) | **제안** |
@@ -372,7 +372,7 @@ sequenceDiagram
 | C1 | 백엔드 미들웨어 정식화 (cors·requestLogger·errorHandler 분리) | NFR-SEC-06, NFR-OBS-01 |
 | C2 | ✅ 프로젝트 CRUD 프론트 배선 (`useProjectStore`, `ProjectForm`, `ProjectCard` 상태·진행도·삭제) + `tasks.project_id` 라우트/검증(ADR-0012) + `errors.js`(SQLite CHECK/FK→400 한국어) + `'hold'`→`'on_hold'` 통일 | FR-PROJ-01/02, ADR-0012, G3(프로젝트) |
 | C3 | ✅ 캘린더 위젯 + `/api/calendar/events` (더미 데이터, `services/calendar.js`; 실 Google API 는 D2). `useCalendarStore` + `CalendarWidget` + Dashboard 3패널, TC-CAL-01~07 | FR-CAL-01/02 |
-| C4 | 다이어그램 뷰어 — `GET /api/diagrams`(`services/diagrams.js` 가 `docs/**/*.md` 파싱) + `DiagramPanel.jsx`(mermaid 동적 import, 다크 테마, 4상태). **C1(CORS) 선행.** [ADR-0014](adr/ADR-0014-dashboard-diagram-viewer.md) | FR-UI-05, G9 |
+| C4 | ✅ 다이어그램 뷰어 — `GET /api/diagrams`(`services/diagrams.js` 가 `docs/` 재귀 파싱, `parseMermaidBlocks` 순수함수, `DOCS_PATH`→저장소→`resourcesPath`) + `DiagramPanel.jsx`(`mermaid@11.17.2` 동적 import, 별도 청크, 블록 폴백, CSP 무완화). TC-DIAG-01~05. electron-builder `extraResources` 실배선은 E3. [ADR-0014](adr/ADR-0014-dashboard-diagram-viewer.md) 채택 | FR-UI-05, G9 |
 | **C5** | **위젯 셸 — 대시보드 OS.** `widgets/registry.js` + `WidgetShell`/`WidgetHost`(react-grid-layout)/`WidgetFrame`, `useLayoutStore`, localStorage 영속. 기존 뷰(할일·프로젝트)를 위젯으로 이관. 위젯별 격리. [ADR-0020](adr/ADR-0020-widget-shell-architecture.md) 채택 선행 · [DASHBOARD_OS.md](../vision/DASHBOARD_OS.md) DO-1~6 결정. | FR-WIDGET-01~04·07·08 |
 | **C6** | **위젯 커스터마이즈.** 전역 인라인 style → CSS 변수, `WidgetSettings`(테마+표시 탭), `themePresets.js`, `themeToVars` 화이트리스트. [ADR-0022](adr/ADR-0022-per-widget-theming.md). C5 선행. | FR-WIDGET-05·06 |
 

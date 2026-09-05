@@ -1,6 +1,6 @@
 # ADR-0014: 대시보드 다이어그램 뷰어
 
-- 상태: **제안** (2026-09-03) — Phase C1(CORS·미들웨어) 완료 후 착수 예정
+- 상태: **채택** (2026-09-06) — Phase C4 에서 구현
 - 관련: FR-UI-05, [ADR-0004](ADR-0004-front-back-http-rest.md), [ADR-0013](ADR-0013-dashboard-agent-queue.md), [DIAGRAMS.md](../../../setup/DIAGRAMS.md), [DESIGN.md](../DESIGN.md) §8
 
 ## 맥락
@@ -25,8 +25,9 @@
 **백엔드 `GET /api/diagrams` 가 `docs/**/*.md` 를 읽어 Mermaid 블록을 반환하고, 프론트는
 `mermaid` 를 동적 import 하여 클라이언트에서 SVG 로 렌더한다.**
 
-- **소스**: `backend/src/services/diagrams.js` 가 저장소 루트의 `docs/` 를 glob(`docs/**/*.md`),
-  ```` ```mermaid ```` 펜스를 파싱해 `[{ doc, index, title, code }]` 반환.
+- **소스**: `backend/src/services/diagrams.js` 가 저장소 루트의 `docs/` 를 의존성 없이
+  `fs.readdirSync` 로 재귀 순회(깊이 8·파일 500·1MB·블록 300 상한, `node_modules`/`.git`/`diagrams`/숨김 스킵),
+  ```` ```mermaid ```` 펜스를 파싱해 `[{ doc, path, index, title, code }]` 반환.
   `title` = 블록 직전 최근접 heading 텍스트. `routes/diagrams.js` 는 서비스 호출만.
 - **렌더**: `frontend/src/components/DiagramPanel.jsx` 가 패널 진입 시 `import('mermaid')`
   (코드 스플릿), `mermaid.initialize({ startOnLoad: false, theme: 'dark',
@@ -34,8 +35,8 @@
 - **CSP**: 추가 완화 없음. mermaid 는 Vite 번들이라 `script-src 'self'` 로 실행되고,
   주입하는 `<style>` 은 기존 `style-src 'unsafe-inline'` 로 커버된다. `connect-src` 는
   `http://localhost:3000` 이 이미 허용.
-- **CORS**: `/api/diagrams` 도 C1 에서 도입하는 `cors`(로컬 오리진 화이트리스트)를 그대로 탄다.
-  따라서 이 기능은 **C1 이후**에 착수한다.
+- **CORS**: `/api/diagrams` 도 C1 에서 도입한 `cors`(로컬 오리진 화이트리스트)를 그대로 탔다.
+  (이 기능은 C1 이후, Phase C4 에서 구현했다.)
 - **prod 동봉**: 패키지 빌드에 `docs/` 를 `extraResources` 로 동봉하고, 서비스는 dev 는
   저장소 루트, 패키지는 `process.resourcesPath/docs` 를 본다. `docs/` 를 못 찾으면
   빈 배열(200)로 응답 — 앱이 죽지 않는다.
@@ -73,3 +74,16 @@
   이 채택되면 소스 계층을 이 엔드포인트로 흡수할지 결정.
 - 이번 범위 밖(후속): 다이어그램 위에 Phase 진행 상태 오버레이(→ FR-UI-05 후속, 별도
   `docs/progress/status.json` 단일 원천 필요), 코드 스캔 기반 자동 의존 그래프.
+
+## 구현 현황 (2026-09-06, Phase C4)
+
+- **백엔드**: `backend/src/services/diagrams.js`(재귀 파싱·상한·순수 함수 `parseMermaidBlocks`),
+  `backend/src/routes/diagrams.js`(`GET /api/diagrams`, `?doc=` 필터, 서비스 호출만).
+  `docs/` 탐색 우선순위: `DOCS_PATH` 환경변수(있으면 **이것만**) → 저장소 `docs/` → `process.resourcesPath/docs`.
+  못 찾으면 `200 { diagrams: [] }`. 테스트 `backend/test/diagrams.test.js` TC-DIAG-01~05.
+- **프론트**: `frontend/src/components/DiagramPanel.jsx` — 패널 진입 시 `import('mermaid')`
+  (`mermaid@11.17.2`, 동적 청크 ~683kB), 블록 단위 `mermaid.render()` + 실패 시 원문 코드 폴백.
+  CSP 완화 없음. `frontend/src/components/Dashboard.jsx` 에 패널 연결.
+- **응답 스키마**: `[{ doc, path, index, title, code }]`.
+- **이월**: `electron-builder` `extraResources` 로 `docs/` 실배선은 **E3 로 이월**(패키지 빌드 단계).
+- **로컬 대기**: 브라우저 수동 확인(TC-UI-09 계열) 로컬 대기.

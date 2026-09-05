@@ -6,7 +6,7 @@
 **📂 이동:** [⬆ architecture/](../README.md) · [product/](../../README.md) · [docs/](../../../README.md) · [🚀 ONBOARDING](../../../ONBOARDING.md)
 **형제 뷰:** [DESIGN](../DESIGN.md) · [ARCHITECTURE_DRIVERS](../ARCHITECTURE_DRIVERS.md) · [RUNTIME_VIEW](../RUNTIME_VIEW.md) · [DATA_ARCHITECTURE](../DATA_ARCHITECTURE.md) · [CROSSCUTTING](../CROSSCUTTING.md) · [ARCHITECTURE_EVOLUTION](../ARCHITECTURE_EVOLUTION.md)
 
-> **상태 요약:** 0001~0012 채택 · 0013~0022 제안(착수 전 결정) · 0023 채택. 제안 ADR 은 관련 Phase 착수 전에 사용자가 결정한다.
+> **상태 요약:** 0001~0012 채택 · 0013 및 0015~0022 제안(착수 전 결정) · 0014·0023 채택. 제안 ADR 은 관련 Phase 착수 전에 사용자가 결정한다.
 
 ## 템플릿
 
@@ -49,7 +49,7 @@
 | [0011](ADR-0011-agent-backend-db-access.md) | 에이전트–백엔드 SQLite: WAL + 쓰기 주체 분리 | 채택 | FR-AGENT-01 |
 | [0012](ADR-0012-task-project-link.md) | `tasks.project_id` FK (`ON DELETE SET NULL`) | 채택 | FR-PROJ |
 | [0013](ADR-0013-dashboard-agent-queue.md) | 대시보드 기반 에이전트 작업 큐 | 제안 | FR-AGENT-08 |
-| [0014](ADR-0014-dashboard-diagram-viewer.md) | 대시보드 다이어그램 뷰어 (mermaid 클라이언트 렌더 + `/api/diagrams`) | 제안 | FR-UI-05 |
+| [0014](ADR-0014-dashboard-diagram-viewer.md) | 대시보드 다이어그램 뷰어 (mermaid 클라이언트 렌더 + `/api/diagrams`) | 채택 | FR-UI-05 |
 | [0015](ADR-0015-local-first-architecture.md) | 아키텍처 스타일 — 로컬 우선 + 프로세스 분리 | 제안 | ASR-1~3, NFR-REL |
 | [0016](ADR-0016-desktop-process-topology.md) | 데스크톱 프로세스 토폴로지 (백엔드 실행 주체) | 제안 | RUNTIME_VIEW §5 |
 | [0017](ADR-0017-rest-error-contract.md) | REST 오류 응답 계약 (RFC 9457 스타일) | 제안 | NFR-SEC-07 |
