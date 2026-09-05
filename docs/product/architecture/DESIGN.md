@@ -155,6 +155,8 @@ Base: `http://localhost:3000/api` · 응답은 JSON · 오류는 `{ "error": "�
 
 ## 6. 프론트엔드 설계
 
+> 🎨 화면 골격·컴포넌트 패턴·시각 톤의 목표 틀은 [../reference/UI_STYLE.md](../reference/UI_STYLE.md) (릴스 "Claude 워크스페이스 대시보드" 참조).
+
 ```
 frontend/src/
   main.js            Electron 메인 (변경 최소)
