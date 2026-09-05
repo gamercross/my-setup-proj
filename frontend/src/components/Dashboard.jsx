@@ -6,8 +6,10 @@ import ProjectCard from './ProjectCard';
 import TaskForm from './TaskForm';
 import ProjectForm from './ProjectForm';
 import ErrorBanner from './ErrorBanner';
+import CalendarWidget from './CalendarWidget';
 import { useTaskStore } from '../store/useTaskStore.js';
 import { useProjectStore } from '../store/useProjectStore.js';
+import { useCalendarStore } from '../store/useCalendarStore.js';
 
 export default function Dashboard() {
   // 필드별 개별 셀렉터로 구독한다 (객체 리터럴 반환 금지 — 불필요한 리렌더 방지)
@@ -31,9 +33,18 @@ export default function Dashboard() {
     fetchTasks();
   }, [fetchTasks]);
 
+  const events = useCalendarStore((s) => s.events);
+  const calendarLoading = useCalendarStore((s) => s.loading);
+  const calendarError = useCalendarStore((s) => s.error);
+  const fetchEvents = useCalendarStore((s) => s.fetchEvents);
+
   useEffect(() => {
     fetchProjects();
   }, [fetchProjects]);
+
+  useEffect(() => {
+    fetchEvents();
+  }, [fetchEvents]);
 
   const showLoading = loading && tasks.length === 0;
   const showEmpty = !loading && tasks.length === 0;
@@ -41,13 +52,17 @@ export default function Dashboard() {
   const showProjectsLoading = projectsLoading && projects.length === 0;
   const showProjectsEmpty = !projectsLoading && projects.length === 0 && !projectsError;
 
+  const showEventsLoading = calendarLoading && events.length === 0;
+  // 에러 시에는 ErrorBanner 만 보이고 "일정이 없습니다" 문구는 억제 (프로젝트 패널과 동일 패턴)
+  const showEventsEmpty = !calendarLoading && events.length === 0 && !calendarError;
+
   return (
     <div style={{ padding: '24px', background: '#0f172a', color: '#e2e8f0', minHeight: '100vh' }}>
       <h1 style={{ marginTop: 0 }}>AI Computer OS</h1>
 
-      <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
+      <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
         {/* 좌측: 할일 패널 */}
-        <section style={{ flex: 1 }}>
+        <section style={{ flex: 1, minWidth: 260 }}>
           <h2 style={{ fontSize: '16px', color: '#94a3b8' }}>할 일</h2>
 
           {/* 에러 배너는 목록 위에. 에러가 있어도 기존 tasks 는 계속 렌더 */}
@@ -65,7 +80,7 @@ export default function Dashboard() {
         </section>
 
         {/* 우측: 프로젝트 패널 */}
-        <section style={{ flex: 1 }}>
+        <section style={{ flex: 1, minWidth: 260 }}>
           <h2 style={{ fontSize: '16px', color: '#94a3b8' }}>프로젝트</h2>
 
           {projectsError && <ErrorBanner message={projectsError} onRetry={fetchProjects} />}
@@ -87,6 +102,21 @@ export default function Dashboard() {
           )}
 
           <ProjectForm onSubmit={addProject} disabled={projectsLoading} />
+        </section>
+
+        {/* 일정 패널 */}
+        <section style={{ flex: 1, minWidth: 260 }}>
+          <h2 style={{ fontSize: '16px', color: '#94a3b8' }}>일정</h2>
+
+          {calendarError && <ErrorBanner message={calendarError} onRetry={fetchEvents} />}
+
+          {showEventsLoading ? (
+            <p style={{ color: '#94a3b8' }}>불러오는 중…</p>
+          ) : showEventsEmpty ? (
+            <p style={{ color: '#94a3b8' }}>일정이 없습니다</p>
+          ) : (
+            <CalendarWidget events={events} />
+          )}
         </section>
       </div>
     </div>

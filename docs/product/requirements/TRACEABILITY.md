@@ -35,7 +35,7 @@ flowchart LR
 | G4 | 로컬 환경 미검증 | NFR-TEST-04 | A2 | ✅ (`verify.sh` 12/0/0, 2026-09-02) |
 | G5 | 경로 이관 변경분 미커밋 | — | A1 | ✅ (`fc4404c`) |
 | G6 | 자동화 테스트 없음 | NFR-TEST-01~03 | A3 | ✅ (backend 15 + agent 3, CI 연결, 2026-09-02) |
-| G7 | 외부 API 스텁 | FR-CAL, FR-MAIL, FR-PROJ-03 | C3, D2 | ⏳ |
+| G7 | 외부 API 스텁 | FR-CAL, FR-MAIL, FR-PROJ-03 | C3, D2 | 🚧 캘린더 더미 API ✅ C3 (2026-09-06), 나머지 D2 |
 | G8 | 다중 사용자·Supabase·Docker 미착수 | FR-AUTH-02, FR-SYNC, NFR-DEPLOY | E1~E3 | ⏳ |
 | G9 | 앱에서 프로젝트 다이어그램 열람 불가 | FR-UI-05 | C4 | ⏳ |
 
@@ -62,9 +62,9 @@ C 세부: C1 미들웨어(CORS·로깅·에러) ✅(2026-09-03) → C2 프로젝
 | FR-PROJ-02 | G3 | [requirements/PROJ.md](PROJ.md), UI_SPEC §3.3, [ADR-0012](../architecture/adr/ADR-0012-task-project-link.md) | C2 | TC-PROJ-04,05,08,09,09b~d, TC-UI-15,16 | `routes/projects.js`, `frontend/src/store/useProjectStore.js`, `components/ProjectCard.jsx`, `components/Dashboard.jsx` | ✅ C2 (2026-09-03) — 브라우저 E2E(TC-UI-15/16) 로컬 대기 |
 | FR-PROJ-03 | G7 | [ADR-0006](../architecture/adr/ADR-0006-agent-owns-external-apis.md) | D2 | — | `agent/services/notion.py` | ⏳ |
 | FR-PROJ-04 | G7 | DATA_DICTIONARY `projects.notion_id` | D2 | — | `agent/services/notion.py` | ⏳ |
-| FR-CAL-01 | G7 | API_REFERENCE `/calendar/events`, [ADR-0006](../architecture/adr/ADR-0006-agent-owns-external-apis.md) | C3, D2 | — | `agent/services/calendar.py`, `routes/calendar.js`(신규) | ⏳ |
-| FR-CAL-02 | — | UI_SPEC §3.4 | C3 | — | `components/CalendarWidget.jsx`(신규) | ⏳ |
-| FR-CAL-03 | — | DATA_DICTIONARY `calendar_events` | C3 | — | `agent/db.py` | ⏳ |
+| FR-CAL-01 | G7 | [requirements/CAL.md](CAL.md), API_REFERENCE `/calendar/events`, [ADR-0006](../architecture/adr/ADR-0006-agent-owns-external-apis.md), [ADR-0011](../architecture/adr/ADR-0011-agent-backend-db-access.md) | C3, D2 | TC-CAL-01~07, TC-UI-17,19 | `backend/src/routes/calendar.js`, `backend/src/services/calendar.js`, `frontend/src/store/useCalendarStore.js`, `components/CalendarWidget.jsx`, `components/Dashboard.jsx` | 🚧 C3 (더미) — 실 데이터 D2 |
+| FR-CAL-02 | — | [requirements/CAL.md](CAL.md), UI_SPEC §3.4 | C3 | TC-UI-18 | `components/CalendarWidget.jsx`, `components/Dashboard.jsx` | ✅ C3 |
+| FR-CAL-03 | — | DATA_DICTIONARY `calendar_events` | D2 | — | `agent/db.py` | ⏳ |
 | FR-MAIL-01 | G7 | API_REFERENCE `/mail/unread`, [ADR-0006](../architecture/adr/ADR-0006-agent-owns-external-apis.md) | D2 | — | `agent/services/gmail.py` | ⏳ |
 | FR-MAIL-02 | G8 | — | E (W9) | — | `agent/services/gmail.py` | ⏳ |
 | FR-MAIL-03 | G8 | — | E (W9) | — | `components/EmailView.jsx`(신규) | ⏳ |

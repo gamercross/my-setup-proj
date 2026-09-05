@@ -50,8 +50,9 @@ flowchart LR
 | UI | [requirements/UI.md](UI.md) | P0 완료 |
 | AGENT | [requirements/AGENT.md](AGENT.md) | P0 완료, P1 초안 |
 | PROJ | [requirements/PROJ.md](PROJ.md) | P0 완료 (C2, 2026-09-03) |
+| CAL | [requirements/CAL.md](CAL.md) | FR-CAL-01/02 완료 (C3 — 더미, 2026-09-06), FR-CAL-03 D2 이월 |
 | WIDGET | [requirements/WIDGET.md](WIDGET.md) | 초안 (제안 — 착수 전 DASHBOARD_OS §8 결정) |
-| CAL / MAIL / SYNC / AUTH | (예정) | 아래 표만 — 해당 주차 착수 전 상세화 |
+| MAIL / SYNC / AUTH | (예정) | 아래 표만 — 해당 주차 착수 전 상세화 |
 
 ---
 
@@ -80,9 +81,9 @@ flowchart LR
 
 | ID | 요구사항 | 우선순위 | 목표 주차 | 상태 |
 |---|---|:---:|:---:|:---:|
-| FR-CAL-01 | Google Calendar 의 오늘·이번주 일정을 조회해 표시한다 | P1 | W5 | ⏳ |
-| FR-CAL-02 | 오늘/내일 일정을 강조 표시한다 | P1 | W5 | ⏳ |
-| FR-CAL-03 | 일정을 로컬 DB에 캐시해 오프라인에서도 최근 일정을 본다 | P2 | W5 | ⏳ |
+| FR-CAL-01 | Google Calendar 의 오늘·이번주 일정을 조회해 표시한다 | P1 | W5 | 🚧 (C3 — 더미, 실 API D2) |
+| FR-CAL-02 | 오늘/내일 일정을 강조 표시한다 | P1 | W5 | ✅ (C3) |
+| FR-CAL-03 | 일정을 로컬 DB에 캐시해 오프라인에서도 최근 일정을 본다 | P2 | W5 | ⏳ (D2) |
 
 ## 4. 이메일 (MAIL)
 

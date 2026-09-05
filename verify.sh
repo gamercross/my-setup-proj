@@ -67,6 +67,8 @@ syntax_check "frontend main.js 문법"    node    node -c frontend/src/main.js
 syntax_check "backend errors.js 문법"   node    node -c backend/src/errors.js
 syntax_check "backend tasks.js 문법"    node    node -c backend/src/routes/tasks.js
 syntax_check "backend projects.js 문법" node    node -c backend/src/routes/projects.js
+syntax_check "backend routes/calendar.js 문법"    node node -c backend/src/routes/calendar.js
+syntax_check "backend services/calendar.js 문법"  node node -c backend/src/services/calendar.js
 syntax_check "backend middleware/cors.js 문법"          node node -c backend/src/middleware/cors.js
 syntax_check "backend middleware/requestLogger.js 문법" node node -c backend/src/middleware/requestLogger.js
 syntax_check "backend middleware/errorHandler.js 문법"  node node -c backend/src/middleware/errorHandler.js
