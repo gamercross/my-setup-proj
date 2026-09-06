@@ -1,16 +1,22 @@
 # ADR-0022: 위젯별 테마 커스터마이즈 방식
 
-- 상태: 채택 — C5 골격 / C6 구현 (2026-09-06)
+- 상태: 채택 — C6 구현 완료 (2026-09-06)
 - 관련: FR-WIDGET-05·06, [ADR-0020](ADR-0020-widget-shell-architecture.md), [ADR-0021](ADR-0021-widget-layout-persistence.md), NFR-SEC-04, [UI_SPEC.md](../../reference/UI_SPEC.md) §1(디자인 토큰)
 
 ## 맥락
 "각 위젯(앱)을 각자 디자인" 하려면 위젯 인스턴스마다 배경색·강조색·모서리·밀도·타이틀바 스타일을 다르게 줄 수 있어야 한다. 전역 디자인 토큰 1벌만 있는 현재 구조를 확장한다. **임의 CSS 를 사용자가 입력하게 두면 안 된다**(주입·레이아웃 파괴).
 
-## 결정 (채택 — 골격 C5 / 구현 C6)
+## 결정 (채택 — C6 구현 완료)
 **스코프된 CSS 커스텀 프로퍼티(변수) + 구조화된 config.**
 
-> C5 현황: `widgets/themeVars.js` 의 `themeToVars(theme)` 는 항상 `{}` 를 반환하는 스텁이지만
-> `WidgetFrame` 이 이미 wrapper `style` 에 스프레드한다(호출 지점 확보). 아래 화이트리스트 매핑·프리셋·UI 는 C6.
+> ## 구현 현황 (C6, 2026-09-06)
+> - `frontend/src/styles.css` — 전역 토큰을 `:root` 로 승격 (기존 hex/px 1:1 치환, 시각 변화 0). `renderer.jsx` 상단 import.
+> - `widgets/themeVars.js` — `themeToVars(theme)`(평평한 style 객체 반환, spread 호환), `THEME_KEYS` 고정 배열 순회(`for…in` 안 씀), `isSafeColor`(정규식 + `CSS.supports` 옵셔널 게이트). titlebar solid/ghost/hidden 은 `WidgetFrame` 이 인라인 style 로(styles.css 클래스는 인라인 `TITLEBAR_STYLE` 에 눌려 무효).
+> - 뷰 3종은 `configSchema` 를 `WidgetFrame` prop 으로 받는다(뷰→`registry.js` 최상위 import 시 ESM 순환으로 TDZ `ReferenceError` → 부팅 실패 회피).
+> - `widgets/themePresets.js` — 다크·미니멀·강조 프리셋. 전역 `--accent`(`#f59e0b`)는 유지, 보라 `#7c6cf5` 는 '강조' 프리셋 accent 에만.
+> - `widgets/displayConfig.js` — `resolveDisplay(configSchema, display)` 표시 옵션 검증 단일 지점 (FR-WIDGET-06 AC-3).
+> - `components/WidgetSettings.jsx` — `createPortal` 중앙 모달(백드롭 `zIndex:2000`, Esc/백드롭 닫기, `role="dialog"`). 색은 `<input type="color">`, 나머지 select/range/checkbox.
+> - `--w-panel`/`panel` 은 화이트리스트에 넣지 않았다(프레임 wrapper bg 만). US-1(앰버→보라 전역 전환)은 미결 유지.
 
 1. **전역 토큰**은 `:root` 에 유지(기본값). `UI_SPEC.md` §1 의 `--bg`/`--panel`/`--accent` 등을 CSS 변수로 승격(현재 인라인 style → 변수).
 2. **위젯 프레임**이 인스턴스 `config.theme` 를 **화이트리스트 키만** CSS 변수로 변환해 자기 wrapper 에 인라인으로 건다:

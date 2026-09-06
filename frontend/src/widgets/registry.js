@@ -1,7 +1,8 @@
 // 위젯 레지스트리 (ADR-0020)
 // - 셸/호스트/피커/저장소는 여기의 WIDGET_TYPES · getWidgetMeta 만 사용한다. 타입 문자열 하드코딩 금지.
 // - 뷰 컴포넌트는 자기 스토어를 직접 구독하므로 레지스트리에 useData 같은 데이터 훅은 두지 않는다.
-// - configSchema 는 C5 에서는 빈 객체(표시옵션/테마 실제 구현은 C6).
+// - configSchema 는 위젯 표시 옵션 정의 (C6 — FR-WIDGET-06). displayConfig.resolveDisplay 가 해석한다.
+//   enum 값 도메인은 DATA_DICTIONARY 의 status 와 일치시킨다.
 
 import TasksWidgetView from './views/TasksWidgetView.jsx';
 import ProjectsWidgetView from './views/ProjectsWidgetView.jsx';
@@ -19,7 +20,11 @@ export const WIDGET_REGISTRY = {
     minSize: { w: 3, h: 3 },
     maxSize: { w: 12, h: 20 },
     view: TasksWidgetView,
-    configSchema: {},
+    configSchema: {
+      sortBy: { type: 'enum', options: ['due', 'priority', 'created'], default: 'created', label: '정렬 기준' },
+      hideCompleted: { type: 'bool', default: false, label: '완료한 항목 숨기기' },
+      maxItems: { type: 'number', min: 5, max: 100, step: 5, default: 50, label: '최대 표시 개수' },
+    },
   },
   projects: {
     type: 'projects',
@@ -30,7 +35,10 @@ export const WIDGET_REGISTRY = {
     minSize: { w: 3, h: 3 },
     maxSize: { w: 12, h: 20 },
     view: ProjectsWidgetView,
-    configSchema: {},
+    configSchema: {
+      statusFilter: { type: 'enum', options: ['all', 'active', 'done', 'on_hold'], default: 'all', label: '상태 필터' },
+      hideDone: { type: 'bool', default: false, label: '완료 프로젝트 숨기기' },
+    },
   },
   calendar: {
     type: 'calendar',
@@ -41,7 +49,9 @@ export const WIDGET_REGISTRY = {
     minSize: { w: 3, h: 3 },
     maxSize: { w: 12, h: 20 },
     view: CalendarWidgetView,
-    configSchema: {},
+    configSchema: {
+      range: { type: 'enum', options: ['today', 'week'], default: 'week', label: '표시 범위' },
+    },
   },
   diagrams: {
     type: 'diagrams',

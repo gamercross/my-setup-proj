@@ -4,8 +4,8 @@
 
 import React from 'react';
 
-// 두 Date 가 같은 로컬 날짜인지
-function isSameLocalDay(a, b) {
+// 두 Date 가 같은 로컬 날짜인지 (CalendarWidgetView 의 range='today' 필터가 재사용)
+export function isSameLocalDay(a, b) {
   return (
     a.getFullYear() === b.getFullYear() &&
     a.getMonth() === b.getMonth() &&
@@ -28,9 +28,9 @@ function dayLabel(startISO, now) {
 
 // 배지 라벨 → accent 색
 function accentFor(label) {
-  if (label === '오늘') return '#f59e0b';
+  if (label === '오늘') return 'var(--w-accent, var(--accent))';
   if (label === '내일') return '#38bdf8';
-  return '#334155';
+  return 'var(--border)';
 }
 
 // start_time(ISO) → 'HH:MM' (없으면 빈 문자열)
@@ -63,23 +63,23 @@ export default function CalendarWidget({ events = [] }) {
               alignItems: 'center',
               gap: '10px',
               padding: '8px 12px',
-              background: '#1e293b',
+              background: 'var(--panel)',
               borderLeft: `3px solid ${accent}`,
               borderRadius: '6px',
               fontSize: '13px',
             }}
           >
-            <span style={{ color: '#94a3b8', minWidth: '42px' }}>{time || '—'}</span>
+            <span style={{ color: 'var(--muted)', minWidth: '42px' }}>{time || '—'}</span>
             <span style={{ flex: 1 }}>
               {e.title}
               {e.location ? (
-                <span style={{ color: '#64748b' }}> · {e.location}</span>
+                <span style={{ color: 'var(--muted)' }}> · {e.location}</span>
               ) : null}
             </span>
             <span
               style={{
                 fontSize: '11px',
-                color: '#0f172a',
+                color: 'var(--bg)',
                 background: accent,
                 borderRadius: '4px',
                 padding: '2px 6px',

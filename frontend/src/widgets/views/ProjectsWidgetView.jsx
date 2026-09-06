@@ -1,13 +1,14 @@
 // 프로젝트 위젯 뷰 — 스토어 구독·effect 는 이 뷰가 소유한다 (ADR-0020).
 // - 기존 Dashboard.jsx 의 프로젝트 섹션 로직을 그대로 옮겼다 (<h2> 제거).
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import ProjectCard from '../../components/ProjectCard';
 import ProjectForm from '../../components/ProjectForm';
 import ErrorBanner from '../../components/ErrorBanner';
 import { useProjectStore } from '../../store/useProjectStore.js';
+import { resolveDisplay } from '../displayConfig.js';
 
-export default function ProjectsWidgetView() {
+export default function ProjectsWidgetView({ config, configSchema }) {
   const projects = useProjectStore((s) => s.projects);
   const projectsLoading = useProjectStore((s) => s.loading);
   const projectsError = useProjectStore((s) => s.error);
@@ -20,19 +21,28 @@ export default function ProjectsWidgetView() {
     fetchProjects();
   }, [fetchProjects]);
 
+  // config.display 는 클라이언트 필터만 (C6). fetchProjects 계약 불변.
+  const d = resolveDisplay(configSchema, config?.display);
+  const visible = useMemo(() => {
+    let list = Array.isArray(projects) ? projects.slice() : [];
+    if (d.statusFilter && d.statusFilter !== 'all') list = list.filter((p) => (p.status || 'active') === d.statusFilter);
+    if (d.hideDone) list = list.filter((p) => p.status !== 'done');
+    return list;
+  }, [projects, d.statusFilter, d.hideDone]);
+
   const showProjectsLoading = projectsLoading && projects.length === 0;
-  const showProjectsEmpty = !projectsLoading && projects.length === 0 && !projectsError;
+  const showProjectsEmpty = !projectsLoading && visible.length === 0 && !projectsError;
 
   return (
     <div>
       {projectsError && <ErrorBanner message={projectsError} onRetry={fetchProjects} />}
 
       {showProjectsLoading ? (
-        <p style={{ color: '#94a3b8' }}>불러오는 중…</p>
+        <p style={{ color: 'var(--muted)' }}>불러오는 중…</p>
       ) : showProjectsEmpty ? (
-        <p style={{ color: '#94a3b8' }}>프로젝트가 없습니다</p>
+        <p style={{ color: 'var(--muted)' }}>프로젝트가 없습니다</p>
       ) : (
-        projects.map((p) => (
+        visible.map((p) => (
           <ProjectCard
             key={p.id}
             project={p}

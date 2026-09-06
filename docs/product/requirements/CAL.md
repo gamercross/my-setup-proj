@@ -62,6 +62,6 @@ TC: TC-CAL-02 (정렬·null 위치), TC-UI-18 (수동 — 배지·강조)
 
 - **실제 캘린더 연동** — FR-CAL-03, D2.
 - **`synced_at` UI 노출** — C3 에서는 응답 JSON 에만 포함, 화면 미노출.
-- **CSS 변수화** — 위젯 인라인 style 유지. C6 에서 정리.
+- **CSS 변수화** — ✅ C6 해소: `CalendarWidget` 의 하드코딩 색을 전역 `var()` 로 1:1 치환('오늘' 배지는 `var(--w-accent, var(--accent))`). `range`(오늘/이번주) 표시 옵션은 클라이언트 필터, `fetchEvents` 계약 불변. "종일 포함" 은 `all_day` 컬럼 부재로 제외.
 
 **작성:** 2026-09-06 (Phase C3)

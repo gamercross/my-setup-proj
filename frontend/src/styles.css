@@ -1,0 +1,27 @@
+/* 전역 디자인 토큰 (UI_SPEC §1) — 값은 기존 하드코딩 색과 완전 동일. 시각 변화 0. */
+:root {
+  --bg: #0f172a;
+  --panel: #1e293b;
+  --border: #334155;
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --accent: #f59e0b;
+  /* 우선순위 색 — 이름을 분리해 둔다 (US-1 브랜드 결정 시 --accent 만 바꿔도 배지는 유지). */
+  --priority-high: #ef4444;
+  --priority-medium: #f59e0b; /* 현재는 --accent 와 같은 값 */
+  --priority-low: #64748b;
+  --radius: 8px;
+  --card-radius: 10px;
+  --pad: 10px;
+}
+
+/* 배경·폰트·색만 전역으로 둔다. 레이아웃은 App 컴포넌트가 담당한다. */
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* 위젯 타이틀바 표시 모드(solid/ghost/hidden)는 WidgetFrame 이 인라인 style 로 처리한다.
+   여기 클래스 규칙을 두면 인라인 TITLEBAR_STYLE 에 눌려 무효라 두지 않는다. */

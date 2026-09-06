@@ -46,7 +46,7 @@
 | [0019](adr/ADR-0019-architecture-fitness-functions.md) | 아키텍처 피트니스 함수 | **제안** |
 | [0020](adr/ADR-0020-widget-shell-architecture.md) | 위젯 셸 아키텍처 (react-grid-layout + 위젯 계약) | 채택 |
 | [0021](adr/ADR-0021-widget-layout-persistence.md) | 위젯 레이아웃·설정 영속화 (localStorage → SQLite) | 채택 |
-| [0022](adr/ADR-0022-per-widget-theming.md) | 위젯별 테마 (스코프된 CSS 변수) | 채택 — C5 골격 / C6 구현 |
+| [0022](adr/ADR-0022-per-widget-theming.md) | 위젯별 테마 (스코프된 CSS 변수) | 채택 — C6 구현 완료 |
 | [0023](adr/ADR-0023-branch-model.md) | 브랜치 모델 — `feature/* → PR → main` (Git Flow 미채택) | 채택 |
 
 > 🆕 **대시보드 OS 전환 (2026-09-03)** — 고정 패널 → 위젯 셸. 개념: [../vision/DASHBOARD_OS.md](../vision/DASHBOARD_OS.md),
@@ -176,7 +176,7 @@ frontend/src/
     registry.js        위젯 타입 등록: { type, name, icon, description, defaultSize, min/maxSize, view, configSchema }
     defaultLayout.js   첫 실행 기본 레이아웃 상수 (할일·프로젝트·캘린더 3개)
     layoutStorage.js   localStorage 로드/저장/정규화 (dashboard.layout.v1 — ADR-0021)
-    themeVars.js       themeToVars(theme) — C5 는 {} 스텁, C6 화이트리스트 매핑 (ADR-0022)
+    themeVars.js       themeToVars(theme) — C6 화이트리스트 매핑: THEME_KEYS 고정 순회 + 색 정규식/CSS.supports 방어 (ADR-0022)
     views/             *WidgetView.jsx — 각자 도메인 스토어 구독 (Dashboard.jsx 섹션 로직 이관)
     themePresets.js    위젯 테마 프리셋 (다크·미니멀·강조 — ADR-0022, C6)
   components/
@@ -263,7 +263,7 @@ sequenceDiagram
 
   U->>HO: 위젯 드래그/리사이즈 (편집모드) — C5
   HO->>LS: onLayoutChange(x,y,w,h)
-  U->>SH: ⚙️ → 테마 색 변경 — C6 (C5 는 ⚙ 버튼 비활성, themeToVars 는 {} 스텁)
+  U->>SH: ⚙️ → 테마 색 변경 — C6 (WidgetSettings 모달)
   SH->>LS: updateConfig(id, { theme:{ accent } })
   LS-->>HO: 해당 WidgetFrame 만 CSS 변수 갱신
   LS->>P: 300ms 디바운스 후 save()
@@ -349,7 +349,7 @@ sequenceDiagram
 |---|---|---|---|---|---|
 | A | W1~2 | W1~2 | W1~2 | 기반 정리 (환경·테스트·커밋 체계) | A1~A3 ✅ |
 | B | W2~3 | W2~3 | W2~3 | 프론트 React 연결 + SQLite + 할일 CRUD | B1·B2 ✅ / B3 ⏳ |
-| C | W4~5 | W4~5 | W3~7 | 백엔드 미들웨어 · 프로젝트 · 캘린더 · 다이어그램 뷰어 · 위젯 셸 | C1~C5 ✅ / C6 ⏳ |
+| C | W4~5 | W4~5 | W3~7 | 백엔드 미들웨어 · 프로젝트 · 캘린더 · 다이어그램 뷰어 · 위젯 셸 · 커스터마이즈 | C1~C6 ✅ |
 | D | W6~7 | W6~7 | W7 | 에이전트 (수집·Claude·Notion·스케줄) | ⏳ |
 | — | W8 | W8 | W8 | 중간고사(A) · 수시평가(B·C) · 중간발표 | ⏳ |
 | E | W9~13 | W9~14 | W9~14 | 다중 사용자 · Supabase · Docker · 최적화 | ⏳ |
@@ -380,7 +380,7 @@ sequenceDiagram
 | C3 | ✅ 캘린더 위젯 + `/api/calendar/events` (더미 데이터, `services/calendar.js`; 실 Google API 는 D2). `useCalendarStore` + `CalendarWidget` + Dashboard 3패널, TC-CAL-01~07 | FR-CAL-01/02 |
 | C4 | ✅ 다이어그램 뷰어 — `GET /api/diagrams`(`services/diagrams.js` 가 `docs/` 재귀 파싱, `parseMermaidBlocks` 순수함수, `DOCS_PATH`→저장소→`resourcesPath`) + `DiagramPanel.jsx`(`mermaid@11.17.2` 동적 import, 별도 청크, 블록 폴백, CSP 무완화). TC-DIAG-01~05. electron-builder `extraResources` 실배선은 E3. [ADR-0014](adr/ADR-0014-dashboard-diagram-viewer.md) 채택 | FR-UI-05, G9 |
 | **C5** | ✅ **위젯 셸 — 대시보드 OS** (2026-09-06). `widgets/{registry,defaultLayout,layoutStorage,themeVars}.js` + `widgets/views/*` + `WidgetShell`/`WidgetHost`(react-grid-layout 2.2.4 `/legacy`)/`WidgetFrame`/`WidgetPicker`, `useLayoutStore`, `localStorage` 영속. `Dashboard.jsx` 삭제·섹션 로직 뷰로 이관. 위젯별 격리(ErrorBoundary `fallback`). [ADR-0020/0021](adr/ADR-0020-widget-shell-architecture.md) 채택 · DO-1~6 결정 완료. | FR-WIDGET-01~04·07·08 |
-| **C6** | **위젯 커스터마이즈.** 전역 인라인 style → CSS 변수, `WidgetSettings`(테마+표시 탭), `themePresets.js`, `themeToVars` 화이트리스트. [ADR-0022](adr/ADR-0022-per-widget-theming.md). C5 선행. | FR-WIDGET-05·06 |
+| **C6** | ✅ **위젯 커스터마이즈** (2026-09-06, `feature/c6-widget-customize`). `styles.css` :root 전역 토큰(hex→var 1:1, 시각 변화 0), `WidgetSettings` createPortal 모달(테마+표시 탭), `themePresets.js`(다크·미니멀·강조), `themeToVars` 화이트리스트(주입 방어), `registry.configSchema` + `displayConfig.resolveDisplay`(뷰 3종 클라이언트 필터/정렬). [ADR-0022](adr/ADR-0022-per-widget-theming.md) 구현 완료. | FR-WIDGET-05·06 |
 
 ### Phase D — 에이전트 (A-W6~7)
 

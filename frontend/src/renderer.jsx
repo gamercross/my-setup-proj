@@ -2,6 +2,7 @@
 // React 트리를 #root 에 마운트한다.
 // StrictMode 는 쓰지 않는다: dev 에서 effect 가 이중 실행되어 /health 가 2번 호출된다.
 
+import './styles.css';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.jsx';
