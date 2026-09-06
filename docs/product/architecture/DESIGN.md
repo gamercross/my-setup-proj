@@ -341,19 +341,19 @@ sequenceDiagram
 
 ### Week ↔ Phase 대응
 
-세 가지 넘버링을 맞춘다: 강의 "Week"([ROADMAP.md](../ROADMAP.md)) · 요구사항 "목표 주차"([REQUIREMENTS_FUNCTIONAL.md](../requirements/REQUIREMENTS_FUNCTIONAL.md)) · 설계 "Phase".
+네 가지 축을 맞춘다: 3강의 "주차"(A/B/C-Week, [COURSE_MAPPING.md](../../progress/COURSE_MAPPING.md) — 강의 태그 SSOT) · 요구사항 "목표 주차"([REQUIREMENTS_FUNCTIONAL.md](../requirements/REQUIREMENTS_FUNCTIONAL.md)) · 설계 "Phase" · 일정([ROADMAP.md](../ROADMAP.md)).
 
-| Phase | 강의 Week | 주제 | 상태 |
-|---|---|---|---|
-| A | Week 1~2 | 기반 정리 (환경·테스트·커밋 체계) | A1~A3 ✅ |
-| B | Week 2~3 | 프론트 React 연결 + SQLite + 할일 CRUD | B1·B2 ✅ / B3 ⏳ |
-| C | Week 4~5 | 백엔드 미들웨어 · 프로젝트 · 캘린더 · 다이어그램 뷰어 | ⏳ |
-| D | Week 6~7 | 에이전트 (수집·Claude·Notion·스케줄) | ⏳ |
-| — | Week 8 | 중간고사 · 과제 1 발표 | ⏳ |
-| E | Week 9~13 | 다중 사용자 · Supabase · Docker · 최적화 | ⏳ |
-| — | Week 14~15 | 기말고사 · 과제 2 · 최종 발표 | ⏳ |
+| Phase | A-Week | B-Week | C-Week | 주제 | 상태 |
+|---|---|---|---|---|---|
+| A | W1~2 | W1~2 | W1~2 | 기반 정리 (환경·테스트·커밋 체계) | A1~A3 ✅ |
+| B | W2~3 | W2~3 | W2~3 | 프론트 React 연결 + SQLite + 할일 CRUD | B1·B2 ✅ / B3 ⏳ |
+| C | W4~5 | W4~5 | W3~7 | 백엔드 미들웨어 · 프로젝트 · 캘린더 · 다이어그램 뷰어 · 위젯 셸 | C1~C5 ✅ / C6 ⏳ |
+| D | W6~7 | W6~7 | W7 | 에이전트 (수집·Claude·Notion·스케줄) | ⏳ |
+| — | W8 | W8 | W8 | 중간고사(A) · 수시평가(B·C) · 중간발표 | ⏳ |
+| E | W9~13 | W9~14 | W9~14 | 다중 사용자 · Supabase · Docker · 최적화 | ⏳ |
+| — | W14~15 | W15 | W15 | 기말고사(A) · 정기평가(B·C) · 과제2(A) · 최종 발표 | ⏳ |
 
-### Phase A — 기반 정리 (Week 1 잔여)
+### Phase A — 기반 정리 (A-W1~2 잔여)
 
 | 단계 | `/feature` 설명 | 커버 | 상태 |
 |---|---|---|---|
@@ -361,7 +361,7 @@ sequenceDiagram
 | A2 | node/npm/python 설치 + `setup.sh`·`verify.sh` 통과 + 백엔드 실행 검증 | G4, NFR-TEST-04 | ✅ `45f0a15` (12/0/0) |
 | A3 | backend supertest 스모크(TC-TASK/PROJ P0, 15케이스) + agent pytest(TC-AGENT-01~03), CI 에 `npm test`·`pytest -m "not network"` 연결, `app.js` 분리 | NFR-TEST-01~03, G6 | ✅ A3 |
 
-### Phase B — 프론트 연결 + DB (Week 2~3)
+### Phase B — 프론트 연결 + DB (A-W2~3)
 
 | 단계 | `/feature` 설명 | 커버 | 산출물 |
 |---|---|---|---|
@@ -369,7 +369,7 @@ sequenceDiagram
 | B2 | ✅ `schema.sql` + better-sqlite3 로 `db.js` 내부 교체 (라우트 무수정, `db/index.js` 커넥션 싱글턴 + WAL + `DATABASE_PATH`) | AD-02/03, FR-TASK-05, G2 | `backend/db/index.js`, `backend/test/db.test.js` |
 | B3 | `api/client.js` + zustand store, Dashboard→TaskList/TaskForm 배선 (할일 CRUD E2E) | FR-TASK-01~04, FR-UI-01, G3 | 동작하는 할일 기능 |
 
-### Phase C — 강의 동기화 (Week 4~5)
+### Phase C — 강의 동기화 (A-W4~5 / C-W3~7)
 
 | 단계 | `/feature` 설명 | 커버 |
 |---|---|---|
@@ -380,7 +380,7 @@ sequenceDiagram
 | **C5** | ✅ **위젯 셸 — 대시보드 OS** (2026-09-06). `widgets/{registry,defaultLayout,layoutStorage,themeVars}.js` + `widgets/views/*` + `WidgetShell`/`WidgetHost`(react-grid-layout 2.2.4 `/legacy`)/`WidgetFrame`/`WidgetPicker`, `useLayoutStore`, `localStorage` 영속. `Dashboard.jsx` 삭제·섹션 로직 뷰로 이관. 위젯별 격리(ErrorBoundary `fallback`). [ADR-0020/0021](adr/ADR-0020-widget-shell-architecture.md) 채택 · DO-1~6 결정 완료. | FR-WIDGET-01~04·07·08 |
 | **C6** | **위젯 커스터마이즈.** 전역 인라인 style → CSS 변수, `WidgetSettings`(테마+표시 탭), `themePresets.js`, `themeToVars` 화이트리스트. [ADR-0022](adr/ADR-0022-per-widget-theming.md). C5 선행. | FR-WIDGET-05·06 |
 
-### Phase D — 에이전트 (Week 6~7)
+### Phase D — 에이전트 (A-W6~7)
 
 | 단계 | `/feature` 설명 | 커버 |
 |---|---|---|
@@ -388,7 +388,7 @@ sequenceDiagram
 | D2 | Google OAuth + Gmail/Calendar 실 수집 → SQLite upsert + sync_logs | FR-AUTH-01, FR-MAIL-01, FR-CAL-01, FR-SYNC-03 |
 | D3 | Notion 저장 + launchd/cron 자동 실행 + BriefCard 표시 | FR-AGENT-03/04/05 |
 
-### Phase E — 배포/동기화 (Week 9~12, 계획대로)
+### Phase E — 배포/동기화 (A-W9~13, 계획대로)
 
 | 단계 | 내용 | 커버 |
 |---|---|---|

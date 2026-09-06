@@ -7,7 +7,7 @@
 ## 이 프로젝트가 뭔가 (3문장)
 
 **Windows / macOS / Linux 어디서든 켜는 "대시보드 OS"**(Electron + React) — 할일·프로젝트·일정·메일·브리핑이 각각 **위젯처럼 움직이고 위젯마다 디자인을 꾸미는** 데스크톱 셸 — 과, 그 데이터를 정리해 주는 **Claude 기반 AI 에이전트**(Python)를 만든다.
-동시에 우숭대학교 "AI 컴퓨터 운영체제 실습" 강의(14주)의 실습 환경이자 최종 결과물이다 — "대시보드 OS" 는 강의의 창·프로세스 관리 주제와 정합한다.
+동시에 우송대학교 2026-2학기 3개 강의(AI 컴퓨터 운영체제 실습 / AI시대소프트웨어공학 / AITool기반소프트웨어공학)의 공통 실습 환경이자 제출 산출물이다. 각 강의가 보는 층이 다르다 — 런타임·환경(A) / AI 활용 개발 프로세스(B) / SW공학 산출물(C). 상세: [COURSE_MAPPING.md](progress/COURSE_MAPPING.md). "대시보드 OS" 는 강의 A 의 창·프로세스 관리 주제와 정합한다.
 시작 2026-09-02, 목표 완성 2026-11-30.
 
 핵심 기능 4종: ① 오늘/내일 할 일 자동 브리핑 ② 프로젝트 진행도(Notion) ③ 이메일 통합 ④ 캘린더 일정. 이들이 위젯으로 셸에 올라간다 (위젯 셸 = Phase C5~C6, [DASHBOARD_OS.md](product/vision/DASHBOARD_OS.md)).
@@ -62,7 +62,7 @@ flowchart TB
 | [`product/reference/`](product/reference/README.md) | 정확한 계약 (필드·엔드포인트·용어) | API_REFERENCE, UI_SPEC, DATA_DICTIONARY, GLOSSARY |
 | [`product/testing/`](product/testing/README.md) | 어떻게 검증하나 | TEST_PLAN |
 | [`setup/`](setup/README.md) | 환경·도구·규칙 | SETUP, CONVENTIONS, GIT_WORKFLOW, ORCHESTRATION |
-| [`progress/`](progress/README.md) | 지금 어디까지 | PROGRESS, COURSE_MAPPING |
+| [`progress/`](progress/README.md) | 지금 어디까지 | PROGRESS, COURSE_MAPPING(3강의 A·B·C) |
 
 ---
 
@@ -73,7 +73,7 @@ flowchart TB
 | 1 | [product/VISION.md](product/vision/VISION.md) (+ [DASHBOARD_OS.md](product/vision/DASHBOARD_OS.md)) + [product/USE_SCENARIOS.md](product/vision/USE_SCENARIOS.md) | 무엇을 만드는가, 대시보드 OS·위젯 셸 방향, "완료" 의 정의, 사용 여정 |
 | 2 | [product/AS_IS.md](product/vision/AS_IS.md) | 지금 코드가 어디까지 됐나, 모듈 의존 그래프, 갭 G1~G9 |
 | 3 | [product/CONSTRAINTS.md](product/vision/CONSTRAINTS.md) + [product/RISKS.md](product/vision/RISKS.md) | 전제 조건, 무엇이 틀어질 수 있나 |
-| 4 | [product/ROADMAP.md](product/ROADMAP.md) + [product/DESIGN.md](product/architecture/DESIGN.md) §8 | 주차별 일정, Week ↔ Phase 대응 |
+| 4 | [product/ROADMAP.md](product/ROADMAP.md) + [product/DESIGN.md](product/architecture/DESIGN.md) §8 + [progress/COURSE_MAPPING.md](progress/COURSE_MAPPING.md) | 주차별 일정, Phase ↔ 3강의(A/B/C) 주차 대응 |
 | 5 | [product/REQUIREMENTS_FUNCTIONAL.md](product/requirements/REQUIREMENTS_FUNCTIONAL.md) + [requirements/](product/requirements/) | 기능 요구사항(FR), P0 도메인 수용 기준 |
 | 6 | [product/REQUIREMENTS_NONFUNCTIONAL.md](product/requirements/REQUIREMENTS_NONFUNCTIONAL.md) | 품질 기준(NFR) — 보안(위협 모델)·신뢰성·테스트 |
 | 7 | [product/DESIGN.md](product/architecture/DESIGN.md) + [product/adr/](product/architecture/adr/) | 아키텍처(다이어그램), 결정 이력, 데이터·API·흐름 |

@@ -61,7 +61,9 @@
 | `AD-01` ~ `AD-08` | 아키텍처 결정(Architecture Decision). [DESIGN.md](../architecture/DESIGN.md) §2, 개별 파일은 `adr/`(예정). |
 | `TC-xx` | 테스트 케이스 ID. [TEST_PLAN.md](../testing/TEST_PLAN.md)(예정). |
 | **P0 / P1 / P2** | 요구사항 우선순위. P0=완료 기준, P1=있어야 함, P2=선택. |
-| **Phase A~E** | [DESIGN.md](../architecture/DESIGN.md) §8 의 구현 단계. 강의 "Week" 와의 대응표는 DESIGN §8. |
+| **Phase A~E** | [DESIGN.md](../architecture/DESIGN.md) §8 의 구현 단계. 3강의 주차와의 대응표는 DESIGN §8. |
+| **강의 A / B / C** | 이 프로젝트를 공통 산출물로 제출하는 우송대 2026-2학기 3개 전공 강의. **A** = AI 컴퓨터 운영체제 실습(김태원, 런타임·환경·배포 층) / **B** = AI시대소프트웨어공학(양현식, AI 활용 개발 프로세스 층) / **C** = AITool기반소프트웨어공학(유승선, 정통 SW공학 산출물 층). [COURSE_MAPPING.md](../../progress/COURSE_MAPPING.md) |
+| **강의 태그 (`A-W11` 형식)** | `<강의>-W<주차>` — 특정 강의의 특정 주차 주제를 가리키는 태그. 복수 `A-W5·C-W4`, 범위 `C-W3~W7`. 정의·매핑의 단일 원천 = [COURSE_MAPPING.md §4](../../progress/COURSE_MAPPING.md#4-강의-렌즈--fr-도메인adr-그룹--강의-주차). |
 
 ---
 
