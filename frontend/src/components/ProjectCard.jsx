@@ -1,4 +1,4 @@
-// 구조 스캐폴드. Week 3에서 Dashboard가 API 데이터를 주입한다.
+// props-only 프레젠테이션 컴포넌트. 데이터·콜백은 상위 뷰(ProjectsWidgetView → useProjectStore)가 주입한다.
 
 import React, { useState, useEffect } from 'react';
 
