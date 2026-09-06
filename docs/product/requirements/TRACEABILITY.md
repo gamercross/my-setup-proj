@@ -68,12 +68,12 @@ C 세부: C1 미들웨어(CORS·로깅·에러) ✅(2026-09-03) → C2 프로젝
 | FR-MAIL-01 | G7 | API_REFERENCE `/mail/unread`, [ADR-0006](../architecture/adr/ADR-0006-agent-owns-external-apis.md) | D2 | — | `agent/services/gmail.py` | ⏳ |
 | FR-MAIL-02 | G8 | — | E (W9) | — | `agent/services/gmail.py` | ⏳ |
 | FR-MAIL-03 | G8 | — | E (W9) | — | `components/EmailView.jsx`(신규) | ⏳ |
-| FR-AGENT-01 | G7 | DESIGN §7 (시퀀스), [ADR-0011](../architecture/adr/ADR-0011-agent-backend-db-access.md) | D1 | TC-AGENT-01,02 | `agent/daily_brief.py`, `agent/db.py` | 🚧 |
-| FR-AGENT-02 | — | DESIGN §7, CONVENTIONS §4 | D1 | TC-AGENT-06 | `agent/services/claude.py` | 🚧 |
+| FR-AGENT-01 | G7 | DESIGN §7 (시퀀스), [ADR-0011](../architecture/adr/ADR-0011-agent-backend-db-access.md) | D1 | TC-AGENT-01,02,10~13 | `agent/daily_brief.py`, `agent/db.py` | ✅ |
+| FR-AGENT-02 | — | DESIGN §7, CONVENTIONS §4 | D1 | TC-AGENT-06 | `agent/services/claude.py`, `agent/daily_brief.py` | ✅ |
 | FR-AGENT-03 | G7 | requirements/AGENT.md | D3 | TC-AGENT-04 | `agent/services/notion.py` | ⏳ |
 | FR-AGENT-04 | — | API_REFERENCE `/brief/today` | D3 | TC-AGENT-05 | `routes/brief.js`(신규), `components/BriefCard.jsx`(신규) | ⏳ |
 | FR-AGENT-05 | — | [ADR-0007](../architecture/adr/ADR-0007-schedule-launchd-cron.md) | D3 | — | `scripts/`, plist | ⏳ |
-| FR-AGENT-06 | — | DESIGN §7, NFR-REL-02 | D1 | TC-AGENT-03 | `agent/daily_brief.py` | 🚧 |
+| FR-AGENT-06 | — | DESIGN §7, NFR-REL-02 | D1 | TC-AGENT-03,14 | `agent/daily_brief.py` | 🚧 (AC-1/2 완료, AC-3 재시도 D2 이월) |
 | FR-AGENT-07 | — | requirements/AGENT.md | E (W11) | — | `agent/schedule_advisor.py`(신규) | ⏳ |
 | FR-SYNC-01 | G8 | [ADR-0008](../architecture/adr/ADR-0008-supabase-deferred.md) | E2 | — | 신규 동기화 모듈 (선행: `backend/src/supabase.js`) | ⏳ |
 | FR-SYNC-02 | G8 | [ADR-0008](../architecture/adr/ADR-0008-supabase-deferred.md) | E2 | — | 동상 (선행: `backend/src/supabase.js`) | ⏳ |

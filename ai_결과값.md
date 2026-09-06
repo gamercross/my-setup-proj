@@ -2,443 +2,167 @@
 
 ## 점검 기준
 
-- 기준일: 2026-09-04
-- 확인 대상: `작업로그.md`, `README.md`, `docs/progress/PROGRESS.md`, 실제 코드·스크립트·최근 Git 상태
-- 목적: 현재까지 한 일과 남은 문제를 구분하고, 다음 해결 순서를 정리하는 것
+- 기준일: 2026-09-06
+- 점검 대상: C3~C6 구현, Supabase 부트스트랩, D1 Daily Brief 변경분, 요구사항·아키텍처·환경 문서
+- 목적: 현재 완료된 범위와 아직 위반·미검증인 항목을 구분해 다음 작업을 결정하는 것
 
-## 한눈에 보는 현재 상태
+## 현재 상태 요약
 
-프로젝트는 초기 세팅을 넘어 로컬 생산성 대시보드의 핵심 기반을 구현한 상태입니다.
+### 완료 또는 반영된 사항
 
-- 완료: Phase A2·A3·B1·B2·B3·C1·C2
-- 구현: SQLite 영속화, 할일 CRUD 프론트 배선, 프로젝트 CRUD 프론트 배선, CORS·요청 로깅·공통 오류 처리
-- 검증: backend 테스트 39개 통과, `verify.sh` 19/0/0, frontend `npm run build` 성공
-- Git: B3·C1·C2 스택 PR 병합 완료, `main`과 `origin/main` 일치
-- 미검증: 브라우저 E2E와 Electron GUI 수동 확인
-- 다음 개발 후보: C3 캘린더 위젯·API, 그다음 C4 다이어그램 뷰어
+- C3: 캘린더 더미 API와 캘린더 위젯
+- C4: Mermaid 다이어그램 API와 다이어그램 위젯
+- C5: 위젯 셸, 레이아웃 저장, 위젯 추가·삭제·이동 구조
+- C6: 위젯 테마·표시 옵션·설정 모달
+- Supabase: 실제 동기화가 아닌 선택적 클라이언트 부트스트랩과 `/api/sync/health` 진단
+- D1 진행: SQLite의 오늘 할일 조회, `briefs` upsert, Daily Brief 실행 흐름과 실패 격리
+- 환경 문서: OS별 설치 절차, `.env` 로딩 차이, 개발 포트 3000 규칙, 서비스 smoke 검증
+- 문서 점검: 링크·ADR·FR 추적·드리프트 자동 검사
 
-현재 가장 큰 위험은 기능 부재가 아니라 **제품 범위가 위젯 셸로 넓어지는 동안 환경 재현성과 실제 화면 검증이 뒤따르지 못하고 있다는 점**입니다.
+### 현재 검증 상태
 
-## 지금 놓치고 있는 부분
+- backend 테스트: 56개 통과
+- frontend 테스트: 9개 통과
+- agent 테스트: D1 DB 테스트 포함 통과 기록 기준 11개
+- `verify.sh`: 27/0/0 통과 기록
+- 문서 정합성 검사: 11/0/0 통과 기록
+- frontend production build: 성공
+- 미완료: Electron 창, 브라우저 UI, 위젯 상호작용, Mermaid 렌더링의 로컬 수동 확인
 
-### 1. 제품 범위가 대시보드에서 위젯 셸로 확장됨
+자동 검증은 양호하지만, 테스트 통과만으로 모든 비기능 요구사항과 실제 화면 동작이 완료된 것은 아닙니다.
 
-최근 문서에는 `DASHBOARD_OS.md`와 위젯 셸 요구사항(FR-WIDGET-01·02·04·05)이 추가되어 있습니다. 그러나 현재 코드 상태와 결과 문서는 할일·프로젝트 중심 대시보드로만 설명하고 있습니다.
+## 확인된 문제와 해결책
 
-**문제**
+### 1. 높음: `uncaughtException` 처리 누락
 
-- 위젯을 고정 배치할지, 드래그·리사이즈할지 결정되지 않음
-- 위젯 설정의 저장 위치와 형식이 결정되지 않음
-- 위젯 오류 격리, 순서 변경, 초기화, 모바일 화면 정책이 아직 구현 계획에 충분히 반영되지 않음
-- C3 캘린더를 만들기 전에 위젯 공통 계약을 정하지 않으면 기능마다 다른 상태·크기·오류 처리가 생길 수 있음
+[NFR-REL-03](docs/product/requirements/REQUIREMENTS_NONFUNCTIONAL.md)은 backend가 `unhandledRejection`과 `uncaughtException`을 모두 기록하도록 요구합니다. 현재 [backend/src/server.js](backend/src/server.js#L15-L17)에는 `unhandledRejection` 처리만 있습니다.
 
-**해결책**
+**위험**
 
-`DASHBOARD_OS.md`의 DO-1~6을 먼저 결정하고, 위젯 공통 모델(`id`, `type`, `position`, `size`, `enabled`, `config`)과 렌더 상태 계약을 확정합니다. 그 후 C3 캘린더를 첫 번째 실제 위젯으로 구현하는 편이 안전합니다.
-
-**우선순위:** 높음. C3 착수 전에 사용자 결정이 필요합니다.
-
-### 2. 환경 설정 문서와 실제 작업 OS가 맞지 않음
-
-`SETUP.md`는 Ubuntu/WSL 중심인데 현재 작업 환경은 macOS입니다. Homebrew Node, macOS Python, launchd, Electron 권한·창 실행 문제는 Ubuntu 절차만으로 재현할 수 없습니다.
-
-**해결책**
-
-- SETUP을 macOS, Ubuntu/WSL로 나누고 공통 단계와 OS별 단계를 분리합니다.
-- macOS에서는 `brew`, `python3`, `launchctl`, Electron 권한을 명시합니다.
-- Ubuntu/WSL에서는 `apt`, systemd/cron 차이, WSL에서 Electron GUI 제한을 명시합니다.
-- CI 기준(Node 22, Python 3.12)과 로컬 권장 버전을 표로 고정합니다.
-
-**우선순위:** 높음. 다른 컴퓨터에서 설치를 재현하기 전에 정리해야 합니다.
-
-### 3. `setup.sh`가 만든 `.env`가 backend 실행에 자동으로 사용되지 않음
-
-`setup.sh`는 `.env.example`을 `.env`로 복사하지만 backend에는 dotenv 로딩이 없습니다. 따라서 `PORT`와 `DATABASE_PATH`는 `.env`에 적어도 `npm start`만으로는 반영되지 않고, 셸에서 직접 주입해야 합니다. 반면 Slack 스크립트는 `.env`를 직접 읽습니다.
-
-**문제**
-
-- 같은 `.env`를 사용해도 스크립트와 backend의 동작이 다름
-- 사용자는 설정이 적용됐다고 생각하지만 backend는 기본 포트·기본 DB 경로로 실행될 수 있음
-- `DATABASE_PATH`를 바꿔도 실제 DB가 계속 `backend/data/app.db`에 만들어질 수 있음
+- 동기 예외가 최상위 로그 정책을 거치지 않음
+- 예외 발생 후 프로세스를 계속 유지할지 안전 종료할지 정책이 없음
+- 강제 예외 주입 및 graceful shutdown 검증이 없음
 
 **해결책**
 
-현재 결정대로 dotenv를 당장 도입하지 않는다면 문서와 `setup.sh`에서 backend 실행 전에 명시적으로 환경변수를 export하는 방식을 안내해야 합니다. dotenv를 도입하기로 결정한다면 backend와 agent의 로딩 위치·우선순위·테스트를 함께 표준화해야 합니다. 둘 중 하나를 선택하고 혼용하지 않아야 합니다.
+`uncaughtException` 처리 정책을 ADR-0016 실행 구조와 함께 결정합니다. 일반적으로 로그 기록 후 안전 종료·재시작을 기본으로 검토하고, 단순히 프로세스를 계속 살리는 방식은 피합니다. 예외 주입 테스트와 SIGTERM 종료 테스트를 추가합니다.
 
-**우선순위:** 높음. 브라우저 E2E 전에 확인해야 합니다.
+**상태:** 코드 후속 작업
 
-### 4. `PORT` 설정과 frontend API 주소가 분리되어 있음
+### 2. 중간: tasks/projects 라우트가 DB를 직접 호출함
 
-backend는 `PORT` 환경변수를 읽지만 Electron preload의 API 주소는 `http://localhost:3000/api`로 고정되어 있습니다. backend를 다른 포트로 실행하면 frontend가 계속 3000번으로 요청합니다.
+[NFR-MAINT-02](docs/product/requirements/REQUIREMENTS_NONFUNCTIONAL.md)와 [CONVENTIONS.md](docs/setup/CONVENTIONS.md)는 `routes → services → db` 계층을 요구합니다. 그러나 [tasks.js](backend/src/routes/tasks.js#L3-L16)와 [projects.js](backend/src/routes/projects.js#L3-L10)는 라우트에서 DB를 직접 호출하며 입력 검증·도메인 검증도 함께 수행합니다.
 
-**해결책**
-
-- 개발 환경의 포트를 3000으로 고정하고 문서·검증에서 변경하지 않도록 하거나
-- Vite/Electron 실행 시 동일한 `BACKEND_PORT`를 주입해 preload와 backend가 같은 값을 사용하게 합니다.
-
-포트 변경 가능성을 남길 경우, health check도 같은 설정값을 사용하고 포트 불일치를 자동으로 실패시키는 검사를 추가해야 합니다.
-
-**우선순위:** 높음. 환경별 실행 전에 결정합니다.
-
-### 5. 설치는 되지만 재현 가능한 버전 관리가 약함
-
-Node와 Python 의존성은 대부분 범위 버전(`^`, `>=`)이고 설치 스크립트는 `npm install`을 사용합니다. 새 컴퓨터나 시간이 지난 뒤 설치하면 서로 다른 버전이 설치될 수 있습니다. native 모듈인 `better-sqlite3`는 Node ABI와 OS별 빌드 도구의 영향을 받습니다.
+C3의 `services/calendar.js`, C4의 `services/diagrams.js`와 달리 기존 도메인의 계층이 일관되지 않습니다. 기능 테스트는 통과하지만 구조 요구사항은 부분 충족입니다.
 
 **해결책**
 
-- `package-lock.json`을 커밋하고 CI·초기 설치는 `npm ci`를 사용합니다.
-- Python은 최소 버전 정책과 함께 lock 또는 검증 가능한 requirements 관리 방식을 결정합니다.
-- Node 22와 Python 3.12를 기준으로 로컬·CI를 먼저 맞춥니다.
-- macOS/Ubuntu에서 `better-sqlite3` 설치 실패 시 필요한 Xcode Command Line Tools/build-essential을 환경 문서에 추가합니다.
+`backend/src/services/tasks.js`와 `backend/src/services/projects.js`를 추가하고, 라우트는 요청 검증과 HTTP 응답 매핑에 집중하게 합니다. 기존 `backend/src/db.js` 공개 함수 시그니처는 유지합니다.
 
-**우선순위:** 중간. 다음 환경을 재구성하기 전에 처리합니다.
+**상태:** 코드 후속 작업
 
-### 6. 현재 검증 스크립트가 실행 동작까지 보장하지 않음
+### 3. 중간: D1 Daily Brief은 아직 완성 기능이 아님
 
-`verify.sh`는 파일 존재와 문법을 확인하지만 backend 기동, 포트 응답, frontend와 API의 연결, SQLite 쓰기 권한, Electron 창 실행까지는 확인하지 않습니다. 자동 테스트와 빌드가 성공해도 실제 앱 실행 실패를 놓칠 수 있습니다.
+D1 변경으로 다음 범위는 구현됐습니다.
 
-**해결책**
+- 오늘 마감이고 미완료인 할일을 SQLite에서 조회
+- 우선순위 정렬
+- `briefs` 날짜 기준 upsert
+- Claude 호출 실패와 Notion 저장 실패 격리
+- `.env`의 `DATABASE_PATH`를 agent가 읽는 구조
 
-검증을 세 층으로 나눕니다.
+하지만 다음은 아직 남아 있습니다.
 
-1. 정적 검사: 현재 `verify.sh`와 문법 검사
-2. 서비스 검사: 임시 포트에서 backend 기동 후 `/api/health` 확인 및 종료
-3. 사용자 흐름 검사: 브라우저/Electron에서 TC-UI-10~16과 GUI 체크 수행
-
-서비스 검사에는 포트 충돌, 종료 시 cleanup, 임시 DB 경로를 포함해야 합니다.
-
-**우선순위:** 높음. C3 구현 전 최소한 서비스 검사를 추가합니다.
-
-## 문제와 해결책
-
-### 7. `.env.example`에 비밀값이 들어갈 위험이 있음
-
-**문제**
-
-`.env.example`의 `SLACK_WEBHOOK_URL`에 실제 형식의 Webhook URL이 들어 있습니다. 예시 파일은 저장소에 공유될 수 있으므로 실제 URL이라면 이미 노출된 것으로 간주해야 합니다. 또한 `SLACK_WEBHOOK_URL= https://...`처럼 `=` 뒤에 공백이 있어 shell 방식으로 `.env`를 읽을 때 올바른 값으로 처리되지 않을 수 있습니다.
+- 일정과 이메일은 더미 데이터
+- `FR-AGENT-03` Notion 저장 계약과 `briefs.notion_url` 갱신 미완료
+- `GET /api/brief/today`와 BriefCard 미구현
+- `FR-AGENT-05` launchd/cron 자동 실행 미구현
+- `FR-AGENT-06 AC-3` 지수 백오프 재시도 미구현
+- `sync_logs` 기록은 서비스 제약과 함께 별도 정책이 필요
 
 **해결책**
 
-1. Slack 관리자 화면에서 해당 Webhook을 즉시 폐기하고 새로 발급합니다.
-2. `.env.example`에는 `SLACK_WEBHOOK_URL=`만 남깁니다.
-3. 실제 값은 추적하지 않는 로컬 `.env`에만 입력합니다.
-4. `setup.sh` 또는 검증 스크립트에서 예시 파일에 URL이 들어갔는지 검사합니다.
+D2에서 Google OAuth·Gmail·Calendar 실데이터와 재시도 정책을 구현하고, D3에서 Brief API·UI·스케줄러를 완성합니다. D1 완료 표기는 “핵심 흐름 구현, 외부 데이터·자동화 미완료”로 유지해야 합니다.
 
-**우선순위:** 즉시. 기능 개발보다 먼저 처리해야 하는 보안 문제입니다.
+**상태:** D1 진행 중
 
-### 8. 브라우저에서 실제 CRUD 왕복 검증이 아직 남아 있음
+### 4. 중간: Supabase 부트스트랩을 동기화 완료로 오해할 위험
 
-**문제**
-
-코드와 자동 테스트는 통과했지만, 브라우저에서 frontend와 backend를 함께 실행해 다음 흐름을 직접 확인하지 않았습니다.
-
-- 할일 생성·완료·삭제
-- 프로젝트 생성·상태 변경·진행도 변경·삭제
-- 빈 목록·로딩·정상·오류 상태
-- 한 패널 오류가 다른 패널을 가리지 않는지
+현재 Supabase 구현은 연결 객체 생성과 `/api/sync/health` 진단만 제공합니다. SQLite와 Supabase 사이의 데이터 동기화, 인증, `user_id`, 충돌 해결은 구현하지 않았습니다.
 
 **해결책**
 
-로컬에서 두 프로세스를 실행하고 TC-UI-10~16을 수행합니다.
+문서와 UI에서 `/api/sync/health`를 “연결 진단”으로만 표시합니다. FR-SYNC-01/02, 인증, 동기화 로그, 충돌 정책은 Phase E에서 별도 구현합니다. `SUPABASE_KEY`는 `anon public` 키만 사용하고 `service_role` 키는 사용하지 않습니다.
 
-```bash
-# 터미널 A
-cd backend && npm start
+**상태:** 부트스트랩 완료, 동기화 미착수
 
-# 터미널 B
-cd frontend && npm run dev
-```
+### 5. 중간: 문서 상태를 기능 구현과 수동 검증으로 분리해야 함
 
-확인 결과를 `TRACEABILITY.md`, `PROGRESS.md`, `README.md`에 반영합니다. 문제가 생기면 브라우저 콘솔, Network 응답, backend 로그를 같은 시각 기준으로 대조합니다.
-
-**우선순위:** 높음. C3 착수 전에 현재 화면의 기본 동작을 확정하는 것이 좋습니다.
-
-### 9. 문서에 과거 상태가 일부 남아 있음
-
-**문제**
-
-실제 구현은 B3·C1·C2까지 완료됐지만 `README.md`와 일부 진행 문서에는 B3/C2가 예정 또는 진행 중인 것처럼 표시된 부분이 있습니다. 문서 구조를 `docs/product/` 아래로 재배치한 변경도 커서, 현재 상태를 찾는 사용자가 서로 다른 결론을 낼 수 있습니다.
+C3~C6와 D1 작업으로 구현 범위가 빠르게 변했기 때문에 README·TRACEABILITY·PROGRESS·UI_SPEC의 상태가 서로 늦게 갱신될 위험이 있습니다. 특히 자동 테스트 통과와 Electron·브라우저 확인 완료는 다른 상태입니다.
 
 **해결책**
 
-- 현재 상태의 기준 순서를 `작업로그.md` → `TRACEABILITY.md` → `DESIGN.md`로 고정합니다.
-- 완료 여부를 `코드 구현`, `자동 테스트`, `브라우저 수동 검증` 세 단계로 나눠 표기합니다.
-- 기능을 마칠 때마다 README·PROGRESS·TRACEABILITY를 한 번에 갱신합니다.
-- 과거 기록은 삭제하지 말고 날짜가 있는 작업로그로 남깁니다.
+모든 기능에 다음 세 상태를 따로 기록합니다.
 
-**우선순위:** 중간. 브라우저 검증 결과를 반영하는 시점에 함께 정리합니다.
+1. 코드 구현
+2. 자동 테스트
+3. 브라우저·Electron 수동 검증
 
-### 10. Electron과 backend의 실행 책임이 아직 결정되지 않음
+기능 완료 시 finisher가 관련 요구사항·테스트·문서 상태를 같은 변경에서 갱신합니다. `scripts/check_docs.py`는 링크·ADR·FR 추적·드리프트를 계속 실행합니다.
 
-**문제**
+**상태:** 자동 검사로 일부 방지, UI 수동 검증 대기
 
-현재 개발 모드에서는 backend와 frontend/Electron을 각각 실행해야 합니다. frontend만 실행하면 앱은 열리지만 API 연결 오류를 표시합니다. 패키징된 앱에서 backend를 누가 시작하고 종료할지, backend 비정상 종료를 어떻게 복구할지는 아직 확정되지 않았습니다.
+### 6. 낮음에서 중간: Mermaid 번들 크기 경고
 
-**해결책**
-
-- 개발 모드: 현재처럼 두 프로세스를 별도 실행하는 방식을 공식 절차로 유지합니다.
-- 패키징 전: Electron main process가 backend child process를 시작할지, 별도 서비스로 운영할지 결정합니다.
-- 결정 후 ADR과 `RUNTIME_VIEW.md`에 시작·종료·재연결 정책을 기록합니다.
-- backend가 꺼진 경우는 오프라인 데이터 상태와 구분해 연결 오류로 표시합니다.
-
-**우선순위:** 중간. C3/C4 이후, 패키징 단계 전에 결정합니다.
-
-### 11. 환경변수 이름과 외부 서비스 도입 시점이 완전히 정리되지 않음
-
-**문제**
-
-현재 SQLite 실행 기준은 `DATABASE_PATH`이고 dotenv는 도입하지 않기로 결정했지만, 일부 설계 문서에는 향후 Supabase용 `DATABASE_URL`과 `SUPABASE_JWT_SECRET`이 함께 언급됩니다. 현재 로컬 구현과 미래 클라우드 구성을 섞으면 설정 오류가 생길 수 있습니다.
+frontend build는 성공하지만 Mermaid core와 일부 다이어그램 chunk가 500KB를 초과합니다. 기능 실패는 아니지만 다이어그램 위젯의 최초 로딩 시간과 NFR-PERF-01에 영향을 줄 수 있습니다.
 
 **해결책**
 
-- 현재 단계에서는 `DATABASE_PATH`, `PORT`, `NODE_ENV`만 로컬 실행 기준으로 사용합니다.
-- `DATABASE_URL`과 Supabase 인증 변수는 Phase E에서 실제 도입할 때 별도 설정 묶음으로 확정합니다.
-- 외부 API 연동 전에는 토큰 저장 위치, 만료·갱신, 동기화 충돌, 실패 시 캐시 정책을 먼저 결정합니다.
+실제 Electron 환경에서 초기 화면과 다이어그램 위젯의 로딩 시간을 측정한 뒤 최적화 여부를 결정합니다. 동적 import는 유지하고, 측정 없이 warning만 숨기지 않습니다.
 
-**우선순위:** 낮음에서 중간. D2 및 Supabase 착수 전 결정합니다.
+**상태:** 성능 측정 대기
 
-### 12. Slack 알림과 launchd는 설정과 동작 확인을 분리해야 함
+### 7. 낮음: tasks/projects 계층 외에도 운영 경계 검증이 남음
 
-**현재 판단**
+자동 테스트가 API와 DB 중심으로 구성되어 있어 다음 경계는 실제 실행 확인이 필요합니다.
 
-`slack-notify.sh`는 Webhook이 없으면 조용히 종료하도록 되어 있습니다. 따라서 URL이 없거나 잘못돼도 사용자는 알림 누락만 보게 됩니다. launchd plist는 현재 저장소 경로를 가리키도록 보이지만, 다른 컴퓨터에서는 절대 경로가 다시 깨질 수 있습니다.
+- Electron이 production `dist`를 정상 로드하는지
+- backend 중단 시 위젯별 ErrorBoundary와 ErrorBanner가 정상 동작하는지
+- 위젯 레이아웃 저장·복원·훼손 데이터 폴백
+- 다이어그램 SVG 렌더링과 개별 블록 실패 폴백
+- D1 agent와 backend가 같은 `DATABASE_PATH`를 사용할 때의 WAL 동시 접근
+- macOS 외 Windows/Linux 실행
 
 **해결책**
 
-1. 노출된 Webhook을 폐기하고 새 값을 로컬 `.env`에 설정합니다.
-2. 테스트 메시지를 보냅니다.
+로컬 UI 체크리스트를 수행하고, 필요한 항목은 Playwright 또는 Electron smoke test로 자동화합니다. agent/backend DB 경계는 임시 DB와 별도 프로세스 테스트로 검증합니다.
 
-```bash
-bash scripts/slack-notify.sh "테스트" "연결 확인"
-```
+**상태:** 사용자 로컬 검증 대기
 
-3. `launchctl list | grep com.aicomputeros.worklog`로 등록 상태를 확인합니다.
-4. plist의 `ProgramArguments`, `WorkingDirectory`, 로그 경로가 현재 저장소와 맞는지 확인합니다.
-5. 다른 컴퓨터에서 재사용할 때는 사용자 경로를 해당 환경에 맞게 바꿉니다.
+## 환경 구성에서 기억할 점
 
-**우선순위:** Webhook 보안 조치는 즉시, launchd 재검증은 그 직후입니다.
+- backend는 `.env`를 자동 로드하지 않으므로 `PORT`, `DATABASE_PATH`, `SUPABASE_*`는 셸에서 export해야 합니다.
+- agent는 `python-dotenv`로 `.env`를 읽습니다.
+- Slack 스크립트는 `.env`를 직접 읽습니다.
+- frontend preload와 production CSP가 backend 포트 3000을 사용하므로 개발 포트는 현재 3000으로 고정합니다.
+- `SUPABASE_KEY`는 `anon public` 키만 사용합니다.
+- Node·Python 버전과 native `better-sqlite3` 빌드 도구는 OS별로 확인해야 합니다.
+- `npm ci`, agent 가상환경, `verify.sh`, 문서 정합성 검사를 설치 후 기본 검증으로 사용합니다.
 
-## 해결 순서
+## 다음 작업 순서
 
-| 순서 | 할 일 | 완료 기준 |
+| 순서 | 작업 | 완료 기준 |
 |---:|---|---|
-| 1 | Slack Webhook 폐기·재발급 및 `.env.example` 정리 | 예시 파일에 비밀값이 없고 테스트 메시지 수신 |
-| 2 | 위젯 셸 DO-1~6 결정 | 위젯 모델·배치·저장·오류 정책 확정 |
-| 3 | macOS/Ubuntu 환경 문서 분리 | 다른 OS에서 설치 절차 재현 가능 |
-| 4 | `.env` 로딩과 포트 정책 통일 | 설정한 DB 경로·포트로 실제 실행 |
-| 5 | B3·C2 브라우저 E2E와 GUI 수동 확인 | TC-UI-10~16 및 M1~M7 기록 완료 |
-| 6 | 서비스 수준 검증 추가 | backend health와 cleanup 자동 확인 |
-| 7 | 상태 문서 동기화 | README·PROGRESS·TRACEABILITY의 상태 일치 |
-| 8 | C3 캘린더 위젯·더미 API 구현 | 캘린더 빈 목록·정상·오류 테스트 통과 |
-| 9 | C4 다이어그램 뷰어 구현 | ADR-0014와 FR-UI-05 수용 기준 충족 |
-| 10 | 패키징 전 실행 구조 결정 | Electron/backend 시작·종료 정책과 ADR 확정 |
+| 1 | D1 테스트·문서 상태 확정 | agent DB·Daily Brief 테스트와 요구사항 상태 일치 |
+| 2 | `uncaughtException` 정책·테스트 | NFR-REL-03 충족 |
+| 3 | tasks/projects services 분리 | routes의 DB 직접 호출 제거 |
+| 4 | D2 외부 데이터·재시도 | Gmail·Calendar 실데이터와 백오프 테스트 |
+| 5 | D3 Brief API·UI·스케줄 | Daily Brief 자동 실행 및 화면 조회 |
+| 6 | 브라우저·Electron 검증 | C3~C6 UI 체크와 production 실행 기록 |
+| 7 | Phase E 동기화·패키징 | Supabase 동기화, 인증, electron-builder 검증 |
 
 ## 최종 결론
 
-현재 프로젝트는 기반 구현이 완료된 개발 중반 상태이며 자동 검증도 정상입니다. 하지만 다음 기능으로 넘어가기 전에 **위젯 셸 범위 결정**, **macOS와 Ubuntu 환경 구성 분리**, **`.env`·포트 동작 통일**, **실제 서비스 검증 추가**가 필요합니다. 여기에 **노출 가능성이 있는 Slack Webhook 처리**, **브라우저 실제 동작 검증**, **문서 상태 동기화**가 남아 있습니다.
+현재 프로젝트는 C6까지의 데스크톱 위젯 기반과 D1의 Daily Brief 핵심 흐름이 구현된 상태입니다. 자동 테스트와 build는 정상으로 보이지만, 완전한 완료를 막는 핵심 사항은 **`uncaughtException` 처리 누락**, **tasks/projects의 계층 위반**, **D1 외부 데이터·자동 실행 미완료**, **Electron·브라우저 수동 검증 미완료**입니다.
 
-이 항목들을 정리한 뒤 C3 캘린더 기능으로 진행하는 것이 합리적입니다. Electron이 backend를 자동 실행하는 문제와 Supabase·OAuth 설정은 지금 바로 코드를 늘리기보다, 해당 기능 또는 패키징 단계에 진입할 때 결정하는 편이 변경 비용이 적습니다.
-
----
-
-## 처리 현황 (2026-09-04, `fix/review-followups` — PR #7)
-
-| # | 항목 | 상태 | 처리 내용 |
-|:-:|---|:---:|---|
-| 7 | `.env.example` 비밀값 | ✅ 해결 | 유출된 Webhook URL + `= ` 공백 제거(커밋된 깨끗한 버전으로 복원). 실제 값은 `.env`(gitignore). `scripts/check_docs.py` DRIFT-3 이 재발 방지 검사. **Webhook 폐기·재발급은 사용자 조치 필요** |
-| 12 | Slack 알림 / launchd | ✅ 대부분 | Slack: `.env` 에 URL 입력, `slack-notify.sh` + curl HTTP 200 확인. launchd: `scripts/install-worklog-launchd.sh` 신설 — 경로를 현재 저장소로 자동 생성해 하드코딩 제거. plist 는 "템플릿" 으로 명시. **사용자가 새 머신에서 이 스크립트 실행** |
-| 2 | SETUP.md OS 불일치 | ✅ 해결 | `SETUP.md` 전면 개편 — §0 버전 기준표 · §1 공통 · §2 macOS · §3 Ubuntu/WSL · §5 앱 실행·포트 규칙 · §6 트러블슈팅. obsolete "프로젝트 새로 만들기" 절 제거, `.env` 예시의 `SUPABASE_JWT_SECRET`/`DATABASE_URL` 제거 |
-| 5 | 재현 가능한 버전 관리 | ✅ 해결 | `package-lock.json` 은 이미 커밋돼 있었음. `setup.sh` 와 CI(`test.yml`)를 `npm ci` 로 변경(락파일 없으면 `npm install` 폴백). SETUP §0 에 CI/로컬 버전표, §2/§3 에 빌드 도구(Xcode CLT / build-essential) 명시 |
-| 3 | `.env` 가 backend 에 자동 반영 안 됨 | ✅ 문서화 | dotenv 미도입 결정 유지. `ENV_REFERENCE.md` §5 신설 — "주체마다 `.env` 로딩이 다르다" 표 + `export` override 방법. `setup.sh` 출력에도 경고. **dotenv 도입 여부는 D2 재검토(사용자)** |
-| 4 | `PORT` vs frontend 고정 3000 | ✅ 문서화 | "개발 포트 3000 고정" 을 `ENV_REFERENCE.md` §5 · `SETUP.md` §5 에 명시(preload·CSP 가 3000 하드코딩). 가변 포트는 범위 밖으로 명확화 |
-| 6 | 검증이 실행 동작 미보장 | ✅ 해결 | `scripts/smoke.sh` 신설 — 임시 포트+임시 DB 로 backend 기동 → `/api/health` → task 생성/조회/삭제 왕복(SQLite 쓰기) → 정리. `verify.sh` "▶ 서비스 확인"(21/0/0) + CI `backend` 잡에 포함. `TEST_PLAN.md` §0 에 3층(정적·서비스·사용자 흐름) 반영 |
-| 9 | 문서에 과거 상태 잔존 | ✅ 대부분 | 루트 `README.md` 현재 상태 표·ADR 범위 최신화(이전 PR). `scripts/check_docs.py` DRIFT 검사로 재발 억제. **TC-UI 상태는 브라우저 검증(#8) 결과 반영 시 함께** |
-| 11 | env 이름·외부 서비스 시점 | ✅ 문서화 | `ENV_REFERENCE.md` §4 에 "현재 기준은 `DATABASE_PATH`·`PORT`·`NODE_ENV` 셋뿐, Supabase 변수는 Week 10 별도 확정" 명시. `ARCHITECTURE.md` §보안 캐비엇은 기존 유지 |
-| 1 | 위젯 셸 범위 (DO-1~6) | ✅ 해결 (C5) | 사용자가 DO-1~6 결정 (DO-1 RGL 그리드 스냅 · DO-2 타입당 1개 · DO-3 localStorage · DO-4 프론트만 검증 · DO-5 편집 토글 · DO-6 다이어그램 위젯화). `DASHBOARD_OS.md` §8 표에 기입. **ADR-0020/0021/0022 제안→채택**, `frontend/src/widgets/` 레지스트리·`useLayoutStore`·`WidgetShell/Host/Frame/Picker` 구현. FR-WIDGET-01~04·07·08 ✅. 테마·표시옵션(05·06)은 C6 |
-| 8 | 브라우저 CRUD 왕복 검증 | 👤 사용자 | 디스플레이가 필요해 자동화 불가. `SETUP.md` §5 에 실행 절차, `TEST_PLAN.md` §5 체크리스트. 서비스 스모크(#6)가 backend 쪽은 자동 커버. **범위 확장**: 이제 TC-UI-10~19(할일·프로젝트·캘린더) + TC-DIAG(다이어그램 뷰어) + TC-WIDGET-01~08(위젯 셸) 까지 로컬 대기 |
-| 10 | Electron/backend 실행 책임 | 👤 사용자 / ⏸ | `RUNTIME_VIEW.md` §5 + `ADR-0016`(제안)에 선택지·권고 정리됨. **패키징(Phase E) 전 결정** |
-
-**요약:** 8건 해결/문서화 완료, 1건(Slack Webhook 재발급)·2건(브라우저 E2E, 실행 책임)은 사용자 조치·결정 필요.
-
----
-
-## 세션 점검 (2026-09-06, C3~C5 개발 + 브랜치 선형화 이후)
-
-C3·C4·C5 개발과 7개 스택 PR 선형화(PR #13)를 마친 뒤 다시 훑은 결과입니다. 자동 검증은 정상입니다 — backend 51/51, `verify.sh` 25/0/0(서비스 스모크 포함), DOC_HEALTH 11/0/0, frontend build 성공. 다만 자동 통과가 요구사항 전체 준수를 의미하지는 않으며, 아래 5건이 남아 있습니다.
-
-| # | 심각도 | 항목 | 상태 |
-|:-:|:---:|---|:---:|
-| S1 | 높음 | `uncaughtException` 미처리 (NFR-REL-03) | 📌 코드 후속 |
-| S2 | 중간 | `routes/tasks.js`·`projects.js` 가 DB 직접 호출 — C3~C5 의 services 계층과 불일치 (NFR-MAINT-02) | 📌 코드 후속 |
-| S3 | 중간 | `README.md` 가 C3·C4·C5 를 "예정", backend 테스트 "39개" 로 표시 (NFR-MAINT-06) | ✅ 이번 커밋 |
-| S4 | 낮음 | `TaskList.jsx` 첫 줄 주석이 완료된 작업을 예정형으로 서술 | ✅ 이번 커밋 |
-| S5 | 낮음~중간 | frontend build 의 mermaid 청크 500KB 초과 경고 (NFR-PERF-01) | ⏳ 측정 후 판단 |
-
-### S1. `uncaughtException` 처리가 요구사항과 다름 — 높음
-
-[NFR-REL-03](docs/product/requirements/REQUIREMENTS_NONFUNCTIONAL.md) 은 backend 가 `unhandledRejection` 과 `uncaughtException` 을 **모두** 로깅하도록 요구합니다. `backend/src/server.js:18` 에는 `unhandledRejection` 핸들러만 있습니다.
-
-**문제**
-
-- 동기 예외가 프로세스 최상단에서 기록되지 않음
-- 예외 주입 테스트(NFR-REL-03 의 "강제 예외 주입 테스트")가 없음
-- 예외 발생 후 "프로세스를 유지할지, 로그 후 안전 종료·재시작할지" 정책이 불명확
-
-**해결책 (별도 `/feature` 스텝)**
-
-- `uncaughtException` 핸들러 추가 + 정책 명시. 단순히 프로세스를 계속 살리면 상태가 오염될 수 있으므로, 로그 기록 후 안전한 종료를 기본값으로 검토.
-- 예외 주입 테스트와 `SIGTERM` graceful shutdown 테스트 추가.
-- [ADR-0016](docs/product/architecture/adr/ADR-0016-desktop-process-topology.md)(#10)과 함께 다루는 것이 자연스러움.
-
-### S2. routes 가 DB 를 직접 호출해 계층 규칙을 위반함 — 중간
-
-[NFR-MAINT-02](docs/product/requirements/REQUIREMENTS_NONFUNCTIONAL.md) 와 [CONVENTIONS.md](docs/setup/CONVENTIONS.md) §3 은 `routes → services → db` 계층을 요구합니다. `backend/src/routes/tasks.js` 와 `projects.js` 는 라우트에서 `db` 를 직접 호출하고(`db.getTasks()`·`db.addTask()` 등) 입력·도메인 검증까지 함께 처리합니다.
-
-**현재 상태**
-
-- 기능과 backend 테스트(51건)는 정상
-- **C3(`services/calendar.js`)·C4(`services/diagrams.js`)는 services 계층을 쓰는데 tasks/projects 는 안 씀** → 도메인별 구조가 일관되지 않음. `DESIGN.md` §1.1 이 "도메인 로직이 커지는 시점에 도입" 이라 했으나 신규 도메인만 따르고 기존은 남음.
-
-**해결책 (별도 `/feature` 스텝)**
-
-`backend/src/services/tasks.js`·`services/projects.js` 를 만들고, 라우트는 입력 검증·HTTP 응답 매핑만. 기존 `backend/src/db.js` 공개 함수 시그니처는 유지(NFR-MAINT-03). `errors.js` 매핑도 services 로 이동 검토.
-
-### S3. 완료된 기능이 README 에 예정 상태로 남음 — 중간 → ✅ 이번 커밋
-
-`README.md` 가 캘린더 위젯 `⏳ C3`, 다이어그램 뷰어 `⏳ C4`, backend 테스트 `39` 로 표시. 실제는 C3·C4·C5 구현 완료, backend 51 통과.
-
-**처리**: `README.md` 현재 상태 표·핵심 기능 표를 갱신. 상태를 (1) 코드 구현 (2) 자동 테스트 (3) 브라우저·Electron 수동 검증 3단계로 구분 표기. `PROGRESS.md`·`TRACEABILITY.md`·`UI_SPEC.md` 는 C3~C5 커밋에서 이미 갱신됨.
-
-### S4. 오래된 코드 주석이 현재 구현과 충돌 — 낮음 → ✅ 이번 커밋
-
-`frontend/src/components/TaskList.jsx:1` — "구조 스캐폴드. Week 3에서 Dashboard가 API 데이터를 주입한다." 현재는 `WidgetShell` → `TasksWidgetView` → `useTaskStore` 로 연결됨.
-
-**처리**: 주석을 현재 역할("props-only 프레젠테이션 컴포넌트. 데이터·상태는 상위 뷰가 주입") 로 수정. 같은 유형(완료 작업을 예정형으로 서술)을 frontend 전체에서 검색해 정리.
-
-### S5. frontend build 청크 경고 — 낮음~중간
-
-`npm run build` 는 성공하나 `mermaid.core` 약 683KB + 일부 다이어그램 청크가 500KB 초과. 기능 위반은 아니나 [NFR-PERF-01](docs/product/requirements/REQUIREMENTS_NONFUNCTIONAL.md) 초기 렌더 성능과 연결된 잔여 위험 — 다이어그램 위젯을 처음 열 때 로딩 지연 가능.
-
-**해결책 (Week 13 최적화, 지금 아님)**
-
-- 초기 화면·다이어그램 화면 로딩 시간을 실제 Electron 환경에서 측정.
-- mermaid 동적 로딩은 유지(이미 별도 청크). 필요하면 다이어그램 종류별 추가 분할 또는 `chunkSizeWarningLimit` 조정.
-- **측정 없이 경고만 숨기지 않는다.** ADR-0014 재검토 조건 (a) 와 연결.
-
-### 미결 항목 (전체)
-
-| 출처 | 항목 | 필요한 것 |
-|---|---|---|
-| #8 | 브라우저·Electron E2E (TC-UI-10~19 · TC-DIAG · TC-WIDGET-01~08) | 로컬 GUI 실행 (샌드박스 불가) |
-| #10 | Electron/backend 실행 책임 | [ADR-0016](docs/product/architecture/adr/ADR-0016-desktop-process-topology.md) 결정 (패키징 전) |
-| #7 | Slack Webhook 폐기·재발급 | 사용자 조치 |
-| S1 | `uncaughtException` 핸들러 + 테스트 | 별도 `/feature` |
-| S2 | tasks·projects services 계층 분리 | 별도 `/feature` |
-| S5 | 청크 크기 성능 측정 | Week 13 |
-| [UI_STYLE.md](docs/product/reference/UI_STYLE.md) US-1 | 강조색 앰버 → 보라 전환 | C6 토큰 승격 전 |
-| US-2 · US-3 | 모니터·위젯 셸 탭 배치 | ADR-0013 / C5 후속 |
-| US-4 | "능력 맵" FR 승격 여부 | 다이어그램 뷰어 후속 |
-| — | 캡처 5장 → `docs/product/reference/assets/ui-style/` | 사용자 드롭 |
-| Supabase | 동기화 착수 (E2) | ADR-0018 채택 + 충돌 ADR + FR-SYNC 상세 |
-| Supabase | 키 종류 확인 | 👤 사용자 — anon 인지 |
-
----
-
-## Supabase 연동 — 클라이언트 부트스트랩 (2026-09-06)
-
-**이번 범위**: `@supabase/supabase-js@2.115.0`(정확 핀) 추가, `backend/src/supabase.js` 팩토리(지연 싱글턴, 미설정 시 `null` + 1회 경고), `GET /api/sync/health`(3상태 `ok`/`unconfigured`/`error`, 항상 200, 비밀값 미노출), `backend/test/supabase.test.js` TC-SYNC-01~05(네트워크 미사용). backend 56/56 · verify 27/0/0 · DOC_HEALTH 11/0/0.
-
-**하지 않은 것 (의도적)**: 스키마 변경(`schema.sql` 무수정), 동기화 로직, 인증, 테이블 미러링, `user_id`. backend 는 Supabase 를 읽지도 쓰지도 않는다 — 로컬 SQLite 가 진실의 원천(ADR-0015). `/api/sync/health` 의 연결 프로브 1회만 예외.
-
-**ADR-0008 과의 관계**: 결정(Week 9 까지 로컬 전용) **불변**, 상태 `채택` 유지. "부트스트랩 ≠ 동기화" 를 ADR-0008 후속 절에 명시. FR-SYNC-01/02 는 여전히 `⏳ E2`.
-
-**남은 것 (동기화 착수 전 필수)**:
-1. **ADR-0018(스키마 마이그레이션, 제안) 채택** — `schema.sql` 이 `CREATE TABLE IF NOT EXISTS` 뿐이라 `user_id`/`is_synced`/`synced_at` 컬럼 추가 경로가 없다.
-2. 동기화 충돌·방향·툼스톤 ADR (Week 10, DATA_ARCHITECTURE §6 초안 기반).
-3. FR-SYNC-01/02 수용 기준 상세화, FR-AUTH-02(Supabase Auth + RLS).
-4. `SUPABASE_JWT_SECRET`/`DATABASE_URL` 이름 확정 (TRACEABILITY §5).
-5. **👤 사용자**: `.env` 의 `SUPABASE_KEY` 가 **anon public** 키인지 확인 (`service_role` 이면 즉시 교체 — RLS 우회).
-
----
-
-## UI/UX 참조 틀 도입 검토 (2026-09-06, `docs/ui-style-reference`)
-
-### 배경
-
-사용자가 인스타그램 릴스 **"Claude 워크스페이스 대시보드"(Cowork)** 를 우리 대시보드의 UI/UX 목표 틀로 삼고 싶어 함.
-기능·범위·진행도는 우리 로드맵 그대로 두고, **화면 골격·컴포넌트 패턴·시각 톤만** 그 틀을 따르는 방향.
-
-### 이번에 한 일
-
-| 산출물 | 내용 |
-|---|---|
-| `docs/product/reference/UI_STYLE.md` (신규) | 북극성 · 레이아웃 골격 · 컴포넌트 패턴 P1~P6 · 우리 기능→틀 매핑 · 안 가져오는 것 · 디자인 토큰 정합 · 열린 질문 US-1~4 |
-| `docs/product/reference/assets/ui-style/README.md` (신규) | 캡처 5장(개요·에이전트·가이드·모니터·스킬 모달)을 넣을 자리 + 파일명 규약 |
-| `reference/README.md` · `UI_SPEC.md §1` · `DESIGN.md §6` · `DASHBOARD_OS.md §3` | 상호 링크 + 역할 구분 1줄 추가 |
-| `docs/STUDY_GUIDE.md §2.9` (신규) | 대시보드 UI/UX 공부 목록 + 저장소 파일 읽는 순서 |
-
-### 문제와 해결책
-
-#### U1. "레퍼런스" 의 성격이 처음에 잘못 잡혔음
-
-- **문제:** 초기에 벤치마크 비교 카탈로그(레퍼런스 여러 개를 축으로 비교하는 실험실)로 설계했으나, 사용자 의도는 "이 한 틀을 우리 룩으로 고정" 이었다.
-- **해결:** `UI_STYLE.md` 를 **단일 참조 틀 + 우리 기능 매핑** 문서로 재정의. 위치도 `vision/`(왜) → `reference/`(구현 시 보고 씀) 로 이동. 단 **계약이 아니라 방향**임을 문서 상단·README 에 명시 (충돌 시 코드·`UI_SPEC.md` 우선).
-- **우선순위:** 해결됨.
-
-#### U2. 강조색 전환 시 색 충돌
-
-- **문제:** Cowork 의 핵심 강조색은 보라(`#7c6cf5` 계열)인데 현재 `--accent` 는 앰버(`#f59e0b`)이고, medium 우선순위 배지가 `--accent` 를 재사용한다. 그냥 바꾸면 우선순위 배지 색이 같이 바뀐다.
-- **해결:** medium 우선순위 전용 색을 먼저 분리한 뒤 `--accent` 를 보라로 이동. C6 토큰 승격(`인라인 style → CSS 변수`) 작업에서 함께 처리. `UI_STYLE.md §6` + US-1 에 기록.
-- **우선순위:** 중간. C6 착수 전 사용자 결정(US-1).
-
-#### U3. 참조 캡처 이미지가 저장소에 없음
-
-- **문제:** 릴스 정지 캡처 5장이 아직 커밋되지 않았다. `UI_STYLE.md` 에서 이미지를 마크다운 링크로 걸면 DOC_HEALTH(STRUCT-1 깨진 링크)가 실패한다.
-- **해결:** 이미지 링크 대신 `assets/ui-style/README.md`(파일명 규약표)만 링크. 사용자가 캡처 5장을 그 폴더에 드롭하면 완성. 저작권상 원본 영상은 커밋하지 않음.
-- **우선순위:** 낮음. 사용자 조치(캡처 5장).
-
-#### U4. 목적 혼입 위험 (Cowork ≠ 우리 제품)
-
-- **문제:** Cowork 는 "Claude Code 셋업 관리" 가 목적이라 지침·스킬·커넥터·훅·플러그인·템플릿 생성기·원격 기기 등 우리와 무관한 기능이 많다. 틀을 베끼다 목적까지 따라갈 수 있다.
-- **해결:** `UI_STYLE.md §5 "가져오지 않는 것"` 표에 제외 항목과 이유를 못박음. 픽셀아트 RPG 뷰도 제외(모니터 탭은 P5 카드 + P3 리스트로).
-- **우선순위:** 해결됨(문서). 구현 시 재확인.
-
-#### U5. "능력 맵" — 범위 크립 위험
-
-- **문제:** Cowork 의 "능력 맵"(지침↔스킬↔에이전트 관계 그래프)이 매력적이지만 우리 요구사항(FR)에 없다. 무심코 추가하면 범위가 는다.
-- **해결:** FR 후보로만 메모(US-4). 도입한다면 별도 화면이 아니라 다이어그램 뷰어(FR-UI-05)의 한 뷰로 붙이는 것을 우선 검토.
-- **우선순위:** 낮음. 다이어그램 뷰어(C4) 착수 시 결정.
-
-#### U6. 세 문서의 역할이 겹쳐 보임
-
-- **문제:** `UI_STYLE.md`(전체 화면 룩·방향), `UI_SPEC.md`(화면·컴포넌트 계약), `DASHBOARD_OS.md §3`(위젯 배치 *메커니즘* 벤치마크)이 다 "참조" 라 헷갈릴 수 있다.
-- **해결:** 세 문서에 서로 링크 + "이건 방향 / 이건 계약 / 이건 메커니즘 벤치마크" 한 줄씩 명시.
-- **우선순위:** 해결됨.
-
-#### U7. 화면 구조 미결 2건
-
-- **US-2:** "모니터" 를 독립 탭으로 둘지, 개요 탭 하위 섹션으로 둘지 → ADR-0013(dashboard-agent-queue) 착수 시.
-- **US-3:** 위젯 셸을 개요 탭 안에 넣을지 전용 탭으로 뺄지 → C5 착수 시.
-- **우선순위:** 중간. 해당 Phase 착수 시 사용자 결정.
-
-#### U8. 브랜치 스택
-
-- **문제:** `docs/ui-style-reference` 브랜치를 `fix/review-followups`(PR #7, 미병합) 위에 쌓았다. PR #7 이 먼저 병합되면 이 브랜치 rebase 필요. (DOC_HEALTH 도구가 그 브랜치에만 있어 분기 지점으로 택함.)
-- **해결:** PR #7 병합 후 `git rebase main`. 리뷰 시 diff 에 PR #7 커밋이 섞여 보이면 base 를 PR #7 브랜치로 지정.
-- **우선순위:** 낮음. 병합 순서 관리.
-
-### 미결 (사용자 조치·결정)
-
-| # | 항목 | 필요한 것 |
-|:-:|---|---|
-| U1' | 캡처 5장 | `docs/product/reference/assets/ui-style/` 에 릴스 정지 캡처 드롭 |
-| US-1 | 강조색 앰버 → 보라 전환 여부 | 브랜드 결정 (C6 토큰 승격 전) |
-| US-2 | 모니터 = 독립 탭 vs 개요 하위 | ADR-0013 착수 시 |
-| US-3 | 위젯 셸 = 개요 탭 vs 전용 탭 | C5 착수 시 |
-| US-4 | "능력 맵" FR 승격 여부 | 다이어그램 뷰어(C4) 착수 시 |
-
-### 최종 결론
-
-UI/UX 방향을 "릴스 틀" 로 고정하는 것은 **문서 층에서 안전하게 처리 가능**했고, `UI_STYLE.md` 로 골격·패턴·톤·제외 목록·토큰 정합을 명문화했다.
-실제 구현 영향은 **강조색 전환(US-1)** 하나가 크고, 나머지는 화면 구조 결정 2건(US-2·US-3)과 캡처 채우기다.
-기존 미결(브라우저 E2E 검증 #8, 위젯 셸 DO-1~6)은 그대로 유효하며, 이 참조 틀은 그 결정들의 **시각적 기준선** 역할을 한다.
+따라서 다음 기능으로 바로 확장하기 전에 D1의 테스트·문서 상태를 확정하고, S1·S2 구조 문제를 별도 feature로 처리하는 것이 적절합니다.

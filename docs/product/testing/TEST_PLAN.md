@@ -131,12 +131,19 @@ CI(`.github/workflows/test.yml`)에 `npm test`(backend), `pytest -m "not network
 
 | ID | 대상 | 전제 (모킹) | 기대 결과 | 우선 |
 |---|---|---|---|:---:|
-| TC-AGENT-01 | FR-AGENT-01 | gmail/calendar 가 각각 데이터 반환 | `build_context()` 에 이메일·일정·기준시각 텍스트 포함 | P0 |
-| TC-AGENT-02 | FR-AGENT-01 AC-2 | 모든 소스가 빈 리스트 | 각 블록이 `"없음"`, 예외 없음 | P0 |
-| TC-AGENT-03 | FR-AGENT-06 AC-1 | `claude.ask` 가 예외 발생 | `generate_daily_brief()` 가 `"⚠️ Claude 호출 실패: ..."` 문자열 반환, 크래시 없음 | P0 |
+| TC-AGENT-01 | FR-AGENT-01 | 할일/gmail/calendar 가 각각 데이터 반환 | `build_context()` 에 할일·이메일·일정·기준시각 텍스트 포함 | P0 · ✅ 작성됨 |
+| TC-AGENT-02 | FR-AGENT-01 AC-2 | 모든 소스가 빈 리스트 | 각 블록이 `"없음"` (3회), 예외 없음 | P0 · ✅ 작성됨 |
+| TC-AGENT-03 | FR-AGENT-06 AC-1 | `claude.ask` 가 예외 발생 | `_run()` 이 `(False, "⚠️ Claude 호출 실패: ...")`, `upsert_brief`·`save_to_notion` 미호출, 크래시 없음 | P0 · ✅ 작성됨 |
 | TC-AGENT-04 | FR-AGENT-03 AC-2 | `save_to_notion` 예외 | 브리핑은 로컬(`briefs`)에 저장됨, `sync_logs('notion','failed')` 1행 | P1 |
-| TC-AGENT-05 | FR-AGENT-04 AC-1 | 같은 날 2회 실행 | `briefs` 에 해당 날짜 1행만 (upsert) | P1 |
-| TC-AGENT-06 | FR-AGENT-02 | `claude.ask` 모킹 응답 | `briefs.content` 에 저장됨 | P1 |
+| TC-AGENT-05 | FR-AGENT-04 AC-1 | 같은 날 2회 `upsert_brief` | `briefs` 에 해당 날짜 1행만, content 최신값 | P1 · ✅ 작성됨 (`test_db.py`) |
+| TC-AGENT-06 | FR-AGENT-02 | `claude.ask` 모킹 응답 | `briefs.content` 에 저장됨 | P1 · ✅ 작성됨 |
+| TC-AGENT-09 | FR-AGENT-01 | `DATABASE_PATH` env 설정/공백/미설정 | `resolve_db_path()` env 우선, 아니면 `backend/data/app.db` | P1 · ✅ 작성됨 (`test_db.py`) |
+| TC-AGENT-10 | FR-AGENT-01 | 빈 파일 DB 에서 `ensure_schema` 2회 | `tasks`/`briefs` 생성, 멱등 | P1 · ✅ 작성됨 (`test_db.py`) |
+| TC-AGENT-11 | FR-AGENT-01 | `connect()` 직후 PRAGMA 조회 | `journal_mode=wal`, `busy_timeout=5000` | P2 · ✅ 작성됨 (`test_db.py`) |
+| TC-AGENT-12 | FR-AGENT-01 | tasks 에 오늘/다른날짜/done 혼재 | `get_today_tasks()` 오늘·미완료만, priority 정렬 | P1 · ✅ 작성됨 (`test_db.py`) |
+| TC-AGENT-13 | FR-AGENT-01 AC-3 | `get_today_tasks` 예외 | 컨텍스트에 `"(할일을 불러오지 못함)"`, 나머지 블록 정상 | P1 · ✅ 작성됨 |
+| TC-AGENT-14 | FR-AGENT-06 AC-2 | `save_to_notion` 예외 + 실 `briefs` | `briefs` 행 유지, 결과에 `"Notion 저장만 실패"` | P1 · ✅ 작성됨 |
+| TC-AGENT-15 | FR-AGENT-02 | 실 Claude 1회 호출 (`network` 마커) | 비어있지 않은 브리핑 + `briefs` 저장, 키 없으면 skip | P2 · ✅ 작성됨 |
 
 `agent/tests/test_claude.py` (이동 완료): `ANTHROPIC_API_KEY` 없으면 `skip`, 있으면 1회 실호출 성공 확인.
 
@@ -302,10 +309,10 @@ supervisor 는 리뷰 시 "이 변경에 대응하는 테스트가 있는가"를
 ## 7. 현재 상태 (2026-09-06, Phase C5 완료)
 
 - 백엔드 자동화 테스트: **56케이스 작성됨** — `backend/test/tasks.test.js` (TC-TASK-01,02,04~10 + TC-PROJ-08/09/09b/09c/09d + TC-DB-04a), `backend/test/projects.test.js` (TC-PROJ-01~07,10,11 + TC-DB-04b), `backend/test/calendar.test.js` (TC-CAL-01~07), `backend/test/db.test.js` (TC-DB-01~03 + TC-DB-04c/d), `backend/test/middleware.test.js` (TC-MW-01~09), `backend/test/diagrams.test.js` (TC-DIAG-01~05), `backend/test/supabase.test.js` (TC-SYNC-01~05). `supertest` + `node --test`, `:memory:` DB. (TC-DB-04b 는 project status 검증이라 `projects.test.js` 에 위치.)
-- 에이전트 자동화 테스트: **3케이스 작성됨** — `agent/tests/test_daily_brief.py` (TC-AGENT-01~03). `test_claude.py` 는 `agent/tests/` 로 이동(연결 확인용, 키 없으면 skip).
+- 에이전트 자동화 테스트: **D1 기준 작성됨** — `agent/tests/test_daily_brief.py` (TC-AGENT-01,02,03,06,13,14,15) + `agent/tests/test_db.py` (TC-AGENT-05,09,10,11,12) + `agent/tests/conftest.py`(`temp_db` fixture). `test_claude.py` 는 연결 확인용(키 없으면 skip).
 - CI: 문법 검사 + `npm test`(backend) + `pytest -m "not network"`(agent) 연결됨. `node -c src/app.js`, `src/db.js`, `db/index.js` 추가.
 - `verify.sh`: + `backend/src/routes/calendar.js`·`backend/src/services/calendar.js` 문법 체크 추가 (21/0/0, SKIP 없음).
-- 미작성(후속): TC-TASK-03/11/12, TC-AGENT-04~06.
+- 미작성(후속): TC-TASK-03/11/12, TC-AGENT-04(Notion+sync_logs — D3).
 - Phase C5(2026-09-06): 위젯 셸 — 대시보드 OS. `frontend/src/widgets/{registry,defaultLayout,layoutStorage,themeVars}.js`·`widgets/views/{Tasks,Projects,Calendar,Diagrams}WidgetView.jsx`·`components/Widget{Shell,Host,Frame,Picker}.jsx`·`store/useLayoutStore.js`(신규), `App.jsx`·`ErrorBoundary.jsx`(fallback prop) 수정, `Dashboard.jsx` 삭제. `react-grid-layout@2.2.4`(`/legacy`)·`react-resizable@3.2.0` 정확 버전 핀. ADR-0020/0021/0022 채택. 백엔드 무변경 회귀 `npm test` 51/51, `verify.sh` 16/0/0(--code-only) · 풀런 23/0/0, frontend `npm run build` 성공(RGL CSS 는 `dist/assets/index-*.css` 에 번들, 신규 청크 경고 없음). 위젯 셸 수동 체크(TC-WIDGET-01~08)는 로컬 수행 대기(프론트 러너 없음).
 - Phase C3(2026-09-06): 캘린더 위젯 + `GET /api/calendar/events` 더미 API. `backend/src/services/calendar.js`(신규, 인메모리 더미 6건 + from/to 필터·정렬), `backend/src/routes/calendar.js`(신규), `frontend/src/store/useCalendarStore.js`(신규), `frontend/src/components/CalendarWidget.jsx`(신규), `Dashboard.jsx` 일정 패널 추가. `backend/test/calendar.test.js`(TC-CAL-01~07). `npm test` 46/46, `verify.sh` 21/0/0, frontend `npm run build` 성공. 브라우저 수동 체크(TC-UI-17~19)는 로컬 수행 대기. 실 캘린더 연동(FR-CAL-03)은 D2 이월.
 - Phase C2(2026-09-03): 프로젝트 CRUD 프론트 배선(`useProjectStore`, `ProjectForm`, `ProjectCard` 상태·진행도·삭제) + `tasks.project_id` 라우트 검증(ADR-0012) + `backend/src/errors.js`(SQLite CHECK/NOTNULL/FK → 400 한국어) + `'hold'`→`'on_hold'` 통일. `npm test` 39/39, `verify.sh` 19/0/0, frontend `npm run build` 성공. 브라우저 수동 체크(TC-UI-14~16)는 로컬 수행 대기(샌드박스 창 기동 불가).
