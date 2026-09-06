@@ -19,7 +19,7 @@
 | [ORCHESTRATION.md](ORCHESTRATION.md) | 에이전트 파이프라인 **상태 그래프**, `/feature`·`/build-next` 정지 조건 | 파이프라인 동작 이해 | 결정 지점(제안 ADR·API 키·대화형)에서 STOP |
 | [AUTOMATION.md](AUTOMATION.md) | 에이전트 팀 · `/feature` · `/build-next` · 작업로그 · 슬랙 · CI 전체 개요 | 자동화가 어떻게 도는지 | 슬랙은 `SLACK_WEBHOOK_URL` 없으면 조용히 스킵 |
 | [DIAGRAMS.md](DIAGRAMS.md) | Mermaid 작성·열람·SVG 내보내기 (`scripts/render-diagrams.sh`) | 다이어그램 추가 시 | GitHub 는 자동 렌더. 로컬 이미지는 Node 필요 |
-| [CLAUDE_INTEGRATION.md](CLAUDE_INTEGRATION.md) | Claude API·MCP 설정, Daily Brief 에이전트 | Phase D 에이전트 착수 시 | 모델 `claude-opus-5`, 상수는 `agent/services/claude.py` 한 곳 |
+| [CLAUDE_INTEGRATION.md](CLAUDE_INTEGRATION.md) | Claude API·MCP 설정, Daily Brief 에이전트 | Phase D 에이전트 착수 시 | 모델 `claude-sonnet-5`, 상수는 `agent/services/claude.py` 한 곳 |
 
 ---
 

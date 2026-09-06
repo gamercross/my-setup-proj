@@ -52,7 +52,7 @@
 
 | 항목 | 현황 | 평가 |
 |---|---|---|
-| Claude 래퍼 (`services/claude.py`) | `Anthropic()` 클라이언트, `ask(prompt, system, model)`, 기본 모델 `claude-opus-5`, `thinking: adaptive` | ✅ 코드상 완성 (실호출 미검증) |
+| Claude 래퍼 (`services/claude.py`) | `Anthropic()` 클라이언트, `ask(prompt, system, model, effort)`, 기본 모델 `claude-sonnet-5`, `thinking: adaptive` + `effort: low` | ✅ 실 호출 검증 완료 (2026-09-07, Daily Brief E2E) |
 | 연결 테스트 (`test_claude.py`) | `ANTHROPIC_API_KEY` 없으면 안내 후 종료, 있으면 1회 호출 | ✅ |
 | 일일 브리핑 (`daily_brief.py`) | 수집→Claude→저장 흐름 뼈대. `build_context()` 로 이메일·일정 텍스트화 | 🚧 뼈대 |
 | 서비스 스텁 (`gmail.py`, `calendar.py`, `notion.py`) | 함수 시그니처만. 실제 OAuth·토큰·API 연결 없음 | ❌ 스텁 |

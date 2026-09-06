@@ -6,7 +6,7 @@
 ## 공통 규칙
 
 - 엔트리는 `agent/daily_brief.py` — CLI 로도, 스케줄러로도 실행 가능.
-- Claude 모델 `claude-opus-5`, `thinking:{type:"adaptive"}` — 상수는 `agent/services/claude.py` `DEFAULT_MODEL` 한 곳.
+- Claude 모델 `claude-sonnet-5`, `thinking:{type:"adaptive"}` + `output_config.effort:"low"` (비용 최적화) — 상수는 `agent/services/claude.py` `DEFAULT_MODEL`·`DEFAULT_EFFORT` 한 곳.
 - **어떤 외부 호출 실패도 프로세스를 죽이지 않는다** (NFR-REL-02). 실패는 로그 + `sync_logs` 기록 + 사용자 메시지.
 - 실행은 4단계를 로깅한다: 시작 → 수집 결과 → Claude 결과 → 저장 (NFR-OBS-02).
 
