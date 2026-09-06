@@ -83,6 +83,28 @@
 - **MDN "Using CSS custom properties"** — 위젯별 스코프 테마 → [ADR-0022](product/architecture/adr/ADR-0022-per-widget-theming.md)
 - **레지스트리/플러그인 패턴**, **UI state vs server state 분리** (zustand) → `useLayoutStore` ↔ 도메인 스토어
 
+### 2.9 대시보드 UI/UX · 화면 룩 (참조 틀)
+
+우리 화면의 **골격·컴포넌트 패턴·시각 톤**은 릴스 "Claude 워크스페이스 대시보드" 를 참조 틀로 삼는다
+([reference/UI_STYLE.md](product/reference/UI_STYLE.md)). 그 틀을 스스로 판단·수정하려면 아래를 안다:
+
+| 주제 | 자료 | 이 저장소 적용 |
+|---|---|---|
+| **대시보드 정보 설계** | *Information Dashboard Design* (Stephen Few) — 한 화면에 무엇을 넣고 뺄지, 지표 카드의 함정 | [UI_STYLE.md](product/reference/UI_STYLE.md) §2 레이아웃 골격, §5 "안 가져오는 것" |
+| **데이터 밀도·시각화 윤리** | Edward Tufte, *The Visual Display of Quantitative Information* (개념: data-ink ratio, chartjunk) | 진행도 바·숫자 카드(P1)를 과하게 꾸미지 않기 |
+| **탭 vs 단일 뷰 / 점진적 공개** | NN/g "Progressive Disclosure", "Tabs, Used Right" 아티클 | [UI_STYLE.md](product/reference/UI_STYLE.md) §7 US-2·US-3 (모니터·위젯 셸을 탭으로 뺄지) |
+| **컴포넌트 패턴 + 접근성** | [ARIA Authoring Practices Guide](https://www.w3.org/WAI/ARIA/apg/) — accordion(P3), dialog/모달 focus trap(P6), badge 의 스크린리더 텍스트 | [UI_STYLE.md](product/reference/UI_STYLE.md) §3 패턴 P1~P6 |
+| **다크 테마 대비·색 시스템** | WCAG 2.2 대비비(1.4.3/1.4.11), "단일 강조색(single-accent) 디자인" 사례 | [UI_STYLE.md](product/reference/UI_STYLE.md) §6 — 앰버→보라 전환 시 우선순위 배지와 충돌 |
+| **디자인 토큰 / 테마 계층** | "Design Tokens" (W3C CG 개요), 전역 토큰 → 컴포넌트 토큰 → 인스턴스 오버라이드 | [UI_SPEC.md](product/reference/UI_SPEC.md) §1, [ADR-0022](product/architecture/adr/ADR-0022-per-widget-theming.md) |
+| **React 화면 구조** | React 공식 문서 — 합성(composition), `ErrorBoundary` per subtree, `Suspense`, 리스트 상태 관리 | [UI_SPEC.md](product/reference/UI_SPEC.md) §0 4상태, FR-WIDGET-07 격리 |
+| **Electron 렌더러 보안** | <https://www.electronjs.org/docs/latest/tutorial/security> — `contextIsolation`, CSP, 1st-party 코드만 | [UI_STYLE.md](product/reference/UI_STYLE.md) §5 (외부 위젯 로딩 안 함), NFR-SEC-04 |
+
+**먼저 읽을 저장소 파일 (순서):**
+[reference/UI_STYLE.md](product/reference/UI_STYLE.md) → [reference/UI_SPEC.md](product/reference/UI_SPEC.md) §0~2 →
+[requirements/UI.md](product/requirements/UI.md) · [requirements/WIDGET.md](product/requirements/WIDGET.md) →
+[architecture/DESIGN.md](product/architecture/DESIGN.md) §6 → `frontend/src/components/` 실제 코드 →
+[ADR-0020~0022](product/architecture/adr/) → [ai_결과값.md](../ai_결과값.md) (미결·리스크).
+
 ---
 
 ## 3. 학습 → 산출물 로드맵
@@ -94,6 +116,7 @@
 | A-W5~6 (패키징 전) | Electron 프로세스 모델, 12-factor | [RUNTIME_VIEW.md](product/architecture/RUNTIME_VIEW.md) 미결 항목 확정 → [ADR-0016](product/architecture/adr/ADR-0016-desktop-process-topology.md) 채택 |
 | A-W6~7 / B-W9 (Phase D) | 위협 모델링, OAuth 토큰 수명주기 | 보안 뷰를 DFD 로 승격, 토큰 저장/갱신/폐기 시퀀스 |
 | A-W6 / C-W5~6 (Phase C5~C6) | react-grid-layout, WM 개념, CSS 변수 스코프 | [DASHBOARD_OS.md](product/vision/DASHBOARD_OS.md) DO-1~6 결정 → [ADR-0020~0022](product/architecture/adr/) 채택 → 위젯 셸 구현 |
+| C-W6~7 / B-W4 (화면 착수 전) | 대시보드 정보 설계, ARIA 패턴, 다크 테마 대비, 디자인 토큰 계층 (§2.9) | [UI_STYLE.md](product/reference/UI_STYLE.md) 캡처 5장 채우기 → US-1(강조색) 결정 → [UI_SPEC.md](product/reference/UI_SPEC.md) §1 토큰 반영 |
 | A-W10 전 (Phase E) | DDIA 복제·일관성, local-first | [ARCHITECTURE_EVOLUTION.md](product/architecture/ARCHITECTURE_EVOLUTION.md) 확정 → 동기화 충돌 ADR |
 
 ---

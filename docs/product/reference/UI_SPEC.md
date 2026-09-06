@@ -62,6 +62,8 @@ stateDiagram-v2
 | 위젯 배치 엔진 | `react-grid-layout` ([ADR-0020](../architecture/adr/ADR-0020-widget-shell-architecture.md)) |
 | 레이아웃 영속 | localStorage → SQLite ([ADR-0021](../architecture/adr/ADR-0021-widget-layout-persistence.md)) |
 
+> 🎨 **시각 방향:** 화면 골격·컴포넌트 패턴·톤의 목표 틀은 [UI_STYLE.md](UI_STYLE.md) (릴스 "Claude 워크스페이스 대시보드" 참조). 이 문서는 계약, `UI_STYLE.md` 는 방향.
+
 ### 디자인 토큰 (현재 코드 기준)
 
 | 이름 | 값 | 용도 |

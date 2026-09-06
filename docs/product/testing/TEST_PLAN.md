@@ -10,20 +10,27 @@
 ```mermaid
 flowchart TB
   subgraph PYR["테스트 피라미드 (아래가 많고 빠름)"]
+    ST["정적 — 문법·문서 정합<br/>verify.sh, scripts/check-docs.sh"]
     U["단위 — node:test / pytest<br/>build_context·검증 헬퍼·clamp"]
     I["통합 — supertest + SQLite<br/>tasks·projects CRUD·미들웨어(TC-MW)"]
-    M["수동 — Electron 화면 체크리스트<br/>TC-UI-10~19 (브라우저 E2E)"]
+    SV["서비스 — scripts/smoke.sh<br/>backend 기동·/api/health·SQLite 쓰기 왕복"]
+    M["수동 — Electron 화면 체크리스트<br/>TC-UI-10~19 · TC-WIDGET-01~08 (브라우저 E2E)"]
     E["E2E — Playwright (Week 12+)"]
   end
-  U --> I --> M --> E
-  U & I --> CI["CI: GitHub Actions<br/>node 22 / python 3.12"]
+  ST --> U --> I --> SV --> M --> E
+  ST & U & I & SV --> CI["CI: GitHub Actions<br/>docs·backend·frontend·agent 잡"]
   CI --> GATE{"머지 게이트<br/>(GIT_WORKFLOW)"}
   M --> GATE
   GATE -- "FAIL 검사 有 → 커밋 금지" --> STOP["중단"]
   GATE -- "PASS / SKIP 명시" --> MERGE["머지"]
 ```
 
-`verify.sh` 는 이 중 단위·통합·문법을 로컬에서 한 번에 돌린다(현재 19/0/0).
+**세 층** (ai_결과값.md #6):
+1. **정적** — `verify.sh` (환경·문법·문서 정합). 앱을 실행하지 않는다.
+2. **서비스** — `bash scripts/smoke.sh`: 임시 포트+임시 DB 로 backend 기동 → `/api/health` → task 생성/조회/삭제 왕복 → 정리. `verify.sh` 의 "▶ 서비스 확인" + CI `backend` 잡에 포함.
+3. **사용자 흐름** — 로컬에서 backend+frontend 실행 후 TC-UI-10~16, GUI 체크(§5). 자동화 불가(디스플레이 필요).
+
+`verify.sh` 전체 실행 시 정적+서비스가 한 번에 돈다 (현재 21/0/0).
 
 ## 1. 테스트 레벨과 범위
 
@@ -31,6 +38,7 @@ flowchart TB
 |---|---|---|---|
 | **단위 (unit)** | 순수 로직 — `build_context()`, 검증 헬퍼, `clamp` 등 | `node --test` (backend), `pytest` (agent) | 로컬 + CI |
 | **통합 (integration)** | Express 라우트 + DB (인메모리 → SQLite) 왕복 | `supertest` + `node --test` | 로컬 + CI |
+| **서비스 (service)** | backend 프로세스가 실제로 뜨고 응답하고 SQLite 에 쓰는가 | `scripts/smoke.sh` (임시 포트·임시 DB) | 로컬(`verify.sh`) + CI(`backend` 잡) |
 | **회귀 (regression)** | 저장소 교체(인메모리→SQLite) 후 기존 API 동작 동일 | 위 통합 테스트 재실행 | 로컬 + CI |
 | **수동 (manual)** | Electron 화면, 실제 외부 API(OAuth) | 체크리스트 (§5) | 로컬 |
 | **E2E** | 앱↔백엔드↔DB 전체 (Playwright) | 🔷 Week 12+ | 로컬 |
