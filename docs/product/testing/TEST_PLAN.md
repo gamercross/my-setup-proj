@@ -12,7 +12,7 @@ flowchart TB
   subgraph PYR["테스트 피라미드 (아래가 많고 빠름)"]
     U["단위 — node:test / pytest<br/>build_context·검증 헬퍼·clamp"]
     I["통합 — supertest + SQLite<br/>tasks·projects CRUD·미들웨어(TC-MW)"]
-    M["수동 — Electron 화면 체크리스트<br/>TC-UI-10~16 (브라우저 E2E)"]
+    M["수동 — Electron 화면 체크리스트<br/>TC-UI-10~19 (브라우저 E2E)"]
     E["E2E — Playwright (Week 12+)"]
   end
   U --> I --> M --> E
@@ -51,6 +51,7 @@ backend/
       testApp.js            # app.js + :memory: DB 를 supertest 로 감싸는 헬퍼
     tasks.test.js
     projects.test.js
+    calendar.test.js         # ✅ Phase C3 (캘린더 더미 API, TC-CAL-01~07)
     db.test.js               # ✅ Phase B2 (SQLite 회귀, TC-DB-01~03)
 agent/
   tests/                    # test_*.py — pytest 가 수집
@@ -154,6 +155,20 @@ CI(`.github/workflows/test.yml`)에 `npm test`(backend), `pytest -m "not network
 | TC-MW-08 | NFR-OBS-01 | 개발 환경 요청 1건 | `requestLogger` 가 `METHOD path status ms` 1줄 출력 |
 | TC-MW-09 | NFR-SEC-06 | 200KB 본문 POST | 413 `{error:'요청 본문이 너무 큽니다.'}` (영어 메시지 미매치) |
 
+### 3.5c 캘린더 API — `backend/test/calendar.test.js` (Phase C3)
+
+> 데이터는 `backend/src/services/calendar.js` 의 인메모리 더미 (호출 시점 로컬 자정 기준 상대 생성). D2 에서 `calendar_events` 캐시로 교체해도 계약 동일.
+
+| ID | 대상 | 입력 | 기대 결과 | 우선 |
+|---|---|---|---|:---:|
+| TC-CAL-01 | FR-CAL-01 AC-1 | `GET /api/calendar/events` | 200, `events` 배열, 첫 항목에 `id/event_id/title/start_time/end_time/location/synced_at` | P1 |
+| TC-CAL-02 | FR-CAL-01 AC-3 / FR-CAL-02 AC-8 | 위 응답 | `start_time` 있는 항목 오름차순, null 은 맨 뒤 | P1 |
+| TC-CAL-03 | FR-CAL-01 AC-2 | `?from=<오늘 00:00>&to=<오늘 23:59>` | 반환된 유효 `start_time` 전건이 구간 내 (자정 경계 취약 → `>= 1` 로 완화) | P1 |
+| TC-CAL-04 | FR-CAL-01 AC-2 / AC-8 | `?from=<+100일>` | 200, 유효 `start_time` 일정 0건, 시간 미정 항목만 남음 | P1 |
+| TC-CAL-05 | FR-CAL-01 AC-4 | `?from=notadate` | 400 `{error:"from 은 ISO8601 형식이어야 합니다."}` | P1 |
+| TC-CAL-06 | FR-CAL-01 AC-4 | `?to=abc` | 400 `{error:"to 는 ISO8601 형식이어야 합니다."}` | P1 |
+| TC-CAL-07 | FR-CAL-01 AC-3 | `?from=<오늘>&to=<어제>` (from > to) | 200 (400 아님), 유효 `start_time` 일정 0건 | P1 |
+
 ### 3.6 수동 체크리스트 (Electron / OAuth)
 
 | ID | 대상 | 절차 | 통과 조건 |
@@ -174,6 +189,9 @@ CI(`.github/workflows/test.yml`)에 `npm test`(backend), `pytest -m "not network
 | TC-UI-14 | FR-PROJ-01 AC-7 | 프로젝트 폼에 이름만 입력 후 제출 | `POST /api/projects` 201, 카드 목록에 즉시 추가, 폼 초기화. 상태: C2 완료, 로컬 수동 확인 대기 |
 | TC-UI-15 | FR-PROJ-02 AC-5 | 카드 진행도 슬라이더 드래그 후 놓음, 백엔드 중단 | 해당 카드만 낙관적 갱신, 요청 실패 시 롤백 + `ErrorBanner`. 상태: C2 완료, 로컬 수동 확인 대기 |
 | TC-UI-16 | FR-PROJ-01 AC-8 / FR-UI-01 AC-2 | 카드 상태 드롭다운 변경 / 프로젝트 API 실패 | `PUT {status}` 200 반영 / 프로젝트 패널 에러가 할일 패널 렌더를 막지 않음. 상태: C2 완료, 로컬 수동 확인 대기 |
+| TC-UI-17 | FR-CAL-01 AC-5 | 앱 실행 → 일정 패널 관찰 | 로딩 → 정상 전이, 위젯 렌더. 0건이면 "일정이 없습니다". 상태: C3 완료, 로컬 수동 확인 대기 |
+| TC-UI-18 | FR-CAL-02 AC-6/7/8 | 일정 패널의 항목 배지 확인 | 오늘/내일 배지 + 좌측 accent 보더, 그 외 `M/D`, 시간 미정 항목은 맨 뒤 "시간 미정". 상태: C3 완료, 로컬 수동 확인 대기 |
+| TC-UI-19 | FR-CAL-01 AC-5 / FR-UI-01 AC-2 | 캘린더 API 중단 후 앱 실행 | 일정 패널만 `ErrorBanner` + 재시도, "일정이 없습니다" 문구 미표시, 할일·프로젝트 패널 정상 렌더. 상태: C3 완료, 로컬 수동 확인 대기 |
 
 ---
 
@@ -214,13 +232,14 @@ supervisor 는 리뷰 시 "이 변경에 대응하는 테스트가 있는가"를
 
 ---
 
-## 7. 현재 상태 (2026-09-03, Phase C2 완료)
+## 7. 현재 상태 (2026-09-06, Phase C3 완료)
 
-- 백엔드 자동화 테스트: **39케이스 작성됨** — `backend/test/tasks.test.js` (TC-TASK-01,02,04~10 + TC-PROJ-08/09/09b/09c/09d + TC-DB-04a), `backend/test/projects.test.js` (TC-PROJ-01~07,10,11 + TC-DB-04b), `backend/test/db.test.js` (TC-DB-01~03 + TC-DB-04c/d), `backend/test/middleware.test.js` (TC-MW-01~09). `supertest` + `node --test`, `:memory:` DB. (TC-DB-04b 는 project status 검증이라 `projects.test.js` 에 위치.)
+- 백엔드 자동화 테스트: **46케이스 작성됨** — `backend/test/tasks.test.js` (TC-TASK-01,02,04~10 + TC-PROJ-08/09/09b/09c/09d + TC-DB-04a), `backend/test/projects.test.js` (TC-PROJ-01~07,10,11 + TC-DB-04b), `backend/test/calendar.test.js` (TC-CAL-01~07), `backend/test/db.test.js` (TC-DB-01~03 + TC-DB-04c/d), `backend/test/middleware.test.js` (TC-MW-01~09). `supertest` + `node --test`, `:memory:` DB. (TC-DB-04b 는 project status 검증이라 `projects.test.js` 에 위치.)
 - 에이전트 자동화 테스트: **3케이스 작성됨** — `agent/tests/test_daily_brief.py` (TC-AGENT-01~03). `test_claude.py` 는 `agent/tests/` 로 이동(연결 확인용, 키 없으면 skip).
 - CI: 문법 검사 + `npm test`(backend) + `pytest -m "not network"`(agent) 연결됨. `node -c src/app.js`, `src/db.js`, `db/index.js` 추가.
-- `verify.sh`: + `backend/src/errors.js` 문법 체크 추가 (19/0/0, SKIP 없음).
+- `verify.sh`: + `backend/src/routes/calendar.js`·`backend/src/services/calendar.js` 문법 체크 추가 (21/0/0, SKIP 없음).
 - 미작성(후속): TC-TASK-03/11/12, TC-AGENT-04~06.
+- Phase C3(2026-09-06): 캘린더 위젯 + `GET /api/calendar/events` 더미 API. `backend/src/services/calendar.js`(신규, 인메모리 더미 6건 + from/to 필터·정렬), `backend/src/routes/calendar.js`(신규), `frontend/src/store/useCalendarStore.js`(신규), `frontend/src/components/CalendarWidget.jsx`(신규), `Dashboard.jsx` 일정 패널 추가. `backend/test/calendar.test.js`(TC-CAL-01~07). `npm test` 46/46, `verify.sh` 21/0/0, frontend `npm run build` 성공. 브라우저 수동 체크(TC-UI-17~19)는 로컬 수행 대기. 실 캘린더 연동(FR-CAL-03)은 D2 이월.
 - Phase C2(2026-09-03): 프로젝트 CRUD 프론트 배선(`useProjectStore`, `ProjectForm`, `ProjectCard` 상태·진행도·삭제) + `tasks.project_id` 라우트 검증(ADR-0012) + `backend/src/errors.js`(SQLite CHECK/NOTNULL/FK → 400 한국어) + `'hold'`→`'on_hold'` 통일. `npm test` 39/39, `verify.sh` 19/0/0, frontend `npm run build` 성공. 브라우저 수동 체크(TC-UI-14~16)는 로컬 수행 대기(샌드박스 창 기동 불가).
 - Phase C1(2026-09-03): `backend/src/middleware/{cors,requestLogger,errorHandler}.js` 분리, `backend/src/app.js` 미들웨어 체인 정식화(`requestLogger` 최상단), `backend/test/middleware.test.js` 신규(TC-MW-01~09). `npm test` 27/27, `verify.sh` 18/0/0. 브라우저 E2E(TC-UI-10~13)는 로컬 수동 확인 대기.
 - Phase B2(2026-09-02): `backend/src/db.js` 를 better-sqlite3 로 재작성, `backend/db/index.js` 신규(커넥션 싱글턴 + WAL + `DATABASE_PATH`), `backend/test/db.test.js` 추가. `npm test` 18/18 (node 26·22), `verify.sh` 15/0/0, frontend `npm run build` 회귀 없음, agent pytest 3 pass.

@@ -19,6 +19,7 @@
 | [UI.md](UI.md) | 대시보드 공통 UI 상세 (FR-UI-01·04 의 "영역별 4상태·격리" 원칙) | FR-UI-* 및 위젯 격리(FR-WIDGET-07) | 위젯 셸이 이 원칙을 위젯 단위로 계승 |
 | [AGENT.md](AGENT.md) | Daily Brief 에이전트 상세 (수집·Claude·실패 격리) (P0 완료, P1 초안) | Phase D 착수 시 | FR-AGENT-08(작업 큐)는 [ADR-0013](../architecture/adr/ADR-0013-dashboard-agent-queue.md) 제안 상태 |
 | [PROJ.md](PROJ.md) | 프로젝트 도메인 상세 (P0 완료, C2) | FR-PROJ-* | `tasks.project_id` 는 [ADR-0012](../architecture/adr/ADR-0012-task-project-link.md) |
+| [CAL.md](CAL.md) | 캘린더/일정 도메인 상세 — FR-CAL-01~03 (조회 API·날짜 배지·캐시) (C3 — 더미 데이터) | FR-CAL-* 구현/리뷰 | C3 는 `services/calendar.js` 더미, 실 데이터는 D2 ([ADR-0011](../architecture/adr/ADR-0011-agent-backend-db-access.md)); `from > to` 는 400 아닌 200 |
 | [WIDGET.md](WIDGET.md) | 🆕 위젯 셸 상세 — FR-WIDGET-01~08 (배치·생명주기·z-order·영속화·위젯별 테마·표시 옵션·격리·레지스트리) | Phase C5~C6 착수 시 | 전부 **제안** — 착수 전 [../vision/DASHBOARD_OS.md](../vision/DASHBOARD_OS.md) §8 DO-1~6 결정 |
 
 ---

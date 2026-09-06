@@ -11,5 +11,6 @@ router.get('/health', (req, res) => {
 // 도메인별 라우터 연결
 router.use('/tasks', require('./tasks'));
 router.use('/projects', require('./projects'));
+router.use('/calendar', require('./calendar'));
 
 module.exports = router;

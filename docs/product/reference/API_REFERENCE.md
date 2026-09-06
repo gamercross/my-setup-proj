@@ -271,16 +271,20 @@ FR-PROJ-02
 
 ---
 
-## 캘린더 (calendar) 🔷 예정 — Week 5
+## 캘린더 (calendar) ✅ C3 (더미 데이터)
 
-### `GET /api/calendar/events` — 캐시된 일정
+### `GET /api/calendar/events` — 일정 목록
 
 FR-CAL-01, FR-CAL-02
 
 | 쿼리 | 설명 |
 |---|---|
-| `from` | ISO8601, 이 시각 이후 시작하는 일정 |
-| `to` | ISO8601, 이 시각 이전 시작 |
+| `from` | ISO8601, 이 시각 이후 시작하는 일정. 미지정 시 하한 없음. 파싱 불가 시 400 |
+| `to` | ISO8601, 이 시각 이전 시작. 미지정 시 상한 없음. 파싱 불가 시 400 |
+
+- 경계 포함. `from > to` 는 400 이 아니라 200 (유효 `start_time` 일정 0건).
+- `start_time` 이 null/미정인 일정은 `from`/`to` 와 무관하게 항상 포함되며 목록 맨 뒤에 온다.
+- 정렬: `start_time` 오름차순, null 은 맨 뒤.
 
 **응답 200**
 ```json
@@ -290,7 +294,13 @@ FR-CAL-01, FR-CAL-02
   "location": "회의실 A", "synced_at": "2026-09-03T00:00:00Z"
 } ] }
 ```
-- 데이터 출처: `calendar_events` 캐시 (agent 가 채움). 읽기 전용.
+
+**응답 400** (from/to 파싱 불가)
+```json
+{ "error": "from 은 ISO8601 형식이어야 합니다." }
+```
+
+- 데이터 출처: **C3 — `backend/src/services/calendar.js` 인메모리 더미** / D2 이후 — `calendar_events` 캐시 (agent 가 채움, [ADR-0011](../architecture/adr/ADR-0011-agent-backend-db-access.md)). 읽기 전용.
 
 ---
 
@@ -422,7 +432,7 @@ curl -s $BASE/tasks/99999
 | D5 | 쿼리 필터/정렬 | 미구현 | Week 4 (FR-TASK-06) |
 | ~~D6~~ | CORS 화이트리스트 | ✅ 해소 — `middleware/cors.js` (C1, 2026-09-03) | — |
 | ~~D7~~ | 요청 로깅 미들웨어 | ✅ 해소 — `middleware/requestLogger.js` (C1, 2026-09-03) | — |
-| D8 | `calendar`/`mail`/`brief`/`sync` 라우트 | 없음 | Week 5~7 |
+| D8 | `mail`/`brief`/`sync` 라우트 | 없음 | Week 5~7 (`calendar` 는 C3 에서 더미로 해소, 실 데이터 D2) |
 | D9 | `diagrams` 라우트 + `services/diagrams.js` | 없음 | Week 4~5 C4 (C1 이후) |
 
 ---

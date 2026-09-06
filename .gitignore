@@ -28,6 +28,9 @@ docs/diagrams/
 *.log
 npm-debug.log*
 
+# 작업 보조 산출물 (레포 외 도구)
+making-os/
+
 # IDE / OS
 .vscode/
 .idea/

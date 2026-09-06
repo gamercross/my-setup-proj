@@ -22,7 +22,7 @@ flowchart TB
 
   subgraph STORES["zustand"]
     LS["useLayoutStore<br/>(레이아웃·config — UI 상태)"]
-    TS["useTaskStore · useProjectStore · useAppStore<br/>(server 상태)"]
+    TS["useTaskStore · useProjectStore · useCalendarStore<br/>(server 상태)"]
   end
   SHELL <--> LS
   VIEW <--> TS
@@ -183,15 +183,15 @@ stateDiagram-v2
 
 **상태값:** `active`/`done`/`on_hold` (schema·GLOSSARY 일치). `'hold'` 불일치는 C2 에서 `on_hold` 로 통일해 해소됨.
 
-### 3.4 오늘 일정 위젯 🔷 예정 (Week 5)
+### 3.4 오늘 일정 위젯 ✅ C3 (2026-09-06, 더미 데이터)
 
 | 항목 | 내용 |
 |---|---|
 | 목적 | 오늘·다가오는 일정 표시, 오늘/내일 강조 |
-| 요소 | `CalendarWidget` — 시간 + 제목 리스트 |
-| 데이터 출처 | `GET /api/calendar/events?from=..&to=..` → `useAppStore.events` |
+| 요소 | `CalendarWidget` — 시각(HH:MM) + 제목 + location + 날짜 배지(오늘/내일/`M/D`/시간 미정), 오늘·내일 좌측 accent 보더. props-only(`{ events }`) |
+| 데이터 출처 | `GET /api/calendar/events?from=..&to=..` → `useCalendarStore.events` (C3: `backend/src/services/calendar.js` 더미, D2 이후: `calendar_events` 캐시) |
 | 관련 FR | FR-CAL-01/02 |
-| 상태 | 로딩 / "일정 없음" / 정상 / 에러 |
+| 상태 | 4상태 모두 `Dashboard` 가 소유: 로딩 / "일정이 없습니다"(빈) / 정상(`CalendarWidget`) / 에러(패널만 `ErrorBanner`+재시도, 빈 문구·목록 미표시, 다른 패널 렌더 유지). `CalendarWidget` 은 목록 렌더만 담당(빈 상태 분기 없음). |
 
 ### 3.5 오늘 브리핑 카드 🔷 예정 (Week 7)
 
@@ -279,7 +279,7 @@ stateDiagram-v2
 | `ErrorBoundary` | `children` | `hasError` | — | ✅ B3 (class, FR-UI-04 AC-5) |
 | `ProjectCard` | `project: Project`, `onDelete(id)?`, `onProgressChange(id, next)?`, `onStatusChange(id, value)?` | `draft` (슬라이더 로컬값) | `onDelete`, `onProgressChange`, `onStatusChange` | ✅ C2 (순수 프레젠테이션, 콜백 없으면 읽기 전용, `on_hold` 통일) |
 | `ProjectForm` | `onSubmit(payload): Promise<boolean>`, `disabled` | `name, progress, hint` | `onSubmit` | ✅ C2 (payload `{name, progress?}`) |
-| `CalendarWidget` | `events: Event[]` | — | — | 🔷 C3 |
+| `CalendarWidget` | `events: Event[]` | — | — | ✅ C3 |
 | `BriefCard` | `brief: Brief \| null` | — | — | 🔷 D3 |
 | `DiagramPanel` | — | `diagrams`, `activeGroup`, `loading`, `error` | — | 🔷 C4 |
 
@@ -325,12 +325,18 @@ stateDiagram-v2
 ```
 - `useTaskStore` 패턴 복제. 필드명 snake_case 유지(`project_id`, `notion_id`).
 
-### `useAppStore` 🔷 예정 (C3~D3) — 캘린더/브리핑용
+### `useCalendarStore` ✅ C3 (2026-09-06, `frontend/src/store/useCalendarStore.js`)
 ```
-상태:   events, brief, 각 영역별 loading/error
-액션:   fetchEvents() fetchBrief()
+상태:   events: Event[]   loading: boolean   error: string | null
+액션:   fetchEvents(range?)  → GET /api/calendar/events?from=..&to=..
+                               (인자 없으면 로컬 오늘 00:00 ~ +7일 23:59:59, URLSearchParams 로 조립)
+                               (실패해도 기존 events 보존, error 는 정규화 문자열)
+        clearError()
 ```
-> 방향: `useAppStore` 단일 스토어 대신 도메인별 스토어(`useTaskStore`/`useProjectStore`/…)로 분리 중.
+- `useProjectStore` 패턴 복제. 읽기 전용(쓰기 액션 없음). 필드명 snake_case 유지(`start_time`, `event_id`, `synced_at`).
+- C3 는 더미 데이터. D2 에서 백엔드가 `calendar_events` 캐시로 교체해도 스토어·계약 불변.
+
+> 방향: `useAppStore` 단일 스토어 대신 도메인별 스토어(`useTaskStore`/`useProjectStore`/`useCalendarStore`/…)로 분리한다. 브리핑용 스토어는 D3 에서 별도 신설.
 
 ### `useLayoutStore` 🔷 예정 (C5, `frontend/src/store/useLayoutStore.js`) — 위젯 셸 UI 상태
 ```

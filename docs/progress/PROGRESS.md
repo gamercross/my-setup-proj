@@ -89,15 +89,15 @@
 개발: 72%
 ```
 
-> Phase A2·A3·B1·B2·C1·C2 완료, B3·C2 코드 배선 완료 (2026-09-03). 다음: C3(캘린더) 또는 B3/C1/C2 브라우저 E2E 로컬 검증.
-> 검증 스냅샷: `node v26.8.1 / npm 11.19.0 / python 3.14.4`, `verify.sh` 19/0/0, `npm test` 39/0, `pytest -m "not network"` 3 pass.
+> Phase A2·A3·B1·B2·C1·C2·C3 완료, B3·C2 코드 배선 완료 (C3: 2026-09-06). 다음: D2(실 캘린더/노션 연동) 또는 B3/C1/C2/C3 브라우저 E2E 로컬 검증.
+> 검증 스냅샷: `node v26.8.1 / npm 11.19.0 / python 3.14.4`, `verify.sh` 21/0/0, `npm test` 46/0, `pytest -m "not network"` 3 pass.
 
 ---
 
 ## 🗓️ Week 2: 기본 프로젝트 구축 (09-09 ~ 09-15)
 
 **목표:** Electron + React 기본 UI 완성, Express 서버 실행  
-**진행도:** 85% 🚧 (진행 중 — Phase B1·B2·C1·C2 완료, B3·C2 코드 배선 완료 / 브라우저 E2E·수동체크 로컬 대기)
+**진행도:** 88% 🚧 (진행 중 — Phase B1·B2·C1·C2·C3 완료, B3·C2 코드 배선 완료 / 브라우저 E2E·수동체크 로컬 대기)
 
 ### 강의
 - [ ] Chapter 02: 디렉토리와 파일 사용법
@@ -149,6 +149,15 @@
   - [x] `npm test` 39/39, `verify.sh` 19/0/0, `npm run build` 성공
   - [ ] 브라우저 수동 체크 (TC-UI-14~16) — 로컬 수행 대기 (샌드박스 창 기동 불가)
   - 이월: 이름 인라인 수정 UI, `GET /api/tasks?project_id=` 필터, TaskForm 프로젝트 드롭다운, TaskList 배지
+- [x] 캘린더 위젯 + `/api/calendar/events` (Phase C3, 더미 데이터) → 완료 (2026-09-06, feature/c3-calendar)
+  - [x] `backend/src/services/calendar.js` — 더미 이벤트 생성 (실 Google 연동은 D2, ADR-0006/0011)
+  - [x] `backend/src/routes/calendar.js` — `GET /api/calendar/events?from&to` (`from > to` 는 400 아닌 200 빈 목록)
+  - [x] `backend/test/calendar.test.js` — TC-CAL-01~07
+  - [x] `frontend/src/store/useCalendarStore.js` — zustand fetch + 날짜 배지 파생
+  - [x] `frontend/src/components/CalendarWidget.jsx` + `Dashboard.jsx` 3패널 배선 (FR-CAL-01/02)
+  - [x] `npm test` 46/46, `verify.sh` 21/0/0, `npm run build` 성공
+  - [ ] 브라우저 수동 체크 (TC-UI-17~19) — 로컬 수행 대기 (샌드박스 창 기동 불가)
+  - 이월: FR-CAL-03 (`calendar_events` 캐시 테이블 + 실 데이터) → D2
 
 ### 배운 Linux 명령어
 ```bash
@@ -161,8 +170,8 @@ wc -l                  # 줄 수 세기
 
 ### 진행 상황 요약
 ```
-완료한 작업: 8개 (React 컴포넌트 스캐폴드, 번들러(Vite) 연결 = B1, Express CRUD 라우트, 자동화 테스트 골격 + CI, SQLite 교체 = B2, 프론트↔백엔드 코드 배선 = B3, 백엔드 미들웨어 정식화 = C1, 프로젝트 CRUD 프론트 배선 + errors.js + tasks.project_id = C2)
-진행 중: 1개 (B3·C2 브라우저 E2E·GUI 수동체크 — 로컬 대기)
+완료한 작업: 9개 (React 컴포넌트 스캐폴드, 번들러(Vite) 연결 = B1, Express CRUD 라우트, 자동화 테스트 골격 + CI, SQLite 교체 = B2, 프론트↔백엔드 코드 배선 = B3, 백엔드 미들웨어 정식화 = C1, 프로젝트 CRUD 프론트 배선 + errors.js + tasks.project_id = C2, 캘린더 위젯 + /api/calendar/events 더미 = C3)
+진행 중: 1개 (B3·C2·C3 브라우저 E2E·GUI 수동체크 — 로컬 대기)
 예정된 작업: 1개 (샘플 데이터)
 
 진행도: 85%
@@ -221,7 +230,7 @@ Week 1  ███████░░░ 70%
 Week 2  ███████░░░ 65%
 Week 3  ████░░░░░░ 40%
 Week 4  ███░░░░░░░ 30%  (FR-PROJ-01/02 프론트 배선 = Phase C2, 2026-09-03)
-Week 5  ░░░░░░░░░░  0%
+Week 5  ██░░░░░░░░ 20%  (FR-CAL-01/02 캘린더 위젯 + 더미 API = Phase C3, 2026-09-06)
 ...
 Week 14 ░░░░░░░░░░  0%
 ```
