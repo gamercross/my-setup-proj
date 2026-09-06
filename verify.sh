@@ -59,6 +59,7 @@ if [ "$CODE_ONLY" -eq 0 ]; then
 fi
 
 echo "▶ 문법 확인"
+# 프론트엔드(React/JSX)는 여기서 검사하지 않는다 — CI 의 `npm --prefix frontend run build` 가 담당.
 syntax_check "backend server.js 문법"   node    node -c backend/src/server.js
 syntax_check "backend app.js 문법"      node    node -c backend/src/app.js
 syntax_check "backend db.js 문법"       node    node -c backend/src/db.js
@@ -69,6 +70,8 @@ syntax_check "backend tasks.js 문법"    node    node -c backend/src/routes/tas
 syntax_check "backend projects.js 문법" node    node -c backend/src/routes/projects.js
 syntax_check "backend routes/calendar.js 문법"    node node -c backend/src/routes/calendar.js
 syntax_check "backend services/calendar.js 문법"  node node -c backend/src/services/calendar.js
+syntax_check "backend routes/diagrams.js 문법"    node node -c backend/src/routes/diagrams.js
+syntax_check "backend services/diagrams.js 문법"  node node -c backend/src/services/diagrams.js
 syntax_check "backend middleware/cors.js 문법"          node node -c backend/src/middleware/cors.js
 syntax_check "backend middleware/requestLogger.js 문법" node node -c backend/src/middleware/requestLogger.js
 syntax_check "backend middleware/errorHandler.js 문법"  node node -c backend/src/middleware/errorHandler.js

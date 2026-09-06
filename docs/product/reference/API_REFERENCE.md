@@ -361,7 +361,7 @@ FR-SYNC-03, NFR-OBS-03
 
 ---
 
-## 다이어그램 (diagrams) 🔷 예정 — Week 4~5 (Phase C4)
+## 다이어그램 (diagrams) ✅ 구현 — Phase C4 (2026-09-06)
 
 ### `GET /api/diagrams` — 문서 다이어그램 목록
 
@@ -372,7 +372,7 @@ FR-UI-05 · [ADR-0014](../architecture/adr/ADR-0014-dashboard-diagram-viewer.md)
 
 | 쿼리 | 설명 |
 |---|---|
-| `doc` | 특정 문서만 (예: `DESIGN` — 확장자·경로 제외 basename) |
+| `doc` | 특정 문서만 (예: `DESIGN` — 확장자·경로 제외 basename, 대소문자 무시 정확 일치) |
 
 **응답 200**
 ```json
@@ -386,6 +386,9 @@ FR-UI-05 · [ADR-0014](../architecture/adr/ADR-0014-dashboard-diagram-viewer.md)
 ```
 - `title` = 블록 직전 최근접 heading 텍스트. 없으면 `"<doc> #<index>"`.
 - `docs/` 를 찾지 못하면(패키지에 미동봉 등) `{ "diagrams": [] }` (200, 에러 아님).
+- 정렬은 `path` 오름차순 → `index` 오름차순. 스캔 상한: 깊이 8 · 파일 500 · 파일당 1MB · 블록 300.
+  `node_modules`·`.git`·`diagrams/`·숨김 디렉터리는 건너뛴다.
+- 원천 경로 우선순위: `DOCS_PATH`(있으면 이것만) → 저장소 `docs/` → `process.resourcesPath/docs`(패키지).
 - 클라이언트(`DiagramPanel.jsx`)가 `mermaid` 를 동적 import 해 SVG 로 렌더. 렌더 실패는
   블록 단위로 폴백(원문 코드 표시).
 
@@ -433,7 +436,7 @@ curl -s $BASE/tasks/99999
 | ~~D6~~ | CORS 화이트리스트 | ✅ 해소 — `middleware/cors.js` (C1, 2026-09-03) | — |
 | ~~D7~~ | 요청 로깅 미들웨어 | ✅ 해소 — `middleware/requestLogger.js` (C1, 2026-09-03) | — |
 | D8 | `mail`/`brief`/`sync` 라우트 | 없음 | Week 5~7 (`calendar` 는 C3 에서 더미로 해소, 실 데이터 D2) |
-| D9 | `diagrams` 라우트 + `services/diagrams.js` | 없음 | Week 4~5 C4 (C1 이후) |
+| D9 | `diagrams` 라우트 + `services/diagrams.js` | ✅ 구현 (C4, 2026-09-06) — prod `docs/` 동봉 설정은 E3 이월 | — |
 
 ---
 

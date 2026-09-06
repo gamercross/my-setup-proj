@@ -24,7 +24,7 @@
 |---|---|---|
 | Electron 메인 (`src/main.js`) | 800×600 창 생성, `preload.js` 통해 `contextIsolation` 적용, `index.html` 로드 | ✅ 동작 |
 | 렌더 진입 (`src/renderer.jsx`) | `createRoot(#root).render(<App/>)` — `renderer.js`(바닐라) 제거 | ✅ Vite + React 마운트 (B1) |
-| React 컴포넌트 (`App.jsx`, `Dashboard.jsx`, `TaskList.jsx`, `TaskForm.jsx`, `ProjectCard.jsx`, `ProjectForm.jsx`) | `Dashboard` 가 `useTaskStore`(B3)·`useProjectStore`(C2)로 배선됨. 할일·프로젝트 4상태(로딩/빈/정상/에러) 렌더, 프로젝트 카드 상태·진행도·삭제 + 생성 폼 | ✅ 할일(B3)·프로젝트(C2) 배선 완료, 브라우저 E2E 로컬 대기 |
+| React 컴포넌트 (`App.jsx`, `components/Widget{Shell,Host,Frame,Picker}.jsx`, `widgets/views/*`, `TaskList.jsx`, `TaskForm.jsx`, `ProjectCard.jsx`, `ProjectForm.jsx`, `CalendarWidget.jsx`, `DiagramPanel.jsx`) | C5(2026-09-06): `Dashboard.jsx` 삭제 → `WidgetShell`(react-grid-layout) 로 대체. 위젯 뷰가 각자 `useTaskStore`/`useProjectStore`/`useCalendarStore` 구독. 레이아웃 `localStorage` 영속(`useLayoutStore`). 기존 뷰 컴포넌트 무수정 재사용 | ✅ 배선 완료, 브라우저 E2E 로컬 대기 |
 | 번들러 | ✅ Vite + `@vitejs/plugin-react` (B1). `vite.config.js` root=src / base=./ / devCspPlugin | ✅ Vite + React 마운트 (B1) |
 | 상태 관리 | ✅ `zustand` — `useTaskStore`(B3), `useProjectStore`(C2). 도메인별 스토어 분리 방향 | ✅ 사용 중 |
 | 스타일링 | 인라인 style 만. Tailwind 미도입 | 🚧 |
@@ -98,9 +98,12 @@ flowchart TB
     MAIN["main.js"] --> PRE["preload.js"]
     IDX["index.html"] --> RJX["renderer.jsx"]
     RJX --> APP["App.jsx"]
-    APP -.-> DASH["Dashboard.jsx"]
-    DASH -.-> TL["TaskList.jsx"]
-    DASH -.-> PC["ProjectCard.jsx"]
+    APP --> SHELL["WidgetShell.jsx"]
+    SHELL --> HOST["WidgetHost.jsx (react-grid-layout)"]
+    HOST --> FRAME["WidgetFrame.jsx"]
+    FRAME --> VIEWS["widgets/views/*WidgetView.jsx"]
+    VIEWS --> TL["TaskList.jsx"]
+    VIEWS --> PC["ProjectCard.jsx"]
   end
 
   subgraph BE["backend/src"]

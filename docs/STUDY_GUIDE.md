@@ -27,6 +27,10 @@
 
 ## 2. 공부할 것 (우선순위 순)
 
+> 이 목록의 상당수는 **강의 C**(정통 SW공학, 최은만/Sommerville)와 겹치고, §2.8·프로세스 항목은 **강의 B**(AI시대소프트웨어공학)와 겹친다. 3강의 매핑은 [COURSE_MAPPING.md](progress/COURSE_MAPPING.md).
+>
+> **강의 교재 (원서 목록과 별개, 시험 출제 근거):** 우분투 리눅스 (이종원, 한빛미디어) = 강의 A / 쉽게 배우는 소프트웨어 공학 (한빛미디어) = 강의 B / 새로 쓴 소프트웨어 공학 (최은만, 정익사) + 소프트웨어 공학 (Sommerville, 권기태 역) = 강의 C.
+
 ### 2.1 먼저 — 아키텍처를 "문서화하는 법"
 
 - **C4 model** — <https://c4model.com> (Simon Brown). Context → Container → Component → Code 4단계.
@@ -83,14 +87,14 @@
 
 ## 3. 학습 → 산출물 로드맵
 
-| 주차 | 공부 | 이 저장소에 반영 |
+| 주차 (강의 태그) | 공부 | 이 저장소에 반영 |
 |---|---|---|
 | 지금 | C4, arc42, 품질 시나리오 | 신규 문서 5종 리뷰·보완, ADR-0015~0019 채택 결정 |
-| Week 4~5 (Phase C) | Release It! 안정성 패턴 | [CROSSCUTTING.md](product/architecture/CROSSCUTTING.md) 재시도·타임아웃을 `api/client.js`·에이전트에 실제 구현 |
-| Week 5 (패키징 전) | Electron 프로세스 모델, 12-factor | [RUNTIME_VIEW.md](product/architecture/RUNTIME_VIEW.md) 미결 항목 확정 → [ADR-0016](product/architecture/adr/ADR-0016-desktop-process-topology.md) 채택 |
-| Week 6~7 (Phase D) | 위협 모델링, OAuth 토큰 수명주기 | 보안 뷰를 DFD 로 승격, 토큰 저장/갱신/폐기 시퀀스 |
-| Week 4~5 (Phase C5~C6) | react-grid-layout, WM 개념, CSS 변수 스코프 | [DASHBOARD_OS.md](product/vision/DASHBOARD_OS.md) DO-1~6 결정 → [ADR-0020~0022](product/architecture/adr/) 채택 → 위젯 셸 구현 |
-| Week 10 전 (Phase E) | DDIA 복제·일관성, local-first | [ARCHITECTURE_EVOLUTION.md](product/architecture/ARCHITECTURE_EVOLUTION.md) 확정 → 동기화 충돌 ADR |
+| A-W4~5 / C-W3~4 (Phase C) | Release It! 안정성 패턴 | [CROSSCUTTING.md](product/architecture/CROSSCUTTING.md) 재시도·타임아웃을 `api/client.js`·에이전트에 실제 구현 |
+| A-W5~6 (패키징 전) | Electron 프로세스 모델, 12-factor | [RUNTIME_VIEW.md](product/architecture/RUNTIME_VIEW.md) 미결 항목 확정 → [ADR-0016](product/architecture/adr/ADR-0016-desktop-process-topology.md) 채택 |
+| A-W6~7 / B-W9 (Phase D) | 위협 모델링, OAuth 토큰 수명주기 | 보안 뷰를 DFD 로 승격, 토큰 저장/갱신/폐기 시퀀스 |
+| A-W6 / C-W5~6 (Phase C5~C6) | react-grid-layout, WM 개념, CSS 변수 스코프 | [DASHBOARD_OS.md](product/vision/DASHBOARD_OS.md) DO-1~6 결정 → [ADR-0020~0022](product/architecture/adr/) 채택 → 위젯 셸 구현 |
+| A-W10 전 (Phase E) | DDIA 복제·일관성, local-first | [ARCHITECTURE_EVOLUTION.md](product/architecture/ARCHITECTURE_EVOLUTION.md) 확정 → 동기화 충돌 ADR |
 
 ---
 
