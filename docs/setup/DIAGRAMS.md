@@ -108,7 +108,7 @@ npx -y @mermaid-js/mermaid-cli -i flow.mmd -o flow.png -t dark -b transparent
 | [ARCHITECTURE.md](../product/architecture/ARCHITECTURE.md) | 시스템 구조 · 데이터 흐름 3종 · OAuth 인증 · Git Flow |
 | [AS_IS.md](../product/vision/AS_IS.md) §2.7 | 현재 모듈 의존 관계 (flowchart) |
 | [ROADMAP.md](../product/ROADMAP.md) | 개발 일정 (gantt) · 강의↔프로젝트 동기화 (flowchart) |
-| [COURSE_MAPPING.md](../progress/COURSE_MAPPING.md) | 강의 연결도 (flowchart) |
+| [COURSE_MAPPING.md](../progress/COURSE_MAPPING.md) | 3강의(A·B·C) 연결도 (flowchart, 강의별 서브그래프) |
 | [USE_SCENARIOS.md](../product/vision/USE_SCENARIOS.md) | 아침 사용 여정 (journey) · 할일/동기화 흐름 |
 
 ---

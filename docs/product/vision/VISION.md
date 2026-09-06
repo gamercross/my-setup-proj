@@ -8,7 +8,7 @@
 
 **Windows / macOS / Linux 어디서든 켜는 "대시보드 OS"** — 할일·프로젝트·일정·메일·브리핑이 각각 **위젯(앱)처럼 움직이고, 위젯마다 사용자가 디자인을 꾸미는** 데스크톱 셸. 그리고 그 데이터를 매일 아침 정리해 주는 **Claude 기반 AI 에이전트**.
 
-이 프로젝트는 동시에 우숭대학교 컴퓨터정보보안학과 **"AI 컴퓨터 운영체제 실습"** 강의(14주)의 실습 환경이자 최종 결과물이다. "대시보드 OS" 방향은 강의의 창·프로세스 관리 주제와 정합한다.
+이 프로젝트는 우송대학교 2026-2학기 3개 강의(AI 컴퓨터 운영체제 실습 / AI시대소프트웨어공학 / AITool기반소프트웨어공학)의 공통 실습 환경이자 제출 산출물이다. 각 강의가 보는 층이 다르다 — 런타임·환경(A) / AI 활용 개발 프로세스(B) / SW공학 산출물(C). 상세: [../../progress/COURSE_MAPPING.md](../../progress/COURSE_MAPPING.md). "대시보드 OS" 방향은 강의 A 의 창·프로세스 관리 주제와 정합한다.
 
 - 시작: 2026-09-02
 - 목표 완성: 2026-11-30 (강의 종료 전)
@@ -40,7 +40,7 @@ flowchart TB
   W1 & W3 & W4 -.컨텍스트.-> W5
 ```
 
-> 완료 기준·범위 밖은 아래 절, 강의 주차 대응은 [ROADMAP.md](../ROADMAP.md), 위젯 셸 요구사항은 [../requirements/WIDGET.md](../requirements/WIDGET.md).
+> 완료 기준·범위 밖은 아래 절, 3강의 주차 대응은 [ROADMAP.md](../ROADMAP.md) · [COURSE_MAPPING.md](../../progress/COURSE_MAPPING.md), 위젯 셸 요구사항은 [../requirements/WIDGET.md](../requirements/WIDGET.md).
 
 ---
 
@@ -50,7 +50,9 @@ flowchart TB
 - **위젯 셸**로 각 데이터를 사용자가 원하는 배치·디자인으로 둔다 (대시보드 OS).
 - **클라우드 기반 데이터**로 어느 기기에서든 같은 상태를 본다.
 - **AI 에이전트**가 매일 아침 우선순위를 자동으로 정리한다.
-- 강의에서 배우는 Linux·프로세스·창 관리·네트워크·배포 개념을 실제 코드로 적용한다.
+- 강의 A: Linux·프로세스·창 관리·네트워크·배포 개념을 실제 런타임·환경 코드로 적용한다.
+- 강의 B: 프롬프트·요구사항·설계·에이전틱 코딩·테스트·운영 자동화를 `.claude/`·`agent/` 파이프라인으로 실습한다.
+- 강의 C: 설계 5단계·개발방법론 5단계의 산출물을 `docs/product/`(FR·NFR·ADR·TRACEABILITY·TEST_PLAN) 로 남긴다.
 
 ---
 
@@ -81,7 +83,7 @@ flowchart TB
 - 각 기능이 **위젯**으로 셸에 올라가고, 이동·리사이즈·위젯별 테마·레이아웃 저장이 동작한다 (FR-WIDGET-01·02·04·05).
 - Daily Brief 에이전트가 Cron으로 매일 자동 실행된다.
 - Docker 이미지로 배포 가능하다.
-- 강의 과제 1·2 발표와 기말 결과물로 제출 가능하다.
+- 3강의의 W8·W15 발표·제출 산출물로 제출 가능하다 ([../../progress/COURSE_MAPPING.md](../../progress/COURSE_MAPPING.md) §6).
 
 > 위젯 셸을 어디까지 완료 기준에 넣을지는 [ROADMAP.md](../ROADMAP.md) Phase C5~C6 진척과 시험 일정(R-1)에 따라 조정한다. 최소선: 그리드 배치 + 레이아웃 저장 + 위젯별 색.
 
@@ -99,6 +101,6 @@ Daily Brief 의 일반화 버전.
 
 - **범위 한정:** "내 생산성 데이터(할일·일정·메일)에 대한 분석·요약·제안" 으로 제한한다.
   코드베이스를 수정하는 코딩 에이전트는 이 제품의 범위가 아니다 (그건 Claude Code 가 하는 일).
-- 강의 Week 11 "Mini Coding Agent" 실습을 이 기능으로 소화한다.
+- 강의 A-W11 "Mini Coding Agent" 실습을 이 기능으로 소화한다.
 - 설계 명세: 개발 파이프라인의 [ORCHESTRATION.md](../../setup/ORCHESTRATION.md) 상태 그래프를 그대로 재사용한다.
 - 요구사항 자리표시: **FR-AGENT-08** (작업 큐, [requirements/AGENT.md](../requirements/AGENT.md)), 결정 자리표시: **[ADR-0013](../architecture/adr/ADR-0013-dashboard-agent-queue.md)** (제안).

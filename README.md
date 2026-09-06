@@ -1,7 +1,7 @@
 # 🤖 my-setup-proj
 
 > Windows / macOS / Linux 어디서든 켜는 생산성 대시보드 + Claude AI 에이전트.
-> 우숭대학교 "AI 컴퓨터 운영체제 실습" 강의(14주)의 실습 환경 겸 최종 프로젝트.
+> 우송대학교 2026-2학기 3개 강의(AI 컴퓨터 운영체제 실습 / AI시대소프트웨어공학 / AITool기반소프트웨어공학)의 공통 실습 환경이자 제출 산출물이다. 각 강의가 보는 층이 다르다 — 런타임·환경(A) / AI 활용 개발 프로세스(B) / SW공학 산출물(C). 상세: [docs/progress/COURSE_MAPPING.md](docs/progress/COURSE_MAPPING.md).
 
 **시작** 2026-09-02 · **목표 완성** 2026-11-30
 

@@ -29,7 +29,7 @@ gantt
   기말고사·과제 2·발표       :milestone, 2026-12-08, 0d
 ```
 
-**강의 ↔ 프로젝트 동기화**
+**강의 ↔ 프로젝트 동기화** (강의 A 축, gantt Phase 1~4 = 본문 Phase A~E)
 
 ```mermaid
 flowchart LR
@@ -41,6 +41,23 @@ flowchart LR
   W1213["Week 12~13<br/>배포·최적화"] --> PE["Phase 4<br/>Docker·보안"]
   W1415["Week 14~15<br/>기말·발표"] --> M2{{"최종 발표<br/>과제 2"}}
 ```
+
+> ⚠️ 확인 필요 — 위 gantt 의 `Phase 1~4` 와 본문·[DESIGN §8](architecture/DESIGN.md)의 `Phase A~E` 넘버링이 혼재한다. 또한 중간고사 10-27·기말 12-08 은 W1 시작(09-02) 기준 W8=10-21~27, W15=12-09~15 로 계산한 값과 어긋난다. 이 문서에서는 기존 날짜를 수정하지 않는다.
+
+### Phase ↔ 3강의 주차 대응
+
+이 프로젝트는 3개 강의([COURSE_MAPPING.md](../progress/COURSE_MAPPING.md))의 공통 산출물이다. Phase 정의는 그대로 두고, 강의는 **열(lens)** 로만 읽는다.
+
+| Phase | A-Week | B-Week | C-Week | 공통 마일스톤 |
+|---|---|---|---|---|
+| A~B | W1~3 | W1~3 | W1~3 | — |
+| C | W4~5 | W4~5 | W3~7 | — |
+| D | W6~7 | W6~7 | W7 | — |
+| — | W8 | W8 | W8 | **W8: 3강의 수시/중간 + 중간발표** |
+| E | W9~13 | W9~14 | W9~14 | — |
+| — | W14~15 | W15 | W15 | **W15: 3강의 정기/기말 + 최종발표** |
+
+발표 산출물이 강의별로 어떻게 갈리는지는 [COURSE_MAPPING.md §6](../progress/COURSE_MAPPING.md#6-발표-산출물-맵-w8--w15).
 
 ---
 
@@ -513,15 +530,17 @@ git commit -m "Week X: [기능명] 구현/수정"
 
 ## ⚠️ 중요 마일스톤
 
-| 날짜 | 이벤트 | 상태 |
-|------|--------|------|
-| 09-15 | Phase 1 완료 | ⏳ |
-| 10-06 | Phase 2 완료 | ⏳ |
-| 10-20 | Phase 3 완료 | ⏳ |
-| 10-27 | 중간고사 | ⏳ |
-| 11-17 | Phase 4 절반 | ⏳ |
-| 12-08 | 기말고사 | ⏳ |
-| 12-15 | 프로젝트 최종 완료 | ⏳ |
+| 날짜 | 이벤트 | 강의 | 상태 |
+|------|--------|------|------|
+| 09-15 | Phase 1 완료 | — | ⏳ |
+| 10-06 | Phase 2 완료 | — | ⏳ |
+| 10-20 | Phase 3 완료 | — | ⏳ |
+| 10-27 | **W8** — 중간고사(A) · 수시평가(B·C) · 중간발표 | A·B·C | ⏳ |
+| 11-17 | Phase 4 절반 | — | ⏳ |
+| 12-08 | **W15** — 기말고사(A) · 정기평가(B·C) · 최종발표 · 과제2(A) | A·B·C | ⏳ |
+| 12-15 | 프로젝트 최종 완료 | — | ⏳ |
+
+> ⚠️ 확인 필요 — 10-27/12-08 은 기존 값 유지. W8/W15 실제 주차 계산값과의 불일치는 [COURSE_MAPPING.md §6](../progress/COURSE_MAPPING.md#6-발표-산출물-맵-w8--w15) 참조.
 
 ---
 
@@ -530,7 +549,7 @@ git commit -m "Week X: [기능명] 구현/수정"
 - [README.md](../../README.md) - 프로젝트 개요
 - [ARCHITECTURE.md](architecture/ARCHITECTURE.md) - 기술 스택
 - [PROGRESS.md](../progress/PROGRESS.md) - 실제 진행 상황 (매주 업데이트)
-- [COURSE_MAPPING.md](../progress/COURSE_MAPPING.md) - 강의 연결
+- [COURSE_MAPPING.md](../progress/COURSE_MAPPING.md) - 3개 강의(A·B·C) 연결
 
 ---
 

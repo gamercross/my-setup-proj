@@ -212,6 +212,17 @@ CI(`.github/workflows/test.yml`)에 `npm test`(backend), `pytest -m "not network
 | TC-WIDGET-07 | FR-WIDGET-08 AC-2 | 저장 레이아웃 `instances` 에 `{id:'x',type:'zzz',...}` 주입 후 재시작 | 그 위젯만 "알 수 없는 위젯입니다 (zzz)" + `✕` 로 제거 가능, 나머지 위젯 정상. 상태: C5 완료, 로컬 수동 확인 대기 |
 | TC-WIDGET-08 | FR-WIDGET-07 AC-2 | 한 위젯 뷰에 임시 `throw` 삽입 | 해당 위젯 본문만 `ErrorBanner` 폴백, 셸 바·다른 위젯 생존. 상태: C5 완료, 로컬 수동 확인 대기 |
 
+### 3.8 3강의 구조 문서 정합 수동 체크리스트 (COURSE_MAPPING)
+
+`docs/` 를 3개 강의(A·B·C, [COURSE_MAPPING.md](../../progress/COURSE_MAPPING.md)) 구조로 유지하기 위한 점검. 자동 러너 없음 — 문서 변경 시 수동 확인.
+
+| ID | 대상 | 절차 | 통과 조건 |
+|---|---|---|---|
+| TC-DOC-01 | 강의 전제 정합 | 단일 강의(N주)·오탈자·"학과 강의" 표현을 `grep` 으로 검색 | 0건 — "강의 1개" 전제 없음, 3강의(A·B·C) 표기 일관 |
+| TC-DOC-02 | 강의 태그 SSOT | COURSE_MAPPING §4 · TRACEABILITY §6 · adr/README · GLOSSARY 확인 | 태그 정의는 COURSE_MAPPING §4 한 곳, 나머지는 참조 링크만 |
+| TC-DOC-03 | COURSE_MAPPING 링크 | `grep -rn "COURSE_MAPPING" --include=*.md .` | 경로 `docs/progress/COURSE_MAPPING.md` 유지, 깨진 링크 없음 |
+| TC-DOC-04 | 강의 A 실습 내용 보존 | COURSE_MAPPING §1 `<details>` 확인 | 기존 주별 명령어·프로젝트 활용·체크리스트가 접힌 상세로 남아 있음 |
+
 ---
 
 ## 4. 픽스처 정책

@@ -175,6 +175,9 @@
   - [x] `frontend npm run build` 성공, `backend npm test` 51/51, `verify.sh` 23/0/0 (`--code-only` 16/0/0)
   - [ ] 브라우저 수동 체크 (TC-WIDGET-01~08) — 로컬 수행 대기 (샌드박스 창 기동 불가)
   - 이월: 위젯별 테마·표시 옵션 (`themeToVars` 화이트리스트, `WidgetSettings`) → C6
+- [x] 3강의 구조 반영 (COURSE_MAPPING 재작성 + 강의 태그 체계) → 완료 (2026-09-06, docs/3-course-structure)
+  - COURSE_MAPPING 을 A(운영체제 실습)·B(AI시대 SW공학)·C(AITool기반 SW공학) 3섹션으로 재작성, 태그 SSOT `A-W#/B-W#/C-W#` (§4)
+  - ROADMAP·DESIGN §8 3강의 주차 대응표, 맥락 문장 17개 파일 정정, TEST_PLAN §3.8 TC-DOC-01~04. 코드 변경 0.
 
 ### 배운 Linux 명령어
 ```bash
@@ -432,7 +435,7 @@ A: 1. npm cache clean --force
 - [SETUP.md](../setup/SETUP.md) - 개발 환경 설정
 - [ARCHITECTURE.md](../product/architecture/ARCHITECTURE.md) - 기술 스택
 - [CLAUDE_INTEGRATION.md](../setup/CLAUDE_INTEGRATION.md) - Claude API
-- [COURSE_MAPPING.md](COURSE_MAPPING.md) - 강의 연결
+- [COURSE_MAPPING.md](COURSE_MAPPING.md) - 3개 강의(A·B·C) ↔ 프로젝트 연결
 
 ---
 
