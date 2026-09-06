@@ -54,13 +54,13 @@ TC: TC-CAL-02 (정렬·null 위치), TC-UI-18 (수동 — 배지·강조)
 
 ## FR-CAL-03 — Google Calendar 실제 동기화 (P1)
 
-**상태** ⏳ D2 이월. agent 가 Google Calendar 를 폴링해 `calendar_events` 캐시를 채우고, API 는 더미 대신 캐시를 읽는다 (ADR-0011). 응답 계약 불변.
+**상태** ⏳ D2-b 이월. agent 가 Google Calendar 를 폴링해 `calendar_events` 캐시를 채우고, API 는 더미 대신 캐시를 읽는다 (ADR-0011). 응답 계약 불변.
 
 ---
 
 ## 이월 / 알려진 트레이드오프
 
-- **실제 캘린더 연동** — FR-CAL-03, D2.
+- **실제 캘린더 연동** — FR-CAL-03, D2-b.
 - **`synced_at` UI 노출** — C3 에서는 응답 JSON 에만 포함, 화면 미노출.
 - **CSS 변수화** — ✅ C6 해소: `CalendarWidget` 의 하드코딩 색을 전역 `var()` 로 1:1 치환('오늘' 배지는 `var(--w-accent, var(--accent))`). `range`(오늘/이번주) 표시 옵션은 클라이언트 필터, `fetchEvents` 계약 불변. "종일 포함" 은 `all_day` 컬럼 부재로 제외.
 

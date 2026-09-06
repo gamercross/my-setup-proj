@@ -89,8 +89,8 @@
 개발: 72%
 ```
 
-> Phase A2·A3·B1·B2·C1·C2·C3·C4·C5·C6·D1 완료, B3·C2 코드 배선 완료 (C4·C5·C6·D1: 2026-09-06). 다음: D2(실 캘린더/노션 연동 + FR-AGENT-06 AC-3 재시도), B3~C6 브라우저 E2E 로컬 검증.
-> 검증 스냅샷: `node v26.8.1 / npm 11.19.0 / python 3.14.4`, `verify.sh` 27/0/0, `agent pytest` 11/0 (2 deselected), `frontend npm test` 9/0, `backend npm test` 56/0, `check-docs.sh` 11/0/0, `frontend npm run build` 성공.
+> Phase A2·A3·B1·B2·C1·C2·C3·C4·C5·C6·D1·D2-a 완료, B3·C2 코드 배선 완료 (D2-a: 2026-09-07). 다음: D2-b (Google OAuth Fernet 암호화 + Gmail/Calendar 실 수집), B3~C6 브라우저 E2E 로컬 검증.
+> 검증 스냅샷: `node v26.8.1 / npm 11.19.0 / python 3.14.4`, `verify.sh` 27/0/0, `agent pytest` 18/0 (2 deselected), `frontend npm test` 9/0, `backend npm test` 59/0, `check-docs.sh` 11/0/0, `frontend npm run build` 성공.
 
 ---
 
@@ -190,6 +190,14 @@
   - [x] `agent/tests/{conftest.py,test_db.py}` 신규 + `test_daily_brief.py` 확장 — `pytest -m "not network"` 11/0 (2 deselected)
   - [x] 문서 5종: DESIGN §7, AGENT.md, TRACEABILITY, TEST_PLAN, ENV_REFERENCE
   - FR-AGENT-01·02 ✅, FR-AGENT-06 🚧 (AC-1/2 완료, AC-3 재시도 로직 D2 이월). TC-AGENT-01·02·03·06·10~14
+- [x] Claude 재시도 백오프 + sync_logs 기록 + 조회 API (Phase D2-a, Week 6~7 / Phase 3) → 완료 (2026-09-07, feature/d2a-sync-logs-retry)
+  - [x] `agent/services/retry.py` — `call_with_retry` (3회 시도 / 재시도 2회 / 1·2s 지수 백오프, 인증·4xx 즉시 실패)
+  - [x] `agent/services/claude.py` — `ask()` 에 재시도 적용 + `Anthropic(timeout=30, max_retries=0)`
+  - [x] `agent/db.py` — `log_sync()` (`sync_logs` 기록, 예외 안 냄) / `agent/daily_brief.py` — `_run()` 에서 `ensure_schema` 배선 (D1 이월)
+  - [x] backend `GET /api/sync/logs` (읽기 전용) + `db.getSyncLogs` — `sync.test.js` 신규
+  - [x] 문서 7종: CROSSCUTTING, DESIGN, API_REFERENCE, AGENT, REQUIREMENTS_NONFUNCTIONAL, TRACEABILITY, TEST_PLAN
+  - FR-AGENT-06 AC-3 ✅, NFR-REL-05 🚧 (Claude 호출만), NFR-OBS-03 🚧 (기록·조회만), FR-SYNC-03 🚧 (조회 API). TC-AGENT-16~19, TC-SYNC-06~10
+  - 다음 단계: **D2-b** — Google OAuth Fernet 암호화 + Gmail/Calendar 실 수집 (Gmail·Calendar·Notion 재시도 포함)
 
 ### 배운 Linux 명령어
 ```bash
@@ -202,9 +210,9 @@ wc -l                  # 줄 수 세기
 
 ### 진행 상황 요약
 ```
-완료한 작업: 13개 (React 컴포넌트 스캐폴드, 번들러(Vite) 연결 = B1, Express CRUD 라우트, 자동화 테스트 골격 + CI, SQLite 교체 = B2, 프론트↔백엔드 코드 배선 = B3, 백엔드 미들웨어 정식화 = C1, 프로젝트 CRUD 프론트 배선 + errors.js + tasks.project_id = C2, 캘린더 위젯 + /api/calendar/events 더미 = C3, 다이어그램 뷰어 + /api/diagrams = C4, 위젯 셸 대시보드 OS + Dashboard.jsx 삭제 = C5, 위젯 커스터마이즈 WidgetSettings + themePresets + displayConfig = C6, Daily Brief 에이전트 실데이터 배선 + agent/db.py = D1)
+완료한 작업: 14개 (React 컴포넌트 스캐폴드, 번들러(Vite) 연결 = B1, Express CRUD 라우트, 자동화 테스트 골격 + CI, SQLite 교체 = B2, 프론트↔백엔드 코드 배선 = B3, 백엔드 미들웨어 정식화 = C1, 프로젝트 CRUD 프론트 배선 + errors.js + tasks.project_id = C2, 캘린더 위젯 + /api/calendar/events 더미 = C3, 다이어그램 뷰어 + /api/diagrams = C4, 위젯 셸 대시보드 OS + Dashboard.jsx 삭제 = C5, 위젯 커스터마이즈 WidgetSettings + themePresets + displayConfig = C6, Daily Brief 에이전트 실데이터 배선 + agent/db.py = D1, Claude 재시도 백오프 + sync_logs 기록 + GET /api/sync/logs = D2-a)
 진행 중: 1개 (B3·C2·C3·C4·C5·C6 브라우저 E2E·GUI 수동체크 — 로컬 대기)
-예정된 작업: 2개 (샘플 데이터, D2 실 캘린더/노션 연동 + FR-AGENT-06 AC-3)
+예정된 작업: 2개 (샘플 데이터, D2-b Google OAuth Fernet 암호화 + Gmail/Calendar 실 수집)
 
 진행도: 90%
 강의 수강: 0%

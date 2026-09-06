@@ -125,6 +125,22 @@ def test_agent_14_notion_failure_keeps_local_brief(temp_db, monkeypatch):
     assert db.get_brief(today)["content"] == "브리핑 본문"
 
 
+def test_agent_19_run_bootstraps_schema_on_empty_db(tmp_path, monkeypatch):
+    """TC-AGENT-19: 빈 DB 에서 _run() 이 ensure_schema 로 테이블을 만든 뒤 정상 진행한다."""
+    monkeypatch.setenv("DATABASE_PATH", str(tmp_path / "fresh.db"))  # 부트스트랩 안 된 경로
+    monkeypatch.setattr(daily_brief, "get_today_tasks", lambda: [])
+    monkeypatch.setattr(daily_brief, "get_unread_emails", lambda: [])
+    monkeypatch.setattr(daily_brief, "get_today_events", lambda: [])
+    monkeypatch.setattr(daily_brief, "ask", lambda *a, **k: "브리핑 본문")
+    monkeypatch.setattr(daily_brief, "save_to_notion", lambda data: None)
+
+    ok, _ = daily_brief._run()
+    today = f"{datetime.now():%Y-%m-%d}"
+
+    assert ok is True
+    assert db.get_brief(today)["content"] == "브리핑 본문"
+
+
 @pytest.mark.network
 def test_agent_15_real_claude_smoke(temp_db, monkeypatch):
     """TC-AGENT-15: 실제 Claude 1회 호출 → 비어있지 않은 브리핑 + briefs 저장."""

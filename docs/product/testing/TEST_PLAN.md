@@ -144,6 +144,12 @@ CI(`.github/workflows/test.yml`)에 `npm test`(backend), `pytest -m "not network
 | TC-AGENT-13 | FR-AGENT-01 AC-3 | `get_today_tasks` 예외 | 컨텍스트에 `"(할일을 불러오지 못함)"`, 나머지 블록 정상 | P1 · ✅ 작성됨 |
 | TC-AGENT-14 | FR-AGENT-06 AC-2 | `save_to_notion` 예외 + 실 `briefs` | `briefs` 행 유지, 결과에 `"Notion 저장만 실패"` | P1 · ✅ 작성됨 |
 | TC-AGENT-15 | FR-AGENT-02 | 실 Claude 1회 호출 (`network` 마커) | 비어있지 않은 브리핑 + `briefs` 저장, 키 없으면 skip | P2 · ✅ 작성됨 |
+| TC-AGENT-16 | FR-AGENT-06 AC-3 / NFR-REL-05 | `retry.call_with_retry` — 2회 실패 후 3회째 성공 (`sleep` 모킹) | 3회째 반환값 정상, `sleep` 이 1s·2s 로 2회 호출 | P1 · ✅ 작성됨 (`test_retry.py`) |
+| TC-AGENT-17 | FR-AGENT-06 AC-3 / NFR-REL-05 | 3회 전부 실패 | 마지막 예외 전파, `sleep` 2회 호출(1s·2s) | P1 · ✅ 작성됨 (`test_retry.py`) |
+| TC-AGENT-18 | FR-AGENT-06 AC-3 / NFR-REL-05 | 인증/4xx 예외 발생 | 재시도 0회 즉시 전파, `sleep` 미호출 | P1 · ✅ 작성됨 (`test_retry.py`) |
+| TC-AGENT-19 | FR-AGENT-01 (스키마 부트스트랩) | 빈 파일 DB 에서 `daily_brief._run()` | `ensure_schema` 호출 → `tasks`/`briefs` 생성 후 정상 진행, 크래시 없음 | P1 · ✅ 작성됨 (`test_daily_brief.py`) |
+
+`agent/tests/test_retry.py` (Phase D2-a 신규): `call_with_retry` 의 성공·재시도·즉시 실패 경로 (`time.sleep` monkeypatch, 네트워크 무접촉).
 
 `agent/tests/test_claude.py` (이동 완료): `ANTHROPIC_API_KEY` 없으면 `skip`, 있으면 1회 실호출 성공 확인.
 
@@ -172,6 +178,18 @@ CI(`.github/workflows/test.yml`)에 `npm test`(backend), `pytest -m "not network
 
 > **원칙:** 실제 Supabase 네트워크 호출 테스트는 작성하지 않는다 (CI 네트워크 의존 금지).
 > `beforeEach` 에서 `SUPABASE_URL`/`SUPABASE_KEY`/`SUPABASE_TIMEOUT_MS` 를 `delete` (개발자 셸 export 방어), `after` 에서 원복.
+
+### 3.5d 동기화 로그 — `agent/tests/test_db.py` + `backend/test/sync.test.js` (Phase D2-a)
+
+| ID | 대상 | 전제 | 입력 | 기대 결과 | 우선 |
+|---|---|---|---|---|:---:|
+| TC-SYNC-06 | FR-SYNC-03 / NFR-OBS-03 | 빈 DB | `db.log_sync('gmail','success')` + `db.log_sync('calendar','failed','401 Unauthorized')` | `sync_logs` 에 각 1행(gmail/success, calendar/failed + `error_message`), `last_sync` 가 ISO8601 | P1 |
+| TC-SYNC-07 | FR-SYNC-03 / NFR-OBS-03 | 빈 DB | `log_sync` 에 CHECK 위반 등 잘못된 값 | 0행 기록 + 예외를 밖으로 던지지 않음 (호출부 무영향) | P1 |
+| TC-SYNC-08 | FR-SYNC-03 | `sync_logs` 몇 행 | `GET /api/sync/logs` | 200, `logs` 배열, 각 항목 필드 5개(`id/service/status/last_sync/error_message`) | P1 |
+| TC-SYNC-09 | FR-SYNC-03 | 여러 서비스 로그 | `?service=gmail` / `?service=bogus` | `gmail` 만 반환 / `?service=bogus` → 400 한국어 메시지 | P1 |
+| TC-SYNC-10 | FR-SYNC-03 | 로그 여러 행 | `?limit=1` / `?limit=abc`·`?limit=0` / 미지정 | 1건 준수 / 400 / 기본 50건 | P1 |
+
+> TC-SYNC-06/07 은 `agent/tests/test_db.py`(pytest), TC-SYNC-08~10 은 `backend/test/sync.test.js`(`supertest` + `node --test`, `:memory:` DB). `/api/sync/logs` 는 읽기 전용 조회 — 쓰기 주체는 에이전트(`db.log_sync`).
 
 ### 3.5b 미들웨어 — `backend/test/middleware.test.js` (Phase C1)
 
@@ -306,10 +324,11 @@ supervisor 는 리뷰 시 "이 변경에 대응하는 테스트가 있는가"를
 
 ---
 
-## 7. 현재 상태 (2026-09-06, Phase C5 완료)
+## 7. 현재 상태 (2026-09-07, Phase D2-a 완료)
 
-- 백엔드 자동화 테스트: **56케이스 작성됨** — `backend/test/tasks.test.js` (TC-TASK-01,02,04~10 + TC-PROJ-08/09/09b/09c/09d + TC-DB-04a), `backend/test/projects.test.js` (TC-PROJ-01~07,10,11 + TC-DB-04b), `backend/test/calendar.test.js` (TC-CAL-01~07), `backend/test/db.test.js` (TC-DB-01~03 + TC-DB-04c/d), `backend/test/middleware.test.js` (TC-MW-01~09), `backend/test/diagrams.test.js` (TC-DIAG-01~05), `backend/test/supabase.test.js` (TC-SYNC-01~05). `supertest` + `node --test`, `:memory:` DB. (TC-DB-04b 는 project status 검증이라 `projects.test.js` 에 위치.)
-- 에이전트 자동화 테스트: **D1 기준 작성됨** — `agent/tests/test_daily_brief.py` (TC-AGENT-01,02,03,06,13,14,15) + `agent/tests/test_db.py` (TC-AGENT-05,09,10,11,12) + `agent/tests/conftest.py`(`temp_db` fixture). `test_claude.py` 는 연결 확인용(키 없으면 skip).
+- 백엔드 자동화 테스트: **59케이스 작성됨** — `backend/test/tasks.test.js` (TC-TASK-01,02,04~10 + TC-PROJ-08/09/09b/09c/09d + TC-DB-04a), `backend/test/projects.test.js` (TC-PROJ-01~07,10,11 + TC-DB-04b), `backend/test/calendar.test.js` (TC-CAL-01~07), `backend/test/db.test.js` (TC-DB-01~03 + TC-DB-04c/d), `backend/test/middleware.test.js` (TC-MW-01~09), `backend/test/diagrams.test.js` (TC-DIAG-01~05), `backend/test/supabase.test.js` (TC-SYNC-01~05), `backend/test/sync.test.js` (TC-SYNC-08~10, D2-a 신규 3건). `supertest` + `node --test`, `:memory:` DB. (TC-DB-04b 는 project status 검증이라 `projects.test.js` 에 위치.)
+- 에이전트 자동화 테스트: **D2-a 기준 작성됨** — `agent/tests/test_daily_brief.py` (TC-AGENT-01,02,03,06,13,14,15,19) + `agent/tests/test_db.py` (TC-AGENT-05,09,10,11,12 + TC-SYNC-06/07) + `agent/tests/test_retry.py` (TC-AGENT-16,17,18, D2-a 신규) + `agent/tests/conftest.py`(`temp_db` fixture). `test_claude.py` 는 연결 확인용(키 없으면 skip). 현재 `pytest -m "not network"` 18 passed.
+- Phase D2-a(2026-09-07): `agent/services/retry.py`(`call_with_retry` — 3회 시도/재시도 2회/1·2s 지수 백오프, 인증·4xx 즉시 실패), `agent/services/claude.py`(`ask()` 재시도 적용 + `Anthropic(timeout=30, max_retries=0)`), `agent/db.py`(`log_sync()` — `sync_logs` 기록, 예외 안 냄), `agent/daily_brief.py`(`_run()` 에서 `ensure_schema` 배선), `backend` `GET /api/sync/logs`(읽기 전용) + `db.getSyncLogs`. TC-AGENT-16~19, TC-SYNC-06~10. 커버: FR-AGENT-06 AC-3, NFR-REL-05, NFR-OBS-03(부분), FR-SYNC-03(조회 API). OAuth·실 수집은 D2-b 이월.
 - CI: 문법 검사 + `npm test`(backend) + `pytest -m "not network"`(agent) 연결됨. `node -c src/app.js`, `src/db.js`, `db/index.js` 추가.
 - `verify.sh`: + `backend/src/routes/calendar.js`·`backend/src/services/calendar.js` 문법 체크 추가 (21/0/0, SKIP 없음).
 - 미작성(후속): TC-TASK-03/11/12, TC-AGENT-04(Notion+sync_logs — D3).

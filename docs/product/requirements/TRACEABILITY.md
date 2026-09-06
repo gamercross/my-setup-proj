@@ -73,11 +73,11 @@ C 세부: C1 미들웨어(CORS·로깅·에러) ✅(2026-09-03) → C2 프로젝
 | FR-AGENT-03 | G7 | requirements/AGENT.md | D3 | TC-AGENT-04 | `agent/services/notion.py` | ⏳ |
 | FR-AGENT-04 | — | API_REFERENCE `/brief/today` | D3 | TC-AGENT-05 | `routes/brief.js`(신규), `components/BriefCard.jsx`(신규) | ⏳ |
 | FR-AGENT-05 | — | [ADR-0007](../architecture/adr/ADR-0007-schedule-launchd-cron.md) | D3 | — | `scripts/`, plist | ⏳ |
-| FR-AGENT-06 | — | DESIGN §7, NFR-REL-02 | D1 | TC-AGENT-03,14 | `agent/daily_brief.py` | 🚧 (AC-1/2 완료, AC-3 재시도 D2 이월) |
+| FR-AGENT-06 | — | DESIGN §7, NFR-REL-02 | D1, D2-a | TC-AGENT-03,14,16,17,18 | `agent/daily_brief.py`, `agent/services/retry.py`, `agent/services/claude.py` | 🚧 (AC-1/2/4 완료, AC-3 재시도·지수 백오프 D2-a 완료 / **AC-5 는 D3 `/api/brief/today` 대기**) |
 | FR-AGENT-07 | — | requirements/AGENT.md | E (W11) | — | `agent/schedule_advisor.py`(신규) | ⏳ |
 | FR-SYNC-01 | G8 | [ADR-0008](../architecture/adr/ADR-0008-supabase-deferred.md) | E2 | — | 신규 동기화 모듈 (선행: `backend/src/supabase.js`) | ⏳ |
 | FR-SYNC-02 | G8 | [ADR-0008](../architecture/adr/ADR-0008-supabase-deferred.md) | E2 | — | 동상 (선행: `backend/src/supabase.js`) | ⏳ |
-| FR-SYNC-03 | G7 | API_REFERENCE `/sync/logs`, DATA_DICTIONARY `sync_logs` | D2 | — | `agent/db.py`, `routes/sync.js`(신규) | ⏳ |
+| FR-SYNC-03 | G7 | API_REFERENCE `/sync/logs`, DATA_DICTIONARY `sync_logs` | D2-a | TC-SYNC-06~10 | `agent/db.py`, `backend/src/routes/sync.js`, `backend/src/db.js` | 🚧 (D2-a: `log_sync` 기록 + `GET /sync/logs` 조회 API 완료 / 실 수집 배선 D2-b) |
 | FR-AUTH-01 | G7 | NFR-SEC-05 | D2 | TC-UI-06 | `agent/auth/google_oauth.py`(신규) | ⏳ |
 | FR-AUTH-02 | G8 | [ADR-0008](../architecture/adr/ADR-0008-supabase-deferred.md) | E1 | — | 신규 | ⏳ |
 | FR-AUTH-03 | — | requirements(예정) | E1 | — | 신규 | ⏳ |
@@ -106,7 +106,7 @@ C 세부: C1 미들웨어(CORS·로깅·에러) ✅(2026-09-03) → C2 프로젝
 | NFR-REL-02 | 외부 API 실패가 앱 크래시로 안 이어짐 | D1 | TC-AGENT-03, TC-UI-02 | 🚧 |
 | NFR-REL-03 | 백엔드 `unhandledRejection` 로깅·생존 | 상시 | 예외 주입 | ✅ (`server.js`) |
 | NFR-REL-04 | 오프라인 로컬 캐시 조회 | C3, D2 | 수동 (비행기모드) | ⏳ |
-| NFR-REL-05 | 네트워크 재시도 (지수 백오프 ×3) | D2 | 단위(모킹) | ⏳ |
+| NFR-REL-05 | 네트워크 재시도 (지수 백오프 ×3) | D2-a | 단위(모킹) TC-AGENT-16,17,18 | 🚧 (Claude 호출에 지수 백오프 적용 / Gmail·Calendar·Notion 재시도는 D2-b) |
 | NFR-REL-06 | graceful shutdown (SIGTERM) | E4 (W9) | `kill -TERM` | ⏳ |
 | NFR-MAINT-02 | 계층 분리 routes→services→db | C1 | 코드리뷰 | 🚧 (미들웨어 계층 분리 ✅ — `backend/src/middleware/`, 2026-09-03) |
 | NFR-MAINT-03 | `db.js` 인터페이스 불변 | B2 | TC-DB-02 | ✅ (공개 함수 10개 시그니처·반환·오류 불변, 2026-09-02) |
@@ -114,7 +114,7 @@ C 세부: C1 미들웨어(CORS·로깅·에러) ✅(2026-09-03) → C2 프로젝
 | NFR-MAINT-05 | 한 기능 = `/feature` 1회 | 상시 | 커밋 히스토리 | 🚧 |
 | NFR-OBS-01 | 백엔드 요청 로깅 미들웨어 (`backend/src/middleware/requestLogger.js`) | C1 | TC-MW-08 | ✅ (2026-09-03) |
 | NFR-OBS-02 | 에이전트 4단계 로깅 | D1 | 실행 로그 | ⏳ |
-| NFR-OBS-03 | `sync_logs` 영속 | D2 | SQL | ⏳ |
+| NFR-OBS-03 | `sync_logs` 영속 | D2-a | SQL, TC-SYNC-06,08 | 🚧 (`db.log_sync` 구현·`GET /api/sync/logs` 완료 / 수집 경로 배선은 D2-b) |
 | NFR-TEST-01 | backend supertest | A3 | `npm test` | ✅ (15 pass, 2026-09-02) |
 | NFR-TEST-02 | agent pytest | A3 | `pytest` | ✅ (3 pass, 2026-09-02) |
 | NFR-TEST-03 | CI 문법 + 테스트 | A3 | Actions | ✅ (`npm test` + `pytest -m "not network"` 연결) |

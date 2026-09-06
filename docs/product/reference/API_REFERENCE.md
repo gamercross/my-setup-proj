@@ -361,14 +361,17 @@ ADR-0008 후속. 외부 연결 진단 **전용**이다. Supabase 클라이언트
 { "supabase": "ok", "detail": "연결됨 (프로브 테이블 없음 — 정상)", "host": "abcd.supabase.co", "checkedAt": "2026-09-06T00:00:00.000Z" }
 ```
 
-### `GET /api/sync/logs` — 동기화 이력 🔷 예정 — Week 6
+### `GET /api/sync/logs` — 동기화 이력 ✅ 구현 — Phase D2-a
 
 FR-SYNC-03, NFR-OBS-03
 
+`sync_logs` 를 최신 순(id DESC)으로 반환한다. 읽기 전용 —
+`sync_logs` 쓰기는 에이전트(`agent/db.py:log_sync`)만 한다.
+
 | 쿼리 | 설명 |
 |---|---|
-| `service` | `gmail`\|`calendar`\|`notion`\|`supabase` 로 필터 |
-| `limit` | 최대 반환 수 (기본 50) |
+| `service` | `gmail`\|`calendar`\|`notion`\|`supabase` 로 필터. 그 외 값은 400 |
+| `limit` | 최대 반환 수 (기본 50). 1 이상의 정수 아니면 400 |
 
 **응답 200**
 ```json
@@ -377,6 +380,8 @@ FR-SYNC-03, NFR-OBS-03
   "last_sync": "2026-09-02T08:00:03Z", "error_message": "401 Unauthorized"
 } ] }
 ```
+
+**응답 400** — `{ "error": "service 는 gmail|calendar|notion|supabase 중 하나여야 합니다." }`
 
 ---
 

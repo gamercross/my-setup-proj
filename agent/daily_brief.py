@@ -9,7 +9,7 @@
 import logging
 from datetime import datetime
 
-from db import get_today_tasks, upsert_brief
+from db import connect, ensure_schema, get_today_tasks, upsert_brief
 from services.calendar import get_today_events
 from services.claude import ask
 from services.gmail import get_unread_emails
@@ -61,6 +61,14 @@ def build_context() -> str:
 def _run() -> tuple[bool, str]:
     """브리핑을 생성·저장하고 (성공여부, 결과텍스트) 를 반환한다."""
     logger.info("일일 브리핑 시작")
+
+    # 빈 파일 DB 를 대비한 방어적 스키마 부트스트랩 (초기화 책임은 백엔드 — ADR-0011).
+    try:
+        with connect() as conn:
+            ensure_schema(conn)
+    except Exception as err:  # noqa: BLE001 - 부트스트랩 실패해도 계속 진행
+        logger.warning("스키마 부트스트랩 실패(계속 진행): %s", err)
+
     today = f"{datetime.now():%Y-%m-%d}"
     context = build_context()
 
