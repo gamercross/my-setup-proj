@@ -1,4 +1,4 @@
-// 구조 스캐폴드. Week 3에서 Dashboard가 API 데이터를 주입한다.
+// props-only 프레젠테이션 컴포넌트. 데이터·로딩·에러 상태는 상위 뷰(TasksWidgetView → useTaskStore)가 주입한다.
 
 import React from 'react';
 

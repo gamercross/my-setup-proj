@@ -13,14 +13,14 @@
 
 | 기능 | 설명 | 요구사항 | 상태 |
 |---|---|---|---|
-| **위젯 셸 (대시보드 OS)** | 각 기능을 위젯으로 배치·이동·리사이즈·최소화, 레이아웃 저장/복원, 위젯별 테마·표시 옵션 | FR-WIDGET-01~08 | ⏳ C5~C6 ([ADR-0020~0022](docs/product/architecture/adr/)) |
-| **할 일 관리** | 할일 추가·수정·완료·삭제. 우선순위·마감일. 로컬 SQLite 영속 | FR-TASK-01~05 | 🚧 B3 (백엔드·DB ✅, 프론트 배선 중) |
-| **프로젝트 진행도 추적** | 프로젝트 카드 + 0–100% 진행 바, 상태(active/done/on_hold). Notion 연동(읽기) | FR-PROJ-01~04 | ⏳ C2 |
-| **캘린더 일정** | 오늘/내일 일정 위젯. Google Calendar 를 에이전트가 로컬 캐시에 동기화 | FR-CAL-01~03 | ⏳ C3 |
+| **위젯 셸 (대시보드 OS)** | 각 기능을 위젯으로 배치·이동·리사이즈·최소화, 레이아웃 저장/복원, 위젯별 테마·표시 옵션 | FR-WIDGET-01~08 | ✅ C5 (배치·영속·격리) / ⏳ C6 (테마·표시 옵션) ([ADR-0020~0022](docs/product/architecture/adr/) 채택) |
+| **할 일 관리** | 할일 추가·수정·완료·삭제. 우선순위·마감일. 로컬 SQLite 영속 | FR-TASK-01~05 | ✅ B3 (코드·자동 테스트 — 브라우저 E2E 로컬 대기) |
+| **프로젝트 진행도 추적** | 프로젝트 카드 + 0–100% 진행 바, 상태(active/done/on_hold). Notion 연동(읽기) | FR-PROJ-01~04 | ✅ C2 (코드·자동 테스트 — 브라우저 E2E 로컬 대기) |
+| **캘린더 일정** | 오늘/내일 일정 위젯. Google Calendar 를 에이전트가 로컬 캐시에 동기화 | FR-CAL-01~03 | 🚧 C3 (더미 데이터 ✅ / 실 Google 연동 D2) |
 | **Daily Brief 브리핑** | 매일 아침 Claude 가 할일·메일·일정을 모아 우선순위 브리핑 생성 (cron 자동) | FR-AGENT-01~06 | ⏳ D1~D3 |
 | **이메일 통합** | 여러 계정의 미읽은 메일을 한 곳에서 확인·요약 | FR-MAIL-01~03 | ⏳ D2, E |
-| **프로젝트 다이어그램 뷰어** | `docs/**/*.md` 의 Mermaid(아키텍처·로드맵·오케스트레이션·모듈 의존)를 대시보드에서 렌더 — 저장소를 열지 않고 구조·진행 파악 | FR-UI-05 | ⏳ C4 ([ADR-0014](docs/product/architecture/adr/ADR-0014-dashboard-diagram-viewer.md)) |
-| 공통 | 모든 위젯은 로딩/비어있음/정상/에러 4상태를 독립 렌더. 한 위젯 실패가 셸·다른 위젯을 가리지 않음 | FR-UI-01·04, FR-WIDGET-07 | 🚧 |
+| **프로젝트 다이어그램 뷰어** | `docs/**/*.md` 의 Mermaid(아키텍처·로드맵·오케스트레이션·모듈 의존)를 대시보드에서 렌더 — 저장소를 열지 않고 구조·진행 파악 | FR-UI-05 | ✅ C4 ([ADR-0014](docs/product/architecture/adr/ADR-0014-dashboard-diagram-viewer.md) 채택 — 브라우저 확인 로컬 대기) |
+| 공통 | 모든 위젯은 로딩/비어있음/정상/에러 4상태를 독립 렌더. 한 위젯 실패가 셸·다른 위젯을 가리지 않음 | FR-UI-01·04, FR-WIDGET-07 | ✅ C5 (위젯별 ErrorBoundary) |
 
 > 데이터 흐름: React 대시보드 ↔ Express REST(`:3000/api`) ↔ 로컬 SQLite. 외부 API(Gmail·Calendar·Notion·Claude)는 Python 에이전트가 전담해 SQLite 캐시에 쓴다 ([DESIGN.md](docs/product/architecture/DESIGN.md) §3, [ADR-0006](docs/product/architecture/adr/ADR-0006-agent-owns-external-apis.md)).
 
@@ -116,20 +116,21 @@ my-setup-proj/
 
 ---
 
-## 📊 현재 상태 (2026-09-04)
+## 📊 현재 상태 (2026-09-06)
 
 | 영역 | 상태 |
 |---|---|
 | 개념 설계 · 요구사항 · 아키텍처 문서 (뷰별 심화 + ADR-0001~0023) | ✅ (`docs/product/`) |
-| 자동화 인프라 (에이전트 팀 · 작업로그 · CI · GIT_WORKFLOW) | ✅ 동작 |
+| 자동화 인프라 (에이전트 팀 · 작업로그 · CI · GIT_WORKFLOW · DOC_HEALTH) | ✅ 동작 |
 | 로컬 개발 환경 (node 26 · python 3.14 · venv) | ✅ Phase A2 |
-| 자동화 테스트 | ✅ backend 39 · agent 3, CI 초록 (A3·B2·C1·C2) |
+| 자동화 테스트 | ✅ backend 51 · agent 3, `verify.sh` 25/0/0 (서비스 스모크 포함), DOC_HEALTH 11/0/0, CI 초록 (A3~C5) |
 | 프론트엔드 React (Vite 마운트) | ✅ Phase B1 |
 | DB (SQLite, better-sqlite3 · WAL · `DATABASE_PATH`) | ✅ Phase B2 |
 | 백엔드 tasks/projects CRUD + 미들웨어(CORS·로깅·에러) + 오류 매핑 | ✅ B2·C1·C2 |
-| 프론트↔백엔드 배선 (할일 B3 · 프로젝트 C2) | ✅ 코드 — 브라우저 E2E(TC-UI-10~16) 로컬 수동 확인 대기 |
+| 캘린더 `/api/calendar/events` (더미) · 다이어그램 `/api/diagrams` (services 계층) | ✅ C3 · C4 |
+| 프론트↔백엔드 배선 (할일 B3 · 프로젝트 C2 · 캘린더 C3 · 다이어그램 C4) | ✅ 코드·자동 테스트 — 브라우저 E2E(TC-UI-10~19 · TC-WIDGET-01~08) 로컬 수동 확인 대기 |
+| 위젯 셸 (레지스트리 · `useLayoutStore` · 배치·리사이즈·최소화 · localStorage 영속 · 위젯별 격리) | ✅ C5 — 테마·표시 옵션은 C6 |
 | AI 에이전트 | 🚧 뼈대 + 스텁 |
-| 캘린더 위젯 / 다이어그램 뷰어 / 위젯 셸 | ⏳ C3 / C4 ([ADR-0014](docs/product/architecture/adr/ADR-0014-dashboard-diagram-viewer.md)) / C5~C6 ([ADR-0020~0022](docs/product/architecture/adr/README.md), 제안) |
 
 정확한 최신은 [AS_IS.md](docs/product/vision/AS_IS.md) · [TRACEABILITY.md](docs/product/requirements/TRACEABILITY.md) · `git log`. 다음 할 일은 [PROGRESS.md](docs/progress/PROGRESS.md).
 

@@ -254,11 +254,91 @@ bash scripts/slack-notify.sh "테스트" "연결 확인"
 | 6 | 검증이 실행 동작 미보장 | ✅ 해결 | `scripts/smoke.sh` 신설 — 임시 포트+임시 DB 로 backend 기동 → `/api/health` → task 생성/조회/삭제 왕복(SQLite 쓰기) → 정리. `verify.sh` "▶ 서비스 확인"(21/0/0) + CI `backend` 잡에 포함. `TEST_PLAN.md` §0 에 3층(정적·서비스·사용자 흐름) 반영 |
 | 9 | 문서에 과거 상태 잔존 | ✅ 대부분 | 루트 `README.md` 현재 상태 표·ADR 범위 최신화(이전 PR). `scripts/check_docs.py` DRIFT 검사로 재발 억제. **TC-UI 상태는 브라우저 검증(#8) 결과 반영 시 함께** |
 | 11 | env 이름·외부 서비스 시점 | ✅ 문서화 | `ENV_REFERENCE.md` §4 에 "현재 기준은 `DATABASE_PATH`·`PORT`·`NODE_ENV` 셋뿐, Supabase 변수는 Week 10 별도 확정" 명시. `ARCHITECTURE.md` §보안 캐비엇은 기존 유지 |
-| 1 | 위젯 셸 범위 (DO-1~6) | 👤 사용자 | `DASHBOARD_OS.md` §8 에 DO-1~6 + 권고안 이미 정리됨. **착수 전 사용자 결정 필요** (배치=RGL 권고, 저장=localStorage 권고 등) |
-| 8 | 브라우저 CRUD 왕복 검증 | 👤 사용자 | 디스플레이가 필요해 자동화 불가. `SETUP.md` §5 에 실행 절차, `TEST_PLAN.md` §5 체크리스트. 서비스 스모크(#6)가 backend 쪽은 자동 커버 |
+| 1 | 위젯 셸 범위 (DO-1~6) | ✅ 해결 (C5) | 사용자가 DO-1~6 결정 (DO-1 RGL 그리드 스냅 · DO-2 타입당 1개 · DO-3 localStorage · DO-4 프론트만 검증 · DO-5 편집 토글 · DO-6 다이어그램 위젯화). `DASHBOARD_OS.md` §8 표에 기입. **ADR-0020/0021/0022 제안→채택**, `frontend/src/widgets/` 레지스트리·`useLayoutStore`·`WidgetShell/Host/Frame/Picker` 구현. FR-WIDGET-01~04·07·08 ✅. 테마·표시옵션(05·06)은 C6 |
+| 8 | 브라우저 CRUD 왕복 검증 | 👤 사용자 | 디스플레이가 필요해 자동화 불가. `SETUP.md` §5 에 실행 절차, `TEST_PLAN.md` §5 체크리스트. 서비스 스모크(#6)가 backend 쪽은 자동 커버. **범위 확장**: 이제 TC-UI-10~19(할일·프로젝트·캘린더) + TC-DIAG(다이어그램 뷰어) + TC-WIDGET-01~08(위젯 셸) 까지 로컬 대기 |
 | 10 | Electron/backend 실행 책임 | 👤 사용자 / ⏸ | `RUNTIME_VIEW.md` §5 + `ADR-0016`(제안)에 선택지·권고 정리됨. **패키징(Phase E) 전 결정** |
 
-**요약:** 7건 해결/문서화 완료, 1건(Slack Webhook 재발급)·3건(DO-1~6, 브라우저 E2E, 실행 책임)은 사용자 조치·결정 필요.
+**요약:** 8건 해결/문서화 완료, 1건(Slack Webhook 재발급)·2건(브라우저 E2E, 실행 책임)은 사용자 조치·결정 필요.
+
+---
+
+## 세션 점검 (2026-09-06, C3~C5 개발 + 브랜치 선형화 이후)
+
+C3·C4·C5 개발과 7개 스택 PR 선형화(PR #13)를 마친 뒤 다시 훑은 결과입니다. 자동 검증은 정상입니다 — backend 51/51, `verify.sh` 25/0/0(서비스 스모크 포함), DOC_HEALTH 11/0/0, frontend build 성공. 다만 자동 통과가 요구사항 전체 준수를 의미하지는 않으며, 아래 5건이 남아 있습니다.
+
+| # | 심각도 | 항목 | 상태 |
+|:-:|:---:|---|:---:|
+| S1 | 높음 | `uncaughtException` 미처리 (NFR-REL-03) | 📌 코드 후속 |
+| S2 | 중간 | `routes/tasks.js`·`projects.js` 가 DB 직접 호출 — C3~C5 의 services 계층과 불일치 (NFR-MAINT-02) | 📌 코드 후속 |
+| S3 | 중간 | `README.md` 가 C3·C4·C5 를 "예정", backend 테스트 "39개" 로 표시 (NFR-MAINT-06) | ✅ 이번 커밋 |
+| S4 | 낮음 | `TaskList.jsx` 첫 줄 주석이 완료된 작업을 예정형으로 서술 | ✅ 이번 커밋 |
+| S5 | 낮음~중간 | frontend build 의 mermaid 청크 500KB 초과 경고 (NFR-PERF-01) | ⏳ 측정 후 판단 |
+
+### S1. `uncaughtException` 처리가 요구사항과 다름 — 높음
+
+[NFR-REL-03](docs/product/requirements/REQUIREMENTS_NONFUNCTIONAL.md) 은 backend 가 `unhandledRejection` 과 `uncaughtException` 을 **모두** 로깅하도록 요구합니다. `backend/src/server.js:18` 에는 `unhandledRejection` 핸들러만 있습니다.
+
+**문제**
+
+- 동기 예외가 프로세스 최상단에서 기록되지 않음
+- 예외 주입 테스트(NFR-REL-03 의 "강제 예외 주입 테스트")가 없음
+- 예외 발생 후 "프로세스를 유지할지, 로그 후 안전 종료·재시작할지" 정책이 불명확
+
+**해결책 (별도 `/feature` 스텝)**
+
+- `uncaughtException` 핸들러 추가 + 정책 명시. 단순히 프로세스를 계속 살리면 상태가 오염될 수 있으므로, 로그 기록 후 안전한 종료를 기본값으로 검토.
+- 예외 주입 테스트와 `SIGTERM` graceful shutdown 테스트 추가.
+- [ADR-0016](docs/product/architecture/adr/ADR-0016-desktop-process-topology.md)(#10)과 함께 다루는 것이 자연스러움.
+
+### S2. routes 가 DB 를 직접 호출해 계층 규칙을 위반함 — 중간
+
+[NFR-MAINT-02](docs/product/requirements/REQUIREMENTS_NONFUNCTIONAL.md) 와 [CONVENTIONS.md](docs/setup/CONVENTIONS.md) §3 은 `routes → services → db` 계층을 요구합니다. `backend/src/routes/tasks.js` 와 `projects.js` 는 라우트에서 `db` 를 직접 호출하고(`db.getTasks()`·`db.addTask()` 등) 입력·도메인 검증까지 함께 처리합니다.
+
+**현재 상태**
+
+- 기능과 backend 테스트(51건)는 정상
+- **C3(`services/calendar.js`)·C4(`services/diagrams.js`)는 services 계층을 쓰는데 tasks/projects 는 안 씀** → 도메인별 구조가 일관되지 않음. `DESIGN.md` §1.1 이 "도메인 로직이 커지는 시점에 도입" 이라 했으나 신규 도메인만 따르고 기존은 남음.
+
+**해결책 (별도 `/feature` 스텝)**
+
+`backend/src/services/tasks.js`·`services/projects.js` 를 만들고, 라우트는 입력 검증·HTTP 응답 매핑만. 기존 `backend/src/db.js` 공개 함수 시그니처는 유지(NFR-MAINT-03). `errors.js` 매핑도 services 로 이동 검토.
+
+### S3. 완료된 기능이 README 에 예정 상태로 남음 — 중간 → ✅ 이번 커밋
+
+`README.md` 가 캘린더 위젯 `⏳ C3`, 다이어그램 뷰어 `⏳ C4`, backend 테스트 `39` 로 표시. 실제는 C3·C4·C5 구현 완료, backend 51 통과.
+
+**처리**: `README.md` 현재 상태 표·핵심 기능 표를 갱신. 상태를 (1) 코드 구현 (2) 자동 테스트 (3) 브라우저·Electron 수동 검증 3단계로 구분 표기. `PROGRESS.md`·`TRACEABILITY.md`·`UI_SPEC.md` 는 C3~C5 커밋에서 이미 갱신됨.
+
+### S4. 오래된 코드 주석이 현재 구현과 충돌 — 낮음 → ✅ 이번 커밋
+
+`frontend/src/components/TaskList.jsx:1` — "구조 스캐폴드. Week 3에서 Dashboard가 API 데이터를 주입한다." 현재는 `WidgetShell` → `TasksWidgetView` → `useTaskStore` 로 연결됨.
+
+**처리**: 주석을 현재 역할("props-only 프레젠테이션 컴포넌트. 데이터·상태는 상위 뷰가 주입") 로 수정. 같은 유형(완료 작업을 예정형으로 서술)을 frontend 전체에서 검색해 정리.
+
+### S5. frontend build 청크 경고 — 낮음~중간
+
+`npm run build` 는 성공하나 `mermaid.core` 약 683KB + 일부 다이어그램 청크가 500KB 초과. 기능 위반은 아니나 [NFR-PERF-01](docs/product/requirements/REQUIREMENTS_NONFUNCTIONAL.md) 초기 렌더 성능과 연결된 잔여 위험 — 다이어그램 위젯을 처음 열 때 로딩 지연 가능.
+
+**해결책 (Week 13 최적화, 지금 아님)**
+
+- 초기 화면·다이어그램 화면 로딩 시간을 실제 Electron 환경에서 측정.
+- mermaid 동적 로딩은 유지(이미 별도 청크). 필요하면 다이어그램 종류별 추가 분할 또는 `chunkSizeWarningLimit` 조정.
+- **측정 없이 경고만 숨기지 않는다.** ADR-0014 재검토 조건 (a) 와 연결.
+
+### 미결 항목 (전체)
+
+| 출처 | 항목 | 필요한 것 |
+|---|---|---|
+| #8 | 브라우저·Electron E2E (TC-UI-10~19 · TC-DIAG · TC-WIDGET-01~08) | 로컬 GUI 실행 (샌드박스 불가) |
+| #10 | Electron/backend 실행 책임 | [ADR-0016](docs/product/architecture/adr/ADR-0016-desktop-process-topology.md) 결정 (패키징 전) |
+| #7 | Slack Webhook 폐기·재발급 | 사용자 조치 |
+| S1 | `uncaughtException` 핸들러 + 테스트 | 별도 `/feature` |
+| S2 | tasks·projects services 계층 분리 | 별도 `/feature` |
+| S5 | 청크 크기 성능 측정 | Week 13 |
+| [UI_STYLE.md](docs/product/reference/UI_STYLE.md) US-1 | 강조색 앰버 → 보라 전환 | C6 토큰 승격 전 |
+| US-2 · US-3 | 모니터·위젯 셸 탭 배치 | ADR-0013 / C5 후속 |
+| US-4 | "능력 맵" FR 승격 여부 | 다이어그램 뷰어 후속 |
+| — | 캡처 5장 → `docs/product/reference/assets/ui-style/` | 사용자 드롭 |
 
 ---
 
