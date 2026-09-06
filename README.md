@@ -9,7 +9,7 @@
 
 ## 🖥️ 대시보드 주요 기능
 
-앱은 **"대시보드 OS"** 다 — 아래 기능들이 각각 **위젯**으로 셸에 올라가 이동·리사이즈되고, 위젯마다 사용자가 색·밀도·표시 옵션을 꾸민다 ([DASHBOARD_OS.md](docs/product/vision/DASHBOARD_OS.md) · [UI_SPEC.md](docs/product/reference/UI_SPEC.md) · [requirements/WIDGET.md](docs/product/requirements/WIDGET.md)). 현재 코드는 아직 고정 패널이며 위젯 셸은 Phase C5~C6.
+앱은 **"대시보드 OS"** 다 — 아래 기능들이 각각 **위젯**으로 셸에 올라가 이동·리사이즈되고, 위젯마다 사용자가 색·밀도·표시 옵션을 꾸민다 ([DASHBOARD_OS.md](docs/product/vision/DASHBOARD_OS.md) · [UI_SPEC.md](docs/product/reference/UI_SPEC.md) · [requirements/WIDGET.md](docs/product/requirements/WIDGET.md)). 위젯 셸(배치·이동·리사이즈·최소화·레이아웃 영속·위젯별 격리)은 C5(2026-09-06)에서 구현됐고 `Dashboard.jsx` 는 제거됐다. 위젯별 테마·표시 옵션은 Phase C6.
 
 | 기능 | 설명 | 요구사항 | 상태 |
 |---|---|---|---|
@@ -123,7 +123,7 @@ my-setup-proj/
 | 개념 설계 · 요구사항 · 아키텍처 문서 (뷰별 심화 + ADR-0001~0023) | ✅ (`docs/product/`) |
 | 자동화 인프라 (에이전트 팀 · 작업로그 · CI · GIT_WORKFLOW · DOC_HEALTH) | ✅ 동작 |
 | 로컬 개발 환경 (node 26 · python 3.14 · venv) | ✅ Phase A2 |
-| 자동화 테스트 | ✅ backend 51 · agent 3, `verify.sh` 25/0/0 (서비스 스모크 포함), DOC_HEALTH 11/0/0, CI 초록 (A3~C5) |
+| 자동화 테스트 | ✅ backend 56 · agent 3, `verify.sh` 27/0/0 (서비스 스모크 포함), DOC_HEALTH 11/0/0, CI 초록 (A3~C5 + Supabase 부트스트랩) |
 | 프론트엔드 React (Vite 마운트) | ✅ Phase B1 |
 | DB (SQLite, better-sqlite3 · WAL · `DATABASE_PATH`) | ✅ Phase B2 |
 | 백엔드 tasks/projects CRUD + 미들웨어(CORS·로깅·에러) + 오류 매핑 | ✅ B2·C1·C2 |

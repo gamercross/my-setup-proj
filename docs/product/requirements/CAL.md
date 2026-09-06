@@ -29,7 +29,7 @@
 - **AC-5** 대시보드 캘린더 패널 4상태(로딩/빈/정상/에러). 에러 시 `ErrorBanner` + 재시도. 캘린더 API 실패가 할일·프로젝트 패널 렌더를 막지 않는다.
 
 ### 관련
-API `GET /api/calendar/events` · 서비스 `backend/src/services/calendar.js` · UI `Dashboard`→`CalendarWidget` · 스토어 `useCalendarStore` · ADR-0011
+API `GET /api/calendar/events` · 서비스 `backend/src/services/calendar.js` · UI `CalendarWidgetView`→`CalendarWidget` (C5: 위젯 셸) · 스토어 `useCalendarStore` · ADR-0011
 TC: TC-CAL-01~07, TC-UI-17,19
 
 ---
@@ -44,10 +44,10 @@ TC: TC-CAL-01~07, TC-UI-17,19
 - **AC-6** `start_time` 이 로컬 오늘 → "오늘" 배지, 내일 → "내일" 배지, 그 외 `M/D`.
 - **AC-7** 오늘/내일 항목은 좌측 accent 보더로 강조. 렌더 시점 로컬 날짜 기준.
 - **AC-8** `start_time` 이 null/파싱불가 → "시간 미정" 표시, 목록 맨 뒤. 서비스는 `from`/`to` 유무와 무관하게 이 항목을 항상 결과에 포함한다 (범위 필터는 유효 `start_time` 항목에만 적용).
-- `CalendarWidget` 은 props-only 프레젠테이션(`{ events }`). 스토어 직접 구독 금지. 4상태(로딩/빈/정상/에러)는 전부 `Dashboard` 가 소유하며 위젯은 목록 렌더만 한다(빈 상태 분기 없음). 서버 정렬을 신뢰해 재정렬하지 않는다.
+- `CalendarWidget` 은 props-only 프레젠테이션(`{ events }`). 스토어 직접 구독 금지. 4상태(로딩/빈/정상/에러)와 스토어 구독·`fetchEvents` effect 는 상위 뷰 `CalendarWidgetView` 가 소유하며(C5, ADR-0020) 위젯은 목록 렌더만 한다(빈 상태 분기 없음). 서버 정렬을 신뢰해 재정렬하지 않는다.
 
 ### 관련
-UI `CalendarWidget` · `Dashboard`
+UI `CalendarWidgetView` → `CalendarWidget`
 TC: TC-CAL-02 (정렬·null 위치), TC-UI-18 (수동 — 배지·강조)
 
 ---
