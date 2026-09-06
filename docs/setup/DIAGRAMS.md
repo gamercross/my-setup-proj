@@ -101,7 +101,7 @@ npx -y @mermaid-js/mermaid-cli -i flow.mmd -o flow.png -t dark -b transparent
 | 문서 | 다이어그램 |
 |---|---|
 | [DESIGN.md](../product/architecture/DESIGN.md) §3 | 목표 아키텍처 (flowchart) |
-| [DESIGN.md](../product/architecture/DESIGN.md) §6 | 할일 생성 흐름 (sequence) |
+| [DESIGN.md](../product/architecture/DESIGN.md) §6 | 할일 생성 흐름 (sequence) · 위젯 이동·테마 변경·복원 흐름 (sequence, C5~C6) |
 | [DESIGN.md](../product/architecture/DESIGN.md) §7 | Daily Brief 생성 흐름 (sequence) |
 | [AUTOMATION.md](AUTOMATION.md) §2 | `/feature` 에이전트 파이프라인 (flowchart) |
 | [ORCHESTRATION.md](ORCHESTRATION.md) §2 | 오케스트레이션 상태 그래프 (stateDiagram) |
@@ -113,4 +113,4 @@ npx -y @mermaid-js/mermaid-cli -i flow.mmd -o flow.png -t dark -b transparent
 
 ---
 
-**작성:** 2026-09-02 · **갱신:** 2026-09-06 (§2.1 C4 구현 완료 — FR-UI-05, ADR-0014 채택)
+**작성:** 2026-09-02 · **갱신:** 2026-09-06 (§2.1 C4 구현 완료 — FR-UI-05, ADR-0014 채택 · §5 에 C5~C6 위젯 흐름도 등재)

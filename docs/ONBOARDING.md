@@ -10,7 +10,7 @@
 동시에 우송대학교 2026-2학기 3개 강의(AI 컴퓨터 운영체제 실습 / AI시대소프트웨어공학 / AITool기반소프트웨어공학)의 공통 실습 환경이자 제출 산출물이다. 각 강의가 보는 층이 다르다 — 런타임·환경(A) / AI 활용 개발 프로세스(B) / SW공학 산출물(C). 상세: [COURSE_MAPPING.md](progress/COURSE_MAPPING.md). "대시보드 OS" 는 강의 A 의 창·프로세스 관리 주제와 정합한다.
 시작 2026-09-02, 목표 완성 2026-11-30.
 
-핵심 기능 4종: ① 오늘/내일 할 일 자동 브리핑 ② 프로젝트 진행도(Notion) ③ 이메일 통합 ④ 캘린더 일정. 이들이 위젯으로 셸에 올라간다 (위젯 셸 골격 = Phase C5 완료 2026-09-06, 위젯별 테마·표시 옵션 = Phase C6, [DASHBOARD_OS.md](product/vision/DASHBOARD_OS.md)).
+핵심 기능 4종: ① 오늘/내일 할 일 자동 브리핑 ② 프로젝트 진행도(Notion) ③ 이메일 통합 ④ 캘린더 일정. 이들이 위젯으로 셸에 올라간다 (위젯 셸 골격 = Phase C5 완료 2026-09-06, 위젯별 테마·표시 옵션 = Phase C6 완료 2026-09-06, [DASHBOARD_OS.md](product/vision/DASHBOARD_OS.md)).
 
 ---
 
@@ -103,7 +103,7 @@ flowchart TB
 | AI 에이전트 | 🚧 뼈대 + 스텁 (모듈 import 확인) |
 | 자동화 테스트 | ✅ backend 56 / agent 3 (Phase A3~C5 + Supabase 부트스트랩), `verify.sh` 27/0/0 |
 
-**다음 착수:** Phase C6 (위젯 커스터마이즈) 또는 D2 (실 Google/Notion 연동), 그리고 B3~C5 브라우저 E2E 로컬 검증.
+**다음 착수:** Phase D2 (실 Google/Notion 연동), 그리고 B3~C6 브라우저 E2E 로컬 검증. (C6 위젯 커스터마이즈·D1 에이전트 DB 배선은 2026-09-06 완료)
 (제안 ADR 0009~0012 채택됨, D2 부터 `.env` API 키 필요).
 
 ---
