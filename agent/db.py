@@ -122,6 +122,27 @@ def upsert_brief(date: str, content: str, notion_url: str | None = None) -> None
             )
 
 
+def log_sync(service: str, status: str, error_message: str | None = None) -> None:
+    """동기화 시도 결과를 sync_logs 에 1행 기록한다 (FR-SYNC-03).
+
+    service 는 schema.sql 의 CHECK(gmail·calendar·notion·supabase) 를 따른다.
+    Claude 실패는 CHECK 밖이므로 여기 넣지 않는다(로그 파일에만 — AGENT.md AC-4).
+
+    로깅 실패가 브리핑을 죽이면 안 되므로 예외를 올리지 않고 경고만 남긴다.
+    """
+    try:
+        now = datetime.now().isoformat()
+        with connect() as conn:
+            with conn:  # 짧은 트랜잭션, 즉시 커밋
+                conn.execute(
+                    "INSERT INTO sync_logs (service, status, last_sync, error_message) "
+                    "VALUES (?, ?, ?, ?)",
+                    (service, status, now, error_message),
+                )
+    except Exception as err:  # noqa: BLE001 - 로깅 실패는 삼킨다
+        logger.warning("sync_logs 기록 실패 (service=%s, status=%s): %s", service, status, err)
+
+
 def get_brief(date: str) -> dict | None:
     """date 의 브리핑 1건을 반환한다 (없으면 None)."""
     with connect() as conn:

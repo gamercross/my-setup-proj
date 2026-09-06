@@ -46,7 +46,20 @@ const stmts = {
      WHERE id = @id`
   ),
   deleteProject: db.prepare('DELETE FROM projects WHERE id = ?'),
+
+  // sync_logs 는 에이전트가 소유 — 백엔드는 SELECT(읽기 전용)만 한다.
+  listSyncLogs: db.prepare(
+    `SELECT id, service, status, last_sync, error_message FROM sync_logs
+     ORDER BY id DESC LIMIT @limit`
+  ),
+  listSyncLogsByService: db.prepare(
+    `SELECT id, service, status, last_sync, error_message FROM sync_logs
+     WHERE service = @service ORDER BY id DESC LIMIT @limit`
+  ),
 };
+
+// 동기화 서비스 화이트리스트 (schema.sql 의 CHECK 와 일치)
+const SYNC_SERVICES = ['gmail', 'calendar', 'notion', 'supabase'];
 
 // id 를 정수로 정규화한다. 정수가 아니면 null (NaN 바인딩 시 500 방지).
 function toId(id) {
@@ -173,7 +186,20 @@ function deleteProject(id) {
   return stmts.deleteProject.run(nid).changes > 0;
 }
 
+// ── 동기화 로그(sync_logs) — 읽기 전용 ─────────────────────────────
+
+// 동기화 이력 조회 (최신 순). service 미지정이면 전체, limit 기본 50.
+function getSyncLogs({ service, limit } = {}) {
+  const lim = Number.isInteger(limit) && limit > 0 ? limit : 50;
+  if (service) {
+    return stmts.listSyncLogsByService.all({ service, limit: lim });
+  }
+  return stmts.listSyncLogs.all({ limit: lim });
+}
+
 module.exports = {
+  SYNC_SERVICES,
+  getSyncLogs,
   getTasks,
   getTask,
   addTask,

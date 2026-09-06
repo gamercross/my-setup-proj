@@ -43,7 +43,7 @@ flowchart TB
 | NFR-PERF-01 | 대시보드 초기 렌더 | 로컬 데이터 기준 1초 이내 | 개발자도구 Performance 탭 |
 | NFR-PERF-02 | 로컬 API 응답 (CRUD) | p95 100ms 이내 (SQLite, 로컬호스트) | supertest + 타이밍 로그 |
 | NFR-PERF-03 | 할일 목록 렌더 | 500건까지 끊김 없음 (필요 시 가상 스크롤) | 더미 500건 수동 확인 |
-| NFR-PERF-04 | Daily Brief 생성 | 60초 이내 완료 (Claude 호출 포함) | `daily_brief.py` 실행 시간 로그 |
+| NFR-PERF-04 | Daily Brief 생성 | 60초 이내 완료 (Claude 호출 포함) — 성공 경로 기준. Claude 재시도가 모두 실패하는 열화 경로는 ~93초까지 소요될 수 있고 이때는 사용자에게 실패를 반환한다 | `daily_brief.py` 실행 시간 로그 |
 | NFR-PERF-05 | 외부 API 동기화 | 증분 동기화(마지막 동기화 이후만), 백그라운드 실행 | `sync_logs.last_sync` 확인 |
 
 ## 2. 신뢰성 / 가용성 (REL)

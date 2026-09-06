@@ -100,7 +100,7 @@ API `GET /api/brief/today` · UI `BriefCard` · 데이터 `briefs`
 
 **사용자 스토리:** 사용자로서 나는 Claude 나 외부 API 가 죽어도 앱은 멀쩡하길 바란다.
 
-**우선순위** P0 · **목표 주차** W7 · **상태** 🚧 (D1: AC-1·AC-2·AC-4(로깅) 완료 / **AC-3 재시도·지수 백오프는 D2 로 이월**)
+**우선순위** P0 · **목표 주차** W7 · **상태** 🚧 (AC-1/2/4 완료, AC-3 재시도·지수 백오프 D2-a 완료 [`agent/services/retry.py`] / AC-5 는 D3 `/api/brief/today` 대기)
 
 ### 수용 기준
 - **AC-1** Given `ANTHROPIC_API_KEY` 없음/무효, When 실행, Then `⚠️ Claude 호출 실패: <원인>` 을 반환하고 종료 코드는 비정상이지만 스택 트레이스로 죽지 않는다.

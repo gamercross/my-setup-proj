@@ -9,11 +9,11 @@
 
 ## 🖥️ 대시보드 주요 기능
 
-앱은 **"대시보드 OS"** 다 — 아래 기능들이 각각 **위젯**으로 셸에 올라가 이동·리사이즈되고, 위젯마다 사용자가 색·밀도·표시 옵션을 꾸민다 ([DASHBOARD_OS.md](docs/product/vision/DASHBOARD_OS.md) · [UI_SPEC.md](docs/product/reference/UI_SPEC.md) · [requirements/WIDGET.md](docs/product/requirements/WIDGET.md)). 위젯 셸(배치·이동·리사이즈·최소화·레이아웃 영속·위젯별 격리)은 C5(2026-09-06)에서 구현됐고 `Dashboard.jsx` 는 제거됐다. 위젯별 테마·표시 옵션은 Phase C6.
+앱은 **"대시보드 OS"** 다 — 아래 기능들이 각각 **위젯**으로 셸에 올라가 이동·리사이즈되고, 위젯마다 사용자가 색·밀도·표시 옵션을 꾸민다 ([DASHBOARD_OS.md](docs/product/vision/DASHBOARD_OS.md) · [UI_SPEC.md](docs/product/reference/UI_SPEC.md) · [requirements/WIDGET.md](docs/product/requirements/WIDGET.md)). 위젯 셸(배치·이동·리사이즈·최소화·레이아웃 영속·위젯별 격리)은 C5(2026-09-06)에서 구현됐고 `Dashboard.jsx` 는 제거됐다. 위젯별 테마·표시 옵션은 Phase C6(2026-09-06)에서 구현됐다.
 
 | 기능 | 설명 | 요구사항 | 상태 |
 |---|---|---|---|
-| **위젯 셸 (대시보드 OS)** | 각 기능을 위젯으로 배치·이동·리사이즈·최소화, 레이아웃 저장/복원, 위젯별 테마·표시 옵션 | FR-WIDGET-01~08 | ✅ C5 (배치·영속·격리) / ⏳ C6 (테마·표시 옵션) ([ADR-0020~0022](docs/product/architecture/adr/) 채택) |
+| **위젯 셸 (대시보드 OS)** | 각 기능을 위젯으로 배치·이동·리사이즈·최소화, 레이아웃 저장/복원, 위젯별 테마·표시 옵션 | FR-WIDGET-01~08 | ✅ C5 (배치·영속·격리) / ✅ C6 (테마·표시 옵션) ([ADR-0020~0022](docs/product/architecture/adr/) 채택) |
 | **할 일 관리** | 할일 추가·수정·완료·삭제. 우선순위·마감일. 로컬 SQLite 영속 | FR-TASK-01~05 | ✅ B3 (코드·자동 테스트 — 브라우저 E2E 로컬 대기) |
 | **프로젝트 진행도 추적** | 프로젝트 카드 + 0–100% 진행 바, 상태(active/done/on_hold). Notion 연동(읽기) | FR-PROJ-01~04 | ✅ C2 (코드·자동 테스트 — 브라우저 E2E 로컬 대기) |
 | **캘린더 일정** | 오늘/내일 일정 위젯. Google Calendar 를 에이전트가 로컬 캐시에 동기화 | FR-CAL-01~03 | 🚧 C3 (더미 데이터 ✅ / 실 Google 연동 D2) |

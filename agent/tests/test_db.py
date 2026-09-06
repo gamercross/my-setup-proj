@@ -67,6 +67,33 @@ def test_agent_12_get_today_tasks_filters_and_orders(temp_db):
     assert titles == ["높음", "낮음"]
 
 
+def test_sync_06_log_sync_writes_rows(temp_db):
+    """TC-SYNC-06: success/failed 각 1행, last_sync 는 ISO8601."""
+    db.log_sync("gmail", "success")
+    db.log_sync("calendar", "failed", "401 Unauthorized")
+
+    with db.connect() as conn:
+        rows = conn.execute(
+            "SELECT service, status, last_sync, error_message FROM sync_logs ORDER BY id"
+        ).fetchall()
+
+    assert len(rows) == 2
+    assert (rows[0]["service"], rows[0]["status"]) == ("gmail", "success")
+    assert (rows[1]["service"], rows[1]["status"]) == ("calendar", "failed")
+    assert rows[1]["error_message"] == "401 Unauthorized"
+    # last_sync 가 ISO8601 로 파싱되는지 확인
+    datetime.fromisoformat(rows[0]["last_sync"])
+
+
+def test_sync_07_log_sync_never_raises(temp_db):
+    """TC-SYNC-07: 잘못된 status 등으로 INSERT 가 실패해도 예외를 올리지 않는다."""
+    db.log_sync("gmail", "잘못된상태")  # CHECK 위반 → 내부에서 삼켜야 한다
+
+    with db.connect() as conn:
+        count = conn.execute("SELECT COUNT(*) AS c FROM sync_logs").fetchone()["c"]
+    assert count == 0
+
+
 def test_agent_05_upsert_brief_is_single_row(temp_db):
     """TC-AGENT-05: 같은 date 로 2회 upsert → 1행, content 최신값."""
     db.upsert_brief("2026-09-06", "첫 번째")
