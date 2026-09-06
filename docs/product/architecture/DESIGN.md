@@ -169,7 +169,7 @@ frontend/src/
     useProjectStore.js  zustand: projects, fetchProjects, addProject, updateProject, removeProject (C2)
     useCalendarStore.js zustand: events, fetchEvents, 날짜 배지 파생 (C3 — 더미 API)
     useAppStore.js      brief (C4~ — 도메인별 스토어로 분리하는 방향)
-    useLayoutStore.js   zustand: instances[](위치·크기·z·minimized·config), editMode, focusedId — UI 상태 (C5, ADR-0020/0021). setInstances/addWidget/removeWidget/toggleMinimize/setLayout/bringToFront/updateConfig/toggleEditMode/resetLayout, 300ms 디바운스 저장
+    useLayoutStore.js   zustand: instances 배열 (위치·크기·z·minimized·config), editMode, focusedId — UI 상태 (C5, ADR-0020/0021). setInstances/addWidget/removeWidget/toggleMinimize/setLayout/bringToFront/updateConfig/toggleEditMode/resetLayout, 300ms 디바운스 저장
   api/
     client.js        fetch 래퍼 (base URL, 에러 정규화, 재시도)
   widgets/           (C5, 대시보드 OS — ADR-0020)
