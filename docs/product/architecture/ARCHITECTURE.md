@@ -170,6 +170,9 @@ agent/
   - 여러 디바이스 동기화
   - 실시간 업데이트 (WebSocket)
 
+  > **상태 (2026-09-06):** 클라이언트 **연결 배선만** 완료 — `backend/src/supabase.js`(지연 생성) + `GET /api/sync/health` 진단.
+  > 동기화·`user_id`·RLS·실시간은 **미구현** (Week 10+, ADR-0008). backend 는 Supabase 를 읽지도 쓰지도 않는다(연결 프로브 제외).
+
 **동일한 테이블 구조 + 추가 필드:**
 ```sql
 -- 사용자 정보
@@ -191,7 +194,7 @@ ALTER TABLE tasks ADD COLUMN is_synced BOOLEAN;
 | **Gmail** | 이메일 조회 | OAuth 2.0 | SDK (google-api-python-client) |
 | **Notion** | 프로젝트 관리 | Integration Token | SDK (notion-client) |
 | **Claude API** | AI 에이전트 | API Key | anthropic SDK |
-| **Supabase** | 클라우드 DB | API Key + JWT | REST API |
+| **Supabase** | 클라우드 DB | API Key + JWT | REST API — **backend 소유**(수집 API 아님). 현재 연결 배선만 |
 
 ---
 

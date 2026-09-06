@@ -178,6 +178,12 @@
 - [x] 3강의 구조 반영 (COURSE_MAPPING 재작성 + 강의 태그 체계) → 완료 (2026-09-06, docs/3-course-structure)
   - COURSE_MAPPING 을 A(운영체제 실습)·B(AI시대 SW공학)·C(AITool기반 SW공학) 3섹션으로 재작성, 태그 SSOT `A-W#/B-W#/C-W#` (§4)
   - ROADMAP·DESIGN §8 3강의 주차 대응표, 맥락 문장 17개 파일 정정, TEST_PLAN §3.8 TC-DOC-01~04. 코드 변경 0.
+- [x] Supabase 클라이언트 부트스트랩 (연결 확인만, Phase E 선행) → 완료 (2026-09-06, feature/supabase-bootstrap)
+  - [x] `@supabase/supabase-js` 2.115.0 정확 핀, `backend/src/supabase.js` 팩토리 (지연 싱글턴, 미설정 시 `null` + 1회 경고)
+  - [x] `backend/src/routes/sync.js` — `GET /api/sync/health` (3상태 `ok`/`unconfigured`/`error`, 항상 200, 비밀값 미노출)
+  - [x] `backend/test/supabase.test.js` — TC-SYNC-01~05 (네트워크 미사용). backend 56/56, `verify.sh` 27/0/0, DOC_HEALTH 11/0/0, `npm run build` 성공
+  - [x] ADR-0008 후속 절 (부트스트랩 ≠ 동기화, 상태 `채택` 유지). 스키마·동기화·인증·`user_id` 없음 — backend 는 Supabase 읽기/쓰기 안 함 (ADR-0015)
+  - 이월: 동기화 착수 (E2) 전 ADR-0018 채택 + 충돌 ADR + FR-SYNC-01/02 상세. 👤 사용자: `SUPABASE_KEY` 가 anon public 인지 확인
 
 ### 배운 Linux 명령어
 ```bash

@@ -32,7 +32,7 @@
 | [0005](adr/ADR-0005-state-zustand.md) | 상태관리는 zustand | 채택 |
 | [0006](adr/ADR-0006-agent-owns-external-apis.md) | 외부 API 는 Python 에이전트가 전담 | 채택 |
 | [0007](adr/ADR-0007-schedule-launchd-cron.md) | 스케줄은 launchd/cron | 채택 |
-| [0008](adr/ADR-0008-supabase-deferred.md) | Supabase 동기화는 Week 10 이후 | 채택 |
+| [0008](adr/ADR-0008-supabase-deferred.md) | Supabase 동기화는 Week 10 이후 <br>(비고: 2026-09-06 클라이언트 부트스트랩 — 연결 확인만, 결정 불변, ADR 후속 절 참조) | 채택 |
 | [0009](adr/ADR-0009-sqlite-file-location.md) | SQLite 위치: `DATABASE_PATH` 주입 | 채택 |
 | [0010](adr/ADR-0010-vite-dev-vs-build.md) | Vite: `NODE_ENV` 로 dev/빌드 분기 | 채택 |
 | [0011](adr/ADR-0011-agent-backend-db-access.md) | 에이전트–백엔드 SQLite: WAL + 쓰기 주체 분리 | 채택 |
@@ -141,7 +141,7 @@ sync_logs                       매 동기화 시도 1행 추가
 
 Base: `http://localhost:3000/api` · 응답은 JSON · 오류는 `{ "error": "메시지" }`
 
-엔드포인트 범위: `/health`, `/tasks`(CRUD), `/projects`(CRUD), `/calendar/events`, `/mail/unread`, `/brief/today`, `/sync/logs`, `/diagrams`(읽기 전용, `docs/` 파싱 — C4).
+엔드포인트 범위: `/health`, `/tasks`(CRUD), `/projects`(CRUD), `/calendar/events`, `/mail/unread`, `/brief/today`, `/sync/health`(구현 — 외부 연결 진단 전용, 항상 200), `/sync/logs`, `/diagrams`(읽기 전용, `docs/` 파싱 — C4).
 요청·응답 예시, 검증 규칙, 상태코드, 현재 구현과의 차이는 [API_REFERENCE.md](../reference/API_REFERENCE.md).
 
 설계 규칙:
@@ -391,6 +391,8 @@ sequenceDiagram
 | D3 | Notion 저장 + launchd/cron 자동 실행 + BriefCard 표시 | FR-AGENT-03/04/05 |
 
 ### Phase E — 배포/동기화 (A-W9~13, 계획대로)
+
+> Phase E 착수 전 선행으로 2026-09-06 완료 — Supabase 클라이언트 부트스트랩(연결 확인만). ✅
 
 | 단계 | 내용 | 커버 |
 |---|---|---|
