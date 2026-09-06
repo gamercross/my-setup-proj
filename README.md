@@ -101,6 +101,35 @@ cd frontend && npm run dev
 
 ---
 
+## 🔑 API 키 발급 (개인 사용 · 무료)
+
+`.env` 에 채우는 외부 키들이다. **전부 개인 사용 한도에서 무료이고, 서버를 띄우거나 결제 계정을 연결할 필요가 없다.** 이 앱은 로컬 데스크톱 앱이라 OAuth 도 `localhost` 로 처리한다. 키별 상세 절차·없을 때 동작은 [ENV_REFERENCE.md](docs/setup/ENV_REFERENCE.md) §2.
+
+| 키 | 발급처 | 비용 | 언제 필요 | 요점 |
+|---|---|---|---|---|
+| `ANTHROPIC_API_KEY` | [console.anthropic.com](https://console.anthropic.com) → API Keys | 사용량 과금 (에이전트 호출 시) | 에이전트 (D1~) | `sk-ant-...`. `ant auth login` 프로필이 있으면 생략 가능 |
+| `GOOGLE_CLIENT_ID` / `_SECRET` | [console.cloud.google.com](https://console.cloud.google.com) | **무료** (아래 참고) | Gmail·Calendar 실 연동 (D2-b) | OAuth 2.0 클라이언트 **"데스크톱 앱"** 유형 |
+| `NOTION_API_KEY` | [notion.so/my-integrations](https://www.notion.so/my-integrations) | 무료 | 프로젝트 읽기·브리핑 저장 (D3) | Internal Integration Token + 대상 페이지에 Connection 추가 |
+| `SLACK_WEBHOOK_URL` | Slack → Apps → Incoming Webhooks | 무료 | 선택 (진행·EOD 알림) | 없으면 조용히 스킵 |
+| `SUPABASE_URL` / `SUPABASE_KEY` | [supabase.com](https://supabase.com) → Project Settings → API | 무료 티어 | 선택 (부트스트랩·`/api/sync/health`) | **`anon public`** 키만. `service_role` 은 `.env` 에 두지 않음 |
+
+### Google Cloud 를 서버 비용 없이 쓰는 법
+
+Google Cloud 에서 과금되는 건 Compute·Cloud Run·BigQuery 같은 **인프라 리소스**뿐이다. **Gmail API·Google Calendar API 는 결제 계정 없이 무료**이며 개인 사용량(하루 수십~수백 요청)은 무료 할당량의 0.001% 도 안 된다.
+
+1. [console.cloud.google.com](https://console.cloud.google.com) → 프로젝트 생성 (결제 계정 연결 **안 함**)
+2. **API 및 서비스 → 사용 설정** → `Gmail API`, `Google Calendar API` 켜기
+3. **OAuth 동의 화면** → 사용자 유형 `외부` → **게시 상태를 `프로덕션` 으로 게시**
+   - `테스트` 모드로 두면 refresh token 이 **7일마다 만료**돼 매주 재로그인해야 한다.
+   - `프로덕션(미검증)` 은 로그인 시 "확인되지 않은 앱" 경고가 한 번 뜨지만 `고급 → 계속` 으로 통과하고, refresh token 이 무기한 유효하다 (6개월 미사용 시에만 만료). 본인 계정만 쓰면 Google 앱 검증·보안 심사(CASA)는 불필요하다 (미검증 상태로 최대 100명까지 허용).
+4. **사용자 인증 정보 → OAuth 2.0 클라이언트 ID** → 유형 **`데스크톱 앱`** → 생성
+   - 데스크톱 앱 유형은 `http://localhost` loopback 리다이렉트를 자동 허용한다.
+5. 클라이언트 ID·시크릿을 `.env` 의 `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` 에 붙여넣기
+6. 스코프는 읽기 전용만: `gmail.readonly`, `calendar.readonly`
+7. 발급된 refresh token 은 로컬에 **암호화 저장**한다 (평문 금지 — NFR-SEC-05).
+
+---
+
 ## 🗂️ 저장소 구조
 
 ```

@@ -31,11 +31,18 @@
 3. 대안: `ant auth login` 프로필 사용 시 이 키 없이도 `Anthropic()` 이 인증됨
 
 ### `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`
-1. https://console.cloud.google.com → 프로젝트 생성
+
+> **비용:** Gmail API·Google Calendar API 는 결제 계정 없이 무료다. 개인 사용량은 무료 할당량에 한참 못 미친다. Google Cloud 에서 과금되는 건 Compute·Cloud Run 등 인프라 리소스뿐이다.
+
+1. https://console.cloud.google.com → 프로젝트 생성 (결제 계정 연결 안 함)
 2. **API 및 서비스 → 사용 설정**: Gmail API, Google Calendar API
-3. **OAuth 동의 화면** 구성 (외부, 테스트 사용자에 본인 추가)
-4. **사용자 인증 정보 → OAuth 2.0 클라이언트 ID**(데스크톱 앱) 생성
-5. 클라이언트 ID·시크릿 복사, 승인된 리디렉션 URI 에 `GOOGLE_REDIRECT_URI` 값 등록
+3. **OAuth 동의 화면** (사용자 유형 `외부`) → **게시 상태를 `프로덕션` 으로 게시**
+   - `테스트` 모드는 refresh token 이 7일마다 만료된다 → 매주 재로그인.
+   - `프로덕션(미검증)` 은 로그인 시 "확인되지 않은 앱" 경고를 한 번 통과(`고급 → 계속`)하면 되고 refresh token 이 무기한 유효하다. 본인 계정만 쓰면 Google 앱 검증·CASA 심사 불필요 (미검증 상태로 최대 100명).
+4. **사용자 인증 정보 → OAuth 2.0 클라이언트 ID** → 유형 **`데스크톱 앱`** 생성 (`http://localhost` loopback 자동 허용)
+5. 클라이언트 ID·시크릿을 `.env` 에 복사. 스코프는 `gmail.readonly`·`calendar.readonly` (읽기 전용)
+
+> 루트 [README.md](../../README.md) §API 키 발급 에도 같은 요약이 있다.
 
 ### `NOTION_API_KEY`
 1. https://www.notion.so/my-integrations → **New integration**
