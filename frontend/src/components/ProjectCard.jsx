@@ -43,9 +43,9 @@ export default function ProjectCard({ project, onDelete, onProgressChange, onSta
       style={{
         padding: '12px 16px',
         marginBottom: '10px',
-        background: '#1e293b',
-        borderRadius: '10px',
-        color: '#e2e8f0',
+        background: 'var(--panel)',
+        borderRadius: 'var(--card-radius)',
+        color: 'var(--w-text, var(--text))',
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -59,9 +59,9 @@ export default function ProjectCard({ project, onDelete, onProgressChange, onSta
                 fontSize: '12px',
                 padding: '2px 6px',
                 borderRadius: '6px',
-                background: '#0f172a',
-                color: '#94a3b8',
-                border: '1px solid #94a3b8',
+                background: 'var(--bg)',
+                color: 'var(--muted)',
+                border: '1px solid var(--muted)',
               }}
             >
               <option value="active">진행 중</option>
@@ -74,8 +74,8 @@ export default function ProjectCard({ project, onDelete, onProgressChange, onSta
                 fontSize: '12px',
                 padding: '2px 8px',
                 borderRadius: '999px',
-                background: '#0f172a',
-                color: '#94a3b8',
+                background: 'var(--bg)',
+                color: 'var(--muted)',
               }}
             >
               {statusLabel(project.status)}
@@ -92,14 +92,14 @@ export default function ProjectCard({ project, onDelete, onProgressChange, onSta
         style={{
           marginTop: '8px',
           height: '8px',
-          background: '#0f172a',
+          background: 'var(--bg)',
           borderRadius: '999px',
           overflow: 'hidden',
         }}
       >
-        <div style={{ width: pct + '%', height: '100%', background: '#f59e0b' }} />
+        <div style={{ width: pct + '%', height: '100%', background: 'var(--w-accent, var(--accent))' }} />
       </div>
-      <div style={{ marginTop: '4px', fontSize: '12px', color: '#94a3b8' }}>{pct}%</div>
+      <div style={{ marginTop: '4px', fontSize: '12px', color: 'var(--muted)' }}>{pct}%</div>
 
       {onProgressChange && (
         <input

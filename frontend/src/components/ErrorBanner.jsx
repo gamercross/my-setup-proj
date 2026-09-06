@@ -15,10 +15,10 @@ export default function ErrorBanner({ message, onRetry }) {
         gap: '8px',
         padding: '8px 12px',
         marginBottom: '10px',
-        background: '#1e293b',
-        border: '1px solid #ef4444',
-        borderRadius: '8px',
-        color: '#e2e8f0',
+        background: 'var(--panel)',
+        border: '1px solid var(--priority-high)',
+        borderRadius: 'var(--radius)',
+        color: 'var(--w-text, var(--text))',
         fontSize: '13px',
       }}
     >
@@ -28,8 +28,8 @@ export default function ErrorBanner({ message, onRetry }) {
         <button
           onClick={onRetry}
           style={{
-            background: '#f59e0b',
-            color: '#0f172a',
+            background: 'var(--w-accent, var(--accent))',
+            color: 'var(--bg)',
             border: 'none',
             borderRadius: '6px',
             padding: '4px 10px',

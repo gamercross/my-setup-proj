@@ -6,7 +6,7 @@
 **📂 이동:** [⬆ architecture/](../README.md) · [product/](../../README.md) · [docs/](../../../README.md) · [🚀 ONBOARDING](../../../ONBOARDING.md)
 **형제 뷰:** [DESIGN](../DESIGN.md) · [ARCHITECTURE_DRIVERS](../ARCHITECTURE_DRIVERS.md) · [RUNTIME_VIEW](../RUNTIME_VIEW.md) · [DATA_ARCHITECTURE](../DATA_ARCHITECTURE.md) · [CROSSCUTTING](../CROSSCUTTING.md) · [ARCHITECTURE_EVOLUTION](../ARCHITECTURE_EVOLUTION.md)
 
-> **상태 요약:** 0001~0012 채택 · 0013 및 0015~0019 제안(착수 전 결정) · 0014·0020·0021·0022·0023 채택 (0022 는 C5 골격 / C6 구현). 제안 ADR 은 관련 Phase 착수 전에 사용자가 결정한다.
+> **상태 요약:** 0001~0012 채택 · 0013 및 0015~0019 제안(착수 전 결정) · 0014·0020·0021·0022·0023 채택 (0022 는 C6 구현 완료). 제안 ADR 은 관련 Phase 착수 전에 사용자가 결정한다.
 >
 > **강의 열:** 각 ADR 이 3개 강의([COURSE_MAPPING.md](../../../progress/COURSE_MAPPING.md)) 중 어느 주차의 렌즈로 읽히는지. 값의 단일 원천(SSOT) = COURSE_MAPPING §4. 대응 없으면 `—`.
 
@@ -59,5 +59,5 @@
 | [0019](ADR-0019-architecture-fitness-functions.md) | 아키텍처 피트니스 함수 | 제안 | NFR-MAINT-02 | B-W6 |
 | [0020](ADR-0020-widget-shell-architecture.md) | 위젯 셸 아키텍처 (react-grid-layout + 위젯 계약) | 채택 | FR-WIDGET, DASHBOARD_OS | A-W6, C-W5·C-W6 |
 | [0021](ADR-0021-widget-layout-persistence.md) | 위젯 레이아웃·설정 영속화 (localStorage → SQLite) | 채택 | FR-WIDGET-04~06 | A-W6, C-W5·C-W6 |
-| [0022](ADR-0022-per-widget-theming.md) | 위젯별 테마 (스코프된 CSS 변수 + 구조화 config) | 채택 — C5 골격 / C6 구현 | FR-WIDGET-05, NFR-SEC-04 | A-W6, C-W5·C-W6 |
+| [0022](ADR-0022-per-widget-theming.md) | 위젯별 테마 (스코프된 CSS 변수 + 구조화 config) | 채택 — C6 구현 완료 | FR-WIDGET-05, NFR-SEC-04 | A-W6, C-W5·C-W6 |
 | [0023](ADR-0023-branch-model.md) | 브랜치 모델 — `feature/* → PR → main` (Git Flow 미채택) | 채택 | GIT_WORKFLOW §2 | B-W13, C-W13 |

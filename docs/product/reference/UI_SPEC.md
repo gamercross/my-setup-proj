@@ -3,7 +3,7 @@
 > Electron 데스크톱 앱의 화면·컴포넌트·상태 계약. 요구사항은 [requirements/UI.md](../requirements/UI.md) · [requirements/WIDGET.md](../requirements/WIDGET.md), 설계는 [DESIGN.md](../architecture/DESIGN.md) §6, API 는 [API_REFERENCE.md](API_REFERENCE.md).
 > 이 문서와 코드가 다르면 **코드가 맞고 이 문서를 고친다** — 단 "예정" 표시 요소는 아직 코드가 없다.
 >
-> 🆕 **대시보드 OS 전환**: C5(2026-09-06)에서 고정 패널(`Dashboard.jsx`, 삭제됨) → **위젯 셸**(`WidgetShell`) 완료. §3.8~3.9 는 구현 상태, §3.10(위젯 설정 패널)은 C6 예정 ([DASHBOARD_OS.md](../vision/DASHBOARD_OS.md), [ADR-0020~0022](../architecture/adr/)).
+> 🆕 **대시보드 OS 전환**: C5(2026-09-06)에서 고정 패널(`Dashboard.jsx`, 삭제됨) → **위젯 셸**(`WidgetShell`) 완료. C6(2026-09-06)에서 §3.10 위젯 설정 패널·테마 커스터마이즈 완료 ([DASHBOARD_OS.md](../vision/DASHBOARD_OS.md), [ADR-0020~0022](../architecture/adr/)).
 
 ---
 
@@ -64,22 +64,26 @@ stateDiagram-v2
 
 > 🎨 **시각 방향:** 화면 골격·컴포넌트 패턴·톤의 목표 틀은 [UI_STYLE.md](UI_STYLE.md) (릴스 "Claude 워크스페이스 대시보드" 참조). 이 문서는 계약, `UI_STYLE.md` 는 방향.
 
-### 디자인 토큰 (현재 코드 기준)
+### 디자인 토큰 (C6 이후 — `frontend/src/styles.css` `:root`)
 
-| 이름 | 값 | 용도 |
+| CSS 변수 | 값 | 용도 |
 |---|---|---|
 | `--bg` | `#0f172a` | 화면 배경 |
 | `--panel` | `#1e293b` | 카드·리스트 아이템 배경 |
+| `--border` | `#334155` | 테두리·구분선 |
 | `--text` | `#e2e8f0` | 본문 텍스트 |
 | `--muted` | `#94a3b8` | 보조 텍스트·섹션 제목 |
-| `--accent` | `#f59e0b` | 진행도 바, priority medium |
-| priority high | `#ef4444` | 할일 우선순위 배지 |
-| priority low | `#64748b` | 할일 우선순위 배지 |
-| радиус | 카드 `10px`, 배지 `999px` | |
+| `--accent` | `#f59e0b` | 진행도 바, 포커스 아웃라인 |
+| `--priority-high` | `#ef4444` | 할일 우선순위 배지 |
+| `--priority-medium` | `#f59e0b` | 할일 우선순위 배지 (현재 `--accent` 와 동일 값, 이름 분리 — US-1 대비) |
+| `--priority-low` | `#64748b` | 할일 우선순위 배지 |
+| `--radius` | `8px` | 일반 모서리 |
+| `--card-radius` | `10px` | 카드 모서리 |
+| `--pad` | `10px` | 위젯 본문 패딩 |
 
-> 🔷 **C6 에서 전역 인라인 style → CSS 커스텀 프로퍼티로 승격**한다 (`:root` 에 `--bg`/`--panel`/`--accent`…).
-> 위젯 프레임이 인스턴스 `config.theme` 를 화이트리스트 CSS 변수(`--w-bg`/`--w-accent`/`--w-radius`/`--w-pad`)로 자기 wrapper 에 주입하고,
-> 위젯 내부 CSS 는 `var(--w-bg, var(--panel))` 폴백 체인을 쓴다 ([ADR-0022](../architecture/adr/ADR-0022-per-widget-theming.md)).
+> ✅ **C6 완료**: 전역 인라인 hex/px → `:root` CSS 변수로 1:1 치환(시각 변화 0). `styles.css` 는 `renderer.jsx` 상단에서 import.
+> 위젯 프레임이 인스턴스 `config.theme` 를 화이트리스트 CSS 변수(`--w-bg`/`--w-accent`/`--w-text`/`--w-radius`/`--w-pad`)로 자기 wrapper 에 주입하고,
+> 위젯 내부 CSS 는 `var(--w-bg, var(--bg))`·`var(--w-text, var(--text))`·`var(--w-accent, var(--accent))` 폴백 체인을 쓴다 ([ADR-0022](../architecture/adr/ADR-0022-per-widget-theming.md)). titlebar solid/ghost/hidden 은 `WidgetFrame` 이 인라인 style 로 처리(D-3: 편집 모드면 hidden 무시).
 
 ---
 
@@ -121,7 +125,7 @@ stateDiagram-v2
 ```
 
 - **셸 바:** `AI Computer OS` + `✎ 편집` 토글 + `+ 위젯` 피커 + `초기화`.
-- **위젯 프레임:** 타이틀바(아이콘·이름·⚙ 설정[C5 disabled]·─ 최소화·✕ 제거) + 본문(레지스트리 뷰) + 리사이즈 핸들(편집 모드).
+- **위젯 프레임:** 타이틀바(아이콘·이름·⚙ 설정(C6, WidgetSettings 열기)·─ 최소화·✕ 제거) + 본문(레지스트리 뷰) + 리사이즈 핸들(편집 모드).
 - **격리:** 위젯마다 `ErrorBanner`/`ErrorBoundary` (FR-WIDGET-07). 전역 연결 오류(백엔드 다운)는 **App 헤더**의 헬스 표시(셸에서 중복 안 함).
 - **기본 레이아웃 (첫 실행):** 할일·프로젝트·캘린더 3개. 다이어그램은 피커로만 추가.
 - **와이어프레임의 `Daily Brief` 위젯은 향후 목표** — C5 레지스트리에는 뷰가 있는 tasks/projects/calendar/diagrams 만 등록.
@@ -251,22 +255,23 @@ stateDiagram-v2
 | 항목 | 내용 |
 |---|---|
 | 목적 | 개별 위젯의 크롬(타이틀바)·격리·테마 주입 지점 |
-| 요소 | 타이틀바(`.widget-titlebar` — RGL draggableHandle): 아이콘 + 위젯 이름 + `⚙`(C5 는 disabled, title="설정은 C6") + `─`(최소화) + `✕`(제거). 버튼은 `.widget-titlebar-btn`(draggableCancel). 본문: 레지스트리 뷰 |
-| 테마 주입 | wrapper `<div className="widget" data-widget-id={id} style={{ zIndex, outline, ...themeToVars(config?.theme) }}>` — C5 는 `themeToVars` 가 `{}` 스텁, 호출 지점만 확보 ([ADR-0022](../architecture/adr/ADR-0022-per-widget-theming.md)) |
+| 요소 | 타이틀바(`.widget-titlebar` — RGL draggableHandle): 아이콘 + 위젯 이름 + `⚙`(설정 모달, title="위젯 설정") + `─`(최소화) + `✕`(제거). 버튼은 `.widget-titlebar-btn`(draggableCancel). 본문: 레지스트리 뷰 |
+| 테마 주입 | wrapper `<div className="widget" style={{ background:'var(--w-bg, var(--bg))', borderRadius:'var(--w-radius, var(--card-radius))', color:'var(--w-text, var(--text))', outline:'1px solid var(--w-accent, #38bdf8)', zIndex, ...themeToVars(config?.theme) }}>` — ✅ C6 (`themeToVars` 화이트리스트 매핑) ([ADR-0022](../architecture/adr/ADR-0022-per-widget-theming.md)). 본문 padding 은 `var(--w-pad, var(--pad))`. `configSchema` 는 `WidgetFrame` 이 뷰에 prop 으로 전달(뷰→registry 순환 import 회피) |
+| ⚙ 설정 | ✅ C6 — `onClick` 이 `WidgetSettings` 모달을 연다(stopPropagation 으로 드래그·bringToFront 차단). 타이틀바 표시(solid/ghost/hidden)는 `WidgetFrame` 인라인 style 로 처리 (D-3: `titlebar:'hidden'` 은 비편집일 때만 숨김, 편집 모드에선 hidden 무시하고 항상 렌더) |
 | 격리 | 위젯별 `ErrorBoundary fallback={<ErrorBanner .../>}`(뷰 렌더 예외 → 위젯 내부 폴백, 셸 무영향) + 뷰의 4상태 |
 | 미등록 타입 | `getWidgetMeta(type)===null` → 본문 대신 "알 수 없는 위젯입니다 (type)" + `✕` (FR-WIDGET-08 AC-2) |
 | 최소화 | `minimized` — 타이틀바만 렌더, 높이 1행. 복원 시 `prevH` 로 이전 높이 |
 | `-webkit-app-region` | 타이틀바에 넣지 않음 (Electron 창 드래그 충돌 방지) |
 
-### 3.10 위젯 설정 패널 (`WidgetSettings`) 🔷 예정 (Phase C6, FR-WIDGET-05·06)
+### 3.10 위젯 설정 패널 (`WidgetSettings`) ✅ C6 (2026-09-06, FR-WIDGET-05·06)
 
 | 항목 | 내용 |
 |---|---|
-| 진입 | 위젯 타이틀바 `⚙` → 팝오버/사이드 패널 |
-| 테마 탭 | 배경색·강조색·텍스트색(컬러 피커) · 모서리(슬라이더 0–24) · 밀도(comfortable/compact) · 타이틀바(solid/ghost/hidden) · 프리셋(다크/미니멀/강조) · "테마 초기화" |
-| 표시 탭 | 위젯 타입별 옵션 — 할일: 정렬(마감/우선순위/생성)·완료 숨김·최대 개수 / 프로젝트: 상태 필터·완료 숨김 / 캘린더: 범위(오늘/이번주)·종일 포함 / 메일: 계정·최대 개수 / 브리핑: 없음 |
-| 저장 | 변경 즉시 해당 위젯에만 반영 → `useLayoutStore.updateConfig(id, patch)` → 디바운스 영속화 |
-| 검증 | 자유 텍스트/CSS 입력 없음. 색은 파서 통과값만, 나머지는 enum/범위 (FR-WIDGET-05 AC-6, NFR-SEC-04) |
+| 진입 | 위젯 타이틀바 `⚙` → `createPortal(document.body)` 중앙 모달 + 백드롭(`zIndex:2000`). Esc·백드롭 클릭으로 닫기. `role="dialog" aria-modal="true"` |
+| 테마 탭 | 배경색·강조색·글자색(`<input type="color">`) · 모서리(range 0–24) · 밀도(comfortable/compact) · 타이틀바(solid/ghost/hidden) · 프리셋 3개(다크/미니멀/강조, 색 점 미리보기) · "테마 초기화"(`onChange({theme:{}})`) |
+| 표시 탭 | `configSchema` 순회 — enum→select / bool→checkbox / number→range. 비었으면 "표시 옵션 없음". 할일: 정렬(마감/우선순위/생성)·완료 숨김·최대 개수 / 프로젝트: 상태 필터·완료 숨김 / 캘린더: 범위(오늘/이번주). 메일·브리핑 위젯은 미구현이라 스키마 없음 |
+| 저장 | 변경 즉시 해당 위젯에만 반영 → `onChange(patch)` → `useLayoutStore.updateConfig(id, patch)` → 디바운스 영속화. 테마 부분 수정은 `WidgetSettings` 가 `instance.config.theme` 와 병합한 완성 객체를 patch 로 보낸다(`updateConfig` 는 1단 얕은 병합) |
+| 검증 | 자유 텍스트/CSS 입력 없음(AC-6). 색은 `themeToVars` 의 `isSafeColor` 게이트, 나머지는 enum/범위 (`resolveDisplay`) (NFR-SEC-04). 스타일은 인라인 + 전역 var 만(`--w-*` 안 씀) |
 
 ---
 
@@ -278,10 +283,10 @@ stateDiagram-v2
 | ~~`Dashboard`~~ | — | — | — | ❌ C5 에서 삭제 — 섹션 로직은 `widgets/views/*WidgetView.jsx` 로 이관 |
 | `WidgetShell` | — | `useLayoutStore`(instances, editMode) 구독 · `hydrated`·`pickerOpen` 로컬 state | (스토어 액션 직접 호출) | ✅ C5 (FR-WIDGET-01~04) |
 | `WidgetHost` | `instances`, `editMode`, `onLayoutChange(layout)` | — | `onLayoutChange` | ✅ C5 (`react-grid-layout/legacy` `WidthProvider(Responsive)` 모듈 스코프) |
-| `WidgetFrame` | `instance` | — (스토어 액션 구독: bringToFront/toggleMinimize/removeWidget/focusedId) | — | ✅ C5 (per-widget `ErrorBoundary fallback` + `themeToVars` 호출 지점) |
+| `WidgetFrame` | `instance` | — (스토어 액션 구독: bringToFront/toggleMinimize/removeWidget/focusedId) | — | ✅ C5~C6 (C6: `updateConfig`/`editMode` 구독, `WidgetSettings` 오픈, titlebar 인라인 · per-widget `ErrorBoundary fallback` + `themeToVars` 호출 지점) |
 | `WidgetPicker` | `activeTypes`, `onAdd(type)`, `onClose()` | — | `onAdd`, `onClose` | ✅ C5 (이미 추가된 타입 비활성) |
-| `*WidgetView` (tasks/projects/calendar/diagrams) | `instanceId`, `config` | 도메인 스토어 필드별 구독 + `useEffect(fetch)` | — | ✅ C5 (`widgets/views/`) |
-| `WidgetSettings` | `instance`, `configSchema`, `onChange(patch)` | 폼 로컬값 | `onChange` | 🔷 C6 (테마 탭 + 표시 탭, 화이트리스트 입력만) |
+| `*WidgetView` (tasks/projects/calendar/diagrams) | `instanceId`, `config`, `configSchema` | 도메인 스토어 필드별 구독 + `useEffect(fetch)` | — | ✅ C5 · C6 (`config.display` 클라이언트 필터, `configSchema` prop) |
+| `WidgetSettings` | `instance`, `configSchema`, `onChange(patch)`, `onClose()` | `tab` (theme/display) | `onChange`, `onClose` | ✅ C6 (portal 중앙 모달, 테마 탭 + 표시 탭, 화이트리스트 입력만) |
 | `TaskList` | `tasks: Task[]`, `onToggle(id)`, `onDelete(id)` | — | `onToggle`, `onDelete` | ✅ |
 | `TaskForm` | `onSubmit(payload)`, `disabled` | `title, priority, dueDate` | `onSubmit` | ✅ B3 |
 | `ErrorBanner` | `message: string`, `onRetry()` | — | `onRetry` | ✅ B3 |
@@ -360,7 +365,7 @@ stateDiagram-v2
         toggleMinimize(id)                // 최소화 시 prevH 보관·h=1, 복원 시 prevH
         setLayout(rglLayout)              // RGL onLayoutChange → {i,x,y,w,h} 병합(최소화 항목 h 무시)
         bringToFront(id)                  // z=max+1, focusedId=id
-        updateConfig(id, patch)          // config 병합 (C5 호출부 없음 — C6 용)
+        updateConfig(id, patch)          // config 1단 얕은 병합 ({...config, ...patch}). C6: WidgetSettings 가 호출. 테마/표시 하위 객체는 호출측에서 병합해 완성본을 patch 로 넘김
         toggleEditMode() / resetLayout()
 영속:   instances 변경 → 300ms 디바운스(모듈 스코프 timer) → localStorage['dashboard.layout.v1']
         = { version:1, instances }. editMode/focusedId 는 저장 안 함

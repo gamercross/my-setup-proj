@@ -24,12 +24,12 @@
 |---|---|---|
 | Electron 메인 (`src/main.js`) | 800×600 창 생성, `preload.js` 통해 `contextIsolation` 적용, `index.html` 로드 | ✅ 동작 |
 | 렌더 진입 (`src/renderer.jsx`) | `createRoot(#root).render(<App/>)` — `renderer.js`(바닐라) 제거 | ✅ Vite + React 마운트 (B1) |
-| React 컴포넌트 (`App.jsx`, `components/Widget{Shell,Host,Frame,Picker}.jsx`, `widgets/views/*`, `TaskList.jsx`, `TaskForm.jsx`, `ProjectCard.jsx`, `ProjectForm.jsx`, `CalendarWidget.jsx`, `DiagramPanel.jsx`) | C5(2026-09-06): `Dashboard.jsx` 삭제 → `WidgetShell`(react-grid-layout) 로 대체. 위젯 뷰가 각자 `useTaskStore`/`useProjectStore`/`useCalendarStore` 구독. 레이아웃 `localStorage` 영속(`useLayoutStore`). 기존 뷰 컴포넌트 무수정 재사용 | ✅ 배선 완료, 브라우저 E2E 로컬 대기 |
+| React 컴포넌트 (`App.jsx`, `components/Widget{Shell,Host,Frame,Picker}.jsx`, `widgets/views/*`, `TaskList.jsx`, `TaskForm.jsx`, `ProjectCard.jsx`, `ProjectForm.jsx`, `CalendarWidget.jsx`, `DiagramPanel.jsx`) | C5(2026-09-06): `Dashboard.jsx` 삭제 → `WidgetShell`(react-grid-layout) 로 대체. 위젯 뷰가 각자 `useTaskStore`/`useProjectStore`/`useCalendarStore` 구독. 레이아웃 `localStorage` 영속(`useLayoutStore`). C6: `WidgetSettings`(설정 모달)·`styles.css`(전역 토큰) 추가, 뷰/프레젠테이션 컴포넌트는 hex→`var()` 치환 + 표시 옵션 필터만 | ✅ 배선 완료, 브라우저 E2E 로컬 대기 |
 | 번들러 | ✅ Vite + `@vitejs/plugin-react` (B1). `vite.config.js` root=src / base=./ / devCspPlugin | ✅ Vite + React 마운트 (B1) |
 | 상태 관리 | ✅ `zustand` — `useTaskStore`(B3), `useProjectStore`(C2), `useCalendarStore`(C3), `useLayoutStore`(C5). 도메인별 스토어 분리 방향 | ✅ 사용 중 |
 | 스타일링 | 인라인 style 만. Tailwind 미도입 | 🚧 |
 
-**핵심 문제:** (B1 해소) 번들러(Vite)가 도입되고 `renderer.jsx` 가 `App.jsx` 를 마운트한다. `renderer.js`(바닐라)는 삭제됐다. 할일·프로젝트·캘린더·다이어그램 배선(B3·C2·C3·C4)과 위젯 셸 전환(C5)까지 완료됐다. 남은 작업은 위젯 커스터마이즈(C6)와 브라우저 E2E 확인.
+**핵심 문제:** (B1 해소) 번들러(Vite)가 도입되고 `renderer.jsx` 가 `App.jsx` 를 마운트한다. `renderer.js`(바닐라)는 삭제됐다. 할일·프로젝트·캘린더·다이어그램 배선(B3·C2·C3·C4), 위젯 셸 전환(C5), 위젯 커스터마이즈(C6 — 전역 CSS 변수화·위젯별 테마/표시 옵션·설정 모달)까지 완료됐다. 남은 작업은 브라우저 E2E 확인.
 
 ### 2.2 Backend — `backend/` (Express API 골격)
 

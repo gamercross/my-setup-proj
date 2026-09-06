@@ -233,6 +233,22 @@ CI(`.github/workflows/test.yml`)에 `npm test`(backend), `pytest -m "not network
 | TC-WIDGET-07 | FR-WIDGET-08 AC-2 | 저장 레이아웃 `instances` 에 `{id:'x',type:'zzz',...}` 주입 후 재시작 | 그 위젯만 "알 수 없는 위젯입니다 (zzz)" + `✕` 로 제거 가능, 나머지 위젯 정상. 상태: C5 완료, 로컬 수동 확인 대기 |
 | TC-WIDGET-08 | FR-WIDGET-07 AC-2 | 한 위젯 뷰에 임시 `throw` 삽입 | 해당 위젯 본문만 `ErrorBanner` 폴백, 셸 바·다른 위젯 생존. 상태: C5 완료, 로컬 수동 확인 대기 |
 
+**C6 테마·표시 옵션** — TC-WIDGET-09~13 은 자동(`node --test`, `npm --prefix frontend test`), 14~19 는 수동.
+
+| ID | 대상 | 절차 | 통과 조건 |
+|---|---|---|---|
+| TC-WIDGET-09 | FR-WIDGET-05 AC-6 / NFR-SEC-04 | `themeToVars({bg:'url(x)'})`·`{bg:'red;}'}`·`{bg:'expression(1)'}` | 모두 `{}` 반환 (자동 통과) |
+| TC-WIDGET-10 | FR-WIDGET-05 AC-1 | `themeToVars({radius:99})`·`{radius:-5}`·`{radius:'a'}`·`{density:'zzz'}` | 24px / 0px / 키 없음 / 키 없음 (자동 통과) |
+| TC-WIDGET-11 | FR-WIDGET-05 AC-6 | `themeToVars({fontFamily:'x',onclick:'y'})` | `{}` — 화이트리스트 밖 키 무시 (자동 통과) |
+| TC-WIDGET-12 | FR-WIDGET-05 AC-4 | 각 프리셋(다크·미니멀·강조) `theme` → `themeToVars` | 5개 변수(`--w-bg/accent/text/radius/pad`) 생성 (자동 통과) |
+| TC-WIDGET-13 | FR-WIDGET-06 AC-3 | `resolveDisplay(tasksSchema, {sortBy:'due', nope:1, maxItems:9999})` | `{sortBy:'due', hideCompleted:false, maxItems:100}` (자동 통과) |
+| TC-WIDGET-14 | FR-WIDGET-05 AC-1/2 | ⚙ → 테마 탭에서 배경색·강조색 변경 | 해당 위젯만 즉시 반영, 다른 위젯·전역 무변. 로컬 수동 확인 대기 |
+| TC-WIDGET-15 | FR-WIDGET-05 AC-4 | 테마 탭에서 프리셋 "강조" 클릭 | 배경/강조/모서리/타이틀바가 프리셋대로 적용. 로컬 수동 확인 대기 |
+| TC-WIDGET-16 | FR-WIDGET-05 AC-5 | "테마 초기화" 클릭 | 위젯이 전역 기본 스타일로 복귀. 로컬 수동 확인 대기 |
+| TC-WIDGET-17 | FR-WIDGET-05 AC-1 (D-3) | 타이틀바 "숨김" 설정 후 편집 모드 ON | 편집 모드에서는 타이틀바가 다시 보여 드래그·⚙·✕ 가능. 로컬 수동 확인 대기 |
+| TC-WIDGET-18 | FR-WIDGET-06 | 할일 위젯 표시 탭에서 정렬=우선순위, 완료 숨김 ON, 최대 3개 | 목록이 우선순위순·완료 제외·3개로 제한. 재시작 후 유지. 로컬 수동 확인 대기 |
+| TC-WIDGET-19 | FR-WIDGET-05 (D-4) | 설정 모달에서 Esc / 백드롭 클릭 | 모달이 닫힌다. 모달이 위젯 프레임 밖으로 클리핑 없이 중앙 표시. 로컬 수동 확인 대기 |
+
 ### 3.8 3강의 구조 문서 정합 수동 체크리스트 (COURSE_MAPPING)
 
 `docs/` 를 3개 강의(A·B·C, [COURSE_MAPPING.md](../../progress/COURSE_MAPPING.md)) 구조로 유지하기 위한 점검. 자동 러너 없음 — 문서 변경 시 수동 확인.

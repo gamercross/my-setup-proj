@@ -4,7 +4,7 @@
 > 개념·배경은 [DASHBOARD_OS.md](../vision/DASHBOARD_OS.md), 요약표는 [REQUIREMENTS_FUNCTIONAL.md](REQUIREMENTS_FUNCTIONAL.md) §9,
 > 화면은 [UI_SPEC.md](../reference/UI_SPEC.md) §3.8~3.10, 결정은 [ADR-0020~0022](../architecture/adr/).
 >
-> 상태: FR-WIDGET-01~04·07·08 ✅ (Phase C5, 2026-09-06). FR-WIDGET-05·06 ⏳ (C6). DO-1~6 결정 완료 ([DASHBOARD_OS.md](../vision/DASHBOARD_OS.md) §8).
+> 상태: FR-WIDGET-01~08 ✅ (Phase C5~C6, 2026-09-06). FR-WIDGET-05·06 은 C6 에서 완료. DO-1~6 결정 완료 ([DASHBOARD_OS.md](../vision/DASHBOARD_OS.md) §8).
 
 관련: 기존 [UI.md](UI.md)(FR-UI-01·04 의 "영역별 4상태·격리" 원칙을 위젯 단위로 계승).
 
@@ -54,9 +54,11 @@
 
 ## FR-WIDGET-05 — 위젯별 테마 커스터마이즈
 
-**우선순위** P1 · **목표 주차** W5~6 · **상태** ⏳
+**우선순위** P1 · **목표 주차** W5~6 · **상태** ✅ (C6, 2026-09-06)
 
 사용자로서 나는 위젯마다 색·밀도·모서리를 다르게 하고 싶다, 한눈에 구분하고 취향에 맞추기 위해.
+
+> 구현: `components/WidgetSettings.jsx`(createPortal 중앙 모달, 테마/표시 탭) · `widgets/themeVars.js`(`themeToVars`/`THEME_KEYS` 화이트리스트) · `widgets/themePresets.js`(다크·미니멀·강조). 색은 `<input type="color">`, 나머지 select/range/checkbox — 자유 텍스트 0개(AC-6). titlebar solid/ghost/hidden 은 `WidgetFrame` 인라인 style. 편집 모드에서는 `titlebar:'hidden'` 이어도 타이틀바를 유지한다(⚙·✕ 접근).
 
 - **AC-1** When 위젯 ⚙️ → 테마 탭, Then 배경색·강조색·모서리·밀도(comfortable/compact)·타이틀바(solid/ghost/hidden)를 조정할 수 있다.
 - **AC-2** When 값 변경, Then 해당 위젯에만 즉시 반영된다(다른 위젯·전역 무변).
@@ -67,16 +69,16 @@
 
 ## FR-WIDGET-06 — 위젯별 표시 옵션
 
-**우선순위** P2 · **목표 주차** W6 · **상태** ⏳
+**우선순위** P2 · **목표 주차** W6 · **상태** ✅ (C6, 2026-09-06)
 
 - **AC-1** When 위젯 ⚙️ → 표시 탭, Then 위젯 타입별 옵션을 조정한다.
   - 할일: 정렬 기준(마감/우선순위/생성), 완료 항목 숨김, 최대 표시 개수
   - 프로젝트: 상태 필터, 완료 프로젝트 숨김
-  - 캘린더: 표시 범위(오늘/이번주), 종일 일정 포함
-  - 메일: 계정 필터, 최대 개수
-  - 브리핑: 없음(전체 표시)
+  - 캘린더: 표시 범위(오늘/이번주). ※ "종일 일정 포함" 은 스키마에 `all_day` 컬럼이 없어 C6 범위에서 제외 (WIDGET.md 각주)
+  - 메일: 계정 필터, 최대 개수 — 메일 위젯 미구현이라 `configSchema` 없음
+  - 브리핑: 없음(전체 표시) — 브리핑 위젯 미구현
 - **AC-2** 옵션은 `config.display` 에 저장·영속화된다.
-- **AC-3** 알 수 없는 옵션 키는 무시한다(스키마 진화 대비).
+- **AC-3** 알 수 없는 옵션 키는 무시한다(스키마 진화 대비) — `widgets/displayConfig.js` 의 `resolveDisplay(SCHEMA, config?.display)` 단일 지점에서 타입·범위 검증. `config.display` 는 클라이언트 필터/정렬만, 스토어 fetch 계약은 불변.
 
 ## FR-WIDGET-07 — 위젯 격리 (에러·로딩)
 
