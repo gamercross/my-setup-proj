@@ -21,7 +21,7 @@
 | `SUPABASE_TIMEOUT_MS` | ❌ (선택) | Supabase 요청 타임아웃(ms). 기본 `3000` | `backend/src/supabase.js` | `3000` 사용 |
 | `NODE_ENV` | ✅ | `development` / `production`. 로깅·개발도구·Vite 로드 방식 분기 (ADR-0010) | `backend/src/server.js`, `frontend/src/main.js` | 코드 기본값(`development` 가정) |
 | `PORT` | ✅ | 백엔드 리슨 포트. 기본 `3000` | `backend/src/server.js` | `3000` 사용 |
-| `DATABASE_PATH` | — | 로컬 SQLite 파일 경로 (ADR-0009). 비우면 `backend/data/app.db` | `backend/db/index.js`, `agent/db.py` | ✅ B2 구현: `backend/db/index.js` 가 이 값을 읽음 (없으면 `backend/data/app.db`). 단 backend 는 아직 `.env` 자동 로딩 없음 — 셸 환경변수로 주입 (dotenv 도입은 후속). Electron 패키지는 `main.js` 가 `userData` 로 덮어씀 |
+| `DATABASE_PATH` | — | 로컬 SQLite 파일 경로 (ADR-0009). 비우면 `backend/data/app.db` | `backend/db/index.js`, `agent/db.py` | ✅ B2 + D1 구현: `backend/db/index.js`·`agent/db.py` 둘 다 이 값을 읽음(트림 후 비었으면 `backend/data/app.db`, `:memory:` 통과). **로딩 비대칭 주의** — agent 는 `load_dotenv()` 로 `.env` 를 읽지만 backend 는 셸 환경변수로만 읽는다. 둘을 같은 파일로 맞추려면 셸에서 `export DATABASE_PATH=...`. Electron 패키지는 `main.js` 가 `userData` 로 덮어씀 |
 
 ## 2. 키별 발급 방법
 
@@ -76,7 +76,7 @@
 | 주체 | `.env` 로딩 | 결과 |
 |---|---|---|
 | **backend** (`npm start`) | ❌ 자동 로딩 없음 (dotenv 미도입 — [ADR 재검토 D2](../product/architecture/CROSSCUTTING.md#1-설정-configuration)) | `PORT`·`DATABASE_PATH`·`NODE_ENV` 는 **셸 환경변수**로만 읽힌다. `.env` 에 적어도 반영 안 됨. `SUPABASE_*` 도 셸 export 로만 읽힌다 |
-| **agent** (`daily_brief.py` 등) | `python-dotenv` 로 로딩 예정 (D 단계) | `.env` 값 사용 |
+| **agent** (`daily_brief.py`·`db.py`·`services/claude.py`) | `python-dotenv` `load_dotenv()` 로 **로딩됨** (D1) | `.env` 의 `DATABASE_PATH`·`ANTHROPIC_API_KEY` 등 사용 |
 | **`scripts/slack-notify.sh`·`worklog-eod.sh`** | `. .env` 로 직접 로딩 | `SLACK_WEBHOOK_URL` 은 `.env` 에 넣으면 동작 |
 
 **backend 설정을 바꾸려면 셸에서 export:**

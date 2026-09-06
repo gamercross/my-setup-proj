@@ -386,7 +386,7 @@ sequenceDiagram
 
 | 단계 | `/feature` 설명 | 커버 |
 |---|---|---|
-| D1 | `agent/db.py` + `briefs` 테이블, `daily_brief` 가 로컬 할일로 실 Claude 호출 | FR-AGENT-01/02/06 |
+| **D1** | ✅ (2026-09-06, `feature/c6-widget-customize`). `agent/db.py` 신설 — 백엔드와 같은 SQLite(`DATABASE_PATH`, ADR-0009) 열어 `tasks` 읽기 전용 조회 + `briefs` `date` upsert(`ON CONFLICT`), `resolve_db_path`/`connect`(WAL·busy_timeout)/`ensure_schema`(방어적 멱등). `daily_brief._run()` 배선 — 컨텍스트(할일=실데이터, 일정/메일 더미 유지), `SYSTEM_PROMPT` 보강, 4단계 로깅, Claude·DB·Notion 실패 각각 격리. **재시도(FR-AGENT-06 AC-3)는 D2 이월.** TC-AGENT-01,02,03,06,09~14 | FR-AGENT-01/02, FR-AGENT-06(부분) |
 | D2 | Google OAuth + Gmail/Calendar 실 수집 → SQLite upsert + sync_logs | FR-AUTH-01, FR-MAIL-01, FR-CAL-01, FR-SYNC-03 |
 | D3 | Notion 저장 + launchd/cron 자동 실행 + BriefCard 표시 | FR-AGENT-03/04/05 |
 

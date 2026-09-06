@@ -89,8 +89,8 @@
 개발: 72%
 ```
 
-> Phase A2·A3·B1·B2·C1·C2·C3·C4·C5·C6 완료, B3·C2 코드 배선 완료 (C4·C5·C6: 2026-09-06). 다음: D2(실 캘린더/노션 연동), B3~C6 브라우저 E2E 로컬 검증.
-> 검증 스냅샷: `node v26.8.1 / npm 11.19.0 / python 3.14.4`, `verify.sh` 27/0/0, `frontend npm test` 9/0, `backend npm test` 56/0, `check-docs.sh` 11/0/0, `frontend npm run build` 성공.
+> Phase A2·A3·B1·B2·C1·C2·C3·C4·C5·C6·D1 완료, B3·C2 코드 배선 완료 (C4·C5·C6·D1: 2026-09-06). 다음: D2(실 캘린더/노션 연동 + FR-AGENT-06 AC-3 재시도), B3~C6 브라우저 E2E 로컬 검증.
+> 검증 스냅샷: `node v26.8.1 / npm 11.19.0 / python 3.14.4`, `verify.sh` 27/0/0, `agent pytest` 11/0 (2 deselected), `frontend npm test` 9/0, `backend npm test` 56/0, `check-docs.sh` 11/0/0, `frontend npm run build` 성공.
 
 ---
 
@@ -184,6 +184,12 @@
   - [x] `backend/test/supabase.test.js` — TC-SYNC-01~05 (네트워크 미사용). backend 56/56, `verify.sh` 27/0/0, DOC_HEALTH 11/0/0, `npm run build` 성공
   - [x] ADR-0008 후속 절 (부트스트랩 ≠ 동기화, 상태 `채택` 유지). 스키마·동기화·인증·`user_id` 없음 — backend 는 Supabase 읽기/쓰기 안 함 (ADR-0015)
   - 이월: 동기화 착수 (E2) 전 ADR-0018 채택 + 충돌 ADR + FR-SYNC-01/02 상세. 👤 사용자: `SUPABASE_KEY` 가 anon public 인지 확인
+- [x] Daily Brief 에이전트 실데이터 배선 (Phase D1, Week 6~7 / Phase 3, ADR-0011) → 완료 (2026-09-06, feature/d1-agent-db)
+  - [x] `agent/db.py` — 백엔드 SQLite 읽기 전용 접근 (`DATABASE_PATH`, 쿼리 헬퍼). ADR-0011 (에이전트→DB 직접 읽기, 쓰기는 백엔드 API)
+  - [x] `agent/daily_brief.py` — 더미 제거, 실 데이터 조회 + 실 Claude 호출, 호출 실패 격리 (브리핑 일부 실패해도 나머지 진행)
+  - [x] `agent/tests/{conftest.py,test_db.py}` 신규 + `test_daily_brief.py` 확장 — `pytest -m "not network"` 11/0 (2 deselected)
+  - [x] 문서 5종: DESIGN §7, AGENT.md, TRACEABILITY, TEST_PLAN, ENV_REFERENCE
+  - FR-AGENT-01·02 ✅, FR-AGENT-06 🚧 (AC-1/2 완료, AC-3 재시도 로직 D2 이월). TC-AGENT-01·02·03·06·10~14
 
 ### 배운 Linux 명령어
 ```bash
@@ -196,13 +202,13 @@ wc -l                  # 줄 수 세기
 
 ### 진행 상황 요약
 ```
-완료한 작업: 12개 (React 컴포넌트 스캐폴드, 번들러(Vite) 연결 = B1, Express CRUD 라우트, 자동화 테스트 골격 + CI, SQLite 교체 = B2, 프론트↔백엔드 코드 배선 = B3, 백엔드 미들웨어 정식화 = C1, 프로젝트 CRUD 프론트 배선 + errors.js + tasks.project_id = C2, 캘린더 위젯 + /api/calendar/events 더미 = C3, 다이어그램 뷰어 + /api/diagrams = C4, 위젯 셸 대시보드 OS + Dashboard.jsx 삭제 = C5, 위젯 커스터마이즈 WidgetSettings + themePresets + displayConfig = C6)
+완료한 작업: 13개 (React 컴포넌트 스캐폴드, 번들러(Vite) 연결 = B1, Express CRUD 라우트, 자동화 테스트 골격 + CI, SQLite 교체 = B2, 프론트↔백엔드 코드 배선 = B3, 백엔드 미들웨어 정식화 = C1, 프로젝트 CRUD 프론트 배선 + errors.js + tasks.project_id = C2, 캘린더 위젯 + /api/calendar/events 더미 = C3, 다이어그램 뷰어 + /api/diagrams = C4, 위젯 셸 대시보드 OS + Dashboard.jsx 삭제 = C5, 위젯 커스터마이즈 WidgetSettings + themePresets + displayConfig = C6, Daily Brief 에이전트 실데이터 배선 + agent/db.py = D1)
 진행 중: 1개 (B3·C2·C3·C4·C5·C6 브라우저 E2E·GUI 수동체크 — 로컬 대기)
-예정된 작업: 1개 (샘플 데이터)
+예정된 작업: 2개 (샘플 데이터, D2 실 캘린더/노션 연동 + FR-AGENT-06 AC-3)
 
-진행도: 89%
+진행도: 90%
 강의 수강: 0%
-개발: 94%
+개발: 95%
 ```
 
 ---

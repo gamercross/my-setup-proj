@@ -16,7 +16,7 @@
 
 **사용자 스토리:** 에이전트로서 나는 오늘의 할일·일정·미읽은 메일을 모아 Claude 에게 줄 입력을 만들어야 한다.
 
-**우선순위** P0 · **목표 주차** W7 · **상태** 🚧 (`build_context()` 뼈대 존재, 데이터 소스 스텁)
+**우선순위** P0 · **목표 주차** W7 · **상태** ✅ (D1: 할일=실 SQLite, 일정/메일은 더미 유지 — D2 배선)
 
 ### 수용 기준
 - **AC-1** Given 로컬 DB 에 오늘 할일 2건·일정 1건·미읽은 메일 3건, When `build_context()`, Then 세 종류가 사람이 읽을 수 있는 텍스트 블록으로 합쳐지고 기준 시각이 포함된다.
@@ -32,7 +32,7 @@
 | 메일 | 로컬 `emails` 캐시 | Gmail 실시간 (FR-MAIL-01) |
 
 ### 관련
-`agent/daily_brief.py` `build_context()` · `agent/db.py`(예정) · DESIGN §7
+`agent/daily_brief.py` `build_context()` · `agent/db.py` (`get_today_tasks`) · DESIGN §7
 
 ---
 
@@ -40,7 +40,7 @@
 
 **사용자 스토리:** 사용자로서 나는 아침에 "오늘 뭐부터 해야 하는지"를 정리된 형태로 받고 싶다.
 
-**우선순위** P0 · **목표 주차** W7 · **상태** 🚧
+**우선순위** P0 · **목표 주차** W7 · **상태** ✅ (D1: `SYSTEM_PROMPT` 보강 + `_run()` 배선)
 
 ### 수용 기준
 - **AC-1** Given 유효한 컨텍스트, When `ask(context, system=SYSTEM_PROMPT)`, Then Claude 가 "오늘의 우선순위 TOP 3 + 주의점" 형식의 텍스트를 반환한다.
@@ -100,13 +100,13 @@ API `GET /api/brief/today` · UI `BriefCard` · 데이터 `briefs`
 
 **사용자 스토리:** 사용자로서 나는 Claude 나 외부 API 가 죽어도 앱은 멀쩡하길 바란다.
 
-**우선순위** P0 · **목표 주차** W7 · **상태** 🚧 (`daily_brief` 에 넓은 try/except 존재)
+**우선순위** P0 · **목표 주차** W7 · **상태** 🚧 (D1: AC-1·AC-2·AC-4(로깅) 완료 / **AC-3 재시도·지수 백오프는 D2 로 이월**)
 
 ### 수용 기준
 - **AC-1** Given `ANTHROPIC_API_KEY` 없음/무효, When 실행, Then `⚠️ Claude 호출 실패: <원인>` 을 반환하고 종료 코드는 비정상이지만 스택 트레이스로 죽지 않는다.
 - **AC-2** Given Notion 저장 실패, Then 브리핑은 로컬에 저장된 상태로 남고 사용자에게 "Notion 저장만 실패" 로 구분해 알린다.
 - **AC-3** Given 네트워크 타임아웃, Then 최대 3회 지수 백오프 재시도 후 실패 처리 (NFR-REL-05).
-- **AC-4** 모든 실패는 `sync_logs` 또는 로그에 원인과 함께 기록된다.
+- **AC-4** 모든 실패는 `sync_logs` 또는 로그에 원인과 함께 기록된다. (D1: 로깅만 — `sync_logs.service` CHECK 가 `claude` 를 허용하지 않아 Claude 실패는 로그에만 남긴다.)
 - **AC-5** 백엔드 API(`/api/brief/today`)는 에이전트 상태와 무관하게 항상 응답한다(있으면 데이터, 없으면 404).
 
 ### 관련
