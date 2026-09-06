@@ -11,7 +11,7 @@
 |---|---|---|
 | [`product/`](product/README.md) | **무엇을 만드는가** — 비전·요구사항·구조·결정·계약·테스트 | [product/README.md](product/README.md) |
 | [`setup/`](setup/README.md) | **어떤 세팅·규칙인가** — 환경·컨벤션·git·오케스트레이션·자동화 | [setup/README.md](setup/README.md) |
-| [`progress/`](progress/README.md) | **얼마나 됐는가** — 주간 진행·강의 매핑 | [progress/README.md](progress/README.md) |
+| [`progress/`](progress/README.md) | **얼마나 됐는가** — 주간 진행·3강의(A·B·C) 매핑 | [progress/README.md](progress/README.md) |
 
 추가 진입 문서:
 

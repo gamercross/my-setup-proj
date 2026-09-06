@@ -3,7 +3,7 @@
 > Electron 데스크톱 앱의 화면·컴포넌트·상태 계약. 요구사항은 [requirements/UI.md](../requirements/UI.md) · [requirements/WIDGET.md](../requirements/WIDGET.md), 설계는 [DESIGN.md](../architecture/DESIGN.md) §6, API 는 [API_REFERENCE.md](API_REFERENCE.md).
 > 이 문서와 코드가 다르면 **코드가 맞고 이 문서를 고친다** — 단 "예정" 표시 요소는 아직 코드가 없다.
 >
-> 🆕 **대시보드 OS 전환 (C5~C6, 2026-09-03)**: 고정 패널(`Dashboard.jsx`) → **위젯 셸**. §0·§2 의 다이어그램·와이어프레임과 §3.8~3.10 이 전환 후 목표. 현재 코드는 아직 고정 패널이다 ([DASHBOARD_OS.md](../vision/DASHBOARD_OS.md), [ADR-0020~0022](../architecture/adr/)).
+> 🆕 **대시보드 OS 전환**: C5(2026-09-06)에서 고정 패널(`Dashboard.jsx`, 삭제됨) → **위젯 셸**(`WidgetShell`) 완료. §3.8~3.9 는 구현 상태, §3.10(위젯 설정 패널)은 C6 예정 ([DASHBOARD_OS.md](../vision/DASHBOARD_OS.md), [ADR-0020~0022](../architecture/adr/)).
 
 ---
 
@@ -62,6 +62,8 @@ stateDiagram-v2
 | 위젯 배치 엔진 | `react-grid-layout` ([ADR-0020](../architecture/adr/ADR-0020-widget-shell-architecture.md)) |
 | 레이아웃 영속 | localStorage → SQLite ([ADR-0021](../architecture/adr/ADR-0021-widget-layout-persistence.md)) |
 
+> 🎨 **시각 방향:** 화면 골격·컴포넌트 패턴·톤의 목표 틀은 [UI_STYLE.md](UI_STYLE.md) (릴스 "Claude 워크스페이스 대시보드" 참조). 이 문서는 계약, `UI_STYLE.md` 는 방향.
+
 ### 디자인 토큰 (현재 코드 기준)
 
 | 이름 | 값 | 용도 |
@@ -97,9 +99,9 @@ stateDiagram-v2
 └─────────────────────────────────────────────────────────────┘
 ```
 
-`Dashboard.jsx` 가 할일·프로젝트를 `flex` 로 고정 배치. 일정·브리핑·다이어그램은 예정.
+과거(C4 까지): `Dashboard.jsx` 가 할일·프로젝트·일정을 `flex` 로 고정 배치, 그 아래 전체 폭 다이어그램 패널. C5(2026-09-06)에서 삭제되고 위젯 셸로 대체됨.
 
-### 2.2 전환 후 (위젯 셸 — C5~C6 목표)
+### 2.2 현재 (위젯 셸 — C5 구현, 테마 커스터마이즈는 C6)
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
@@ -118,10 +120,11 @@ stateDiagram-v2
     각 위젯: 색·모서리·밀도·타이틀바를 ⚙ 에서 따로 지정 → 레이아웃 저장
 ```
 
-- **셸 바:** 앱 이름·버전 + `[편집]` 토글 + `[+ 위젯]` 피커.
-- **위젯 프레임:** 타이틀바(아이콘·이름·⚙ 설정·─ 최소화·✕ 제거) + 본문(레지스트리 뷰) + 리사이즈 핸들(편집 모드).
-- **격리:** 위젯마다 `ErrorBanner`/`ErrorBoundary` (FR-WIDGET-07). 전역 연결 오류(백엔드 다운)는 셸 바 아래 배너.
-- **기본 레이아웃 (첫 실행):** 할일·프로젝트·브리핑 3개.
+- **셸 바:** `AI Computer OS` + `✎ 편집` 토글 + `+ 위젯` 피커 + `초기화`.
+- **위젯 프레임:** 타이틀바(아이콘·이름·⚙ 설정[C5 disabled]·─ 최소화·✕ 제거) + 본문(레지스트리 뷰) + 리사이즈 핸들(편집 모드).
+- **격리:** 위젯마다 `ErrorBanner`/`ErrorBoundary` (FR-WIDGET-07). 전역 연결 오류(백엔드 다운)는 **App 헤더**의 헬스 표시(셸에서 중복 안 함).
+- **기본 레이아웃 (첫 실행):** 할일·프로젝트·캘린더 3개. 다이어그램은 피커로만 추가.
+- **와이어프레임의 `Daily Brief` 위젯은 향후 목표** — C5 레지스트리에는 뷰가 있는 tasks/projects/calendar/diagrams 만 등록.
 
 ---
 
@@ -142,7 +145,7 @@ stateDiagram-v2
 | 항목 | 내용 |
 |---|---|
 | 목적 | 할일 목록 조회·완료 토글·삭제·추가 |
-| 요소 | 섹션 제목 "할 일", `TaskList`, `TaskForm`("+ 할일 추가") — 모두 ✅ B3 (2026-09-03) |
+| 요소 | `TaskList`, `TaskForm`("+ 할일 추가") — 위젯 타이틀바가 제목을 대신하므로 `<h2>` 없음. 뷰: `frontend/src/widgets/views/TasksWidgetView.jsx` (스토어 구독·effect 를 뷰가 소유) — ✅ C5 |
 | 데이터 출처 | `GET /api/tasks` → `useTaskStore.tasks` (`frontend/src/store/useTaskStore.js`, `api/client.js` 경유) |
 | 관련 FR | FR-TASK-01/02/03/04, FR-UI-01 |
 | 상태 | ✅ 코드 배선 완료. 정상(200) 경로 브라우저 검증은 CORS/C1 이후 로컬 대기 |
@@ -164,15 +167,15 @@ stateDiagram-v2
 | 삭제 버튼 클릭 | `onDelete(id)` → `DELETE /api/tasks/:id` → 목록에서 제거. 실패 시 복원 + `ErrorBanner` |
 | 추가 폼 제출 (`TaskForm`) | `POST /api/tasks` → 201 시 목록에 append, 폼 초기화. `title` 빈값이면 제출 차단 + 인라인 안내. payload snake_case (`due_date`) |
 
-> ⚠️ 현재 `Dashboard.jsx` 의 `handleToggle`/`handleDelete` 는 **로컬 state 만** 변경한다. Week 3(B3)에 store + API 호출로 교체.
+> (과거 주의는 해소됨 — B3 에서 store+API 배선 완료, C5 에서 뷰가 `TasksWidgetView` 로 이관.)
 
 ### 3.3 프로젝트 패널
 
 | 항목 | 내용 |
 |---|---|
 | 목적 | 프로젝트 진행도·상태 표시 |
-| 요소 | 섹션 제목 "프로젝트", `ProjectCard` 목록, `ProjectForm`(하단) |
-| 데이터 출처 | `GET /api/projects` → `useProjectStore.projects` (C2, 2026-09-03) |
+| 요소 | `ProjectCard` 목록, `ProjectForm`(하단). 뷰: `widgets/views/ProjectsWidgetView.jsx` (C5, `<h2>` 없음) |
+| 데이터 출처 | `GET /api/projects` → `useProjectStore.projects` (C2, 2026-09-03). 구독·effect 는 위젯 뷰가 소유 |
 | 관련 FR | FR-PROJ-01/02, FR-UI-01 |
 
 **렌더 상태:** 로딩("불러오는 중…") / 비어있음("프로젝트가 없습니다" — ✅ 구현됨) / 정상 / 에러(`ErrorBanner` + 재시도, 할일 패널 렌더는 막지 않음).
@@ -191,7 +194,7 @@ stateDiagram-v2
 | 요소 | `CalendarWidget` — 시각(HH:MM) + 제목 + location + 날짜 배지(오늘/내일/`M/D`/시간 미정), 오늘·내일 좌측 accent 보더. props-only(`{ events }`) |
 | 데이터 출처 | `GET /api/calendar/events?from=..&to=..` → `useCalendarStore.events` (C3: `backend/src/services/calendar.js` 더미, D2 이후: `calendar_events` 캐시) |
 | 관련 FR | FR-CAL-01/02 |
-| 상태 | 4상태 모두 `Dashboard` 가 소유: 로딩 / "일정이 없습니다"(빈) / 정상(`CalendarWidget`) / 에러(패널만 `ErrorBanner`+재시도, 빈 문구·목록 미표시, 다른 패널 렌더 유지). `CalendarWidget` 은 목록 렌더만 담당(빈 상태 분기 없음). |
+| 상태 | 4상태 모두 `widgets/views/CalendarWidgetView.jsx` 가 소유(C5): 로딩 / "일정이 없습니다"(빈) / 정상(`CalendarWidget`) / 에러(위젯 내부만 `ErrorBanner`+재시도, 빈 문구·목록 미표시, 다른 위젯 렌더 유지). `CalendarWidget` 은 목록 렌더만 담당(빈 상태 분기 없음). |
 
 ### 3.5 오늘 브리핑 카드 🔷 예정 (Week 7)
 
@@ -211,45 +214,49 @@ stateDiagram-v2
 | 요소 | 아이콘 + 한국어 메시지 + [재시도] 버튼. `message` 없으면 렌더 안 함, `onRetry` 있을 때만 버튼 |
 | 규칙 | 스택 트레이스·상태코드 원문 노출 금지 (`api/client.js` 가 정규화). 재시도는 해당 API 만 재호출. 성공 시 `error=null` → 배너 제거 |
 | 배치 | 영역별 개별 표시 (한 영역 실패가 다른 영역을 가리지 않음 — FR-UI-01 AC-2). 에러가 있어도 이미 받은 데이터는 계속 렌더 |
-| 최상위 | `ErrorBoundary` (class, `getDerivedStateFromError`+`componentDidCatch`→`console.error`) 가 렌더 예외를 잡아 앱 전체 크래시 방지 (FR-UI-04 AC-5). `App.jsx` 가 `<Dashboard>` 를 감쌈. fallback 은 `ErrorBanner` 재사용 |
+| 최상위 | `ErrorBoundary` (class, `getDerivedStateFromError`+`componentDidCatch`→`console.error`) 가 렌더 예외를 잡아 앱 전체 크래시 방지 (FR-UI-04 AC-5). `App.jsx` 가 `<WidgetShell>` 을 감쌈 |
+| props (C5) | `fallback` 지정 시 그 노드로 대체(위젯 단위 격리 — `WidgetFrame` 이 위젯별 `ErrorBanner` 전달), 미지정 시 기존 전면 폴백(하위호환). `onReset` 은 선택 |
 | 코드 | `frontend/src/components/{ErrorBanner,ErrorBoundary}.jsx` |
 | 미검증 | 실제 실패 트리거(백엔드 중단 등) 화면 확인은 로컬 대기 (CORS/C1 이후) |
 
-### 3.7 다이어그램 패널 🔷 예정 (Phase C4, FR-UI-05)
+### 3.7 다이어그램 패널 ✅ C4 (FR-UI-05, 2026-09-06)
 
 | 항목 | 내용 |
 |---|---|
 | 목적 | `docs/**/*.md` 의 Mermaid 다이어그램을 앱에서 열람 — 프로젝트 구조·진행을 그림으로 |
-| 요소 | `DiagramPanel` — 그룹 탭(아키텍처 / 로드맵 gantt / 오케스트레이션 / 모듈 의존) + 선택 SVG |
-| 데이터 출처 | `GET /api/diagrams` → 로컬 컴포넌트 state (스토어 불필요 — 읽기 전용·정적) |
-| 렌더 | `import('mermaid')` 동적 로딩(별도 청크), `mermaid.initialize({ startOnLoad:false, theme:'dark', securityLevel:'strict' })` 후 블록별 `render()` |
+| 위치 | C5: `diagrams` 위젯 (`widgets/views/DiagramsWidgetView.jsx` 가 `DiagramPanel` 을 그대로 래핑). 폭이 커서 기본 레이아웃 제외 — 피커로만 추가 |
+| 요소 | `DiagramPanel` — 문서 선택 바(문서 basename 버튼, 활성 `#38bdf8`) + 선택 문서의 블록별 제목 + SVG. (컴포넌트 무수정) |
+| 데이터 출처 | `apiGet('/diagrams')` → 로컬 컴포넌트 state (스토어 없음 — 읽기 전용·정적) |
+| 렌더 | `import('mermaid')` 동적 로딩(별도 청크, 최초 1회 `initialize`), `mermaid.initialize({ startOnLoad:false, theme:'dark', securityLevel:'strict' })` 후 선택 문서 블록만 순차 `render()` |
 | 관련 FR | FR-UI-05 · [ADR-0014](../architecture/adr/ADR-0014-dashboard-diagram-viewer.md) |
-| 상태 | 로딩 / "다이어그램 없음"(빈 배열) / 정상 / 에러(API 실패 → `ErrorBanner`) |
-| 폴백 | 개별 블록 렌더 실패 시 그 항목만 "이 다이어그램을 그릴 수 없습니다" + 원문 코드 (`<pre>`) |
-| 미결 | 탭 고정 목록 vs `docs` 전체 자동 나열 — C4 착수 시 확정 |
+| 상태 | 로딩 / "다이어그램이 없습니다"(빈 배열) / 정상 / 에러(API·렌더러 로드 실패 → `ErrorBanner`, 재시도=목록 재조회) |
+| 폴백 | 개별 블록 렌더 실패 시 그 항목만 "⚠️ 이 다이어그램을 그릴 수 없습니다" + 원문 코드 (`<pre>`); 미완료는 "그리는 중…" |
+| 범위 밖 | 줌·패닝·복사 (후속) |
 
-### 3.8 위젯 셸 (`WidgetShell`) 🔷 예정 (Phase C5, FR-WIDGET-01~04·07·08)
+### 3.8 위젯 셸 (`WidgetShell`) ✅ C5 (2026-09-06, FR-WIDGET-01~04·07·08)
 
 | 항목 | 내용 |
 |---|---|
 | 목적 | 위젯 인스턴스를 배치·이동·리사이즈·추가·제거하는 데스크톱 셸 |
-| 요소 | 셸 바(앱명·버전·`[편집]` 토글·`[+ 위젯]` 피커) + `WidgetHost`(react-grid-layout) + 전역 `ErrorBanner`(연결 오류) |
-| 데이터 출처 | `useLayoutStore`(인스턴스 배열·편집모드) + `widgets/registry.js`(타입 메타) |
-| 상태 | 편집모드 on/off. off 면 드래그/리사이즈 잠금(본문 상호작용만) |
-| 인터랙션 | `[+ 위젯]` → 피커(레지스트리 목록) → 선택 시 기본 크기로 빈 자리에 추가 · `[편집]` → 핸들 표시 · 드래그 이동(그리드 스냅, 충돌 시 밀림) · 위젯 클릭 → z 최상단 |
-| 영속화 | 레이아웃/ config 변경 → 300ms 디바운스 → `localStorage['dashboard.layout.v1']` (단계 2: `PUT /api/widgets`) |
-| 복원 실패 | 파싱 실패·`version` 불일치 → 기본 레이아웃(할일·프로젝트·브리핑) + `console.warn`, 크래시 없음 |
-| 초기화 | "레이아웃 초기화" 액션 → 기본값 |
+| 요소 | 셸 바(`AI Computer OS` · `✎ 편집` 토글 · `+ 위젯` 피커 · `초기화`) + `WidgetHost`(react-grid-layout). 전역 연결 오류 표시는 **App 헤더의 헬스 표시**가 담당(셸에서 중복 구현 안 함) |
+| 데이터 출처 | `useLayoutStore`(instances·editMode·focusedId) + `widgets/registry.js`(타입 메타) |
+| 상태 | 편집모드 on/off. off 면 드래그/리사이즈 잠금(본문 상호작용만). 편집 중 셸 바에 안내 한 줄 |
+| 인터랙션 | `+ 위젯` → 피커(레지스트리 목록, 이미 추가된 타입 비활성) → 선택 시 기본 크기로 최하단에 추가 · `✎ 편집` → 핸들 표시 · 드래그 이동(그리드 스냅, 충돌 시 밀림) · 위젯 클릭 → z 최상단 + 포커스 |
+| 영속화 | 레이아웃/config 변경 → 300ms 디바운스 → `localStorage['dashboard.layout.v1']` (`{version:1, instances:[]}`). 단일 브레이크포인트 `lg` 만 저장 |
+| 복원 실패 | 파싱 실패·`version` 불일치·손상 → `sanitizeInstances` 실패 → 기본 레이아웃(할일·프로젝트·캘린더) + `console.warn`, 크래시 없음 |
+| 초기화 | `초기화` 버튼 → `resetLayout()` → 기본값 |
 
-### 3.9 위젯 프레임 (`WidgetFrame`) 🔷 예정 (Phase C5)
+### 3.9 위젯 프레임 (`WidgetFrame`) ✅ C5 (2026-09-06)
 
 | 항목 | 내용 |
 |---|---|
-| 목적 | 개별 위젯의 크롬(타이틀바)·격리·테마 주입 |
-| 요소 | 타이틀바: 아이콘 + 위젯 이름 + `⚙`(설정) + `─`(최소화) + `✕`(제거). 본문: 레지스트리 뷰. 편집모드 시 리사이즈 핸들(◢) |
-| 테마 주입 | wrapper `<div className="widget" data-widget-id={id} style={themeToVars(config.theme)}>` — 화이트리스트 키만 `--w-*` 변수로 ([ADR-0022](../architecture/adr/ADR-0022-per-widget-theming.md)) |
-| 격리 | 위젯별 `ErrorBoundary`(뷰 렌더 예외 → 폴백, 셸 무영향) + 뷰의 4상태(로딩/빈/정상/에러) |
-| 최소화 | `config`/레이아웃의 `minimized` — 타이틀바만 렌더, 높이 1행 |
+| 목적 | 개별 위젯의 크롬(타이틀바)·격리·테마 주입 지점 |
+| 요소 | 타이틀바(`.widget-titlebar` — RGL draggableHandle): 아이콘 + 위젯 이름 + `⚙`(C5 는 disabled, title="설정은 C6") + `─`(최소화) + `✕`(제거). 버튼은 `.widget-titlebar-btn`(draggableCancel). 본문: 레지스트리 뷰 |
+| 테마 주입 | wrapper `<div className="widget" data-widget-id={id} style={{ zIndex, outline, ...themeToVars(config?.theme) }}>` — C5 는 `themeToVars` 가 `{}` 스텁, 호출 지점만 확보 ([ADR-0022](../architecture/adr/ADR-0022-per-widget-theming.md)) |
+| 격리 | 위젯별 `ErrorBoundary fallback={<ErrorBanner .../>}`(뷰 렌더 예외 → 위젯 내부 폴백, 셸 무영향) + 뷰의 4상태 |
+| 미등록 타입 | `getWidgetMeta(type)===null` → 본문 대신 "알 수 없는 위젯입니다 (type)" + `✕` (FR-WIDGET-08 AC-2) |
+| 최소화 | `minimized` — 타이틀바만 렌더, 높이 1행. 복원 시 `prevH` 로 이전 높이 |
+| `-webkit-app-region` | 타이틀바에 넣지 않음 (Electron 창 드래그 충돌 방지) |
 
 ### 3.10 위젯 설정 패널 (`WidgetSettings`) 🔷 예정 (Phase C6, FR-WIDGET-05·06)
 
@@ -267,21 +274,23 @@ stateDiagram-v2
 
 | 컴포넌트 | props | 내부 state | 방출 이벤트 | 상태 |
 |---|---|---|---|:---:|
-| `App` | — | `health` (loading/ok/error) | — | ✅ B3. C5 에서 본문이 `<ErrorBoundary><WidgetShell/></ErrorBoundary>` 로 교체 |
-| `Dashboard` | — | `useTaskStore` 필드별 개별 셀렉터 구독 | — | ✅ B3 (4상태 배선). **C5 에서 `WidgetShell` 로 대체** — 뷰 컴포넌트는 위젯 뷰로 이관 |
-| `WidgetShell` | — | `useLayoutStore`(instances, editMode) | `onLayoutChange`, `onAddWidget(type)`, `onRemove(id)` | 🔷 C5 (FR-WIDGET-01~04) |
-| `WidgetHost` | `instances`, `editMode`, `onLayoutChange(layout)` | — | `onLayoutChange` | 🔷 C5 (react-grid-layout 래퍼) |
-| `WidgetFrame` | `instance: WidgetInstance`, `meta`(레지스트리), `editMode` | `settingsOpen` | `onConfigChange(id, patch)`, `onRemove(id)`, `onMinimize(id)` | 🔷 C5 (per-widget ErrorBoundary + 테마 변수 주입) |
+| `App` | — | `health` (loading/ok/error) | — | ✅ 본문 `<ErrorBoundary><WidgetShell/></ErrorBoundary>` (C5) |
+| ~~`Dashboard`~~ | — | — | — | ❌ C5 에서 삭제 — 섹션 로직은 `widgets/views/*WidgetView.jsx` 로 이관 |
+| `WidgetShell` | — | `useLayoutStore`(instances, editMode) 구독 · `hydrated`·`pickerOpen` 로컬 state | (스토어 액션 직접 호출) | ✅ C5 (FR-WIDGET-01~04) |
+| `WidgetHost` | `instances`, `editMode`, `onLayoutChange(layout)` | — | `onLayoutChange` | ✅ C5 (`react-grid-layout/legacy` `WidthProvider(Responsive)` 모듈 스코프) |
+| `WidgetFrame` | `instance` | — (스토어 액션 구독: bringToFront/toggleMinimize/removeWidget/focusedId) | — | ✅ C5 (per-widget `ErrorBoundary fallback` + `themeToVars` 호출 지점) |
+| `WidgetPicker` | `activeTypes`, `onAdd(type)`, `onClose()` | — | `onAdd`, `onClose` | ✅ C5 (이미 추가된 타입 비활성) |
+| `*WidgetView` (tasks/projects/calendar/diagrams) | `instanceId`, `config` | 도메인 스토어 필드별 구독 + `useEffect(fetch)` | — | ✅ C5 (`widgets/views/`) |
 | `WidgetSettings` | `instance`, `configSchema`, `onChange(patch)` | 폼 로컬값 | `onChange` | 🔷 C6 (테마 탭 + 표시 탭, 화이트리스트 입력만) |
 | `TaskList` | `tasks: Task[]`, `onToggle(id)`, `onDelete(id)` | — | `onToggle`, `onDelete` | ✅ |
 | `TaskForm` | `onSubmit(payload)`, `disabled` | `title, priority, dueDate` | `onSubmit` | ✅ B3 |
 | `ErrorBanner` | `message: string`, `onRetry()` | — | `onRetry` | ✅ B3 |
-| `ErrorBoundary` | `children` | `hasError` | — | ✅ B3 (class, FR-UI-04 AC-5) |
+| `ErrorBoundary` | `children`, `fallback?`, `onReset?` | `hasError` | — | ✅ B3 + C5 (`fallback` prop — 없으면 기존 전면 폴백) |
 | `ProjectCard` | `project: Project`, `onDelete(id)?`, `onProgressChange(id, next)?`, `onStatusChange(id, value)?` | `draft` (슬라이더 로컬값) | `onDelete`, `onProgressChange`, `onStatusChange` | ✅ C2 (순수 프레젠테이션, 콜백 없으면 읽기 전용, `on_hold` 통일) |
 | `ProjectForm` | `onSubmit(payload): Promise<boolean>`, `disabled` | `name, progress, hint` | `onSubmit` | ✅ C2 (payload `{name, progress?}`) |
 | `CalendarWidget` | `events: Event[]` | — | — | ✅ C3 |
 | `BriefCard` | `brief: Brief \| null` | — | — | 🔷 D3 |
-| `DiagramPanel` | — | `diagrams`, `activeGroup`, `loading`, `error` | — | 🔷 C4 |
+| `DiagramPanel` | — (props 없음) | `diagrams`, `activeDoc`, `loading`, `error`, `rendered` | — | ✅ C4 (자체 fetch·4상태 소유, 스토어 없음) |
 
 **타입 형태**는 [DATA_DICTIONARY.md](DATA_DICTIONARY.md) 및 [API_REFERENCE.md](API_REFERENCE.md) 의 리소스 객체와 동일 (필드명 snake_case 유지).
 
@@ -312,7 +321,7 @@ stateDiagram-v2
         clearError()
 ```
 - 액션은 throw 하지 않고 `error` 에 문자열 저장. 성공하는 액션은 `error=null` (FR-UI-04 AC-4).
-- `Dashboard` 는 객체 리터럴 셀렉터 금지 — 필드별 개별 셀렉터로 구독 (zustand v4 리렌더 함정).
+- 위젯 뷰·`WidgetShell` 은 객체 리터럴 셀렉터 금지 — 필드별 개별 셀렉터로 구독 (zustand v4 리렌더 함정).
 
 ### `useProjectStore` ✅ C2 (2026-09-03, `frontend/src/store/useProjectStore.js`)
 ```
@@ -336,25 +345,29 @@ stateDiagram-v2
 - `useProjectStore` 패턴 복제. 읽기 전용(쓰기 액션 없음). 필드명 snake_case 유지(`start_time`, `event_id`, `synced_at`).
 - C3 는 더미 데이터. D2 에서 백엔드가 `calendar_events` 캐시로 교체해도 스토어·계약 불변.
 
+- 위 **도메인 스토어**(`useTaskStore`/`useProjectStore`/`useCalendarStore`)의 모든 액션은 `api/client.js`(fetch 래퍼) 경유. 에러는 문자열로 정규화해 `error` 에 저장 (NFR-REL-02).
+
 > 방향: `useAppStore` 단일 스토어 대신 도메인별 스토어(`useTaskStore`/`useProjectStore`/`useCalendarStore`/…)로 분리한다. 브리핑용 스토어는 D3 에서 별도 신설.
 
-### `useLayoutStore` 🔷 예정 (C5, `frontend/src/store/useLayoutStore.js`) — 위젯 셸 UI 상태
+### `useLayoutStore` ✅ C5 (`frontend/src/store/useLayoutStore.js`) — 위젯 셸 UI 상태
 ```
-상태:   instances: WidgetInstance[]   // { id, type, x,y,w,h, z, minimized, config:{theme,display} }
-        editMode: boolean
-액션:   setInstances(list)                 // 부팅 시 복원
-        addWidget(type)                    // 레지스트리 defaultSize 로 빈 자리에 추가
-        removeWidget(id) / toggleMinimize(id)
-        setLayout(rglLayout)               // react-grid-layout onLayoutChange → x,y,w,h 반영
-        bringToFront(id)                   // z 갱신
-        updateConfig(id, patch)            // 테마/표시 옵션 병합
+상태:   instances: WidgetInstance[]   // { id, type, x,y,w,h, z, minimized, prevH?, config }
+        editMode: boolean            // 세션 전용(영속 X)
+        focusedId: string | null     // 세션 전용(영속 X)
+액션:   setInstances(list)                 // 부팅 시 하이드레이션
+        addWidget(type)                    // 레지스트리 defaultSize, 최하단 배치, z=max+1, 중복 타입 무시
+        removeWidget(id)
+        toggleMinimize(id)                // 최소화 시 prevH 보관·h=1, 복원 시 prevH
+        setLayout(rglLayout)              // RGL onLayoutChange → {i,x,y,w,h} 병합(최소화 항목 h 무시)
+        bringToFront(id)                  // z=max+1, focusedId=id
+        updateConfig(id, patch)          // config 병합 (C5 호출부 없음 — C6 용)
         toggleEditMode() / resetLayout()
-영속:   모든 변경 → 300ms 디바운스 → localStorage['dashboard.layout.v1']  (단계 2: PUT /api/widgets)
-        부팅: 없음/파싱실패/version 불일치 → widgets/defaultLayout.js 폴백 + console.warn
+영속:   instances 변경 → 300ms 디바운스(모듈 스코프 timer) → localStorage['dashboard.layout.v1']
+        = { version:1, instances }. editMode/focusedId 는 저장 안 함
+        부팅: 없음/파싱실패/version 불일치/sanitize 실패 → widgets/defaultLayout.js 폴백 + console.warn
 ```
 > **UI 상태 전용.** 위젯이 보여주는 데이터(tasks 등)는 절대 여기 두지 않는다 — 도메인 스토어 담당 ([ADR-0021](../architecture/adr/ADR-0021-widget-layout-persistence.md)).
-
-- 모든 액션은 `api/client.js`(fetch 래퍼) 경유. 에러는 문자열로 정규화해 `error` 에 저장 (NFR-REL-02).
+> `useLayoutStore` 는 네트워크를 타지 않는다(`api/client.js` 무관) — `localStorage` 만 접근한다.
 
 ---
 

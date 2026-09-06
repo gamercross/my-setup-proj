@@ -12,11 +12,11 @@
 
 | 축 | 기존 (AS-IS) | 전환 후 (TO-BE) |
 |---|---|---|
-| 화면 구성 | `Dashboard.jsx` 가 할일·프로젝트 패널을 `flex` 로 고정 배치 | **위젯 셸(Shell)** 위에 위젯을 사용자가 배치·이동·크기조절 |
+| 화면 구성 | ~~`Dashboard.jsx` 고정 배치~~ (C5 에서 제거) | **위젯 셸(`WidgetShell`)** 위에 위젯을 사용자가 배치·이동·크기조절 (C5 구현) |
 | 데이터 표현 단위 | "패널" (코드에 하드코딩) | **위젯 인스턴스** (레지스트리에 등록된 위젯 타입 + 인스턴스별 설정) |
 | 커스터마이즈 | 전역 디자인 토큰 1벌 | **위젯마다** 테마·표시 옵션을 따로 지정 |
 | 레이아웃 | 고정 | 저장·복원 (localStorage → SQLite → 사용자별) |
-| 확장 | 새 패널 = `Dashboard.jsx` 수정 | 새 위젯 = 레지스트리에 항목 추가 (플러그인 유사) |
+| 확장 | ~~새 패널 = `Dashboard.jsx` 수정~~ | 새 위젯 = `widgets/registry.js` 에 항목 추가 + `widgets/views/` 에 뷰 (플러그인 유사) |
 
 핵심 문장: **"각 테이블(tasks·projects·calendar_events·emails·briefs)이 위젯처럼 움직이고, 각 위젯(앱)은 각자 디자인할 수 있다."**
 
@@ -24,10 +24,12 @@
 
 ## 2. 왜 (강의·제품 양쪽)
 
-- **강의 정합** — 과목명이 "AI **컴퓨터 운영체제** 실습" 이다. 위젯 셸 = 미니 윈도우 매니저:
+- **강의 A 정합** — 과목명이 "AI **컴퓨터 운영체제** 실습" 이다. 위젯 셸 = 미니 윈도우 매니저:
   창(위젯) 생명주기, z-order(스택), 포커스, 레이아웃 영속화 = 프로세스·창 관리 개념의 실습 대상.
+- **강의 B 정합** — 위젯 레지스트리·계약 도입은 AI 지원 설계·에이전틱 코딩(B-W4·B-W5)의 산출물이다.
+- **강의 C 정합** — 위젯 계약(contract) = 컴포넌트 기반 설계(C-W6)의 실제 예. [ADR-0020](../architecture/adr/ADR-0020-widget-shell-architecture.md).
 - **제품 가치** — 사용자마다 중요한 정보가 다르다. 할일 중심인 사람은 할일 위젯을 크게, 메일 중심인 사람은 메일 위젯을 위로. 고정 레이아웃은 이걸 못 한다.
-- **설계 가치** — 위젯 계약(contract)을 만들면 새 기능(캘린더·브리핑·다이어그램·에이전트 큐)이 전부 같은 규격으로 붙는다. `Dashboard.jsx` 비대화([DESIGN.md](../architecture/DESIGN.md) §1 우려)를 구조로 막는다.
+- **설계 가치** — 위젯 계약(contract)을 만들면 새 기능(캘린더·브리핑·다이어그램·에이전트 큐)이 전부 같은 규격으로 붙는다. 단일 대시보드 컴포넌트 비대화([DESIGN.md](../architecture/DESIGN.md) §1 우려)를 구조로 막는다.
 
 ---
 
@@ -43,6 +45,8 @@
 
 **결론 방향:** *그리드 스냅 기반 배치*(Android/Grafana 계열) + *위젯별 설정·테마*(Plasma/Notion 계열). 완전 프리폼 창은 범위 밖([§6](#6-범위-경계)).
 
+> 🎨 **화면 골격·컴포넌트·톤**의 목표 틀은 릴스 "Claude 워크스페이스 대시보드" 를 참조한다 → [../reference/UI_STYLE.md](../reference/UI_STYLE.md). 위 표는 *위젯 배치 메커니즘* 벤치마크, `UI_STYLE.md` 는 *전체 화면 룩* 참조로 역할이 다르다.
+
 ---
 
 ## 4. 위젯 모델
@@ -50,16 +54,17 @@
 ### 4.1 구성 요소
 
 ```
-위젯 타입 (widget type)      레지스트리에 등록. 예: 'tasks','projects','calendar','emails','brief','diagrams'
+위젯 타입 (widget type)      레지스트리에 등록. C5 구현: 'tasks','projects','calendar','diagrams'
+                            ('emails','brief' 는 뷰 미구현 — 향후 레지스트리 추가)
   ├─ 메타: 표시 이름, 아이콘, 기본 크기(w×h), 최소/최대 크기, 설명
-  ├─ 뷰 컴포넌트: 실제 렌더 (기존 TaskList/ProjectCard… 재사용)
-  ├─ 설정 스키마: 이 위젯이 받는 표시 옵션(예: 할일 = 정렬 기준·완료 항목 숨김)
-  └─ 데이터 훅: 어느 스토어/엔드포인트를 쓰는지
+  ├─ 뷰 컴포넌트: widgets/views/*WidgetView.jsx — 각자 도메인 스토어를 직접 구독
+  └─ configSchema: 표시 옵션 허용 키 (C5 는 {} 스텁, C6 채움)
+     ※ 별도 "데이터 훅" 은 두지 않는다 — 뷰가 스토어를 직접 구독
 
-위젯 인스턴스 (widget instance)   사용자가 셸에 올린 하나. 같은 타입을 여러 개 올릴 수 있다.
+위젯 인스턴스 (widget instance)   사용자가 셸에 올린 하나. DO-2: 타입당 1개 (인스턴스 id = 타입 id).
   ├─ 위치·크기: x, y, w, h (그리드 단위), z (스택 순서)
-  ├─ 상태: minimized
-  └─ config: JSON — { theme: {...}, display: {...} }   ← 4.3
+  ├─ 상태: minimized (+ 복원용 prevH)
+  └─ config: JSON — { theme: {...}, display: {...} }   ← 4.3 (C6)
 ```
 
 ### 4.2 위젯 셸 (Shell) 책임
@@ -129,11 +134,14 @@ flowchart TB
 
 ## 6. 범위 경계
 
-**이번 전환에 포함:**
-- 그리드 배치·이동·리사이즈·최소화·추가/제거
-- 위젯별 테마(색·밀도·모서리·타이틀바) + 표시 옵션
-- 레이아웃 영속화 (localStorage 우선)
-- 기존 6개 데이터를 위젯으로: tasks · projects · calendar · emails · brief · diagrams
+**C5 (위젯 셸 골격):**
+- 그리드 배치·이동·리사이즈·최소화·추가/제거·포커스/스택·편집 토글
+- 레이아웃 영속화 (`localStorage` `dashboard.layout.v1`, 300ms 디바운스)
+- 위젯 뷰: tasks · projects · calendar · diagrams (기존 컴포넌트 무수정 재사용)
+- 테마는 골격만 (`themeToVars` 스텁 + `WidgetFrame` 호출 지점)
+
+**C6 (위젯 커스터마이즈):**
+- 위젯별 테마(색·밀도·모서리·타이틀바) + 표시 옵션, `WidgetSettings` 패널, 전역 CSS 변수화
 
 **범위 밖 (지금):**
 - 완전 프리폼(픽셀 단위 자유 위치) 창, 창 겹침 애니메이션
@@ -162,14 +170,14 @@ flowchart TB
 
 ## 8. 열린 질문 (착수 전 결정)
 
-| # | 질문 | 후보 | 결정 시점 |
-|---|---|---|---|
-| DO-1 | 배치 방식 | 그리드 스냅(RGL) / 자유 배치 / 타일링 | [ADR-0020](../architecture/adr/ADR-0020-widget-shell-architecture.md) 채택 시 |
-| DO-2 | 같은 타입 위젯 다중 인스턴스 허용? | 허용(예: 프로젝트별 할일 위젯) / 타입당 1개 | 요구사항 상세화 시 |
-| DO-3 | 레이아웃 저장 위치 1차 | localStorage / SQLite 즉시 | [ADR-0021](../architecture/adr/ADR-0021-widget-layout-persistence.md) |
-| DO-4 | 위젯 config 스키마를 어디서 검증 | 프론트만 / 백엔드도 | ADR-0021 |
-| DO-5 | 편집 모드 없이 항상 드래그 가능? | 편집 토글 필요 / 항상 | UI_SPEC 상세화 |
-| DO-6 | 다이어그램 뷰어(FR-UI-05)를 위젯으로 통합할지 | 위젯화 / 독립 유지 | C4 착수 시 |
+| # | 질문 | 결정 (C5, 2026-09-06) |
+|---|---|---|
+| DO-1 | 배치 방식 | **그리드 스냅** — `react-grid-layout` 2.2.4 (`/legacy` 진입점, `WidthProvider`) |
+| DO-2 | 같은 타입 다중 인스턴스? | **타입당 1개** — 인스턴스 id = 타입 id. 피커에서 이미 추가된 타입 비활성 |
+| DO-3 | 레이아웃 저장 위치 1차 | **`localStorage`** `dashboard.layout.v1` (SCHEMA_VERSION 1), 300ms 디바운스 |
+| DO-4 | config 검증 위치 | **프론트만** — `layoutStorage.sanitizeInstances` + (C6) `themeToVars` 화이트리스트 |
+| DO-5 | 항상 드래그 가능? | **편집 토글 필요** — 평소 잠금, 셸 바의 "✎ 편집" 으로만 이동/리사이즈 |
+| DO-6 | 다이어그램을 위젯으로? | **위젯화** (`diagrams`) — 폭이 커서 기본 레이아웃 제외, 피커로만 추가 |
 
 ---
 

@@ -59,6 +59,7 @@ if [ "$CODE_ONLY" -eq 0 ]; then
 fi
 
 echo "▶ 문법 확인"
+# 프론트엔드(React/JSX)는 여기서 검사하지 않는다 — CI 의 `npm --prefix frontend run build` 가 담당.
 syntax_check "backend server.js 문법"   node    node -c backend/src/server.js
 syntax_check "backend app.js 문법"      node    node -c backend/src/app.js
 syntax_check "backend db.js 문법"       node    node -c backend/src/db.js
@@ -69,6 +70,8 @@ syntax_check "backend tasks.js 문법"    node    node -c backend/src/routes/tas
 syntax_check "backend projects.js 문법" node    node -c backend/src/routes/projects.js
 syntax_check "backend routes/calendar.js 문법"    node node -c backend/src/routes/calendar.js
 syntax_check "backend services/calendar.js 문법"  node node -c backend/src/services/calendar.js
+syntax_check "backend routes/diagrams.js 문법"    node node -c backend/src/routes/diagrams.js
+syntax_check "backend services/diagrams.js 문법"  node node -c backend/src/services/diagrams.js
 syntax_check "backend middleware/cors.js 문법"          node node -c backend/src/middleware/cors.js
 syntax_check "backend middleware/requestLogger.js 문법" node node -c backend/src/middleware/requestLogger.js
 syntax_check "backend middleware/errorHandler.js 문법"  node node -c backend/src/middleware/errorHandler.js
@@ -82,6 +85,21 @@ elif bash scripts/check-docs.sh; then
   echo "✅ 문서 정합"; PASS=$((PASS + 1))
 else
   echo "❌ 문서 정합 (위 [XREF]/[STRUCT]/[DRIFT] 항목 참고)"; FAIL=$((FAIL + 1))
+fi
+
+# 서비스 스모크 — backend 가 실제로 뜨고 응답하고 SQLite 에 쓰는가.
+# 코드 변경 검증(--code-only 아님)일 때만. 도구·의존성 없으면 스크립트가 SKIP(exit 0).
+if [ "$CODE_ONLY" -eq 0 ]; then
+  echo "▶ 서비스 확인"
+  bash scripts/smoke.sh
+  rc=$?
+  if [ "$rc" -eq 0 ]; then
+    echo "✅ 서비스 스모크"; PASS=$((PASS + 1))
+  elif [ "$rc" -eq 2 ]; then
+    echo "⏭️  서비스 스모크 — SKIP (도구/의존성 없음)"; SKIP=$((SKIP + 1))
+  else
+    echo "❌ 서비스 스모크 (위 로그 참고)"; FAIL=$((FAIL + 1))
+  fi
 fi
 
 echo ""

@@ -28,22 +28,27 @@ ASCII 아트 다이어그램은 새로 만들지 않는다. 기존 것은 점진
 | **JetBrains** | 내장 마크다운 미리보기가 Mermaid 지원 (플러그인 "Mermaid" 활성화) |
 | **앱 대시보드** | `DiagramPanel` 이 `GET /api/diagrams` 로 `docs/**/*.md` 의 블록을 받아 mermaid 로 렌더 (§2.1) |
 
-### 2.1 앱 대시보드 뷰어 (`DiagramPanel`) 🔷 예정 — Phase C4
+### 2.1 앱 대시보드 뷰어 (`DiagramPanel`) ✅ 완료 — Phase C4 (2026-09-06)
 
-FR-UI-05 · [ADR-0014](../product/architecture/adr/ADR-0014-dashboard-diagram-viewer.md) · [UI_SPEC §3.7](../product/reference/UI_SPEC.md)
+FR-UI-05 · [ADR-0014](../product/architecture/adr/ADR-0014-dashboard-diagram-viewer.md) (채택) · [UI_SPEC §3.7](../product/reference/UI_SPEC.md)
 
-저장소를 열지 않고 앱 안에서 프로젝트 구조·진행을 그림으로 보기 위한 패널. Phase **C1(CORS 미들웨어) 완료 후** 착수한다.
+저장소를 열지 않고 앱 안에서 프로젝트 구조·진행을 그림으로 보기 위한 패널.
 
-- **소스**: `backend/src/services/diagrams.js` 가 저장소 루트의 `docs/**/*.md` 를 glob 해
-  ```` ```mermaid ```` 펜스를 추출, `[{ doc, path, index, title, code }]` 로 반환. `title` 은
-  블록 직전 최근접 heading. `routes/diagrams.js` 는 서비스 호출만 (계층 규칙 `routes → services`).
+- **소스**: `backend/src/services/diagrams.js` 가 `docs/**/*.md` 를 재귀 스캔(의존성 없이
+  `fs.readdirSync({withFileTypes:true})`, 상한: 깊이 8·파일 500·파일당 1MB·블록 300,
+  `node_modules`/`.git`/`diagrams`/숨김 디렉터리 스킵)해 ```` ```mermaid ```` 펜스를 추출,
+  `[{ doc, path, index, title, code }]` 로 반환. `title` 은 블록 직전 최근접 heading(펜스 밖에서만
+  추적 — 코드블록 내 `#` 무시), 없으면 `"<doc> #<index>"`. `routes/diagrams.js` 는 서비스 호출만.
 - **렌더**: `frontend/src/components/DiagramPanel.jsx` 가 패널 진입 시 `import('mermaid')` (코드
-  스플릿), `mermaid.initialize({ startOnLoad: false, theme: 'dark', securityLevel: 'strict' })`
-  후 블록별 `render()`. 개별 블록 렌더 실패는 그 항목만 원문 코드로 폴백.
-- **소스는 라이브**: 문서를 고치고 앱을 새로고침하면 반영된다 (빌드타임 수집이 아님).
-- **prod 동봉**: 패키지 빌드는 `electron-builder` `extraResources` 로 `docs/` 를 동봉하고,
-  서비스는 dev 는 저장소 루트, 패키지는 `process.resourcesPath/docs` 를 본다. `docs/` 를 못
-  찾으면 빈 배열(200) — 앱이 죽지 않는다.
+  스플릿, 최초 1회 `initialize`), `mermaid.initialize({ startOnLoad: false, theme: 'dark',
+  securityLevel: 'strict' })` 후 선택 문서 블록만 순차 `render()`. 개별 블록 렌더 실패는 그
+  항목만 원문 코드로 폴백. 줌·패닝·복사는 후속 범위.
+- **소스는 라이브**: 문서를 고치고 앱을 새로고침하면 반영된다 (빌드타임 수집이 아님, 캐시 없음).
+- **prod 동봉**: 서비스는 `process.resourcesPath/docs`(undefined 가드) 를 조회하되,
+  `electron-builder` `extraResources` 실제 설정은 **Phase E3 로 이월**. `docs/` 를 못 찾으면 빈
+  배열(200) — 앱이 죽지 않는다. 원천 우선순위: `DOCS_PATH`(있으면 이것만) → 저장소 `docs/` →
+  `process.resourcesPath/docs`.
+- **의존성**: `frontend/package.json` 에 `mermaid` 11.17.2 정확 버전 핀. 백엔드 의존성 추가 없음.
 - 이 저장소 어디에서도 mermaid CDN 을 로드하지 않는다 (오프라인 우선, CSP `script-src 'self'`).
 
 ---
@@ -103,9 +108,9 @@ npx -y @mermaid-js/mermaid-cli -i flow.mmd -o flow.png -t dark -b transparent
 | [ARCHITECTURE.md](../product/architecture/ARCHITECTURE.md) | 시스템 구조 · 데이터 흐름 3종 · OAuth 인증 · Git Flow |
 | [AS_IS.md](../product/vision/AS_IS.md) §2.7 | 현재 모듈 의존 관계 (flowchart) |
 | [ROADMAP.md](../product/ROADMAP.md) | 개발 일정 (gantt) · 강의↔프로젝트 동기화 (flowchart) |
-| [COURSE_MAPPING.md](../progress/COURSE_MAPPING.md) | 강의 연결도 (flowchart) |
+| [COURSE_MAPPING.md](../progress/COURSE_MAPPING.md) | 3강의(A·B·C) 연결도 (flowchart, 강의별 서브그래프) |
 | [USE_SCENARIOS.md](../product/vision/USE_SCENARIOS.md) | 아침 사용 여정 (journey) · 할일/동기화 흐름 |
 
 ---
 
-**작성:** 2026-09-02 · **갱신:** 2026-09-03 (§2.1 앱 대시보드 뷰어 추가 — FR-UI-05)
+**작성:** 2026-09-02 · **갱신:** 2026-09-06 (§2.1 C4 구현 완료 — FR-UI-05, ADR-0014 채택)

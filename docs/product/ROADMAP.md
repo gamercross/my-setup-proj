@@ -29,7 +29,7 @@ gantt
   기말고사·과제 2·발표       :milestone, 2026-12-08, 0d
 ```
 
-**강의 ↔ 프로젝트 동기화**
+**강의 ↔ 프로젝트 동기화** (강의 A 축, gantt Phase 1~4 = 본문 Phase A~E)
 
 ```mermaid
 flowchart LR
@@ -41,6 +41,23 @@ flowchart LR
   W1213["Week 12~13<br/>배포·최적화"] --> PE["Phase 4<br/>Docker·보안"]
   W1415["Week 14~15<br/>기말·발표"] --> M2{{"최종 발표<br/>과제 2"}}
 ```
+
+> ⚠️ 확인 필요 — 위 gantt 의 `Phase 1~4` 와 본문·[DESIGN §8](architecture/DESIGN.md)의 `Phase A~E` 넘버링이 혼재한다. 또한 중간고사 10-27·기말 12-08 은 W1 시작(09-02) 기준 W8=10-21~27, W15=12-09~15 로 계산한 값과 어긋난다. 이 문서에서는 기존 날짜를 수정하지 않는다.
+
+### Phase ↔ 3강의 주차 대응
+
+이 프로젝트는 3개 강의([COURSE_MAPPING.md](../progress/COURSE_MAPPING.md))의 공통 산출물이다. Phase 정의는 그대로 두고, 강의는 **열(lens)** 로만 읽는다.
+
+| Phase | A-Week | B-Week | C-Week | 공통 마일스톤 |
+|---|---|---|---|---|
+| A~B | W1~3 | W1~3 | W1~3 | — |
+| C | W4~5 | W4~5 | W3~7 | — |
+| D | W6~7 | W6~7 | W7 | — |
+| — | W8 | W8 | W8 | **W8: 3강의 수시/중간 + 중간발표** |
+| E | W9~13 | W9~14 | W9~14 | — |
+| — | W14~15 | W15 | W15 | **W15: 3강의 정기/기말 + 최종발표** |
+
+발표 산출물이 강의별로 어떻게 갈리는지는 [COURSE_MAPPING.md §6](../progress/COURSE_MAPPING.md#6-발표-산출물-맵-w8--w15).
 
 ---
 
@@ -221,9 +238,9 @@ CORS 미들웨어(Phase C1)가 선행돼야 한다. 설계는 [ADR-0014](archite
 
 #### 대시보드 OS — 위젯 셸 (FR-WIDGET · Phase C5~C6)
 
-🆕 방향 전환: 고정 패널 → 각 데이터가 위젯으로 움직이고 위젯마다 디자인. 개념 [vision/DASHBOARD_OS.md](vision/DASHBOARD_OS.md), 결정 [ADR-0020~0022](architecture/adr/) (전부 **제안** — 착수 전 DASHBOARD_OS §8 의 DO-1~6 확정).
+🆕 방향 전환: 고정 패널 → 각 데이터가 위젯으로 움직이고 위젯마다 디자인. 개념 [vision/DASHBOARD_OS.md](vision/DASHBOARD_OS.md), 결정 [ADR-0020/0021](architecture/adr/) **채택**(C5) · [ADR-0022](architecture/adr/ADR-0022-per-widget-theming.md) 채택(골격 C5 / 구현 C6). DASHBOARD_OS §8 DO-1~6 확정 완료.
 
-- [ ] **C5 위젯 셸** — `widgets/registry.js` + `WidgetShell`/`WidgetHost`(react-grid-layout)/`WidgetFrame`, `useLayoutStore`, localStorage 영속. 기존 할일·프로젝트 뷰를 위젯으로 이관. 위젯별 `ErrorBoundary`. (FR-WIDGET-01~04·07·08)
+- [x] **C5 위젯 셸** (2026-09-06, `feature/c5-widget-shell`) — `widgets/{registry,defaultLayout,layoutStorage,themeVars}.js` + `widgets/views/*` + `WidgetShell`/`WidgetHost`(react-grid-layout 2.2.4 `/legacy`)/`WidgetFrame`/`WidgetPicker`, `useLayoutStore`, localStorage 영속(훼손 시 기본값 폴백). 기존 4패널을 위젯 뷰로 이관하고 `Dashboard.jsx` 삭제. 위젯별 `ErrorBoundary` 격리. (FR-WIDGET-01~04·07·08). 검증 build·backend 51/51·verify 23/0/0. 브라우저 수동 TC-WIDGET-01~08 로컬 대기.
 - [ ] **C6 위젯 커스터마이즈** — 전역 인라인 style → CSS 변수, `WidgetSettings`(테마+표시 탭), `themePresets.js`, `themeToVars` 화이트리스트. (FR-WIDGET-05·06)
 - [ ] **테스트** — TC-WIDGET-01~ (레이아웃 저장/복원, 손상 폴백, config 검증, 위젯 격리)
 - **일정 주의:** 시험 기간(Week 8, R-1) 전 최소선 = 그리드 배치 + 레이아웃 저장 + 위젯별 색. 나머지는 이후로 이월 가능.
@@ -232,7 +249,7 @@ CORS 미들웨어(Phase C1)가 선행돼야 한다. 설계는 [ADR-0014](archite
 - ✅ 할일 CRUD 완료
 - ✅ Notion 연동 확인
 - ✅ Google Calendar 동기화 작동
-- [ ] 위젯 셸에서 위젯 이동·리사이즈·레이아웃 저장·위젯별 테마 (C5~C6)
+- 🚧 위젯 셸에서 위젯 이동·리사이즈·레이아웃 저장·위젯별 테마 — C5(셸·이동·리사이즈·저장) ✅ / C6(위젯별 테마) 예정
 
 ---
 
@@ -513,15 +530,17 @@ git commit -m "Week X: [기능명] 구현/수정"
 
 ## ⚠️ 중요 마일스톤
 
-| 날짜 | 이벤트 | 상태 |
-|------|--------|------|
-| 09-15 | Phase 1 완료 | ⏳ |
-| 10-06 | Phase 2 완료 | ⏳ |
-| 10-20 | Phase 3 완료 | ⏳ |
-| 10-27 | 중간고사 | ⏳ |
-| 11-17 | Phase 4 절반 | ⏳ |
-| 12-08 | 기말고사 | ⏳ |
-| 12-15 | 프로젝트 최종 완료 | ⏳ |
+| 날짜 | 이벤트 | 강의 | 상태 |
+|------|--------|------|------|
+| 09-15 | Phase 1 완료 | — | ⏳ |
+| 10-06 | Phase 2 완료 | — | ⏳ |
+| 10-20 | Phase 3 완료 | — | ⏳ |
+| 10-27 | **W8** — 중간고사(A) · 수시평가(B·C) · 중간발표 | A·B·C | ⏳ |
+| 11-17 | Phase 4 절반 | — | ⏳ |
+| 12-08 | **W15** — 기말고사(A) · 정기평가(B·C) · 최종발표 · 과제2(A) | A·B·C | ⏳ |
+| 12-15 | 프로젝트 최종 완료 | — | ⏳ |
+
+> ⚠️ 확인 필요 — 10-27/12-08 은 기존 값 유지. W8/W15 실제 주차 계산값과의 불일치는 [COURSE_MAPPING.md §6](../progress/COURSE_MAPPING.md#6-발표-산출물-맵-w8--w15) 참조.
 
 ---
 
@@ -530,7 +549,7 @@ git commit -m "Week X: [기능명] 구현/수정"
 - [README.md](../../README.md) - 프로젝트 개요
 - [ARCHITECTURE.md](architecture/ARCHITECTURE.md) - 기술 스택
 - [PROGRESS.md](../progress/PROGRESS.md) - 실제 진행 상황 (매주 업데이트)
-- [COURSE_MAPPING.md](../progress/COURSE_MAPPING.md) - 강의 연결
+- [COURSE_MAPPING.md](../progress/COURSE_MAPPING.md) - 3개 강의(A·B·C) 연결
 
 ---
 

@@ -10,20 +10,27 @@
 ```mermaid
 flowchart TB
   subgraph PYR["테스트 피라미드 (아래가 많고 빠름)"]
+    ST["정적 — 문법·문서 정합<br/>verify.sh, scripts/check-docs.sh"]
     U["단위 — node:test / pytest<br/>build_context·검증 헬퍼·clamp"]
     I["통합 — supertest + SQLite<br/>tasks·projects CRUD·미들웨어(TC-MW)"]
-    M["수동 — Electron 화면 체크리스트<br/>TC-UI-10~19 (브라우저 E2E)"]
+    SV["서비스 — scripts/smoke.sh<br/>backend 기동·/api/health·SQLite 쓰기 왕복"]
+    M["수동 — Electron 화면 체크리스트<br/>TC-UI-10~19 · TC-WIDGET-01~08 (브라우저 E2E)"]
     E["E2E — Playwright (Week 12+)"]
   end
-  U --> I --> M --> E
-  U & I --> CI["CI: GitHub Actions<br/>node 22 / python 3.12"]
+  ST --> U --> I --> SV --> M --> E
+  ST & U & I & SV --> CI["CI: GitHub Actions<br/>docs·backend·frontend·agent 잡"]
   CI --> GATE{"머지 게이트<br/>(GIT_WORKFLOW)"}
   M --> GATE
   GATE -- "FAIL 검사 有 → 커밋 금지" --> STOP["중단"]
   GATE -- "PASS / SKIP 명시" --> MERGE["머지"]
 ```
 
-`verify.sh` 는 이 중 단위·통합·문법을 로컬에서 한 번에 돌린다(현재 19/0/0).
+**세 층** (ai_결과값.md #6):
+1. **정적** — `verify.sh` (환경·문법·문서 정합). 앱을 실행하지 않는다.
+2. **서비스** — `bash scripts/smoke.sh`: 임시 포트+임시 DB 로 backend 기동 → `/api/health` → task 생성/조회/삭제 왕복 → 정리. `verify.sh` 의 "▶ 서비스 확인" + CI `backend` 잡에 포함.
+3. **사용자 흐름** — 로컬에서 backend+frontend 실행 후 TC-UI-10~16, GUI 체크(§5). 자동화 불가(디스플레이 필요).
+
+`verify.sh` 전체 실행 시 정적+서비스가 한 번에 돈다 (현재 21/0/0).
 
 ## 1. 테스트 레벨과 범위
 
@@ -31,6 +38,7 @@ flowchart TB
 |---|---|---|---|
 | **단위 (unit)** | 순수 로직 — `build_context()`, 검증 헬퍼, `clamp` 등 | `node --test` (backend), `pytest` (agent) | 로컬 + CI |
 | **통합 (integration)** | Express 라우트 + DB (인메모리 → SQLite) 왕복 | `supertest` + `node --test` | 로컬 + CI |
+| **서비스 (service)** | backend 프로세스가 실제로 뜨고 응답하고 SQLite 에 쓰는가 | `scripts/smoke.sh` (임시 포트·임시 DB) | 로컬(`verify.sh`) + CI(`backend` 잡) |
 | **회귀 (regression)** | 저장소 교체(인메모리→SQLite) 후 기존 API 동작 동일 | 위 통합 테스트 재실행 | 로컬 + CI |
 | **수동 (manual)** | Electron 화면, 실제 외부 API(OAuth) | 체크리스트 (§5) | 로컬 |
 | **E2E** | 앱↔백엔드↔DB 전체 (Playwright) | 🔷 Week 12+ | 로컬 |
@@ -62,6 +70,8 @@ tests/                      # 크로스 프로젝트 통합 (Week 12+, 지금은
 ```
 
 CI(`.github/workflows/test.yml`)에 `npm test`(backend), `pytest -m "not network"`(agent) 단계가 연결됨 (Phase A3 — NFR-TEST-03).
+
+프론트엔드(`frontend/`)에는 아직 테스트 러너가 없다. UI 계층 검증은 `npm run build`(타입/번들 성공) + §3.6~3.7 수동 체크리스트로 커버한다. 위젯 셸 관련 코드(C5): `frontend/src/widgets/{registry,defaultLayout,layoutStorage,themeVars}.js` + `widgets/views/*` + `components/Widget{Shell,Host,Frame,Picker}.jsx` + `store/useLayoutStore.js`.
 
 ---
 
@@ -136,7 +146,9 @@ CI(`.github/workflows/test.yml`)에 `npm test`(backend), `pytest -m "not network
 |---|---|---|---|---|:---:|
 | TC-DIAG-01 | FR-UI-05 AC-5 | mermaid 블록 2개 든 픽스처 md | `GET /api/diagrams` | 200, `diagrams.length===2`, 각 항목에 `doc/path/index/title/code` | P1 |
 | TC-DIAG-02 | FR-UI-05 AC-3 | `docs/` 경로 없음(주입) | `GET /api/diagrams` | 200 `{diagrams:[]}` (500 아님) | P1 |
-| TC-DIAG-03 | FR-UI-05 | `?doc=DESIGN` | `GET /api/diagrams?doc=DESIGN` | 해당 문서 블록만 반환 | P1 |
+| TC-DIAG-03 | FR-UI-05 | `?doc=DESIGN` | `GET /api/diagrams?doc=DESIGN` | 해당 문서 블록만 반환 (대소문자 무시) | P1 |
+| TC-DIAG-04 | FR-UI-05 | heading·bash 주석 섞인 픽스처 | `GET /api/diagrams` | `title`=직전 최근접 heading; 없으면 `"<doc> #<index>"`; bash `#` 주석은 heading 아님 | P2 |
+| TC-DIAG-05 | FR-UI-05 | — | `parseMermaidBlocks()` 순수 함수 | 4중 백틱 펜스 안 예시·미닫힘 펜스·비 mermaid 펜스 무시, info string 대소문자/공백 허용 | P2 |
 
 > 픽스처: 임시 디렉터리에 mermaid 블록 md 를 만들고 `services/diagrams.js` 의 docs 루트를 주입.
 > 파싱 로직(펜스 추출·heading 매칭)은 순수 함수로 분리해 단위 테스트 가능하게 한다.
@@ -181,7 +193,7 @@ CI(`.github/workflows/test.yml`)에 `npm test`(backend), `pytest -m "not network
 | TC-UI-06 | FR-AUTH-01 | Google OAuth 로그인 (Week 6) | refresh token 이 암호화 저장됨 (평문 아님) |
 | TC-UI-07 | FR-UI-02 AC-4 | `npm run build && npm start` | prod 번들(`dist/`)이 `file://` + `script-src 'self'` 로 로드, 콘솔 CSP 위반 0 |
 | TC-UI-08 | FR-UI-02 오류 시나리오 | Vite dev 서버 끄고 `NODE_ENV=development npm start` | 흰 화면 대신 `fallback.html` "개발 서버(:5173)에 연결할 수 없습니다" 안내 |
-| TC-UI-09 | FR-UI-05 AC-1~4 | 백엔드 켠 채 앱 실행 → 다이어그램 패널 열기 | 4개 그룹 선택 가능, SVG 렌더(다크), 백엔드 끄면 패널만 `ErrorBanner`, 문법 깨진 블록은 원문 폴백 |
+| TC-UI-09 | FR-UI-05 AC-1~4 | 백엔드 켠 채 앱 실행 → 다이어그램 패널 열기 | 문서 선택 바(최소 DESIGN·ROADMAP·ORCHESTRATION·AS_IS), SVG 렌더(다크), 백엔드 끄면 패널만 `ErrorBanner`, 문법 깨진 블록은 원문 폴백. 문서 전환 시 이전 mermaid DOM 잔여 노드 없는지 확인. 상태: C4 완료, 로컬 수동 확인 대기 |
 | TC-UI-10 | FR-UI-01 AC-2/4, FR-TASK-02 | CORS 적용 후 앱 실행 → 할일 패널 관찰 | 로딩 → 정상 전이, 목록 렌더. 0건이면 "할 일이 없습니다" 표시. 상태: C1 완료, 로컬 수동 확인 대기 |
 | TC-UI-11 | FR-TASK-03 AC-4 | 체크박스 클릭 후 백엔드 중단 | 즉시 UI 반영 후 요청 실패 시 원상복구 + `ErrorBanner`. 상태: C1 완료, 로컬 수동 확인 대기 |
 | TC-UI-12 | FR-TASK-04 AC-6 | 삭제 클릭 중 백엔드 중단 | 항목이 원위치로 복원됨 + `ErrorBanner`. 상태: C1 완료, 로컬 수동 확인 대기 |
@@ -192,6 +204,32 @@ CI(`.github/workflows/test.yml`)에 `npm test`(backend), `pytest -m "not network
 | TC-UI-17 | FR-CAL-01 AC-5 | 앱 실행 → 일정 패널 관찰 | 로딩 → 정상 전이, 위젯 렌더. 0건이면 "일정이 없습니다". 상태: C3 완료, 로컬 수동 확인 대기 |
 | TC-UI-18 | FR-CAL-02 AC-6/7/8 | 일정 패널의 항목 배지 확인 | 오늘/내일 배지 + 좌측 accent 보더, 그 외 `M/D`, 시간 미정 항목은 맨 뒤 "시간 미정". 상태: C3 완료, 로컬 수동 확인 대기 |
 | TC-UI-19 | FR-CAL-01 AC-5 / FR-UI-01 AC-2 | 캘린더 API 중단 후 앱 실행 | 일정 패널만 `ErrorBanner` + 재시도, "일정이 없습니다" 문구 미표시, 할일·프로젝트 패널 정상 렌더. 상태: C3 완료, 로컬 수동 확인 대기 |
+
+### 3.7 위젯 셸 수동 체크리스트 (Phase C5, FR-WIDGET)
+
+자동화 러너가 프론트에 없어 수동 확인. `npm run dev`(또는 `build && start`) 로 실행.
+
+| ID | 대상 | 절차 | 통과 조건 |
+|---|---|---|---|
+| TC-WIDGET-01 | FR-WIDGET-01 AC-3 | 편집 OFF(기본) 상태에서 위젯 본문 조작 | 체크박스 토글·목록 스크롤·폼 입력 정상 동작, 타이틀바 드래그해도 위젯 이동 안 함. 상태: C5 완료, 로컬 수동 확인 대기 |
+| TC-WIDGET-02 | FR-WIDGET-01 AC-1/2 | `✎ 편집` ON → 타이틀바 드래그 이동, 모서리 핸들 리사이즈 | 그리드 스냅 이동·충돌 시 밀림, 리사이즈가 타입 min/maxSize 안에서 클램프. 상태: C5 완료, 로컬 수동 확인 대기 |
+| TC-WIDGET-03 | FR-WIDGET-02 AC-5 | `+ 위젯` → 다이어그램 추가 → 다시 피커 열기 | 추가된 타입 항목이 비활성 + "이미 추가됨". 상태: C5 완료, 로컬 수동 확인 대기 |
+| TC-WIDGET-04 | FR-WIDGET-02 AC-4 | 위젯 `─` 클릭 → 다시 클릭 | 타이틀바만 남게 축소(h=1) → 재클릭 시 이전 높이(prevH) 복원. 상태: C5 완료, 로컬 수동 확인 대기 |
+| TC-WIDGET-05 | FR-WIDGET-04 AC-2 | 배치·크기·최소화 바꾸고 앱 재시작 | 마지막 레이아웃(위치·크기·z·최소화) 복원. 상태: C5 완료, 로컬 수동 확인 대기 |
+| TC-WIDGET-06 | FR-WIDGET-04 AC-4 | DevTools 에서 `localStorage['dashboard.layout.v1']` 를 깨진 JSON 으로 덮고 재시작 | 기본 레이아웃(할일·프로젝트·캘린더) + `console.warn`, 흰 화면 없음. 상태: C5 완료, 로컬 수동 확인 대기 |
+| TC-WIDGET-07 | FR-WIDGET-08 AC-2 | 저장 레이아웃 `instances` 에 `{id:'x',type:'zzz',...}` 주입 후 재시작 | 그 위젯만 "알 수 없는 위젯입니다 (zzz)" + `✕` 로 제거 가능, 나머지 위젯 정상. 상태: C5 완료, 로컬 수동 확인 대기 |
+| TC-WIDGET-08 | FR-WIDGET-07 AC-2 | 한 위젯 뷰에 임시 `throw` 삽입 | 해당 위젯 본문만 `ErrorBanner` 폴백, 셸 바·다른 위젯 생존. 상태: C5 완료, 로컬 수동 확인 대기 |
+
+### 3.8 3강의 구조 문서 정합 수동 체크리스트 (COURSE_MAPPING)
+
+`docs/` 를 3개 강의(A·B·C, [COURSE_MAPPING.md](../../progress/COURSE_MAPPING.md)) 구조로 유지하기 위한 점검. 자동 러너 없음 — 문서 변경 시 수동 확인.
+
+| ID | 대상 | 절차 | 통과 조건 |
+|---|---|---|---|
+| TC-DOC-01 | 강의 전제 정합 | 단일 강의(N주)·오탈자·"학과 강의" 표현을 `grep` 으로 검색 | 0건 — "강의 1개" 전제 없음, 3강의(A·B·C) 표기 일관 |
+| TC-DOC-02 | 강의 태그 SSOT | COURSE_MAPPING §4 · TRACEABILITY §6 · adr/README · GLOSSARY 확인 | 태그 정의는 COURSE_MAPPING §4 한 곳, 나머지는 참조 링크만 |
+| TC-DOC-03 | COURSE_MAPPING 링크 | `grep -rn "COURSE_MAPPING" --include=*.md .` | 경로 `docs/progress/COURSE_MAPPING.md` 유지, 깨진 링크 없음 |
+| TC-DOC-04 | 강의 A 실습 내용 보존 | COURSE_MAPPING §1 `<details>` 확인 | 기존 주별 명령어·프로젝트 활용·체크리스트가 접힌 상세로 남아 있음 |
 
 ---
 
@@ -232,13 +270,14 @@ supervisor 는 리뷰 시 "이 변경에 대응하는 테스트가 있는가"를
 
 ---
 
-## 7. 현재 상태 (2026-09-06, Phase C3 완료)
+## 7. 현재 상태 (2026-09-06, Phase C5 완료)
 
-- 백엔드 자동화 테스트: **46케이스 작성됨** — `backend/test/tasks.test.js` (TC-TASK-01,02,04~10 + TC-PROJ-08/09/09b/09c/09d + TC-DB-04a), `backend/test/projects.test.js` (TC-PROJ-01~07,10,11 + TC-DB-04b), `backend/test/calendar.test.js` (TC-CAL-01~07), `backend/test/db.test.js` (TC-DB-01~03 + TC-DB-04c/d), `backend/test/middleware.test.js` (TC-MW-01~09). `supertest` + `node --test`, `:memory:` DB. (TC-DB-04b 는 project status 검증이라 `projects.test.js` 에 위치.)
+- 백엔드 자동화 테스트: **51케이스 작성됨** — `backend/test/tasks.test.js` (TC-TASK-01,02,04~10 + TC-PROJ-08/09/09b/09c/09d + TC-DB-04a), `backend/test/projects.test.js` (TC-PROJ-01~07,10,11 + TC-DB-04b), `backend/test/calendar.test.js` (TC-CAL-01~07), `backend/test/db.test.js` (TC-DB-01~03 + TC-DB-04c/d), `backend/test/middleware.test.js` (TC-MW-01~09). `supertest` + `node --test`, `:memory:` DB. (TC-DB-04b 는 project status 검증이라 `projects.test.js` 에 위치.)
 - 에이전트 자동화 테스트: **3케이스 작성됨** — `agent/tests/test_daily_brief.py` (TC-AGENT-01~03). `test_claude.py` 는 `agent/tests/` 로 이동(연결 확인용, 키 없으면 skip).
 - CI: 문법 검사 + `npm test`(backend) + `pytest -m "not network"`(agent) 연결됨. `node -c src/app.js`, `src/db.js`, `db/index.js` 추가.
 - `verify.sh`: + `backend/src/routes/calendar.js`·`backend/src/services/calendar.js` 문법 체크 추가 (21/0/0, SKIP 없음).
 - 미작성(후속): TC-TASK-03/11/12, TC-AGENT-04~06.
+- Phase C5(2026-09-06): 위젯 셸 — 대시보드 OS. `frontend/src/widgets/{registry,defaultLayout,layoutStorage,themeVars}.js`·`widgets/views/{Tasks,Projects,Calendar,Diagrams}WidgetView.jsx`·`components/Widget{Shell,Host,Frame,Picker}.jsx`·`store/useLayoutStore.js`(신규), `App.jsx`·`ErrorBoundary.jsx`(fallback prop) 수정, `Dashboard.jsx` 삭제. `react-grid-layout@2.2.4`(`/legacy`)·`react-resizable@3.2.0` 정확 버전 핀. ADR-0020/0021/0022 채택. 백엔드 무변경 회귀 `npm test` 51/51, `verify.sh` 16/0/0(--code-only) · 풀런 23/0/0, frontend `npm run build` 성공(RGL CSS 는 `dist/assets/index-*.css` 에 번들, 신규 청크 경고 없음). 위젯 셸 수동 체크(TC-WIDGET-01~08)는 로컬 수행 대기(프론트 러너 없음).
 - Phase C3(2026-09-06): 캘린더 위젯 + `GET /api/calendar/events` 더미 API. `backend/src/services/calendar.js`(신규, 인메모리 더미 6건 + from/to 필터·정렬), `backend/src/routes/calendar.js`(신규), `frontend/src/store/useCalendarStore.js`(신규), `frontend/src/components/CalendarWidget.jsx`(신규), `Dashboard.jsx` 일정 패널 추가. `backend/test/calendar.test.js`(TC-CAL-01~07). `npm test` 46/46, `verify.sh` 21/0/0, frontend `npm run build` 성공. 브라우저 수동 체크(TC-UI-17~19)는 로컬 수행 대기. 실 캘린더 연동(FR-CAL-03)은 D2 이월.
 - Phase C2(2026-09-03): 프로젝트 CRUD 프론트 배선(`useProjectStore`, `ProjectForm`, `ProjectCard` 상태·진행도·삭제) + `tasks.project_id` 라우트 검증(ADR-0012) + `backend/src/errors.js`(SQLite CHECK/NOTNULL/FK → 400 한국어) + `'hold'`→`'on_hold'` 통일. `npm test` 39/39, `verify.sh` 19/0/0, frontend `npm run build` 성공. 브라우저 수동 체크(TC-UI-14~16)는 로컬 수행 대기(샌드박스 창 기동 불가).
 - Phase C1(2026-09-03): `backend/src/middleware/{cors,requestLogger,errorHandler}.js` 분리, `backend/src/app.js` 미들웨어 체인 정식화(`requestLogger` 최상단), `backend/test/middleware.test.js` 신규(TC-MW-01~09). `npm test` 27/27, `verify.sh` 18/0/0. 브라우저 E2E(TC-UI-10~13)는 로컬 수동 확인 대기.

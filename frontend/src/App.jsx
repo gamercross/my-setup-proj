@@ -1,9 +1,9 @@
 // 메인 앱 컴포넌트
-// - 본문은 ErrorBoundary 로 감싼 Dashboard.
+// - 본문은 ErrorBoundary 로 감싼 WidgetShell (대시보드 OS).
 // - 백엔드 /health 연결 상태는 헤더 우측의 작은 표시로 축소 유지 (FR-UI-02 AC-5 회귀 방지).
 
 import React, { useEffect, useState } from 'react';
-import Dashboard from './components/Dashboard';
+import WidgetShell from './components/WidgetShell';
 import ErrorBoundary from './components/ErrorBoundary';
 import { apiGet } from './api/client.js';
 
@@ -55,7 +55,7 @@ export default function App() {
       </header>
 
       <ErrorBoundary>
-        <Dashboard />
+        <WidgetShell />
       </ErrorBoundary>
     </div>
   );
