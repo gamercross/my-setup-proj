@@ -16,8 +16,9 @@
 | `GOOGLE_REDIRECT_URI` | ⏳ | OAuth 콜백 주소. 기본 `http://localhost:3000/auth/callback` | 백엔드 auth 라우트(예정) | 기본값 사용 |
 | `NOTION_API_KEY` | ⏳ (Week 4·7) | Notion Integration Token. 프로젝트 읽기·브리핑 저장 | `agent/services/notion.py` | Notion 연동 비활성 |
 | `SLACK_WEBHOOK_URL` | ❌ (선택) | 에이전트 진행·EOD 요약 알림용 Incoming Webhook | `scripts/slack-notify.sh`, `worklog-eod.sh` | **조용히 스킵** — 항상 호출해도 안전 |
-| `SUPABASE_URL` | ⏳ (Week 10~) | Supabase 프로젝트 URL | 동기화 모듈(예정) | 클라우드 동기화 비활성, 로컬 전용 |
-| `SUPABASE_KEY` | ⏳ (Week 10~) | Supabase anon/service 키 | 동상 | 동상 |
+| `SUPABASE_URL` | ❌ (선택) | Supabase 프로젝트 URL. 2026-09-06~ 클라이언트 부트스트랩이 사용 (연결 배선·`/api/sync/health` 진단만) | `backend/src/supabase.js` | 팩토리가 `null` 반환, 프로세스당 1회 경고. 앱 부팅·기존 기능 무영향, 로컬 SQLite 전용 |
+| `SUPABASE_KEY` | ❌ (선택) | Supabase **anon public** 키 전제. `service_role` 키는 `.env` 에 두지 않는다 (사용자가 키 종류 확인 필요) | `backend/src/supabase.js` | 동상 |
+| `SUPABASE_TIMEOUT_MS` | ❌ (선택) | Supabase 요청 타임아웃(ms). 기본 `3000` | `backend/src/supabase.js` | `3000` 사용 |
 | `NODE_ENV` | ✅ | `development` / `production`. 로깅·개발도구·Vite 로드 방식 분기 (ADR-0010) | `backend/src/server.js`, `frontend/src/main.js` | 코드 기본값(`development` 가정) |
 | `PORT` | ✅ | 백엔드 리슨 포트. 기본 `3000` | `backend/src/server.js` | `3000` 사용 |
 | `DATABASE_PATH` | — | 로컬 SQLite 파일 경로 (ADR-0009). 비우면 `backend/data/app.db` | `backend/db/index.js`, `agent/db.py` | ✅ B2 구현: `backend/db/index.js` 가 이 값을 읽음 (없으면 `backend/data/app.db`). 단 backend 는 아직 `.env` 자동 로딩 없음 — 셸 환경변수로 주입 (dotenv 도입은 후속). Electron 패키지는 `main.js` 가 `userData` 로 덮어씀 |
@@ -47,7 +48,8 @@
 
 ### `SUPABASE_URL` / `SUPABASE_KEY`
 1. https://supabase.com → New project
-2. **Project Settings → API**: Project URL, `anon` public 키(개발) 복사
+2. **Project Settings → API**: Project URL, `anon` public 키 복사 — **`anon public` 키를 사용한다.** `service_role` 키는 `.env` 에 두지 않는다.
+3. (키 종류는 사용자가 확인) 부트스트랩·`/api/sync/health` 는 anon 키 전제로 동작한다.
 
 ## 3. 보안 규칙
 
@@ -63,7 +65,7 @@
 
 - 새 키를 코드에서 읽기 시작하면 **같은 PR 에서** `.env.example`(빈 값)과 이 문서를 갱신한다.
 - `.env.example` 에 값을 넣지 않는다(플레이스홀더/기본값만). `scripts/check_docs.py` DRIFT-3 이 시크릿·`= ` 공백을 검사한다.
-- **현재 로컬 실행 기준 변수는 `DATABASE_PATH`·`PORT`·`NODE_ENV` 셋뿐이다.**
+- **현재 로컬 실행 기준 변수는 `DATABASE_PATH`·`PORT`·`NODE_ENV` 셋이며, 선택적으로 `SUPABASE_URL`·`SUPABASE_KEY`(·`SUPABASE_TIMEOUT_MS`) 를 쓴다.**
   [ARCHITECTURE.md](../product/architecture/ARCHITECTURE.md) §보안 예시의 `SUPABASE_JWT_SECRET`·`DATABASE_URL` 은
   **Week 10 Supabase 도입 시** 별도 설정 묶음으로 그때 확정한다 (지금은 예시에서도 쓰지 않는다 — [CROSSCUTTING.md](../product/architecture/CROSSCUTTING.md) §1).
 
@@ -73,7 +75,7 @@
 
 | 주체 | `.env` 로딩 | 결과 |
 |---|---|---|
-| **backend** (`npm start`) | ❌ 자동 로딩 없음 (dotenv 미도입 — [ADR 재검토 D2](../product/architecture/CROSSCUTTING.md#1-설정-configuration)) | `PORT`·`DATABASE_PATH`·`NODE_ENV` 는 **셸 환경변수**로만 읽힌다. `.env` 에 적어도 반영 안 됨 |
+| **backend** (`npm start`) | ❌ 자동 로딩 없음 (dotenv 미도입 — [ADR 재검토 D2](../product/architecture/CROSSCUTTING.md#1-설정-configuration)) | `PORT`·`DATABASE_PATH`·`NODE_ENV` 는 **셸 환경변수**로만 읽힌다. `.env` 에 적어도 반영 안 됨. `SUPABASE_*` 도 셸 export 로만 읽힌다 |
 | **agent** (`daily_brief.py` 등) | `python-dotenv` 로 로딩 예정 (D 단계) | `.env` 값 사용 |
 | **`scripts/slack-notify.sh`·`worklog-eod.sh`** | `. .env` 로 직접 로딩 | `SLACK_WEBHOOK_URL` 은 `.env` 에 넣으면 동작 |
 

@@ -75,8 +75,8 @@ C 세부: C1 미들웨어(CORS·로깅·에러) ✅(2026-09-03) → C2 프로젝
 | FR-AGENT-05 | — | [ADR-0007](../architecture/adr/ADR-0007-schedule-launchd-cron.md) | D3 | — | `scripts/`, plist | ⏳ |
 | FR-AGENT-06 | — | DESIGN §7, NFR-REL-02 | D1 | TC-AGENT-03 | `agent/daily_brief.py` | 🚧 |
 | FR-AGENT-07 | — | requirements/AGENT.md | E (W11) | — | `agent/schedule_advisor.py`(신규) | ⏳ |
-| FR-SYNC-01 | G8 | [ADR-0008](../architecture/adr/ADR-0008-supabase-deferred.md) | E2 | — | 신규 동기화 모듈 | ⏳ |
-| FR-SYNC-02 | G8 | [ADR-0008](../architecture/adr/ADR-0008-supabase-deferred.md) | E2 | — | 동상 | ⏳ |
+| FR-SYNC-01 | G8 | [ADR-0008](../architecture/adr/ADR-0008-supabase-deferred.md) | E2 | — | 신규 동기화 모듈 (선행: `backend/src/supabase.js`) | ⏳ |
+| FR-SYNC-02 | G8 | [ADR-0008](../architecture/adr/ADR-0008-supabase-deferred.md) | E2 | — | 동상 (선행: `backend/src/supabase.js`) | ⏳ |
 | FR-SYNC-03 | G7 | API_REFERENCE `/sync/logs`, DATA_DICTIONARY `sync_logs` | D2 | — | `agent/db.py`, `routes/sync.js`(신규) | ⏳ |
 | FR-AUTH-01 | G7 | NFR-SEC-05 | D2 | TC-UI-06 | `agent/auth/google_oauth.py`(신규) | ⏳ |
 | FR-AUTH-02 | G8 | [ADR-0008](../architecture/adr/ADR-0008-supabase-deferred.md) | E1 | — | 신규 | ⏳ |
@@ -153,7 +153,8 @@ Phase A~D 를 막던 제안 ADR 4건은 **2026-09-02 채택** → `/build-next` 
 | backend `.env` 자동 로딩(dotenv) | C1 즈음 | planner | 결정: 미도입 (C1, 2026-09-03) — 백엔드 env 3개(`DATABASE_PATH`·`PORT`·`NODE_ENV`) 전부 기본값 존재, 시크릿 0. 재검토 D2 |
 | TC-DB-04 (CHECK 위반 → 400 매핑) | C2 | planner | 해소 (C2, 2026-09-03) — `backend/src/errors.js` 로 판정·메시지 분리, SQLite CHECK/NOTNULL/FK → 400 한국어. TC-DB-04a~d 작성 |
 | `ProjectCard` 상태값 `'hold'` → `'on_hold'` | C2 | developer | 해소 (C2, 2026-09-03) — `statusLabel` 및 상태 `select` 를 `active`/`done`/`on_hold` 로 통일, schema·GLOSSARY 일치 |
-| `ARCHITECTURE.md` `SUPABASE_JWT_SECRET`/`DATABASE_URL` vs `.env.example` | Week 10 | planner | 어느 쪽 기준인지 |
+| `ARCHITECTURE.md` `SUPABASE_JWT_SECRET`/`DATABASE_URL` vs `.env.example` | Week 10 | planner | 어느 쪽 기준인지. 2026-09-06 부트스트랩은 `SUPABASE_URL`·`SUPABASE_KEY`(anon)·`SUPABASE_TIMEOUT_MS` 만 도입 — JWT_SECRET·DATABASE_URL 은 Week 10 인증/RLS ADR 로 유지 |
+| Supabase 부트스트랩 범위 | 2026-09-06 | planner | 해소 — 배선 + `/api/sync/health` 만. FR-SYNC-01/02 는 E2 그대로 ⏳, `user_id`·충돌·인증은 Week 10 ADR |
 | **ADR-0014** 패키지 빌드에 `docs/` 동봉 여부 (`electron-builder extraResources`) vs 다이어그램 뷰어를 dev 전용으로 | C4 착수 전 | planner | 해소 (C4, 2026-09-06) — 동봉 방향 확정, 서비스는 `process.resourcesPath/docs` 조회(undefined 가드). electron-builder 실제 설정은 Phase E3 로 이월. 못 찾으면 빈 배열 200 |
 | **ADR-0014** 뷰어 탭을 고정 목록으로 둘지 / `docs` 전체 자동 나열할지 | C4 (UI_SPEC) | developer | 해소 (C4, 2026-09-06) — `docs/**/*.md` 자동 나열, 문서 basename 별 선택 바. UI_SPEC §3.7 참조 |
 | **DASHBOARD_OS DO-1** 위젯 배치: 그리드 스냅(RGL) / 자유 배치 / 타일링 | C5 착수 전 | 사용자 | 해소 (C5, 2026-09-06) — RGL 그리드 스냅 채택 |

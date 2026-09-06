@@ -340,9 +340,28 @@ FR-AGENT-04
 
 ---
 
-## 동기화 로그 (sync) 🔷 예정 — Week 6
+## 동기화 (sync)
 
-### `GET /api/sync/logs` — 동기화 이력
+### `GET /api/sync/health` — Supabase 외부 연결 진단 ✅ 구현 (2026-09-06)
+
+ADR-0008 후속. 외부 연결 진단 **전용**이다. Supabase 클라이언트 배선만 확인하며 동기화·인증·`user_id` 는 없다(Week 10 이후).
+
+- **항상 200** 이다. Supabase 실패도 `{ "supabase": "error" }` 200 으로 응답하며 절대 5xx 가 아니다.
+- 응답에 `SUPABASE_KEY` 값·`SUPABASE_URL` 경로/쿼리를 포함하지 않는다 (host 만 노출).
+- 미설정(`SUPABASE_URL`/`SUPABASE_KEY` 없음) 시 네트워크에 접촉하지 않고 즉시 `unconfigured`.
+
+| `supabase` | 의미 |
+|---|---|
+| `ok` | 연결됨 (프로브 테이블이 없어도 정상으로 판정) |
+| `unconfigured` | `SUPABASE_URL`/`SUPABASE_KEY` 미설정 — 네트워크 미접촉 |
+| `error` | 인증 실패 / 네트워크 도달 불가·시간 초과 / 기타 (`detail` 참고) |
+
+**응답 200**
+```json
+{ "supabase": "ok", "detail": "연결됨 (프로브 테이블 없음 — 정상)", "host": "abcd.supabase.co", "checkedAt": "2026-09-06T00:00:00.000Z" }
+```
+
+### `GET /api/sync/logs` — 동기화 이력 🔷 예정 — Week 6
 
 FR-SYNC-03, NFR-OBS-03
 

@@ -339,6 +339,25 @@ C3·C4·C5 개발과 7개 스택 PR 선형화(PR #13)를 마친 뒤 다시 훑�
 | US-2 · US-3 | 모니터·위젯 셸 탭 배치 | ADR-0013 / C5 후속 |
 | US-4 | "능력 맵" FR 승격 여부 | 다이어그램 뷰어 후속 |
 | — | 캡처 5장 → `docs/product/reference/assets/ui-style/` | 사용자 드롭 |
+| Supabase | 동기화 착수 (E2) | ADR-0018 채택 + 충돌 ADR + FR-SYNC 상세 |
+| Supabase | 키 종류 확인 | 👤 사용자 — anon 인지 |
+
+---
+
+## Supabase 연동 — 클라이언트 부트스트랩 (2026-09-06)
+
+**이번 범위**: `@supabase/supabase-js@2.115.0`(정확 핀) 추가, `backend/src/supabase.js` 팩토리(지연 싱글턴, 미설정 시 `null` + 1회 경고), `GET /api/sync/health`(3상태 `ok`/`unconfigured`/`error`, 항상 200, 비밀값 미노출), `backend/test/supabase.test.js` TC-SYNC-01~05(네트워크 미사용). backend 56/56 · verify 27/0/0 · DOC_HEALTH 11/0/0.
+
+**하지 않은 것 (의도적)**: 스키마 변경(`schema.sql` 무수정), 동기화 로직, 인증, 테이블 미러링, `user_id`. backend 는 Supabase 를 읽지도 쓰지도 않는다 — 로컬 SQLite 가 진실의 원천(ADR-0015). `/api/sync/health` 의 연결 프로브 1회만 예외.
+
+**ADR-0008 과의 관계**: 결정(Week 9 까지 로컬 전용) **불변**, 상태 `채택` 유지. "부트스트랩 ≠ 동기화" 를 ADR-0008 후속 절에 명시. FR-SYNC-01/02 는 여전히 `⏳ E2`.
+
+**남은 것 (동기화 착수 전 필수)**:
+1. **ADR-0018(스키마 마이그레이션, 제안) 채택** — `schema.sql` 이 `CREATE TABLE IF NOT EXISTS` 뿐이라 `user_id`/`is_synced`/`synced_at` 컬럼 추가 경로가 없다.
+2. 동기화 충돌·방향·툼스톤 ADR (Week 10, DATA_ARCHITECTURE §6 초안 기반).
+3. FR-SYNC-01/02 수용 기준 상세화, FR-AUTH-02(Supabase Auth + RLS).
+4. `SUPABASE_JWT_SECRET`/`DATABASE_URL` 이름 확정 (TRACEABILITY §5).
+5. **👤 사용자**: `.env` 의 `SUPABASE_KEY` 가 **anon public** 키인지 확인 (`service_role` 이면 즉시 교체 — RLS 우회).
 
 ---
 

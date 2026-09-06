@@ -72,6 +72,8 @@ syntax_check "backend routes/calendar.js 문법"    node node -c backend/src/rou
 syntax_check "backend services/calendar.js 문법"  node node -c backend/src/services/calendar.js
 syntax_check "backend routes/diagrams.js 문법"    node node -c backend/src/routes/diagrams.js
 syntax_check "backend services/diagrams.js 문법"  node node -c backend/src/services/diagrams.js
+syntax_check "backend supabase.js 문법"           node node -c backend/src/supabase.js
+syntax_check "backend routes/sync.js 문법"        node node -c backend/src/routes/sync.js
 syntax_check "backend middleware/cors.js 문법"          node node -c backend/src/middleware/cors.js
 syntax_check "backend middleware/requestLogger.js 문법" node node -c backend/src/middleware/requestLogger.js
 syntax_check "backend middleware/errorHandler.js 문법"  node node -c backend/src/middleware/errorHandler.js

@@ -153,6 +153,19 @@ CI(`.github/workflows/test.yml`)에 `npm test`(backend), `pytest -m "not network
 > 픽스처: 임시 디렉터리에 mermaid 블록 md 를 만들고 `services/diagrams.js` 의 docs 루트를 주입.
 > 파싱 로직(펜스 추출·heading 매칭)은 순수 함수로 분리해 단위 테스트 가능하게 한다.
 
+### 3.5c Supabase 부트스트랩 — `backend/test/supabase.test.js` (Phase E 선행, 2026-09-06)
+
+| ID | 대상 | 전제 | 입력 | 기대 결과 | 우선 |
+|---|---|---|---|---|:---:|
+| TC-SYNC-01 | ADR-0008 후속 | `SUPABASE_*` 미설정 | `GET /api/tasks` | 200 (회귀 — 부트스트랩이 기존 기능 무영향) | P1 |
+| TC-SYNC-02 | `backend/src/supabase.js` | 미설정 | `getSupabaseClient()` | `null` 반환, 예외 없음; `isConfigured()===false` | P1 |
+| TC-SYNC-03 | `/api/sync/health` | 미설정 | `GET /api/sync/health` | 200 `{supabase:'unconfigured'}`, 네트워크 미접촉 | P1 |
+| TC-SYNC-04 | 지연 생성 싱글턴 | 더미 `SUPABASE_URL`/`KEY` | `getSupabaseClient()` ×2 | 클라이언트 객체, `typeof client.from==='function'`, 2회 동일 인스턴스 | P1 |
+| TC-SYNC-05 | 비밀값 미노출 | 더미 키 + `SUPABASE_TIMEOUT_MS=100` (라우팅 불가 IP) | `GET /api/sync/health` | 200, 응답 문자열에 키 값 미포함 (status 무관) | P2 |
+
+> **원칙:** 실제 Supabase 네트워크 호출 테스트는 작성하지 않는다 (CI 네트워크 의존 금지).
+> `beforeEach` 에서 `SUPABASE_URL`/`SUPABASE_KEY`/`SUPABASE_TIMEOUT_MS` 를 `delete` (개발자 셸 export 방어), `after` 에서 원복.
+
 ### 3.5b 미들웨어 — `backend/test/middleware.test.js` (Phase C1)
 
 | ID | 대상 | 절차 | 기대 결과 |
@@ -272,7 +285,7 @@ supervisor 는 리뷰 시 "이 변경에 대응하는 테스트가 있는가"를
 
 ## 7. 현재 상태 (2026-09-06, Phase C5 완료)
 
-- 백엔드 자동화 테스트: **51케이스 작성됨** — `backend/test/tasks.test.js` (TC-TASK-01,02,04~10 + TC-PROJ-08/09/09b/09c/09d + TC-DB-04a), `backend/test/projects.test.js` (TC-PROJ-01~07,10,11 + TC-DB-04b), `backend/test/calendar.test.js` (TC-CAL-01~07), `backend/test/db.test.js` (TC-DB-01~03 + TC-DB-04c/d), `backend/test/middleware.test.js` (TC-MW-01~09). `supertest` + `node --test`, `:memory:` DB. (TC-DB-04b 는 project status 검증이라 `projects.test.js` 에 위치.)
+- 백엔드 자동화 테스트: **56케이스 작성됨** — `backend/test/tasks.test.js` (TC-TASK-01,02,04~10 + TC-PROJ-08/09/09b/09c/09d + TC-DB-04a), `backend/test/projects.test.js` (TC-PROJ-01~07,10,11 + TC-DB-04b), `backend/test/calendar.test.js` (TC-CAL-01~07), `backend/test/db.test.js` (TC-DB-01~03 + TC-DB-04c/d), `backend/test/middleware.test.js` (TC-MW-01~09), `backend/test/diagrams.test.js` (TC-DIAG-01~05), `backend/test/supabase.test.js` (TC-SYNC-01~05). `supertest` + `node --test`, `:memory:` DB. (TC-DB-04b 는 project status 검증이라 `projects.test.js` 에 위치.)
 - 에이전트 자동화 테스트: **3케이스 작성됨** — `agent/tests/test_daily_brief.py` (TC-AGENT-01~03). `test_claude.py` 는 `agent/tests/` 로 이동(연결 확인용, 키 없으면 skip).
 - CI: 문법 검사 + `npm test`(backend) + `pytest -m "not network"`(agent) 연결됨. `node -c src/app.js`, `src/db.js`, `db/index.js` 추가.
 - `verify.sh`: + `backend/src/routes/calendar.js`·`backend/src/services/calendar.js` 문법 체크 추가 (21/0/0, SKIP 없음).
