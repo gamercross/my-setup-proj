@@ -63,7 +63,7 @@
 ## 결과 / 트레이드오프
 - 신규 파일: `backend/src/services/diagrams.js`, `backend/src/routes/diagrams.js`,
   `backend/test/diagrams.test.js`, `frontend/src/components/DiagramPanel.jsx`.
-- 수정: `backend/src/routes/api.js`(`/diagrams` 연결), `frontend/src/components/Dashboard.jsx`
+- 수정: `backend/src/routes/api.js`(`/diagrams` 연결). 프론트 연결은 C4 당시 `Dashboard.jsx` → C5 에서 `widgets/views/DiagramsWidgetView.jsx`(diagrams 위젯)로 이관
   (패널 추가), `frontend/package.json`(`mermaid` dependency), `frontend/src/api/client.js`
   (`getDiagrams()` — B3 에서 만드는 client 재사용), `electron-builder` 설정(`extraResources`).
 - 프론트 번들: mermaid 는 별도 청크. 패널을 처음 열 때 한 번 로드.
@@ -83,7 +83,7 @@
   못 찾으면 `200 { diagrams: [] }`. 테스트 `backend/test/diagrams.test.js` TC-DIAG-01~05.
 - **프론트**: `frontend/src/components/DiagramPanel.jsx` — 패널 진입 시 `import('mermaid')`
   (`mermaid@11.17.2`, 동적 청크 ~683kB), 블록 단위 `mermaid.render()` + 실패 시 원문 코드 폴백.
-  CSP 완화 없음. `frontend/src/components/Dashboard.jsx` 에 패널 연결.
+  CSP 완화 없음. 패널 연결: C4 는 `Dashboard.jsx`, C5 부터 `diagrams` 위젯(`DiagramsWidgetView.jsx`).
 - **응답 스키마**: `[{ doc, path, index, title, code }]`.
 - **이월**: `electron-builder` `extraResources` 로 `docs/` 실배선은 **E3 로 이월**(패키지 빌드 단계).
 - **로컬 대기**: 브라우저 수동 확인(TC-UI-09 계열) 로컬 대기.

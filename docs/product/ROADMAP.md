@@ -221,9 +221,9 @@ CORS 미들웨어(Phase C1)가 선행돼야 한다. 설계는 [ADR-0014](archite
 
 #### 대시보드 OS — 위젯 셸 (FR-WIDGET · Phase C5~C6)
 
-🆕 방향 전환: 고정 패널 → 각 데이터가 위젯으로 움직이고 위젯마다 디자인. 개념 [vision/DASHBOARD_OS.md](vision/DASHBOARD_OS.md), 결정 [ADR-0020~0022](architecture/adr/) (전부 **제안** — 착수 전 DASHBOARD_OS §8 의 DO-1~6 확정).
+🆕 방향 전환: 고정 패널 → 각 데이터가 위젯으로 움직이고 위젯마다 디자인. 개념 [vision/DASHBOARD_OS.md](vision/DASHBOARD_OS.md), 결정 [ADR-0020/0021](architecture/adr/) **채택**(C5) · [ADR-0022](architecture/adr/ADR-0022-per-widget-theming.md) 채택(골격 C5 / 구현 C6). DASHBOARD_OS §8 DO-1~6 확정 완료.
 
-- [ ] **C5 위젯 셸** — `widgets/registry.js` + `WidgetShell`/`WidgetHost`(react-grid-layout)/`WidgetFrame`, `useLayoutStore`, localStorage 영속. 기존 할일·프로젝트 뷰를 위젯으로 이관. 위젯별 `ErrorBoundary`. (FR-WIDGET-01~04·07·08)
+- [x] **C5 위젯 셸** (2026-09-06, `feature/c5-widget-shell`) — `widgets/{registry,defaultLayout,layoutStorage,themeVars}.js` + `widgets/views/*` + `WidgetShell`/`WidgetHost`(react-grid-layout 2.2.4 `/legacy`)/`WidgetFrame`/`WidgetPicker`, `useLayoutStore`, localStorage 영속(훼손 시 기본값 폴백). 기존 4패널을 위젯 뷰로 이관하고 `Dashboard.jsx` 삭제. 위젯별 `ErrorBoundary` 격리. (FR-WIDGET-01~04·07·08). 검증 build·backend 51/51·verify 23/0/0. 브라우저 수동 TC-WIDGET-01~08 로컬 대기.
 - [ ] **C6 위젯 커스터마이즈** — 전역 인라인 style → CSS 변수, `WidgetSettings`(테마+표시 탭), `themePresets.js`, `themeToVars` 화이트리스트. (FR-WIDGET-05·06)
 - [ ] **테스트** — TC-WIDGET-01~ (레이아웃 저장/복원, 손상 폴백, config 검증, 위젯 격리)
 - **일정 주의:** 시험 기간(Week 8, R-1) 전 최소선 = 그리드 배치 + 레이아웃 저장 + 위젯별 색. 나머지는 이후로 이월 가능.
@@ -232,7 +232,7 @@ CORS 미들웨어(Phase C1)가 선행돼야 한다. 설계는 [ADR-0014](archite
 - ✅ 할일 CRUD 완료
 - ✅ Notion 연동 확인
 - ✅ Google Calendar 동기화 작동
-- [ ] 위젯 셸에서 위젯 이동·리사이즈·레이아웃 저장·위젯별 테마 (C5~C6)
+- 🚧 위젯 셸에서 위젯 이동·리사이즈·레이아웃 저장·위젯별 테마 — C5(셸·이동·리사이즈·저장) ✅ / C6(위젯별 테마) 예정
 
 ---
 

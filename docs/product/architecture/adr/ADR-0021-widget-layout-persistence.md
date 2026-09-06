@@ -1,6 +1,6 @@
 # ADR-0021: 위젯 레이아웃·설정 영속화
 
-- 상태: 제안 (2026-09-03)
+- 상태: 채택 (2026-09-06, Phase C5 — 단계 1 `localStorage` 구현)
 - 관련: FR-WIDGET-04·05·06, [ADR-0020](ADR-0020-widget-shell-architecture.md), [ADR-0015](ADR-0015-local-first-architecture.md), [ADR-0018](ADR-0018-schema-migration-strategy.md), [DATA_ARCHITECTURE.md](../DATA_ARCHITECTURE.md)
 
 ## 맥락
@@ -17,7 +17,7 @@
 
 - **저장 트리거:** 레이아웃/ config 변경 → 300ms 디바운스 → 저장 (FR-WIDGET-04 AC-1).
 - **복원 실패 처리:** 파싱 실패·`version` 불일치·손상 → 기본 레이아웃으로 폴백 + `console.warn`, 앱은 계속 (AC-4).
-- **기본 레이아웃:** 코드 상수(`widgets/defaultLayout.js`) — 할일·프로젝트·브리핑 3개.
+- **기본 레이아웃:** 코드 상수(`widgets/defaultLayout.js`) — 할일·프로젝트·캘린더 3개. (다이어그램은 폭이 커서 기본 제외 — 피커로만 추가. 브리핑/메일 위젯은 뷰 미구현이라 레지스트리 제외.)
 - **config 검증:** 레지스트리의 `configSchema` 로 프론트에서 검증. 단계 2에서 백엔드도 화이트리스트 검증(임의 키·CSS 문자열 거부, NFR-SEC-04).
 - **마이그레이션:** `localStorage` 키에 `v1` 붙임. 스키마 바뀌면 `v2` + 1회 변환 함수. SQLite 단계는 [ADR-0018](ADR-0018-schema-migration-strategy.md) 마이그레이션.
 

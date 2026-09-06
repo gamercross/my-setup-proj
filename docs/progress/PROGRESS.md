@@ -89,15 +89,15 @@
 개발: 72%
 ```
 
-> Phase A2·A3·B1·B2·C1·C2·C3·C4 완료, B3·C2 코드 배선 완료 (C4: 2026-09-06). 다음: D2(실 캘린더/노션 연동) 또는 B3/C1/C2/C3/C4 브라우저 E2E 로컬 검증.
-> 검증 스냅샷: `node v26.8.1 / npm 11.19.0 / python 3.14.4`, `verify.sh` 23/0/0, `npm test` 51/0, `pytest -m "not network"` 3 pass.
+> Phase A2·A3·B1·B2·C1·C2·C3·C4·C5 완료, B3·C2 코드 배선 완료 (C4·C5: 2026-09-06). 다음: C6(위젯 커스터마이즈) 또는 D2(실 캘린더/노션 연동), B3~C5 브라우저 E2E 로컬 검증.
+> 검증 스냅샷: `node v26.8.1 / npm 11.19.0 / python 3.14.4`, `verify.sh` 23/0/0, `npm test` 51/0, `pytest -m "not network"` 3 pass, `frontend npm run build` 성공.
 
 ---
 
 ## 🗓️ Week 2: 기본 프로젝트 구축 (09-09 ~ 09-15)
 
 **목표:** Electron + React 기본 UI 완성, Express 서버 실행  
-**진행도:** 90% 🚧 (진행 중 — Phase B1·B2·C1·C2·C3·C4 완료, B3·C2 코드 배선 완료 / 브라우저 E2E·수동체크 로컬 대기)
+**진행도:** 92% 🚧 (진행 중 — Phase B1·B2·C1·C2·C3·C4·C5 완료, B3·C2 코드 배선 완료 / 브라우저 E2E·수동체크 로컬 대기)
 
 ### 강의
 - [ ] Chapter 02: 디렉토리와 파일 사용법
@@ -166,6 +166,15 @@
   - [x] `npm test` 51/51, `verify.sh` 23/0/0, `npm run build` 성공 (mermaid 별도 청크)
   - [ ] 브라우저 수동 체크 (TC-UI-09 계열) — 로컬 수행 대기 (샌드박스 창 기동 불가)
   - 이월: `electron-builder` `extraResources` 로 `docs/` 실배선 → E3
+- [x] 위젯 셸 — 대시보드 OS (Phase C5, ADR-0020/0021 채택 · ADR-0022 골격) → 완료 (2026-09-06, feature/c5-widget-shell)
+  - [x] DASHBOARD_OS §8 DO-1~6 결정 (RGL·타입당 1개·localStorage·프론트 검증·편집 토글·다이어그램 위젯화)
+  - [x] `frontend/src/widgets/{registry,defaultLayout,layoutStorage,themeVars}.js` + `widgets/views/{Tasks,Projects,Calendar,Diagrams}WidgetView.jsx`
+  - [x] `frontend/src/store/useLayoutStore.js` — zustand instances[]·editMode·focusedId, 300ms 디바운스 localStorage 저장, 훼손 시 기본값 폴백
+  - [x] `frontend/src/components/{WidgetShell,WidgetHost,WidgetFrame,WidgetPicker}.jsx` — `react-grid-layout` 2.2.4 `/legacy` 서브패스, `react-resizable` 3.2.0 핀
+  - [x] 기존 4패널을 위젯 뷰로 이관하고 `frontend/src/components/Dashboard.jsx` 삭제, 위젯별 `ErrorBoundary` 격리 (FR-WIDGET-01~04·07·08)
+  - [x] `frontend npm run build` 성공, `backend npm test` 51/51, `verify.sh` 23/0/0 (`--code-only` 16/0/0)
+  - [ ] 브라우저 수동 체크 (TC-WIDGET-01~08) — 로컬 수행 대기 (샌드박스 창 기동 불가)
+  - 이월: 위젯별 테마·표시 옵션 (`themeToVars` 화이트리스트, `WidgetSettings`) → C6
 
 ### 배운 Linux 명령어
 ```bash
@@ -178,13 +187,13 @@ wc -l                  # 줄 수 세기
 
 ### 진행 상황 요약
 ```
-완료한 작업: 10개 (React 컴포넌트 스캐폴드, 번들러(Vite) 연결 = B1, Express CRUD 라우트, 자동화 테스트 골격 + CI, SQLite 교체 = B2, 프론트↔백엔드 코드 배선 = B3, 백엔드 미들웨어 정식화 = C1, 프로젝트 CRUD 프론트 배선 + errors.js + tasks.project_id = C2, 캘린더 위젯 + /api/calendar/events 더미 = C3, 다이어그램 뷰어 + /api/diagrams = C4)
-진행 중: 1개 (B3·C2·C3·C4 브라우저 E2E·GUI 수동체크 — 로컬 대기)
+완료한 작업: 11개 (React 컴포넌트 스캐폴드, 번들러(Vite) 연결 = B1, Express CRUD 라우트, 자동화 테스트 골격 + CI, SQLite 교체 = B2, 프론트↔백엔드 코드 배선 = B3, 백엔드 미들웨어 정식화 = C1, 프로젝트 CRUD 프론트 배선 + errors.js + tasks.project_id = C2, 캘린더 위젯 + /api/calendar/events 더미 = C3, 다이어그램 뷰어 + /api/diagrams = C4, 위젯 셸 대시보드 OS + Dashboard.jsx 삭제 = C5)
+진행 중: 1개 (B3·C2·C3·C4·C5 브라우저 E2E·GUI 수동체크 — 로컬 대기)
 예정된 작업: 1개 (샘플 데이터)
 
-진행도: 87%
+진행도: 89%
 강의 수강: 0%
-개발: 92%
+개발: 94%
 ```
 
 ---
@@ -238,7 +247,7 @@ Week 1  ███████░░░ 70%
 Week 2  ███████░░░ 65%
 Week 3  ████░░░░░░ 40%
 Week 4  ███░░░░░░░ 30%  (FR-PROJ-01/02 프론트 배선 = Phase C2, 2026-09-03)
-Week 5  ███░░░░░░░ 30%  (FR-CAL-01/02 캘린더 위젯 = Phase C3; FR-UI-05 다이어그램 뷰어 = Phase C4, 2026-09-06)
+Week 5  █████░░░░░ 45%  (FR-CAL-01/02 캘린더 위젯 = C3; FR-UI-05 다이어그램 뷰어 = C4; FR-WIDGET-01~04·07·08 위젯 셸 = C5, 2026-09-06)
 ...
 Week 14 ░░░░░░░░░░  0%
 ```

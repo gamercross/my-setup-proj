@@ -35,7 +35,8 @@
 | 경로 | 책임 | 여기 두면 안 되는 것 |
 |---|---|---|
 | `frontend/src/` | Electron 메인 + React 렌더러 | 백엔드 로직, 시크릿 |
-| `frontend/src/components/` | 순수 프레젠테이션 컴포넌트 | fetch 호출(→ `api/`), 전역 상태(→ `store/`) |
+| `frontend/src/components/` | 순수 프레젠테이션 컴포넌트 (예외: `Widget{Shell,Host,Frame,Picker}` 은 셸 컨테이너 — `useLayoutStore` 연결 허용) | 도메인 fetch 호출(→ `api/`), 도메인 상태(→ `store/`) |
+| `frontend/src/widgets/` | 위젯 레지스트리·기본 레이아웃·레이아웃 저장소·테마 변수 + `views/`(도메인 스토어 구독하는 위젯 뷰) | 셸 배치 로직(→ `components/WidgetHost`), 백엔드 로직 |
 | `frontend/src/api/` | fetch 래퍼, 에러 정규화 | UI 로직 |
 | `frontend/src/store/` | zustand 스토어 | 컴포넌트 |
 | `backend/src/routes/` | HTTP 요청/응답 매핑, 입력 검증 | 비즈니스 로직, SQL |

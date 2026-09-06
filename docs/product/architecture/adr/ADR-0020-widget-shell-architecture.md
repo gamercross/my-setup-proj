@@ -1,22 +1,23 @@
 # ADR-0020: 위젯 셸 아키텍처 (배치 엔진 · 위젯 계약)
 
-- 상태: 제안 (2026-09-03)
+- 상태: 채택 (2026-09-06, Phase C5 골격 구현)
 - 관련: [DASHBOARD_OS.md](../../vision/DASHBOARD_OS.md), FR-WIDGET-01~03·07·08, [ADR-0001](ADR-0001-frontend-react-vite.md), [ADR-0005](ADR-0005-state-zustand.md), [UI_SPEC.md](../../reference/UI_SPEC.md) §3.8
 
 ## 맥락
 제품을 "고정 패널 대시보드" 에서 "위젯이 움직이는 데스크톱 OS" 로 바꾼다. `Dashboard.jsx` 가 패널을 하드코딩하는 대신, 위젯을 배치·이동·리사이즈하는 **셸**과, 모든 위젯이 따르는 **계약**이 필요하다.
 
-## 결정 (제안)
-1. **배치 엔진: `react-grid-layout`(RGL, MIT)** — 드래그·리사이즈·반응형 그리드·레이아웃 직렬화의 사실상 표준. `WidgetHost` 가 RGL 을 감싼다.
-   - 기본 12열 그리드, 반응형 브레이크포인트(lg/md/sm). 완전 프리폼(픽셀 자유배치)은 채택 안 함(범위 밖).
+## 결정 (채택 — Phase C5)
+1. **배치 엔진: `react-grid-layout`(RGL 2.2.4, MIT)** — 드래그·리사이즈·반응형 그리드·레이아웃 직렬화의 사실상 표준. `WidgetHost` 가 RGL 을 감싼다.
+   - 12열 그리드. C5 는 **사실상 단일 브레이크포인트 `lg`**(`breakpoints={{lg:0}}`·`cols={{lg:12}}`) 로 저장 — 브레이크포인트 드리프트(R4) 원천 제거. 창 폭 축소 시 재배치는 `WidthProvider` 가 컨테이너 폭에 맞춰 처리. 완전 프리폼(픽셀 자유배치)은 채택 안 함(범위 밖).
+   - RGL 2.x 는 TS 재작성으로 최상위에서 `WidthProvider`·`data-grid` 를 제거 → 공식 호환 경로 `react-grid-layout/legacy` 사용.
 2. **위젯 계약** — `frontend/src/widgets/registry.js` 의 항목:
    ```
    { type, name, icon, description,
      defaultSize:{w,h}, minSize:{w,h}, maxSize:{w,h},
-     view: React.Component,        // props: { instanceId, config, data-hooks 결과 }
-     configSchema,                 // 테마 + 표시 옵션의 허용 키·타입 (검증용)
-     useData }                     // 이 위젯이 구독할 도메인 스토어/엔드포인트
+     view: React.Component,        // props: { instanceId, config }
+     configSchema }                // 테마 + 표시 옵션의 허용 키·타입 (C5 는 {} 스텁, C6 채움)
    ```
+   데이터 구독 훅(`useData`)은 두지 않는다 — 각 뷰가 자기 도메인 스토어를 직접 구독한다(상태 분리).
 3. **컴포넌트 계층**
    ```
    WidgetShell        편집모드 토글 · 위젯 피커 · 레이아웃 스토어 연결

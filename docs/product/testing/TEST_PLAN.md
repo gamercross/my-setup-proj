@@ -63,6 +63,8 @@ tests/                      # 크로스 프로젝트 통합 (Week 12+, 지금은
 
 CI(`.github/workflows/test.yml`)에 `npm test`(backend), `pytest -m "not network"`(agent) 단계가 연결됨 (Phase A3 — NFR-TEST-03).
 
+프론트엔드(`frontend/`)에는 아직 테스트 러너가 없다. UI 계층 검증은 `npm run build`(타입/번들 성공) + §3.6~3.7 수동 체크리스트로 커버한다. 위젯 셸 관련 코드(C5): `frontend/src/widgets/{registry,defaultLayout,layoutStorage,themeVars}.js` + `widgets/views/*` + `components/Widget{Shell,Host,Frame,Picker}.jsx` + `store/useLayoutStore.js`.
+
 ---
 
 ## 3. 테스트 케이스 목록
@@ -195,6 +197,21 @@ CI(`.github/workflows/test.yml`)에 `npm test`(backend), `pytest -m "not network
 | TC-UI-18 | FR-CAL-02 AC-6/7/8 | 일정 패널의 항목 배지 확인 | 오늘/내일 배지 + 좌측 accent 보더, 그 외 `M/D`, 시간 미정 항목은 맨 뒤 "시간 미정". 상태: C3 완료, 로컬 수동 확인 대기 |
 | TC-UI-19 | FR-CAL-01 AC-5 / FR-UI-01 AC-2 | 캘린더 API 중단 후 앱 실행 | 일정 패널만 `ErrorBanner` + 재시도, "일정이 없습니다" 문구 미표시, 할일·프로젝트 패널 정상 렌더. 상태: C3 완료, 로컬 수동 확인 대기 |
 
+### 3.7 위젯 셸 수동 체크리스트 (Phase C5, FR-WIDGET)
+
+자동화 러너가 프론트에 없어 수동 확인. `npm run dev`(또는 `build && start`) 로 실행.
+
+| ID | 대상 | 절차 | 통과 조건 |
+|---|---|---|---|
+| TC-WIDGET-01 | FR-WIDGET-01 AC-3 | 편집 OFF(기본) 상태에서 위젯 본문 조작 | 체크박스 토글·목록 스크롤·폼 입력 정상 동작, 타이틀바 드래그해도 위젯 이동 안 함. 상태: C5 완료, 로컬 수동 확인 대기 |
+| TC-WIDGET-02 | FR-WIDGET-01 AC-1/2 | `✎ 편집` ON → 타이틀바 드래그 이동, 모서리 핸들 리사이즈 | 그리드 스냅 이동·충돌 시 밀림, 리사이즈가 타입 min/maxSize 안에서 클램프. 상태: C5 완료, 로컬 수동 확인 대기 |
+| TC-WIDGET-03 | FR-WIDGET-02 AC-5 | `+ 위젯` → 다이어그램 추가 → 다시 피커 열기 | 추가된 타입 항목이 비활성 + "이미 추가됨". 상태: C5 완료, 로컬 수동 확인 대기 |
+| TC-WIDGET-04 | FR-WIDGET-02 AC-4 | 위젯 `─` 클릭 → 다시 클릭 | 타이틀바만 남게 축소(h=1) → 재클릭 시 이전 높이(prevH) 복원. 상태: C5 완료, 로컬 수동 확인 대기 |
+| TC-WIDGET-05 | FR-WIDGET-04 AC-2 | 배치·크기·최소화 바꾸고 앱 재시작 | 마지막 레이아웃(위치·크기·z·최소화) 복원. 상태: C5 완료, 로컬 수동 확인 대기 |
+| TC-WIDGET-06 | FR-WIDGET-04 AC-4 | DevTools 에서 `localStorage['dashboard.layout.v1']` 를 깨진 JSON 으로 덮고 재시작 | 기본 레이아웃(할일·프로젝트·캘린더) + `console.warn`, 흰 화면 없음. 상태: C5 완료, 로컬 수동 확인 대기 |
+| TC-WIDGET-07 | FR-WIDGET-08 AC-2 | 저장 레이아웃 `instances` 에 `{id:'x',type:'zzz',...}` 주입 후 재시작 | 그 위젯만 "알 수 없는 위젯입니다 (zzz)" + `✕` 로 제거 가능, 나머지 위젯 정상. 상태: C5 완료, 로컬 수동 확인 대기 |
+| TC-WIDGET-08 | FR-WIDGET-07 AC-2 | 한 위젯 뷰에 임시 `throw` 삽입 | 해당 위젯 본문만 `ErrorBanner` 폴백, 셸 바·다른 위젯 생존. 상태: C5 완료, 로컬 수동 확인 대기 |
+
 ---
 
 ## 4. 픽스처 정책
@@ -234,13 +251,14 @@ supervisor 는 리뷰 시 "이 변경에 대응하는 테스트가 있는가"를
 
 ---
 
-## 7. 현재 상태 (2026-09-06, Phase C3 완료)
+## 7. 현재 상태 (2026-09-06, Phase C5 완료)
 
-- 백엔드 자동화 테스트: **46케이스 작성됨** — `backend/test/tasks.test.js` (TC-TASK-01,02,04~10 + TC-PROJ-08/09/09b/09c/09d + TC-DB-04a), `backend/test/projects.test.js` (TC-PROJ-01~07,10,11 + TC-DB-04b), `backend/test/calendar.test.js` (TC-CAL-01~07), `backend/test/db.test.js` (TC-DB-01~03 + TC-DB-04c/d), `backend/test/middleware.test.js` (TC-MW-01~09). `supertest` + `node --test`, `:memory:` DB. (TC-DB-04b 는 project status 검증이라 `projects.test.js` 에 위치.)
+- 백엔드 자동화 테스트: **51케이스 작성됨** — `backend/test/tasks.test.js` (TC-TASK-01,02,04~10 + TC-PROJ-08/09/09b/09c/09d + TC-DB-04a), `backend/test/projects.test.js` (TC-PROJ-01~07,10,11 + TC-DB-04b), `backend/test/calendar.test.js` (TC-CAL-01~07), `backend/test/db.test.js` (TC-DB-01~03 + TC-DB-04c/d), `backend/test/middleware.test.js` (TC-MW-01~09). `supertest` + `node --test`, `:memory:` DB. (TC-DB-04b 는 project status 검증이라 `projects.test.js` 에 위치.)
 - 에이전트 자동화 테스트: **3케이스 작성됨** — `agent/tests/test_daily_brief.py` (TC-AGENT-01~03). `test_claude.py` 는 `agent/tests/` 로 이동(연결 확인용, 키 없으면 skip).
 - CI: 문법 검사 + `npm test`(backend) + `pytest -m "not network"`(agent) 연결됨. `node -c src/app.js`, `src/db.js`, `db/index.js` 추가.
 - `verify.sh`: + `backend/src/routes/calendar.js`·`backend/src/services/calendar.js` 문법 체크 추가 (21/0/0, SKIP 없음).
 - 미작성(후속): TC-TASK-03/11/12, TC-AGENT-04~06.
+- Phase C5(2026-09-06): 위젯 셸 — 대시보드 OS. `frontend/src/widgets/{registry,defaultLayout,layoutStorage,themeVars}.js`·`widgets/views/{Tasks,Projects,Calendar,Diagrams}WidgetView.jsx`·`components/Widget{Shell,Host,Frame,Picker}.jsx`·`store/useLayoutStore.js`(신규), `App.jsx`·`ErrorBoundary.jsx`(fallback prop) 수정, `Dashboard.jsx` 삭제. `react-grid-layout@2.2.4`(`/legacy`)·`react-resizable@3.2.0` 정확 버전 핀. ADR-0020/0021/0022 채택. 백엔드 무변경 회귀 `npm test` 51/51, `verify.sh` 16/0/0(--code-only) · 풀런 23/0/0, frontend `npm run build` 성공(RGL CSS 는 `dist/assets/index-*.css` 에 번들, 신규 청크 경고 없음). 위젯 셸 수동 체크(TC-WIDGET-01~08)는 로컬 수행 대기(프론트 러너 없음).
 - Phase C3(2026-09-06): 캘린더 위젯 + `GET /api/calendar/events` 더미 API. `backend/src/services/calendar.js`(신규, 인메모리 더미 6건 + from/to 필터·정렬), `backend/src/routes/calendar.js`(신규), `frontend/src/store/useCalendarStore.js`(신규), `frontend/src/components/CalendarWidget.jsx`(신규), `Dashboard.jsx` 일정 패널 추가. `backend/test/calendar.test.js`(TC-CAL-01~07). `npm test` 46/46, `verify.sh` 21/0/0, frontend `npm run build` 성공. 브라우저 수동 체크(TC-UI-17~19)는 로컬 수행 대기. 실 캘린더 연동(FR-CAL-03)은 D2 이월.
 - Phase C2(2026-09-03): 프로젝트 CRUD 프론트 배선(`useProjectStore`, `ProjectForm`, `ProjectCard` 상태·진행도·삭제) + `tasks.project_id` 라우트 검증(ADR-0012) + `backend/src/errors.js`(SQLite CHECK/NOTNULL/FK → 400 한국어) + `'hold'`→`'on_hold'` 통일. `npm test` 39/39, `verify.sh` 19/0/0, frontend `npm run build` 성공. 브라우저 수동 체크(TC-UI-14~16)는 로컬 수행 대기(샌드박스 창 기동 불가).
 - Phase C1(2026-09-03): `backend/src/middleware/{cors,requestLogger,errorHandler}.js` 분리, `backend/src/app.js` 미들웨어 체인 정식화(`requestLogger` 최상단), `backend/test/middleware.test.js` 신규(TC-MW-01~09). `npm test` 27/27, `verify.sh` 18/0/0. 브라우저 E2E(TC-UI-10~13)는 로컬 수동 확인 대기.
