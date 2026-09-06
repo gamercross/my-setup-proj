@@ -54,7 +54,7 @@
 
 | 규칙 | 값 |
 |---|---|
-| 모델 | `claude-opus-5` (최신). 하위 에이전트 모델 지정은 각 `.claude/agents/*.md` 프론트매터. |
+| 모델 | `claude-sonnet-5` (Daily Brief 비용 최적화 — 요약 작업엔 충분). 하위 에이전트 모델 지정은 각 `.claude/agents/*.md` 프론트매터. |
 | 사고 모드 | `thinking: {type: "adaptive"}` |
 | 상수 관리 | 모델명은 `agent/services/claude.py` 의 `DEFAULT_MODEL` 한 곳. 다른 곳에서 문자열 반복 금지. |
 | 인증 | `ANTHROPIC_API_KEY` 환경변수 또는 `ant auth login` 프로필. 코드에 키 없음. |

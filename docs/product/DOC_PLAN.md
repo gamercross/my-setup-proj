@@ -175,7 +175,7 @@ Electron 앱의 화면을 컴포넌트 단위로 명세하는 UI_SPEC.md 를 만
   계층 분리(routes→services→db)
 - 네이밍: 파일/함수/변수, DB 컬럼(snake_case), API 필드
 - 폴더 책임표: | 경로 | 책임 | 여기 두면 안 되는 것 |
-- Claude 사용: 모델 claude-opus-5, thinking adaptive, 상수 1곳 관리
+- Claude 사용: 모델 claude-sonnet-5, thinking adaptive + effort low, 상수 1곳 관리
 - 커밋: 컨벤션(feat/fix/docs/...), 메시지 언어, main 직접 커밋 금지, --force 금지
 - 브랜치 전략 (현재/목표)
 - 에이전트 파이프라인 규칙(한 기능=/feature 1회)

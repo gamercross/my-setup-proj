@@ -1,6 +1,7 @@
 """Claude API 래퍼 (Week 1 최소 구현).
 
-최신 모델 claude-opus-5 를 기본값으로 사용한다.
+기본 모델은 claude-sonnet-5 다 — Daily Brief 는 짧은 요약 작업이라
+Opus 대비 토큰 단가가 1/5 수준이면서 품질 차이가 미미하다(비용 절감).
 Week 3부터 daily_brief 에서 이 모듈을 호출한다.
 """
 
@@ -12,8 +13,11 @@ from services.retry import call_with_retry
 
 load_dotenv()
 
-# 기본 모델: 최신 Claude 모델
-DEFAULT_MODEL = "claude-opus-5"
+# 기본 모델: Sonnet (비용 최적화 — 요약 작업엔 충분). 호출부에서 model 인자로 덮어쓸 수 있다.
+DEFAULT_MODEL = "claude-sonnet-5"
+
+# 브리핑은 단순 요약이라 낮은 추론 강도로 충분하다 — 토큰 지출을 더 줄인다.
+DEFAULT_EFFORT = "low"
 
 
 def _retryable_exceptions() -> tuple:
@@ -54,7 +58,12 @@ def get_client():
     return Anthropic(timeout=30.0, max_retries=0)
 
 
-def ask(prompt: str, system: str | None = None, model: str = DEFAULT_MODEL) -> str:
+def ask(
+    prompt: str,
+    system: str | None = None,
+    model: str = DEFAULT_MODEL,
+    effort: str = DEFAULT_EFFORT,
+) -> str:
     """단일 메시지를 보내고 텍스트 응답을 돌려준다.
 
     실패 시 예외 메시지를 그대로 올려 호출부에서 처리하도록 한다.
@@ -64,8 +73,9 @@ def ask(prompt: str, system: str | None = None, model: str = DEFAULT_MODEL) -> s
     kwargs = {
         "model": model,
         "max_tokens": 1024,
-        # 적응형 사고(adaptive thinking) 사용
+        # 적응형 사고(adaptive thinking) + 낮은 effort 로 토큰 지출을 억제한다.
         "thinking": {"type": "adaptive"},
+        "output_config": {"effort": effort},
         "messages": [{"role": "user", "content": prompt}],
     }
     if system:
