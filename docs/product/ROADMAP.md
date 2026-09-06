@@ -50,12 +50,15 @@ flowchart LR
 
 | Phase | A-Week | B-Week | C-Week | 공통 마일스톤 |
 |---|---|---|---|---|
-| A~B | W1~3 | W1~3 | W1~3 | — |
+| A | W1~2 | W1~2 | W1~2 | — |
+| B | W2~3 | W2~3 | W2~3 | — |
 | C | W4~5 | W4~5 | W3~7 | — |
 | D | W6~7 | W6~7 | W7 | — |
 | — | W8 | W8 | W8 | **W8: 3강의 수시/중간 + 중간발표** |
 | E | W9~13 | W9~14 | W9~14 | — |
 | — | W14~15 | W15 | W15 | **W15: 3강의 정기/기말 + 최종발표** |
+
+> Phase↔Week 넘버링·주제·상태의 단일 원천은 [DESIGN.md §8](architecture/DESIGN.md#8-단계별-구현-계획-feature-단위) 이다. 위 표는 그 발췌.
 
 발표 산출물이 강의별로 어떻게 갈리는지는 [COURSE_MAPPING.md §6](../progress/COURSE_MAPPING.md#6-발표-산출물-맵-w8--w15).
 

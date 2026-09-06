@@ -10,7 +10,7 @@
 동시에 우송대학교 2026-2학기 3개 강의(AI 컴퓨터 운영체제 실습 / AI시대소프트웨어공학 / AITool기반소프트웨어공학)의 공통 실습 환경이자 제출 산출물이다. 각 강의가 보는 층이 다르다 — 런타임·환경(A) / AI 활용 개발 프로세스(B) / SW공학 산출물(C). 상세: [COURSE_MAPPING.md](progress/COURSE_MAPPING.md). "대시보드 OS" 는 강의 A 의 창·프로세스 관리 주제와 정합한다.
 시작 2026-09-02, 목표 완성 2026-11-30.
 
-핵심 기능 4종: ① 오늘/내일 할 일 자동 브리핑 ② 프로젝트 진행도(Notion) ③ 이메일 통합 ④ 캘린더 일정. 이들이 위젯으로 셸에 올라간다 (위젯 셸 = Phase C5~C6, [DASHBOARD_OS.md](product/vision/DASHBOARD_OS.md)).
+핵심 기능 4종: ① 오늘/내일 할 일 자동 브리핑 ② 프로젝트 진행도(Notion) ③ 이메일 통합 ④ 캘린더 일정. 이들이 위젯으로 셸에 올라간다 (위젯 셸 골격 = Phase C5 완료 2026-09-06, 위젯별 테마·표시 옵션 = Phase C6, [DASHBOARD_OS.md](product/vision/DASHBOARD_OS.md)).
 
 ---
 
@@ -91,16 +91,19 @@ flowchart TB
 
 | 영역 | 상태 |
 |---|---|
-| 개념 설계 · 요구사항 · 아키텍처 문서 · 12개 ADR | ✅ 완료 (product/) |
+| 개념 설계 · 요구사항 · 아키텍처 문서 · 23개 ADR | ✅ 완료 (product/) |
 | 자동화 인프라 (에이전트 팀 · `/feature` · `/build-next` · 작업로그 · CI) | ✅ 동작 |
-| 로컬 환경 (node v26 · npm 11 · python 3.14 · venv) | ✅ Phase A2, `verify.sh` 15/0/0 |
+| 로컬 환경 (node v26 · npm 11 · python 3.14 · venv) | ✅ Phase A2, `verify.sh` 27/0/0 |
 | 백엔드 tasks/projects CRUD 라우트 | ✅ SQLite 영속화(B2) + 미들웨어 정식화(C1) + `errors.js` 오류 매핑·`tasks.project_id`(C2). 프론트 배선 완료(B3 할일 / C2 프로젝트) |
-| 프론트엔드 React | ✅ B1(Vite 마운트) + B3(할일 CRUD) + C2(프로젝트 CRUD, `useProjectStore`·`ProjectForm`) — 브라우저 E2E 로컬 수동 확인 대기 |
+| 프론트엔드 React | ✅ B1(Vite 마운트) + B3(할일) + C2(프로젝트) + C3(캘린더) + C4(다이어그램) + C5(위젯 셸, `Dashboard.jsx` 제거) — 브라우저 E2E 로컬 수동 확인 대기 |
+| 캘린더 / 다이어그램 API | ✅ C3 `/api/calendar/events`(더미, 실 Google 은 D2) · C4 `/api/diagrams`(services 계층) |
+| 위젯 셸 (대시보드 OS) | ✅ C5 (레지스트리 · `useLayoutStore` · 배치·리사이즈·최소화 · localStorage 영속 · 위젯별 격리) / ⏳ C6 테마·표시 옵션 |
+| Supabase | ✅ 클라이언트 부트스트랩만 (`backend/src/supabase.js` + `GET /api/sync/health`) — 동기화·인증·`user_id` 없음 (Week 10+, ADR-0008) |
 | DB (SQLite) | ✅ B2 (better-sqlite3, WAL, DATABASE_PATH) |
 | AI 에이전트 | 🚧 뼈대 + 스텁 (모듈 import 확인) |
-| 자동화 테스트 | ✅ backend 39 / agent 3 (Phase A3·B2·C1·C2), `verify.sh` 19/0/0 |
+| 자동화 테스트 | ✅ backend 56 / agent 3 (Phase A3~C5 + Supabase 부트스트랩), `verify.sh` 27/0/0 |
 
-**다음 착수:** Phase C3 (캘린더 위젯 + `/api/calendar/events`) 또는 B3/C1/C2 브라우저 E2E 로컬 검증.
+**다음 착수:** Phase C6 (위젯 커스터마이즈) 또는 D2 (실 Google/Notion 연동), 그리고 B3~C5 브라우저 E2E 로컬 검증.
 (제안 ADR 0009~0012 채택됨, D2 부터 `.env` API 키 필요).
 
 ---
@@ -150,7 +153,7 @@ flowchart LR
 환경은 이미 구축됨(Phase A2). 새 머신이면 `bash setup.sh` 부터.
 
 ```bash
-bash verify.sh             # 환경 + 문법 점검 (현재 15/0/0)
+bash verify.sh             # 환경 + 문법 점검 (현재 27/0/0)
 bash verify.sh --code-only # 문법만 (문서 전용 커밋 시)
 bash scripts/render-diagrams.sh   # docs/ 의 Mermaid → SVG
 

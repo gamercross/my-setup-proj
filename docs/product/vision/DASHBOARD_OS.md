@@ -114,8 +114,8 @@ flowchart TB
     PICKER["위젯 피커<br/>(+ 버튼)"]
     HOST --> WF1["WidgetFrame #1<br/>타이틀바 ⚙️ ✕ ─"]
     HOST --> WF2["WidgetFrame #2"]
-    WF1 --> V1["뷰: TaskList (config 적용)"]
-    WF2 --> V2["뷰: CalendarWidget"]
+    WF1 --> V1["뷰: TasksWidgetView (config 적용)"]
+    WF2 --> V2["뷰: CalendarWidgetView"]
   end
   REG["위젯 레지스트리<br/>widgets/registry.js"]
   LAYOUT["레이아웃 스토어<br/>useLayoutStore (zustand)"]

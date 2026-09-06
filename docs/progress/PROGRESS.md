@@ -90,7 +90,7 @@
 ```
 
 > Phase A2·A3·B1·B2·C1·C2·C3·C4·C5 완료, B3·C2 코드 배선 완료 (C4·C5: 2026-09-06). 다음: C6(위젯 커스터마이즈) 또는 D2(실 캘린더/노션 연동), B3~C5 브라우저 E2E 로컬 검증.
-> 검증 스냅샷: `node v26.8.1 / npm 11.19.0 / python 3.14.4`, `verify.sh` 23/0/0, `npm test` 51/0, `pytest -m "not network"` 3 pass, `frontend npm run build` 성공.
+> 검증 스냅샷: `node v26.8.1 / npm 11.19.0 / python 3.14.4`, `verify.sh` 27/0/0, `npm test` 56/0, `pytest -m "not network"` 3 pass, `frontend npm run build` 성공 (Supabase 부트스트랩 포함).
 
 ---
 

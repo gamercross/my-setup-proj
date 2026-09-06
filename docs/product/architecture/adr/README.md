@@ -46,10 +46,10 @@
 | [0006](ADR-0006-agent-owns-external-apis.md) | 외부 API 는 Python 에이전트가 전담 | 채택 | FR-AGENT, FR-CAL, FR-MAIL | A-W11, B-W7 |
 | [0007](ADR-0007-schedule-launchd-cron.md) | 스케줄은 launchd/cron | 채택 | FR-AGENT-05 | A-W6, B-W7 |
 | [0008](ADR-0008-supabase-deferred.md) | Supabase 클라우드 동기화는 Week 10 이후 | 채택 | FR-SYNC | A-W10 |
-| [0009](ADR-0009-sqlite-file-location.md) | SQLite 파일 위치 (`DATABASE_PATH` 주입) | 채택 | FR-TASK-05 | A-W5 |
+| [0009](ADR-0009-sqlite-file-location.md) | SQLite 파일 위치 (`DATABASE_PATH` 주입) | 채택 | FR-TASK-05 | A-W5, C-W4 |
 | [0010](ADR-0010-vite-dev-vs-build.md) | Vite: `NODE_ENV` 로 dev 서버/빌드 분기 | 채택 | FR-UI-02 | A-W4 |
 | [0011](ADR-0011-agent-backend-db-access.md) | 에이전트–백엔드 SQLite: WAL + 쓰기 주체 분리 | 채택 | FR-AGENT-01 | A-W6, B-W7 |
-| [0012](ADR-0012-task-project-link.md) | `tasks.project_id` FK (`ON DELETE SET NULL`) | 채택 | FR-PROJ | C-W4 |
+| [0012](ADR-0012-task-project-link.md) | `tasks.project_id` FK (`ON DELETE SET NULL`) | 채택 | FR-PROJ | B-W3, C-W4 |
 | [0013](ADR-0013-dashboard-agent-queue.md) | 대시보드 기반 에이전트 작업 큐 | 제안 | FR-AGENT-08 | B-W5 |
 | [0014](ADR-0014-dashboard-diagram-viewer.md) | 대시보드 다이어그램 뷰어 (mermaid 클라이언트 렌더 + `/api/diagrams`) | 채택 | FR-UI-05 | C-W7 |
 | [0015](ADR-0015-local-first-architecture.md) | 아키텍처 스타일 — 로컬 우선 + 프로세스 분리 | 제안 | ASR-1~3, NFR-REL | C-W3·C-W6 |
@@ -57,7 +57,7 @@
 | [0017](ADR-0017-rest-error-contract.md) | REST 오류 응답 계약 (RFC 9457 스타일) | 제안 | NFR-SEC-07 | C-W4 |
 | [0018](ADR-0018-schema-migration-strategy.md) | 스키마 마이그레이션 전략 (순방향 전용) | 제안 | ADR-0003, NFR-MAINT-03 | A-W5, C-W4 |
 | [0019](ADR-0019-architecture-fitness-functions.md) | 아키텍처 피트니스 함수 | 제안 | NFR-MAINT-02 | B-W6 |
-| [0020](ADR-0020-widget-shell-architecture.md) | 위젯 셸 아키텍처 (react-grid-layout + 위젯 계약) | 채택 | FR-WIDGET, DASHBOARD_OS | A-W6, C-W6 |
-| [0021](ADR-0021-widget-layout-persistence.md) | 위젯 레이아웃·설정 영속화 (localStorage → SQLite) | 채택 | FR-WIDGET-04~06 | C-W6 |
-| [0022](ADR-0022-per-widget-theming.md) | 위젯별 테마 (스코프된 CSS 변수 + 구조화 config) | 채택 — C5 골격 / C6 구현 | FR-WIDGET-05, NFR-SEC-04 | C-W5·C-W6 |
+| [0020](ADR-0020-widget-shell-architecture.md) | 위젯 셸 아키텍처 (react-grid-layout + 위젯 계약) | 채택 | FR-WIDGET, DASHBOARD_OS | A-W6, C-W5·C-W6 |
+| [0021](ADR-0021-widget-layout-persistence.md) | 위젯 레이아웃·설정 영속화 (localStorage → SQLite) | 채택 | FR-WIDGET-04~06 | A-W6, C-W5·C-W6 |
+| [0022](ADR-0022-per-widget-theming.md) | 위젯별 테마 (스코프된 CSS 변수 + 구조화 config) | 채택 — C5 골격 / C6 구현 | FR-WIDGET-05, NFR-SEC-04 | A-W6, C-W5·C-W6 |
 | [0023](ADR-0023-branch-model.md) | 브랜치 모델 — `feature/* → PR → main` (Git Flow 미채택) | 채택 | GIT_WORKFLOW §2 | B-W13, C-W13 |

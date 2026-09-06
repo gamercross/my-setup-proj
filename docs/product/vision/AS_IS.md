@@ -26,10 +26,10 @@
 | 렌더 진입 (`src/renderer.jsx`) | `createRoot(#root).render(<App/>)` — `renderer.js`(바닐라) 제거 | ✅ Vite + React 마운트 (B1) |
 | React 컴포넌트 (`App.jsx`, `components/Widget{Shell,Host,Frame,Picker}.jsx`, `widgets/views/*`, `TaskList.jsx`, `TaskForm.jsx`, `ProjectCard.jsx`, `ProjectForm.jsx`, `CalendarWidget.jsx`, `DiagramPanel.jsx`) | C5(2026-09-06): `Dashboard.jsx` 삭제 → `WidgetShell`(react-grid-layout) 로 대체. 위젯 뷰가 각자 `useTaskStore`/`useProjectStore`/`useCalendarStore` 구독. 레이아웃 `localStorage` 영속(`useLayoutStore`). 기존 뷰 컴포넌트 무수정 재사용 | ✅ 배선 완료, 브라우저 E2E 로컬 대기 |
 | 번들러 | ✅ Vite + `@vitejs/plugin-react` (B1). `vite.config.js` root=src / base=./ / devCspPlugin | ✅ Vite + React 마운트 (B1) |
-| 상태 관리 | ✅ `zustand` — `useTaskStore`(B3), `useProjectStore`(C2). 도메인별 스토어 분리 방향 | ✅ 사용 중 |
+| 상태 관리 | ✅ `zustand` — `useTaskStore`(B3), `useProjectStore`(C2), `useCalendarStore`(C3), `useLayoutStore`(C5). 도메인별 스토어 분리 방향 | ✅ 사용 중 |
 | 스타일링 | 인라인 style 만. Tailwind 미도입 | 🚧 |
 
-**핵심 문제:** (B1 해소) 번들러(Vite)가 도입되고 `renderer.jsx` 가 `App.jsx` 를 마운트한다. `renderer.js`(바닐라)는 삭제됐다. 남은 작업은 Dashboard 이하 컴포넌트 배선(B3).
+**핵심 문제:** (B1 해소) 번들러(Vite)가 도입되고 `renderer.jsx` 가 `App.jsx` 를 마운트한다. `renderer.js`(바닐라)는 삭제됐다. 할일·프로젝트·캘린더·다이어그램 배선(B3·C2·C3·C4)과 위젯 셸 전환(C5)까지 완료됐다. 남은 작업은 위젯 커스터마이즈(C6)와 브라우저 E2E 확인.
 
 ### 2.2 Backend — `backend/` (Express API 골격)
 
@@ -84,13 +84,13 @@
 | 항목 | 현황 |
 |---|---|
 | `tests/` (크로스 프로젝트) | README 만. 실제 테스트 0개 (Week 12+) |
-| backend | ✅ supertest + `node --test` 18케이스 (TC-TASK-01,02,04~10 / TC-PROJ-01~06 / TC-DB-01~03), `:memory:` DB — Phase A3·B2 |
+| backend | ✅ supertest + `node --test` 56케이스 (tasks/projects/db/calendar/diagrams/middleware/supabase), `:memory:` DB — Phase A3·B2·C1·C3·C4 + Supabase 부트스트랩 |
 | frontend | Jest 미도입 |
 | agent | ✅ pytest 3케이스 (TC-AGENT-01~03) `agent/tests/test_daily_brief.py` — Phase A3. `test_claude.py` 는 `agent/tests/` 로 이동(연결 확인용) |
 
 ### 2.7 현재 모듈 의존 관계
 
-> 실선 = `require`/`import`, 점선 = 미연결(코드 존재하나 호출 경로 없음). 다이어그램 안내: [DIAGRAMS.md](../../setup/DIAGRAMS.md).
+> 실선 = `require`/`import`, 점선 = 미연결(코드 존재하나 호출 경로 없음), 굵은 실선/라벨 = 런타임 HTTP 호출. 다이어그램 안내: [DIAGRAMS.md](../../setup/DIAGRAMS.md).
 
 ```mermaid
 flowchart TB
@@ -104,6 +104,9 @@ flowchart TB
     FRAME --> VIEWS["widgets/views/*WidgetView.jsx"]
     VIEWS --> TL["TaskList.jsx"]
     VIEWS --> PC["ProjectCard.jsx"]
+    SHELL --> LST["store/useLayoutStore.js"]
+    VIEWS --> DST["store/useTaskStore · useProjectStore · useCalendarStore"]
+    DST --> CLI["api/client.js"]
   end
 
   subgraph BE["backend/src"]
@@ -127,7 +130,7 @@ flowchart TB
     SNO -. "스텁" .-> X1
   end
 
-  APP -. "미연결: fetch 없음 (G3)" .-> SRV
+  CLI -->|"HTTP REST :3000/api (C2·C3·C5 배선)"| SRV
   DBF -. "예정: agent/db.py 로<br/>같은 SQLite 접근 (ADR-0011)" .-> SCHEMA
 ```
 
