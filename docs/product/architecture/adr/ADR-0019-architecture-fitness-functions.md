@@ -31,3 +31,6 @@
 - 가짜 양성(false positive) 가능 — 규칙은 좁고 명확하게.
 - `verify.sh` 실행 시간 소폭 증가.
 - 새 구조 규칙이 생기면 이 표에 행 추가(별도 ADR 불필요).
+
+## 후속 — 문서 체계에도 적용 (2026-09-04)
+같은 개념을 **문서·오케스트레이션 체계 자체**에 적용했다: `scripts/check_docs.py` (STRUCT-1~3 링크·mermaid·README 커버리지, XREF-1~4 ADR표·FR추적·에이전트 경로, DRIFT-1~4). `verify.sh` "▶ 문서 정합 확인" + CI `docs` 잡에서 실행. 명세는 [DOC_HEALTH.md](../../../setup/DOC_HEALTH.md). 코드용 FF-1~9 는 해당 계층이 생길 때 구현.

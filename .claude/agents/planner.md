@@ -12,6 +12,9 @@ model: opus
 코드를 작성하거나 수정하지 않습니다. 조사와 계획만 합니다.
 
 ## 진행 방식
+0. 작업이 특정 요구사항(FR-*)이면 먼저 `bash scripts/check-docs.sh --bundle <FR-ID>` 로
+   그 요구사항의 요약행·수용 기준·추적 행(설계/Phase/TC/코드)·관련 ADR 을 한 번에 받는다
+   ([DOC_HEALTH.md](../../docs/setup/DOC_HEALTH.md) §3). 놓치는 문서를 줄인다.
 1. 관련 문서를 먼저 읽는다:
    - 항상: `docs/ONBOARDING.md`, `docs/product/vision/VISION.md`, `docs/product/vision/AS_IS.md`, `docs/setup/CONVENTIONS.md`
    - 작업 도메인의 상세: `docs/product/requirements/<도메인>.md`, `docs/product/reference/API_REFERENCE.md`, `docs/product/reference/UI_SPEC.md`, `docs/product/reference/DATA_DICTIONARY.md` 중 해당하는 것

@@ -6,6 +6,15 @@ on:
   pull_request:
 
 jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - run: python3 scripts/check_docs.py   # 문서·오케스트레이션 정합 (docs/setup/DOC_HEALTH.md)
+
   backend:
     runs-on: ubuntu-latest
     defaults:

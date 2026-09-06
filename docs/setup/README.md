@@ -15,6 +15,7 @@
 | [ENV_REFERENCE.md](ENV_REFERENCE.md) | `.env.example` 의 모든 키 — 용도·발급법·없을 때 동작·보안 규칙 | API 키 추가, 환경변수 확인 | **`.env` 는 절대 커밋 금지**. `.env.example` 에도 실제 시크릿을 넣지 않는다 (NFR-SEC-01) |
 | [CONVENTIONS.md](CONVENTIONS.md) | 코드·구조·커밋·브랜치·에이전트 규칙의 **단일 원천** | 코드 작성/리뷰 전 | §6 브랜치 = `feature/* → PR → main` ([ADR-0023](../product/architecture/adr/ADR-0023-branch-model.md)) |
 | [GIT_WORKFLOW.md](GIT_WORKFLOW.md) | finisher 커밋·푸시 절차, **검증 게이트 해석**, 스테이징 규칙, 체크리스트 | 커밋 직전 | FAIL 검사 있으면 커밋 금지 / SKIP 명시 / `main` 직접·`--force` 금지 |
+| [DOC_HEALTH.md](DOC_HEALTH.md) | 문서 정합 검사 — 링크·ADR표·FR추적·README 커버리지·드리프트. `scripts/check-docs.sh`, `verify.sh`·CI 포함 | 문서 추가/이동 후, `--bundle <FR-ID>` 로 작업 착수 전 문서 모으기 | FAIL(STRUCT/XREF/DRIFT-3)은 커밋 게이트에 걸림. 새 ADR·FR·문서는 해당 목록에도 넣어야 통과 |
 | [ORCHESTRATION.md](ORCHESTRATION.md) | 에이전트 파이프라인 **상태 그래프**, `/feature`·`/build-next` 정지 조건 | 파이프라인 동작 이해 | 결정 지점(제안 ADR·API 키·대화형)에서 STOP |
 | [AUTOMATION.md](AUTOMATION.md) | 에이전트 팀 · `/feature` · `/build-next` · 작업로그 · 슬랙 · CI 전체 개요 | 자동화가 어떻게 도는지 | 슬랙은 `SLACK_WEBHOOK_URL` 없으면 조용히 스킵 |
 | [DIAGRAMS.md](DIAGRAMS.md) | Mermaid 작성·열람·SVG 내보내기 (`scripts/render-diagrams.sh`) | 다이어그램 추가 시 | GitHub 는 자동 렌더. 로컬 이미지는 Node 필요 |
@@ -30,6 +31,8 @@
 | 커밋해도 되나 판단 | [GIT_WORKFLOW.md](GIT_WORKFLOW.md) §1 |
 | 브랜치 정책 | [CONVENTIONS.md](CONVENTIONS.md) §6 · [ADR-0023](../product/architecture/adr/ADR-0023-branch-model.md) |
 | 기능 하나 개발 | `/feature <설명>` → [ORCHESTRATION.md](ORCHESTRATION.md) |
+| 작업 착수 전 필요한 문서 모으기 | `bash scripts/check-docs.sh --bundle <FR-ID>` → [DOC_HEALTH.md](DOC_HEALTH.md) §3 |
+| 문서 정합 확인 | `bash scripts/check-docs.sh` (verify.sh·CI 에 포함) |
 
 ## 다음으로
 
