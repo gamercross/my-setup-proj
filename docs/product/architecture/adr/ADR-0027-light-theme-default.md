@@ -16,7 +16,8 @@ C6 에서 이미 만든 것: `styles.css` `:root` 토큰, `themeToVars` 화이�
 ### PO-1 — 라이트를 **기본**으로, 다크는 프리셋 옵션으로 유지 (권장)
 - `:root` 기본값을 v2 라이트 토큰으로 재정의.
 - `[data-theme="dark"]` 에서 토큰을 대칭적으로 재정의 (다크는 없어지지 않음).
-- C6 "다크" 프리셋을 `[data-theme="dark"]` 와 정합.
+- **P3 범위:** `[data-theme="dark"]` 블록은 **정의만** 한다. 전역 라이트/다크 전환 UI
+  (셸 바 토글 또는 C6 프리셋 연동)는 후속 스텝 — P3 는 라이트 고정.
 - 대안(B): 다크 기본 유지 + 라이트 프리셋 추가 → **기각 근거:** 시각 목표가 라이트이고,
   첫인상(데모)이 다크면 목표와 어긋난다.
 
@@ -43,23 +44,21 @@ C6 에서 이미 만든 것: `styles.css` `:root` 토큰, `themeToVars` 화이�
 | `--priority-high` | `#ef4444` | `#ef4444` | 우선순위 배지 (불변) |
 | `--priority-medium` | `#f59e0b` | `#f59e0b` | 〃 (강조색과 독립) |
 | `--priority-low` | `#64748b` | `#94a3b8` | 〃 |
-| `--card-radius` | `16px` | `16px` | 카드 모서리 (10 → 16) |
-| `--chip-radius` | `999px` | `999px` | 칩/필 (신규) |
-| `--shadow-card` | `0 1px 2px rgba(0,0,0,.04)` | `none` | 라이트에서만 아주 옅은 그림자 (신규) |
+| `--card-radius` | `10px` (P3 유지) → `16px` (P4) | 〃 | 카드 모서리 — 상향은 P4 카드 정리에서 |
+| `--radius` / `--pad` | `8px` / `10px` (유지) | 〃 | 일반 모서리 / 위젯 패딩 |
+| `--chip-radius` | `999px` | `999px` | 칩/필 (P4 칩 컴포넌트 대비) |
 
-- **숫자 강조:** `.stat-number { font-weight: 700; font-size: clamp(28px, 4vw, 44px); }`
-- **진행 표시:** solid bar 대신 점 그리드 — 별도 컴포넌트(P4).
+- **P4 로 미루는 것:** `--card-radius` 10→16, `--shadow-card`, 스탯 타일 숫자·점-그리드 진행바 컴포넌트, 카드 여백 정리. P3 는 **팔레트 전환 + hex→토큰 치환**까지만.
 
 ## 결과 / 트레이드오프
-- 컴포넌트의 하드코딩 hex 를 토큰으로 바꾸는 작업이 P3 의 대부분. 인라인 style 이 많아
-  파일 수가 많다 (`App.jsx`·`WidgetShell.jsx`·`WidgetFrame.jsx`·각 위젯 뷰·카드 컴포넌트).
-- `index.html` 의 `body` 초기 배경(`#0f172a`)과 로딩 문구 색도 라이트로.
-- `DiagramPanel`(mermaid)의 테마도 라이트로 — `mermaid.initialize({ theme })` 분기 필요.
-- 웹 데모의 첫인상이 바뀐다 — 목표대로.
-- `UI_STYLE.md` 를 v2 로 개정(별도 커밋): Cowork → 노션 위젯 라이트, 토큰표 교체, US-1 종결 반영.
+- P3 는 팔레트(다크→라이트) + 하드코딩 hex → `var(--*)` 치환. 인라인 style 이 많아 파일 수가 많다.
+- `index.html` 의 `body` 초기 배경(`#0f172a`→`#f7f7f5`)·로딩 문구 색.
+- `DiagramPanel` mermaid `PALETTE` 상수를 라이트 값으로.
+- 웹 데모의 첫인상이 라이트로 바뀐다 — 목표대로.
+- `UI_STYLE.md` v2 개정(Cowork → 노션 위젯 라이트)은 **별도 커밋/PR**.
+- 전역 다크 토글 UI 는 후속 스텝.
 
-## 채택 시 영향
-`frontend/src/styles.css`(토큰 전면 v2 + `[data-theme]` 3-상태 — bare `:root` / `@media dark` /
-`[data-theme]` override), `index.html`, `App.jsx`·`WidgetShell.jsx`·`WidgetFrame.jsx`,
-`widgets/views/*`, `components/{TaskForm,ProjectForm,ProjectCard,CalendarWidget,BriefCard,DiagramPanel}.jsx`,
-`widgets/themePresets.js`, `UI_STYLE.md`, `UI_SPEC.md §1`.
+## 채택 시 영향 (P3 실제 변경)
+`frontend/src/styles.css`(`:root` v2 + `[data-theme=dark]` 블록), `index.html`,
+`App.jsx`, `components/{WidgetShell,WidgetPicker,WidgetFrame,WidgetSettings,TaskForm,ProjectForm,CalendarWidget,DiagramPanel,ErrorBoundary}.jsx`,
+`docs/product/reference/UI_SPEC.md §1`.
