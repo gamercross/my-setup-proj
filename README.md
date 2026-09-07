@@ -16,9 +16,9 @@
 | **위젯 셸 (대시보드 OS)** | 각 기능을 위젯으로 배치·이동·리사이즈·최소화, 레이아웃 저장/복원, 위젯별 테마·표시 옵션 | FR-WIDGET-01~08 | ✅ C5 (배치·영속·격리) / ✅ C6 (테마·표시 옵션) ([ADR-0020~0022](docs/product/architecture/adr/) 채택) |
 | **할 일 관리** | 할일 추가·수정·완료·삭제. 우선순위·마감일. 로컬 SQLite 영속 | FR-TASK-01~05 | ✅ B3 (코드·자동 테스트 — 브라우저 E2E 로컬 대기) |
 | **프로젝트 진행도 추적** | 프로젝트 카드 + 0–100% 진행 바, 상태(active/done/on_hold). Notion 연동(읽기) | FR-PROJ-01~04 | ✅ C2 (코드·자동 테스트 — 브라우저 E2E 로컬 대기) |
-| **캘린더 일정** | 오늘/내일 일정 위젯. Google Calendar 를 에이전트가 로컬 캐시에 동기화 | FR-CAL-01~03 | 🚧 C3 (더미 데이터 ✅ / 실 Google 연동 D2) |
-| **Daily Brief 브리핑** | 매일 아침 Claude 가 할일·메일·일정을 모아 우선순위 브리핑 생성 (cron 자동) | FR-AGENT-01~06 | ⏳ D1~D3 |
-| **이메일 통합** | 여러 계정의 미읽은 메일을 한 곳에서 확인·요약 | FR-MAIL-01~03 | ⏳ D2, E |
+| **캘린더 일정** | 오늘/내일 일정 위젯. Google Calendar 를 에이전트가 로컬 캐시에 동기화 | FR-CAL-01~03 | ✅ C3 위젯 + D2-b 수집 + D-마무리 (백엔드가 `calendar_events` 캐시 조회) |
+| **Daily Brief 브리핑** | 매일 아침 Claude 가 할일·메일·일정을 모아 우선순위 브리핑 생성 → 로컬 + Notion 저장, launchd 07:30 자동 | FR-AGENT-01~06 | ✅ D1~D3 (실 API end-to-end 검증 2026-09-07) |
+| **이메일 통합** | 여러 계정의 미읽은 메일을 한 곳에서 확인·요약 | FR-MAIL-01~03 | 🚧 D2-b 수집 + D-마무리 `GET /api/mail/unread` ✅ / 메일 UI 는 E |
 | **프로젝트 다이어그램 뷰어** | `docs/**/*.md` 의 Mermaid(아키텍처·로드맵·오케스트레이션·모듈 의존)를 대시보드에서 렌더 — 저장소를 열지 않고 구조·진행 파악 | FR-UI-05 | ✅ C4 ([ADR-0014](docs/product/architecture/adr/ADR-0014-dashboard-diagram-viewer.md) 채택 — 브라우저 확인 로컬 대기) |
 | 공통 | 모든 위젯은 로딩/비어있음/정상/에러 4상태를 독립 렌더. 한 위젯 실패가 셸·다른 위젯을 가리지 않음 | FR-UI-01·04, FR-WIDGET-07 | ✅ C5 (위젯별 ErrorBoundary) |
 
@@ -62,7 +62,7 @@ flowchart TB
 | [product/vision/](docs/product/vision/README.md) | 왜·완료의 정의 | VISION · DASHBOARD_OS · AS_IS · RISKS | 방향·범위 판단 |
 | [product/requirements/](docs/product/requirements/README.md) | 무엇을 만족해야 | FR · NFR · TRACEABILITY · TASK/UI/AGENT/PROJ/WIDGET | "이거 어느 FR인가" |
 | [product/architecture/](docs/product/architecture/README.md) | 어떻게 만드나 (구조·결정) | ARCHITECTURE §0 뷰 지도 · DESIGN · DRIVERS · RUNTIME/DATA/CROSSCUTTING/EVOLUTION | 구현 착수 전 |
-| [product/architecture/adr/](docs/product/architecture/adr/README.md) | 결정 이력 | ADR-0001~0023 (채택/제안) | "왜 이렇게 정했나" |
+| [product/architecture/adr/](docs/product/architecture/adr/README.md) | 결정 이력 | ADR-0001~0026 (채택/제안) | "왜 이렇게 정했나" |
 | [product/reference/](docs/product/reference/README.md) | 정확한 계약 | API_REFERENCE · UI_SPEC · DATA_DICTIONARY · GLOSSARY | 코드 작성 중 |
 | [product/testing/](docs/product/testing/README.md) | 어떻게 검증 | TEST_PLAN (피라미드·TC-·머지 게이트) | PR 전 자기 점검 |
 | [setup/](docs/setup/README.md) | 환경·도구·규칙 | SETUP · CONVENTIONS · GIT_WORKFLOW · ORCHESTRATION · AUTOMATION · DIAGRAMS · CLAUDE_INTEGRATION | 세팅·커밋·파이프라인 |
@@ -150,34 +150,96 @@ Google Cloud 에서 과금되는 건 Compute·Cloud Run·BigQuery 같은 **인�
 
 ```
 my-setup-proj/
-├─ frontend/   Electron + React 데스크톱 앱 (Vite + React 마운트 ✅ B1, 데이터 배선 중 — B3)
-├─ backend/    Node.js + Express API (tasks/projects CRUD + better-sqlite3, db/schema.sql)
-├─ agent/      Python Claude 에이전트 (뼈대 + 서비스 스텁)
+├─ frontend/   Electron + React 데스크톱 앱 (위젯 셸 · 4상태 렌더 · 웹 데모 모드 VITE_DEMO)
+├─ backend/    Node.js + Express API (routes→services→db · CRUD · calendar/mail/brief 캐시 조회)
+├─ agent/      Python Claude 에이전트 (Daily Brief · Gmail/Calendar 수집 · Notion 저장 · launchd)
 ├─ scripts/    작업로그·슬랙·다이어그램 자동화 스크립트
-├─ tests/      테스트 (Phase A3 에서 채움)
 ├─ docs/       ONBOARDING + product / setup / progress
 └─ .claude/    에이전트 팀 정의 + /feature 파이프라인
 ```
 
 ---
 
-## 📊 현재 상태 (2026-09-06)
+## 📊 현재 상태 (2026-09-07)
+
+Phase **A~D 전체 완료**. Daily Brief 에이전트가 실 데이터·실 API 로 end-to-end 동작하고,
+지금까지 만든 대시보드를 **브라우저에서 볼 수 있는 웹 데모**까지 붙었다.
+
+### 지금 무엇이 어떻게 연결돼 있나
+
+```mermaid
+flowchart TB
+  subgraph FE["프런트엔드 (Electron + React) — Phase B~C"]
+    SHELL["위젯 셸 · 레이아웃 localStorage 영속<br/>C5·C6 (ADR-0020~0022)"]
+    W1["할 일"] & W2["프로젝트"] & W3["일정"] & W4["다이어그램"] & W5["오늘 브리핑"]
+    SHELL --- W1 & W2 & W3 & W4 & W5
+  end
+
+  subgraph API["백엔드 (Express :3000/api) — Phase B2·C1·C2·D-마무리"]
+    RT["routes → services → db<br/>CORS·요청로깅·에러매핑·안전종료"]
+    EP1["/tasks CRUD (+?project_id)"]
+    EP2["/projects CRUD"]
+    EP3["/calendar/events · /mail/unread<br/>(캐시 조회, 읽기 전용)"]
+    EP4["/brief/today (200/null · ADR-0025)"]
+    EP5["/diagrams · /sync/logs · /sync/health"]
+    RT --- EP1 & EP2 & EP3 & EP4 & EP5
+  end
+
+  DB[("로컬 SQLite<br/>better-sqlite3 · WAL<br/>tasks · projects · calendar_events<br/>emails · briefs · sync_logs")]
+
+  subgraph AGENT["Python 에이전트 — Phase D1~D3"]
+    SYNC["sync.py — Gmail·Calendar 수집<br/>OAuth 토큰 Fernet 암호화 (ADR-0024)"]
+    BRIEF["daily_brief.py — 컨텍스트 수집 → Claude 호출<br/>재시도·지수백오프 (ADR-0011)"]
+    NOTION["notion.py — 브리핑을 Notion 페이지로 저장<br/>(requests REST, 2000자 블록 분할)"]
+    SCHED["launchd 07:30 — daily-brief-run.sh<br/>(sync → brief, ADR-0007)"]
+    SCHED --> SYNC --> BRIEF --> NOTION
+  end
+
+  EXT["Gmail · Google Calendar · Claude API · Notion API"]
+
+  FE -->|"api/client.js<br/>fetch"| API
+  API -->|"SELECT / INSERT / UPDATE"| DB
+  AGENT -->|"INSERT / upsert<br/>(에이전트가 외부 API 소유 · ADR-0006)"| DB
+  AGENT <-->|HTTPS| EXT
+
+  subgraph DEMO["웹 데모 프로토타입 — ADR-0026"]
+    MOCK["VITE_DEMO=1 빌드<br/>api/demoClient.js 인메모리 목 어댑터"]
+    PAGES["GitHub Pages<br/>deploy-demo.yml"]
+    MOCK --> PAGES
+  end
+  FE -.->|"백엔드 없이 보여주기용"| DEMO
+```
+
+### 영역별 상태
 
 | 영역 | 상태 |
 |---|---|
-| 개념 설계 · 요구사항 · 아키텍처 문서 (뷰별 심화 + ADR-0001~0023) | ✅ (`docs/product/`) |
+| 개념 설계 · 요구사항 · 아키텍처 문서 (뷰별 심화 + ADR-0001~0026) | ✅ (`docs/product/`) |
 | 자동화 인프라 (에이전트 팀 · 작업로그 · CI · GIT_WORKFLOW · DOC_HEALTH) | ✅ 동작 |
 | 로컬 개발 환경 (node 26 · python 3.14 · venv) | ✅ Phase A2 |
-| 자동화 테스트 | ✅ backend 56 · agent 3, `verify.sh` 27/0/0 (서비스 스모크 포함), DOC_HEALTH 11/0/0, CI 초록 (A3~C5 + Supabase 부트스트랩) |
-| 프론트엔드 React (Vite 마운트) | ✅ Phase B1 |
-| DB (SQLite, better-sqlite3 · WAL · `DATABASE_PATH`) | ✅ Phase B2 |
-| 백엔드 tasks/projects CRUD + 미들웨어(CORS·로깅·에러) + 오류 매핑 | ✅ B2·C1·C2 |
-| 캘린더 `/api/calendar/events` (더미) · 다이어그램 `/api/diagrams` (services 계층) | ✅ C3 · C4 |
-| 프론트↔백엔드 배선 (할일 B3 · 프로젝트 C2 · 캘린더 C3 · 다이어그램 C4) | ✅ 코드·자동 테스트 — 브라우저 E2E(TC-UI-10~19 · TC-WIDGET-01~08) 로컬 수동 확인 대기 |
-| 위젯 셸 (레지스트리 · `useLayoutStore` · 배치·리사이즈·최소화 · localStorage 영속 · 위젯별 격리) | ✅ C5 — 테마·표시 옵션은 C6 |
-| AI 에이전트 | 🚧 뼈대 + 스텁 |
+| 자동화 테스트 | ✅ backend 85 · frontend 20 · agent 64, `verify.sh` 35/0/0 (서비스 스모크 포함), DOC_HEALTH 11/0/0, CI 초록 |
+| 프론트엔드 React (Vite 마운트) · DB (SQLite · WAL · `DATABASE_PATH`) | ✅ Phase B1 · B2 |
+| 백엔드 CRUD + 미들웨어(CORS·로깅·에러) + 안전 종료 + 서비스 계층 | ✅ B2·C1·C2 + 감사 후속 정리 |
+| 위젯 셸 (배치·리사이즈·최소화 · localStorage 영속 · 위젯별 격리 · 테마·표시 옵션) | ✅ C5·C6 |
+| 캘린더 · 메일 조회 API — `calendar_events` / `emails` 캐시에서 SELECT | ✅ **D-마무리 (2026-09-07)** — 더미 제거 |
+| 다이어그램 뷰어 `/api/diagrams` | ✅ C4 |
+| **Daily Brief 에이전트** — 실 데이터 수집 → Claude → 로컬 저장 + Notion 페이지 | ✅ **D1~D3** — 실 API end-to-end 검증 (2026-09-07) |
+| **launchd 자동 실행** — 매일 07:30 `daily-brief-run.sh` | ✅ **D3** — 로컬 등록·실행 검증 |
+| Google OAuth (Fernet 암호화 토큰) · Gmail/Calendar 수집 | ✅ D2-b — 사용자 최초 로그인만 남음 |
+| **웹 데모 프로토타입** — `VITE_DEMO` 목 어댑터 + GitHub Pages | ✅ **ADR-0026 (2026-09-07)** — 저장소 Pages 활성화만 남음 |
+| 프론트↔백엔드 브라우저 E2E (TC-UI-10~19 · TC-WIDGET-01~08) | ⏳ 로컬 수동 확인 대기 (샌드박스 GUI 불가) — 웹 데모로 대체 시각 검증 가능 |
 
 정확한 최신은 [AS_IS.md](docs/product/vision/AS_IS.md) · [TRACEABILITY.md](docs/product/requirements/TRACEABILITY.md) · `git log`. 다음 할 일은 [PROGRESS.md](docs/progress/PROGRESS.md).
+
+### 최근 마무리한 작업 (2026-09-07)
+
+| 묶음 | 한 일 | PR |
+|---|---|---|
+| **Phase D3** | Notion 저장(`notion.py` requests REST 재작성) · `GET /api/brief/today`(빈 결과 200/null, [ADR-0025](docs/product/architecture/adr/ADR-0025-brief-empty-response.md)) · 오늘 브리핑 위젯(`BriefCard`·`useBriefStore`) · `daily-brief-run.sh` + launchd 07:30 자동 실행 | [#26](https://github.com/gamercross/my-setup-proj/pull/26) |
+| **Phase D 마무리** | `services/calendar.js` 더미 제거 → `calendar_events` 캐시 조회 · `GET /api/mail/unread`(신규) · `GET /api/tasks?project_id=` 필터 · `scripts/seed-demo.js`(샘플 데이터) | [#27](https://github.com/gamercross/my-setup-proj/pull/27) |
+| **웹 데모** | `VITE_DEMO=1` 빌드 → `api/demoClient.js` 인메모리 목 어댑터(백엔드·Electron 불필요) · `deploy-demo.yml` → GitHub Pages · [ADR-0026](docs/product/architecture/adr/ADR-0026-web-demo-mode.md) | [#28](https://github.com/gamercross/my-setup-proj/pull/28) |
+
+검증: `backend npm test` 85/0 · `frontend npm test` 20/0 · `agent pytest -m "not network"` 64/0 · `verify.sh` 35/0/0 · `check-docs.sh` 11/0/0 · Electron·웹 데모 빌드 모두 성공.
 
 ---
 
@@ -195,7 +257,7 @@ planner(계획) → developer(구현) → supervisor(리뷰·검증) → finishe
 - 상태 그래프·정지 조건: [ORCHESTRATION.md](docs/setup/ORCHESTRATION.md)
 - 규칙: [CONVENTIONS.md](docs/setup/CONVENTIONS.md) · 커밋·푸시: [GIT_WORKFLOW.md](docs/setup/GIT_WORKFLOW.md) · 전체: [AUTOMATION.md](docs/setup/AUTOMATION.md)
 - 브랜치: `feature/* → PR → main` ([ADR-0023](docs/product/architecture/adr/ADR-0023-branch-model.md)). `main` 직접 커밋·`develop`·Git Flow 안 씀.
-- 미결정 설계는 **제안** 상태 ADR ([목록·상태](docs/product/architecture/adr/README.md)) — 관련 Phase 착수 전 사용자 결정. 0013~0022 제안 / 0001~0012·0023 채택.
+- 미결정 설계는 **제안** 상태 ADR ([목록·상태](docs/product/architecture/adr/README.md)) — 관련 Phase 착수 전 사용자 결정. 0013·0015~0019 제안 / 0001~0012·0014·0020~0026 채택.
 
 ---
 
