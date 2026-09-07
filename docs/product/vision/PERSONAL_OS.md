@@ -184,7 +184,7 @@ flowchart TB
 |---|---|---|---|
 | **P0** | 이 문서 + PROGRESS 다이어그램 | `PERSONAL_OS.md`, PROGRESS §추가 | — |
 | **P1 (문서)** | ADR 초안 + 요구사항 | ADR-0027(라이트 테마)·0028(단일 캐시)·0029(자동 분류)·0030(OKR 모델)·0031(안전 마크다운 렌더), ADR-0013 재활성, ADR-0018 결정, `requirements/OKR.md`, `UI_STYLE.md` 개정 | P0 |
-| ~~P2 (디자인)~~ ✅ | 목표 화면 목업 (2026-09-07) | design 캔버스 6 아트보드 + 토큰 v2 확정. https://claude.ai/code/artifact/a8e15d6b-2bfb-42d9-96c7-cdb0d964ebf3 | P1 |
+| ~~P2 (디자인)~~ ✅ | 목표 화면 목업 (2026-09-07, **v2 2026-09-08**) | design 캔버스 6 아트보드 + 토큰 v2 확정. **v2: UI_STYLE v2(라이트 + 왼쪽 사이드바) 반영해 재작성** — 같은 URL. https://claude.ai/code/artifact/a8e15d6b-2bfb-42d9-96c7-cdb0d964ebf3 | P1 |
 | ~~P3 (빌드)~~ ✅ | T5 라이트 테마 1차 (2026-09-07, ADR-0027 채택) | `styles.css` `:root` 팔레트 전환(다크→라이트) + `[data-theme=dark]` 블록(정의만) + 하드코딩 hex→`var(--*)` 치환 (10개 파일) → 데모 반영. 카드 여백·라운드·점그리드·전역 다크 토글은 P4 | P2 는 P3 이후 소급 확정(2026-09-07) — PO-1/2 결정 |
 | ~~P4 (빌드)~~ ✅ | T5 공통 컴포넌트 (2026-09-07) | `frontend/src/components/` — `StatTile.jsx` · `DotProgress.jsx`(+ 순수 `dotFill.js`) · `Chip.jsx` (OKR·에이전트 공용). 카드 토큰 v2(`--card-radius` 16·`--shadow-card`) + `WidgetFrame` 그림자 + `ProjectCard` 진행바 → `DotProgress`. `frontend/test/dotFill.test.mjs` TC-P4-01~05. 시각 확인 로컬 GUI 대기 | P3 |
 | **P4.5** | 사이드바 셸 (UI_STYLE v2) | 왼쪽 그룹형 사이드바 + 페이지 헤더 + **주제별 위젯 셸**(각 항목이 자기 커스터마이즈 레이아웃). 레이아웃 저장 v1→v2 마이그레이션. `UI_STYLE.md` v2 개정·[ADR-0032](../architecture/adr/ADR-0032-sidebar-shell-per-topic-layouts.md). 데모 반영 | P4 · ADR-0032 채택 |
@@ -222,7 +222,7 @@ flowchart TB
 - [../reference/UI_STYLE.md](../reference/UI_STYLE.md) — 시각 참조 틀 **v2** (2026-09-08, "Confidency OS" 스타일 — 라이트 + 왼쪽 사이드바)
 - [../architecture/adr/README.md](../architecture/adr/README.md) — ADR 목록
 - [../../progress/PROGRESS.md](../../progress/PROGRESS.md) — 진행 다이어그램·주차 계획
-- [P2 UI 기본틀 캔버스](https://claude.ai/code/artifact/a8e15d6b-2bfb-42d9-96c7-cdb0d964ebf3) — 6 아트보드 목업 (2026-09-07, supervisor PASS)
+- [P2 UI 기본틀 캔버스](https://claude.ai/code/artifact/a8e15d6b-2bfb-42d9-96c7-cdb0d964ebf3) — 6 아트보드 목업 (2026-09-07, **v2 2026-09-08 = UI_STYLE v2 사이드바 반영**: 개요·할일(리스트+칸반)·OKR·에이전트 활동·진행 현황·공통 컴포넌트)
 
 ---
 
