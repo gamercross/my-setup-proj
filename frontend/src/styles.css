@@ -29,9 +29,12 @@
 
   /* 형태 (P3 는 기존 값 유지) */
   --radius: 8px;
-  --card-radius: 10px;
+  --card-radius: 16px;
   --chip-radius: 999px;
   --pad: 10px;
+
+  /* 카드 그림자 — 인라인 반복 대신 토큰화 (P4) */
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 /* 다크 토큰 — 정의만. 전역 라이트/다크 전환 UI 는 후속 스텝 (P3 는 라이트 고정, ADR-0027). */
@@ -54,6 +57,9 @@
   --priority-high: #ef4444;
   --priority-medium: #f59e0b;
   --priority-low: #94a3b8;
+
+  /* 다크는 그림자를 더 진하게 (어두운 배경 위 분리감) */
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.32);
 }
 
 /* 배경·폰트·색만 전역으로 둔다. 레이아웃은 App 컴포넌트가 담당한다. */

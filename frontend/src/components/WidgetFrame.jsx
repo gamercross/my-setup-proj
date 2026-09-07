@@ -72,6 +72,7 @@ export default function WidgetFrame({ instance }) {
         borderRadius: 'var(--w-radius, var(--card-radius))',
         color: 'var(--w-text, var(--text))',
         overflow: 'hidden',
+        boxShadow: 'var(--shadow-card)',
         // RGL `.react-grid-item` 이 transform 으로 스택 컨텍스트를 만들어 형제 간 z 비교가 안 된다.
         // 겹침 허용(프리폼) 으로 갈 때는 z 를 `.react-grid-item` 쪽으로 옮겨야 한다.
         // 현재는 compactType:'vertical' + preventCollision:false 라 위젯이 겹치지 않으므로 무해.
