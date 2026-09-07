@@ -55,7 +55,7 @@
 | [0028](adr/ADR-0028-single-client-cache.md) | 단일 클라이언트 캐시 (`byId`) — 뷰는 파생만, 칸반은 별 위젯 타입 | 제안 — 개인 OS P1 |
 | [0029](adr/ADR-0029-task-auto-category.md) | 할 일 자동 분류 — 에이전트 배치, `tasks.category`, ADR-0018 선행 강제 | 제안 — 개인 OS P1 |
 | [0030](adr/ADR-0030-okr-data-model.md) | OKR 데이터 모델 (`objectives`/`key_results`/`kr_snapshots`) + 주간 플래너 | 제안 — 개인 OS P1 |
-| [0031](adr/ADR-0031-safe-markdown-render.md) | 안전 마크다운 렌더 — 서버 토큰화 + 클라이언트 React 매핑 (파서 없음) | 제안 — 개인 OS P1 |
+| [0031](adr/ADR-0031-safe-markdown-render.md) | 안전 마크다운 렌더 + 파일 트리 API (`GET /api/tree`, 파서 없음) | 제안 — 개인 OS P1 |
 
 > 🆕 **대시보드 OS 전환 (2026-09-03)** — 고정 패널 → 위젯 셸. 개념: [../vision/DASHBOARD_OS.md](../vision/DASHBOARD_OS.md),
 > 요구사항: [../requirements/WIDGET.md](../requirements/WIDGET.md), 화면: [../reference/UI_SPEC.md](../reference/UI_SPEC.md) §3.8~.

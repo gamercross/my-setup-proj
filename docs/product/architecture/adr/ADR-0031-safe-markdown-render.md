@@ -1,12 +1,12 @@
-# ADR-0031: 안전 마크다운 렌더 — 서버 토큰화 + 클라이언트 React 매핑
+# ADR-0031: 안전 마크다운 렌더 + 파일 트리 API
 
-- 상태: **제안** (2026-09-07) — P1. 사용자 결정: PO-11.
-- 관련: [PERSONAL_OS.md](../../vision/PERSONAL_OS.md) T6, [ADR-0014](ADR-0014-dashboard-diagram-viewer.md)(다이어그램 뷰어), FR-UI-06(신규), NFR-SEC-04, Phase 개인 OS P9
+- 상태: **제안** (2026-09-07) — P1. 사용자 결정: PO-11, PO-12.
+- 관련: [PERSONAL_OS.md](../../vision/PERSONAL_OS.md) T6, [ADR-0014](ADR-0014-dashboard-diagram-viewer.md)(다이어그램 뷰어), [ADR-0013](ADR-0013-dashboard-agent-queue.md)(파일 조작 없음), FR-UI-06(신규), NFR-SEC-04, Phase 개인 OS P9
 
 ## 맥락
-사용자는 진행 상황 문서(`PROGRESS.md`·`PERSONAL_OS.md`·`작업로그.md`·`TRACEABILITY.md`·
-`DEMO_FEEDBACK.md`)를 대시보드 위젯에서 보고 싶다. 지금은 다이어그램 뷰어(C4)가 `docs/**/*.md`
-에서 mermaid 블록만 뽑아 렌더한다 — 본문 산문은 안 보여준다.
+사용자는 저장소를 IDE 로 열지 않고 대시보드 위젯에서 ① 프로젝트 파일 구조를 왼쪽 폴더 트리로 훑고
+② 파일(진행 문서·ADR·소스)을 클릭해 내용을 보고 싶다. 지금은 다이어그램 뷰어(C4)가 `docs/**/*.md`
+에서 mermaid 블록만 뽑아 렌더한다 — 본문 산문도, 파일 트리도 안 보여준다.
 
 제약: `BriefCard` 주석·TEST_PLAN 에 명시된 규범 — **렌더러에서 마크다운 파서·
 `dangerouslySetInnerHTML` 를 쓰지 않는다**(Electron RCE 표면 최소화, NFR-SEC-04 정신).
@@ -23,11 +23,16 @@
   `blockquote` · `hr` · 인라인 `link`·`code`·`strong`·`em`.
   mermaid 펜스는 `code` 토큰이되 `lang: 'mermaid'` 로 표시 → 프론트가 `DiagramPanel` 로 위임.
 - 지원 안 하는 문법(이미지·HTML 블록·각주 등)은 **원문 텍스트 그대로** 담아 안전하게 넘긴다.
-- `GET /api/docs` → 허용목록 + 각 문서 메타(name·title·mtime).
-  `GET /api/docs/:name` → 토큰 배열. `:name` 은 허용목록(정확 일치)만 — 경로 순회 불가.
-  허용목록: `progress`(PROGRESS.md) · `personal-os` · `worklog`(작업로그.md) · `traceability` · `demo-feedback`.
-- 다이어그램 뷰어 인프라 재사용: `resolveDocsRoot`(`DOCS_PATH`→저장소→`resourcesPath`), 파일 크기 상한,
-  docs 부재 시 200 빈 배열.
+- `GET /api/docs/:path` → 토큰 배열. `.md` 는 위 부분집합 토큰, `.js`/`.py`/`.sh` 등 소스는
+  전체를 `code` 토큰(lang = 확장자) 하나로. `:path` 는 **허용 루트 안의 정규화된 상대경로**만
+  받고, `..`·절대경로·심링크 탈출은 거부한다.
+- **`GET /api/tree`** → 허용 루트를 재귀 나열한 트리 JSON(`{name, path, type: 'dir'|'file', children?}`).
+  - 허용 루트: `docs/` · `frontend/src/` · `backend/src/` · `agent/` · `scripts/` · 저장소 루트의 `*.md`.
+  - 제외: `.env*` · `node_modules` · `.git` · `venv`/`.venv` · `.secrets` · `dist` · `*.log` · `__pycache__` · 숨김 디렉터리.
+  - 상한: 깊이 8 · 항목 2000 · `services/diagrams.js` 의 파일 크기/개수 로직 재사용.
+- 다이어그램 뷰어 인프라 재사용: `resolveDocsRoot` 를 일반화한 `resolveRepoRoot`
+  (`REPO_PATH`→저장소→`resourcesPath`), 파일 크기 상한, 루트 부재 시 200 빈 트리.
+- **읽기 전용.** 파일 생성·수정·삭제 없음 (ADR-0013 "파일 조작 없음" 유지).
 
 ### 프론트 — `components/DocView.jsx`
 - 토큰 배열을 순회하며 `heading→<h*>` · `list→<ul>/<ol>` · `table→<table>` · `code→<pre><code>` ·
@@ -36,16 +41,19 @@
 - `lang:'mermaid'` 코드 토큰은 기존 `DiagramPanel` 재사용.
 - 파서·`dangerouslySetInnerHTML` **없음**.
 
-### 위젯 — `progress` (진행 현황)
-- 상단 문서 선택 바(다이어그램 뷰어와 동일 패턴) + 본문 스크롤.
-- PO-11: **문서 전체**를 렌더하되 `heading` 기준 **섹션 접기**(기본: 첫 섹션 + "진행 상황 요약" /
-  "개인 생산성 OS 방향" 펼침, 나머지 접힘). `PROGRESS.md` 가 ~530줄이라 필수.
+### 위젯 — `progress` (진행 현황 · 파일 탐색)
+- 위젯 내부 레이아웃: **왼쪽 폴더 트리(~30%) + 오른쪽 내용 패널(~70%)**. 셸의 별도 좌측 레일이
+  아니라 위젯 한 칸 안에서 (DO-1 단일 그리드 유지).
+- 트리: 폴더 접기/펼치기, 파일 클릭 → 오른쪽에 `GET /api/docs/:path` 결과 렌더.
+- 내용 패널: `heading` 기준 **섹션 접기**(기본: 첫 섹션 + "진행 상황 요약" / "개인 생산성 OS 방향"
+  펼침). `PROGRESS.md` 가 ~530줄이라 필수. 소스 파일은 코드블록 스크롤.
 
 ### FR-UI-06 (신규)
-- **AC-1** `GET /api/docs/:name`(허용목록) → 토큰 배열, 허용목록 밖은 404.
-- **AC-2** 위젯이 문서를 제목·목록·표·코드·인용·mermaid 로 렌더, 파서 없음.
-- **AC-3** 문서를 고치면 다음 요청에 반영(캐시 없음).
-- **AC-4** 지원 안 하는 문법은 원문 텍스트로 안전하게 표시.
+- **AC-1** `GET /api/tree` → 허용 루트 트리 JSON. 제외 목록·상한 적용. 루트 부재 시 200 빈 트리.
+- **AC-2** `GET /api/docs/:path`(허용 루트 안) → 토큰 배열. `..`·절대경로·허용 밖은 404/400.
+- **AC-3** 위젯이 왼쪽 트리 + 오른쪽 내용(제목·목록·표·코드·인용·mermaid)을 렌더, 파서 없음.
+- **AC-4** 파일을 고치면 다음 요청에 반영(캐시 없음).
+- **AC-5** 지원 안 하는 문법은 원문 텍스트로 안전하게 표시. 파일 조작(쓰기·삭제) 없음.
 
 ## 대안
 - **클라이언트 `marked` + `DOMPurify`:** 빠르지만 의존성 2개 + CSP 조정 + 규범 예외.
@@ -59,5 +67,6 @@
 
 ## 채택 시 영향
 `backend/src/services/docs.js`·`routes/docs.js`·`routes/api.js`·`test/docs.test.js`(신규),
-`frontend/src/components/DocView.jsx`·`widgets/views/ProgressWidgetView.jsx`·`widgets/{registry,widgetMeta}.js`,
+`backend/src/services/tree.js`·`routes/tree.js`(신규),
+`frontend/src/components/{DocView,FileTree}.jsx`·`widgets/views/ProgressWidgetView.jsx`·`widgets/{registry,widgetMeta}.js`, `frontend/src/api/demoClient.js`(목 트리),
 `requirements/UI.md`(FR-UI-06)·`TRACEABILITY.md`·`API_REFERENCE.md`·`TEST_PLAN.md`.
