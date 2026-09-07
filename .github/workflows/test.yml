@@ -46,7 +46,9 @@ jobs:
           node-version: '22'
       - run: npm ci   # 락파일 그대로 (재현 가능)
       - run: node -c src/main.js  # 문법 검사
-      - run: npm run build  # Vite 빌드 검증
+      - run: npm test  # node --test (레지스트리·displayConfig·데모 어댑터)
+      - run: npm run build  # Vite 빌드 검증 (Electron 대상)
+      - run: npm run build:demo  # 웹 데모 빌드 검증 (VITE_DEMO, ADR-0026)
 
   agent:
     runs-on: ubuntu-latest

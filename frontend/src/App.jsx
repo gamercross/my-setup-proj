@@ -8,7 +8,11 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { apiGet } from './api/client.js';
 
 // preload 로 노출된 정보 (없을 수도 있으므로 방어)
-const info = window.appInfo ?? {};
+const info = (typeof window !== 'undefined' && window.appInfo) || {};
+
+// 웹 데모(프로토타입) 빌드 여부 (ADR-0026)
+const DEMO =
+  typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_DEMO === '1';
 
 export default function App() {
   // 백엔드 헬스체크 상태 1개로 관리
@@ -50,8 +54,24 @@ export default function App() {
           fontSize: '12px',
         }}
       >
-        <span>v{info.version ?? '?'} · Electron {info.electron ?? '?'} · Node {info.node ?? '?'}</span>
-        <span style={{ color: statusColor }}>● {health.message}</span>
+        {DEMO ? (
+          <span
+            style={{
+              padding: '2px 8px',
+              borderRadius: '999px',
+              background: 'rgba(124, 108, 245, 0.18)',
+              color: '#a5b4fc',
+              fontWeight: 600,
+            }}
+          >
+            데모 모드 · 샘플 데이터 (새로고침하면 초기화)
+          </span>
+        ) : (
+          <span>
+            v{info.version ?? '?'} · Electron {info.electron ?? '?'} · Node {info.node ?? '?'}
+          </span>
+        )}
+        <span style={{ color: statusColor }}>● {DEMO ? '데모 데이터' : health.message}</span>
       </header>
 
       <ErrorBoundary>
