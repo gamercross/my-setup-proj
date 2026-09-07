@@ -6,7 +6,7 @@
 **📂 이동:** [⬆ architecture/](../README.md) · [product/](../../README.md) · [docs/](../../../README.md) · [🚀 ONBOARDING](../../../ONBOARDING.md)
 **형제 뷰:** [DESIGN](../DESIGN.md) · [ARCHITECTURE_DRIVERS](../ARCHITECTURE_DRIVERS.md) · [RUNTIME_VIEW](../RUNTIME_VIEW.md) · [DATA_ARCHITECTURE](../DATA_ARCHITECTURE.md) · [CROSSCUTTING](../CROSSCUTTING.md) · [ARCHITECTURE_EVOLUTION](../ARCHITECTURE_EVOLUTION.md)
 
-> **상태 요약:** 0001~0012 채택 · 0013 및 0015~0019 제안(착수 전 결정) · 0014·0020·0021·0022·0023·0024·0025·0026 채택 (0022 는 C6 구현 완료, 0024 는 D2-b, 0025 는 D3, 0026 은 웹 데모). 제안 ADR 은 관련 Phase 착수 전에 사용자가 결정한다.
+> **상태 요약:** 0001~0012 채택 · 0013·0015~0019 제안(착수 전 결정) · 0014·0020~0026 채택 (0022 는 C6, 0024 는 D2-b, 0025 는 D3, 0026 은 웹 데모) · **0027~0031 제안** (개인 생산성 OS 방향 P1 — [PERSONAL_OS.md](../../vision/PERSONAL_OS.md) §8 PO-1~11). 제안 ADR 은 관련 Phase 착수 전에 사용자가 결정한다.
 >
 > **강의 열:** 각 ADR 이 3개 강의([COURSE_MAPPING.md](../../../progress/COURSE_MAPPING.md)) 중 어느 주차의 렌즈로 읽히는지. 값의 단일 원천(SSOT) = COURSE_MAPPING §4. 대응 없으면 `—`.
 
@@ -64,3 +64,8 @@
 | [0024](ADR-0024-oauth-token-storage.md) | OAuth 토큰은 Fernet 암호화 JSON 파일 (`TOKEN_ENCRYPTION_KEY`) | 채택 — D2-b | FR-AUTH-01, NFR-SEC-05 | A-W11, B-W7 |
 | [0025](ADR-0025-brief-empty-response.md) | 브리핑 빈 결과는 404 아닌 200 + `{ brief: null }` | 채택 — D3 | FR-AGENT-04 | A-W7 |
 | [0026](ADR-0026-web-demo-mode.md) | 웹 데모 모드 — `VITE_DEMO` 목 어댑터 + GitHub Pages | 채택 — 2026-09-07 | FR-UI-*, FR-WIDGET-* | C-W7 |
+| [0027](ADR-0027-light-theme-default.md) | 라이트 테마 기본 전환 + 디자인 토큰 v2 | 제안 — 개인 OS P1 (PO-1/2) | FR-WIDGET-05/06 | — |
+| [0028](ADR-0028-single-client-cache.md) | 단일 클라이언트 캐시 — 뷰는 파생만, 칸반 별 타입 | 제안 — 개인 OS P1 (PO-7) | FR-TASK-02/03, FR-UI-01 | — |
+| [0029](ADR-0029-task-auto-category.md) | 할 일 자동 분류 — 에이전트 배치, `tasks.category` | 제안 — 개인 OS P1 (PO-3/4) | FR-TASK-08 | — |
+| [0030](ADR-0030-okr-data-model.md) | OKR 데이터 모델 + 주간 플래너 | 제안 — 개인 OS P1 (PO-5/6) | FR-OKR-* | — |
+| [0031](ADR-0031-safe-markdown-render.md) | 안전 마크다운 렌더 — 서버 토큰화 + React 매핑 | 제안 — 개인 OS P1 (PO-11) | FR-UI-06 | — |
