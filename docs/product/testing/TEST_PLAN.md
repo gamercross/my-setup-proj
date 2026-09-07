@@ -193,6 +193,20 @@ CI(`.github/workflows/test.yml`)에 `npm test`(backend), `pytest -m "not network
 | TC-BRIEF-07 | FR-WIDGET-08 | `widgetMeta` + `defaultLayout` | brief 등록, 모든 defaultLayout type 이 메타에, `w≤12` 및 `w≥minSize.w` | P2 · ✅ (`frontend/test/registry.test.mjs`) |
 | TC-BRIEF-08 | FR-WIDGET-06 | `resolveDisplay` + brief 스키마 | `showMeta` 잘못된 값 → default(true) | P2 · ✅ (`displayConfig.test.mjs`) |
 
+#### 3.4h 공통 컴포넌트 dotFill 로직 — `frontend/test/dotFill.test.mjs` (Phase P4)
+
+`dotFill.js` 는 순수 JS(JSX 아님)라 `node --test` 로 직접 import. `cd frontend && node --test test/`.
+
+| ID | 대상 | 전제 | 기대 결과 | 상태 |
+|---|---|---|---|:---:|
+| TC-P4-01 | `dotFill` 기본 | `dotFill(50, 20)` | `10` | ✅ |
+| TC-P4-02 | 경계값 | `dotFill(0)` / `dotFill(100)` | `0` / `20` | ✅ |
+| TC-P4-03 | 비정상·범위 밖 pct | `NaN`·`'abc'`·`-5`·`150` | `0`·`0`·`0`·`20` | ✅ |
+| TC-P4-04 | 비정상 total | `dotFill(50, 0)` / `dotFill(50, 3.5)` | 둘 다 `10` (total→20) | ✅ |
+| TC-P4-05 | `normalizeTotal`·`clampPct` 규칙 | 정상값 그대로 / 0 이하·비정수·NaN→20 · clampPct NaN→0·clamp·정수반올림 | 전부 일치 | ✅ |
+
+> `DotProgress`·`StatTile`·`Chip` 자체 렌더는 프론트 러너 없음 → §3.9 수동 체크.
+
 #### 3.4g 스케줄 자동 실행 — 수동 검증 (Phase D3, 자동화 안 함)
 
 launchd/cron 은 CI 에서 재현하기 어렵다. 아래는 설치 후 수동으로 확인한다.
@@ -420,6 +434,17 @@ fake service 주입, 네트워크 0회. 재시도 테스트는 `services.retry.s
 | TC-WIDGET-18 | FR-WIDGET-06 | 할일 위젯 표시 탭에서 정렬=우선순위, 완료 숨김 ON, 최대 3개 | 목록이 우선순위순·완료 제외·3개로 제한. 재시작 후 유지. 로컬 수동 확인 대기 |
 | TC-WIDGET-19 | FR-WIDGET-05 (D-4) | 설정 모달에서 Esc / 백드롭 클릭 | 모달이 닫힌다. 모달이 위젯 프레임 밖으로 클리핑 없이 중앙 표시. 로컬 수동 확인 대기 |
 
+### 3.9 공통 컴포넌트 육안 체크리스트 (Phase P4)
+
+프론트 러너 없음 → `npm run dev` 로 육안 확인. 샌드박스 GUI 불가 → 로컬 수행 대기.
+
+| ID | 대상 | 절차 | 통과 조건 | 상태 |
+|---|---|---|---|:---:|
+| TC-P4-M1 | `DotProgress` | 프로젝트 카드 진행바 확인 (`ProjectCard` → `DotProgress`) | 점 20칸, pct 비율만큼 채움색(`--w-accent`/`--accent`), `showPercent` 로 `%` 표시, 슬라이더 조정 시 반영 | ⏳ 로컬 대기 |
+| TC-P4-M2 | `StatTile` | 스탯 타일 렌더 (배치처) | 숫자 700·40px, tone 별 숫자색(`--accent`/`--ok`/`--warn`/`--bad`), bg `--panel` · border `--border` · radius 14px | ⏳ 로컬 대기 |
+| TC-P4-M3 | `Chip` | 칩 렌더 (필터/상태) | `onClick` 있으면 클릭 가능한 버튼, 없으면 정적, radius `--chip-radius`, variant 별 색 | ⏳ 로컬 대기 |
+| TC-P4-M4 | 카드 토큰 v2 | 위젯 프레임 | `--card-radius` 16px 모서리, `--shadow-card` 옅은 그림자 1겹 | ⏳ 로컬 대기 |
+
 ### 3.8 3강의 구조 문서 정합 수동 체크리스트 (COURSE_MAPPING)
 
 `docs/` 를 3개 강의(A·B·C, [COURSE_MAPPING.md](../../progress/COURSE_MAPPING.md)) 구조로 유지하기 위한 점검. 자동 러너 없음 — 문서 변경 시 수동 확인.
@@ -473,6 +498,7 @@ supervisor 는 리뷰 시 "이 변경에 대응하는 테스트가 있는가"를
 ## 7. 현재 상태 (2026-09-07, fix/ai-results-cleanup)
 
 - 백엔드 자동화 테스트: **70케이스 작성됨** — `backend/test/tasks.test.js` (TC-TASK-01,02,04~10 + TC-PROJ-08/09/09b/09c/09d + TC-DB-04a), `backend/test/projects.test.js` (TC-PROJ-01~07,10,11 + TC-DB-04b), `backend/test/services.test.js` (TC-MAINT-01~05), `backend/test/lifecycle.test.js` (TC-REL-01~06), `backend/test/calendar.test.js` (TC-CAL-01~07), `backend/test/db.test.js` (TC-DB-01~03 + TC-DB-04c/d), `backend/test/middleware.test.js` (TC-MW-01~09), `backend/test/diagrams.test.js` (TC-DIAG-01~05), `backend/test/supabase.test.js` (TC-SYNC-01~05), `backend/test/sync.test.js` (TC-SYNC-08~10). `supertest` + `node --test`, `:memory:` DB. (TC-DB-04b 는 project status 검증이라 `projects.test.js` 에 위치.)
+- Phase P4(2026-09-07, feature/p4-common-components): 공통 프레젠테이션 컴포넌트 — `frontend/src/components/{dotFill.js,DotProgress.jsx,StatTile.jsx,Chip.jsx}`(신규), `frontend/test/dotFill.test.mjs`(신규, TC-P4-01~05), `frontend/src/styles.css`(`--card-radius` 10→16, `--shadow-card` 추가), `WidgetFrame.jsx`(그림자 1겹), `ProjectCard.jsx`(진행바 → `DotProgress`). `cd frontend && node --test test/` 26/0, `npm run build`·`npm run build:demo` 성공, `verify.sh --code-only` 27/0/0. 컴포넌트 육안 확인(TC-P4-M1~4)은 로컬 수행 대기(샌드박스 GUI 불가).
 - fix/ai-results-cleanup(2026-09-07): C1 `backend/src/lifecycle.js`(신규 — `logFatal`/`createShutdown`/`registerProcessHandlers`, `uncaughtException`→로그 후 안전 종료 exit 1, SIGTERM/SIGINT→graceful shutdown exit 0, `unhandledRejection`→로그만), `backend/src/server.js`(배선), `backend/db/index.js`(`checkpointAndClose` 추가), `backend/test/lifecycle.test.js`·`test/helpers/crashFixture.js`(신규, TC-REL-01~06). C2 `backend/src/services/{tasks,projects}.js`(신규 — 서비스 계층), `backend/src/errors.js`(`ValidationError`/`NotFoundError` + `isNotFoundError`, 기존 정규식 판정 유지), `backend/src/routes/{tasks,projects}.js`(얇게 — `require('../db')` 제거), `backend/test/services.test.js`·`test/helpers/testApp.js`(`loadService`). 기존 회귀 테스트 무수정 통과. NFR-REL-03 문구 개정, NFR-MAINT-02 ✅.
 - 에이전트 자동화 테스트: **D2-a 기준 작성됨** — `agent/tests/test_daily_brief.py` (TC-AGENT-01,02,03,06,13,14,15,19) + `agent/tests/test_db.py` (TC-AGENT-05,09,10,11,12 + TC-SYNC-06/07) + `agent/tests/test_retry.py` (TC-AGENT-16,17,18, D2-a 신규) + `agent/tests/conftest.py`(`temp_db` fixture). `test_claude.py` 는 연결 확인용(키 없으면 skip). D2-b 신규: `test_google_oauth.py`(TC-AUTH-01~08), `test_gmail.py`(TC-MAIL-01~09), `test_calendar.py`(TC-CAL-08~14), `test_db.py`(+TC-SYNC-11~14), `test_daily_brief.py`(+TC-AGENT-20/21, 이메일/일정 소스를 `db` 에서 import 하도록 fixture 키 변경). 현재 `pytest -m "not network"` 54 passed (4 deselected).
 - Phase D2-a(2026-09-07): `agent/services/retry.py`(`call_with_retry` — 3회 시도/재시도 2회/1·2s 지수 백오프, 인증·4xx 즉시 실패), `agent/services/claude.py`(`ask()` 재시도 적용 + `Anthropic(timeout=30, max_retries=0)`), `agent/db.py`(`log_sync()` — `sync_logs` 기록, 예외 안 냄), `agent/daily_brief.py`(`_run()` 에서 `ensure_schema` 배선), `backend` `GET /api/sync/logs`(읽기 전용) + `db.getSyncLogs`. TC-AGENT-16~19, TC-SYNC-06~10. 커버: FR-AGENT-06 AC-3, NFR-REL-05, NFR-OBS-03(부분), FR-SYNC-03(조회 API). OAuth·실 수집은 D2-b 이월.

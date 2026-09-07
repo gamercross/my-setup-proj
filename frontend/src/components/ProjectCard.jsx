@@ -1,6 +1,7 @@
 // props-only 프레젠테이션 컴포넌트. 데이터·콜백은 상위 뷰(ProjectsWidgetView → useProjectStore)가 주입한다.
 
 import React, { useState, useEffect } from 'react';
+import DotProgress from './DotProgress.jsx';
 
 // 값을 min~max 범위로 자른다
 function clamp(v, min, max) {
@@ -87,19 +88,10 @@ export default function ProjectCard({ project, onDelete, onProgressChange, onSta
         </span>
       </div>
 
-      {/* 진행도 바 */}
-      <div
-        style={{
-          marginTop: '8px',
-          height: '8px',
-          background: 'var(--bg)',
-          borderRadius: '999px',
-          overflow: 'hidden',
-        }}
-      >
-        <div style={{ width: pct + '%', height: '100%', background: 'var(--w-accent, var(--accent))' }} />
+      {/* 진행도 — 점그리드 진행바로 통일 (P4) */}
+      <div style={{ marginTop: '8px' }}>
+        <DotProgress label={null} pct={pct} showPercent />
       </div>
-      <div style={{ marginTop: '4px', fontSize: '12px', color: 'var(--muted)' }}>{pct}%</div>
 
       {onProgressChange && (
         <input
