@@ -30,8 +30,11 @@
 
 ### `ANTHROPIC_API_KEY`
 1. https://console.anthropic.com → **API Keys** → Create Key
-2. `sk-ant-...` 복사 → `.env`
-3. 대안: `ant auth login` 프로필 사용 시 이 키 없이도 `Anthropic()` 이 인증됨
+2. **키를 특정 Workspace 로 스코프해서 생성한다.** 생성 다이얼로그의 *Workspace* 드롭다운에서
+   Default 가 아닌 실제 Workspace 를 고른다. Org 레벨(Workspace 미지정) 키는 SDK 호출 시
+   `400 invalid_request_error: "This API key is not scoped to a workspace…"` 로 실패한다.
+3. `sk-ant-...` 복사 → `.env` 의 `ANTHROPIC_API_KEY` 교체
+4. 대안: `ant auth login` 프로필 사용 시 이 키 없이도 `Anthropic()` 이 인증됨
 
 ### `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`
 
