@@ -89,7 +89,7 @@
 개발: 72%
 ```
 
-> Phase A2·A3·B1·B2·C1~C6·D1·D2-a·D2-b·D3·D-마무리 완료, 웹 데모 프로토타입(ADR-0026, GitHub Pages) 완료. Notion·launchd 로컬 설정·검증 완료, 웹 데모 라이브(https://gamercross.github.io/my-setup-proj/). **다음 축: 개인 생산성 OS 방향**(PERSONAL_OS.md — 라이트 테마 + OKR·칸반·자동분류·에이전트 UI). 순서: 문서(P1) → 디자인(P2) → 빌드(P3~P8). Phase E(다중 사용자)와의 순서는 PO-10.
+> Phase A2·A3·B1·B2·C1~C6·D1·D2-a·D2-b·D3·D-마무리 완료, 웹 데모 프로토타입(ADR-0026, GitHub Pages) 완료. Notion·launchd 로컬 설정·검증 완료, 웹 데모 라이브(https://gamercross.github.io/my-setup-proj/). **다음 축: 개인 생산성 OS 방향**(PERSONAL_OS.md — 라이트 테마 + OKR·칸반·자동분류·에이전트 UI). 순서: 문서(P1) → 디자인(P2) → 빌드(P3~P9). Phase E(다중 사용자)와의 순서는 PO-10.
 > 검증 스냅샷: `node v26.8.1 / npm 11.19.0 / python 3.14.4`, `verify.sh` 27/0/0, `agent pytest` 54/0 (4 deselected), `frontend npm test` 9/0, `backend npm test` 59/0, `check-docs.sh` 11/0/0, `frontend npm run build` 성공.
 
 ---
@@ -299,7 +299,7 @@ umask -S               # 기본 권한
 > Phase D(에이전트) 완료 직후 사용자가 제시한 새 작업 축. 상세: [../product/vision/PERSONAL_OS.md](../product/vision/PERSONAL_OS.md).
 > 순서 원칙: **문서 → 디자인 → 빌드.** 각 빌드 단계는 `/feature` 파이프라인 1회, 개별 PR, `frontend/` 변경은 병합 시 [웹 데모](https://gamercross.github.io/my-setup-proj/) 자동 재배포.
 
-**역량 테마:** T1 단일 완료 · T2 자동 분류 · T3 OKR·주간 플래너 · T4 에이전트 활동 UI · T5 라이트 비주얼 시스템
+**역량 테마:** T1 단일 완료 · T2 자동 분류 · T3 OKR·주간 플래너 · T4 에이전트 활동 UI · T5 라이트 비주얼 시스템 · T6 진행 현황 뷰
 
 ```mermaid
 flowchart LR
@@ -317,12 +317,14 @@ flowchart LR
     P6["P6 · T2 자동 분류<br/>스키마 마이그레이션 + 에이전트 분류"]
     P7["P7 · T4 에이전트 활동 위젯<br/>sync_logs · health · 다음 실행"]
     P8["P8 · T3 OKR Phase<br/>objectives·key_results + 대시보드<br/>+ 주간 플래너"]
+    P9["P9 · T6 진행 현황 뷰<br/>GET /api/docs + 안전 토큰화<br/>+ 진행 현황 위젯"]
   end
 
   P0 --> P1 --> P2 --> P3 --> P4
   P4 --> P5 --> P6
   P4 --> P7
   P4 --> P8
+  P4 --> P9
   P5 --> P8
 
   style P0 fill:#dcfce7,stroke:#16a34a
@@ -333,7 +335,7 @@ flowchart LR
 | P0 | ✅ 2026-09-07 | `PERSONAL_OS.md` · 이 다이어그램 |
 | P1 문서 | ⏳ | ADR 4건 초안 + 0013 재활성 + 0018 결정 + `OKR.md` + `UI_STYLE.md` 개정 |
 | P2 디자인 | ⏳ | 목업 캔버스 + 토큰 확정 |
-| P3~P8 빌드 | ⏳ | 위 다이어그램 순서대로 |
+| P3~P9 빌드 | ⏳ | 위 다이어그램 순서대로 (P9 진행 현황 뷰 = 이 문서를 대시보드에서 보기) |
 
 **열린 질문 PO-1~10** (착수 전 결정) 은 [PERSONAL_OS.md §8](../product/vision/PERSONAL_OS.md) 참조 — 특히 PO-1(라이트 기본 전환), PO-7(칸반이 할 일 위젯 대체 vs 추가), PO-10(Phase E 와의 순서).
 
