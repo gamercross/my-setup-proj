@@ -1,0 +1,144 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    /* 토큰: frontend/src/styles.css :root 와 1:1 */
+    :root {
+      --bg:#f7f7f5; --panel:#ffffff; --panel-2:#f2f2ef; --border:#ececec;
+      --text:#1a1a1a; --muted:#8a8a8a;
+      --accent:#2f6feb; --accent-soft:rgba(47,111,235,.12);
+      --ok:#2e7d5b; --warn:#c2691f; --bad:#c23b3b;
+      --radius:8px; --chip-radius:999px; --pad:10px; --card-radius:16px;
+    }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--text);
+      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }
+    .card { background:var(--panel); border:1px solid var(--border);
+      border-radius:var(--card-radius); box-shadow:0 1px 2px rgba(0,0,0,.04); overflow:hidden; }
+    .tbar { display:flex; align-items:center; gap:8px; padding:6px 8px;
+      border-bottom:1px solid var(--border); font-size:13px; color:var(--text); }
+    .tctl { color:var(--muted); display:inline-flex; }
+    .doctab { padding:4px 11px; border-radius:var(--chip-radius); font-size:12px; font-weight:600; }
+    table { border-collapse:collapse; width:100%; font-size:12px; }
+    th, td { border:1px solid var(--border); padding:6px 9px; text-align:left; }
+    th { background:var(--panel-2); color:var(--muted); font-weight:600; }
+    pre { margin:0; background:var(--panel-2); border-radius:10px; padding:12px;
+      font-size:12px; color:var(--text); overflow-x:auto;
+      font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+    .cap { font-size:11px; color:var(--muted); }
+  </style>
+</helmet>
+
+<div style="width:702px; min-height:620px; background:var(--bg); padding:0;">
+  <div class="card">
+    <div class="tbar">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v16h16"/><path d="M8 14l3-4 3 3 4-6"/></svg>
+      <span style="font-weight:600;">진행 현황</span>
+      <span style="margin-left:auto; display:inline-flex; gap:4px;">
+        <span class="tctl"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.4-2.3.9a7 7 0 0 0-1.7-1l-.4-2.5h-4l-.4 2.5a7 7 0 0 0-1.7 1l-2.3-.9-2 3.4 2 1.5a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.3-.9a7 7 0 0 0 1.7 1l.4 2.5h4l.4-2.5a7 7 0 0 0 1.7-1l2.3.9 2-3.4-2-1.5c.1-.3.1-.7.1-1Z"/></svg></span>
+        <span class="tctl"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/></svg></span>
+        <span class="tctl"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"/></svg></span>
+      </span>
+    </div>
+
+    <!-- 문서 선택 칩 -->
+    <div style="display:flex; gap:6px; padding:12px 14px; border-bottom:1px solid var(--border); flex-wrap:wrap;">
+      <span class="doctab" style="background:var(--accent-soft); color:var(--accent);">PROGRESS</span>
+      <span class="doctab" style="background:var(--panel-2); color:var(--muted);">PERSONAL_OS</span>
+      <span class="doctab" style="background:var(--panel-2); color:var(--muted);">작업로그</span>
+      <span class="doctab" style="background:var(--panel-2); color:var(--muted);">TRACEABILITY</span>
+    </div>
+
+    <div style="padding:16px; display:flex; flex-direction:column; gap:16px;">
+
+      <!-- 접힌 섹션 -->
+      <div style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted);">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M9 6l6 6-6 6"/></svg>
+        <span>주간 진행 (Week 1–3) — 접힘</span>
+      </div>
+
+      <!-- 펼친 섹션: 목록 -->
+      <div>
+        <div style="display:flex; align-items:center; gap:8px; font-size:14px; font-weight:600; margin-bottom:10px;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+          개인 생산성 OS 방향 — 펼침
+        </div>
+        <div style="font-size:13px; line-height:1.7; padding-left:20px;">
+          역량 테마 T1–T6 · 순서 <strong>문서 → 디자인 → 빌드</strong>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:8px; margin-top:12px; padding-left:20px;">
+          <div style="display:flex; gap:10px; align-items:center; font-size:13px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>
+            P0 방향 문서 + 다이어그램
+          </div>
+          <div style="display:flex; gap:10px; align-items:center; font-size:13px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>
+            P1 ADR 0027–0031 초안
+          </div>
+          <div style="display:flex; gap:10px; align-items:center; font-size:13px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>
+            P3 라이트 테마 (supervisor PASS)
+          </div>
+          <div style="display:flex; gap:10px; align-items:center; font-size:13px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--warn)" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18Z" fill="var(--warn)" stroke="none"/></svg>
+            P2 디자인 캔버스 (지금)
+          </div>
+          <div style="display:flex; gap:10px; align-items:center; font-size:13px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>
+            P4 공통 컴포넌트
+          </div>
+          <div style="display:flex; gap:10px; align-items:center; font-size:13px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>
+            P5 칸반 + 단일 캐시
+          </div>
+        </div>
+      </div>
+
+      <!-- 표 -->
+      <div>
+        <div style="font-size:13px; color:var(--muted); margin-bottom:8px;">검증 스냅샷 (예시 — 실제 값은 verify.sh 출력)</div>
+        <table>
+          <tr><th>스위트</th><th>통과</th><th>실패</th><th>건너뜀</th></tr>
+          <tr><td>verify.sh</td><td>35</td><td>0</td><td>0</td></tr>
+          <tr><td>check-docs.sh</td><td>11</td><td>0</td><td>0</td></tr>
+          <tr><td>backend (node --test)</td><td>85</td><td>0</td><td>0</td></tr>
+          <tr><td>frontend</td><td>20</td><td>0</td><td>0</td></tr>
+          <tr><td>agent (pytest)</td><td>64</td><td>0</td><td>0</td></tr>
+        </table>
+      </div>
+
+      <!-- 코드블록 -->
+      <div>
+        <div style="font-size:13px; color:var(--muted); margin-bottom:8px;">최근 커밋 (예시)</div>
+<pre>440e60a docs: ai_결과값.md 점검 결과 갱신
+ed6adc2 docs: NFR-REL-03 종료 정책 개정 + 서비스 계층
+adde2d7 refactor(backend): tasks·projects service 계층 분리</pre>
+      </div>
+
+      <!-- mermaid 블록 자리 (DiagramPanel 재사용) -->
+      <div>
+        <div style="font-size:13px; color:var(--muted); margin-bottom:8px;">다이어그램 블록 (DiagramPanel 재사용 — mermaid 렌더 자리)</div>
+        <div style="border:1px dashed var(--border); border-radius:10px; padding:20px;
+          display:flex; align-items:center; justify-content:center; gap:8px; color:var(--muted); font-size:12px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><path d="M10 6.5h4a3 3 0 0 1 3 3V14"/></svg>
+          <code style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;">flowchart TD … (docs/ 의 mermaid 를 그대로 렌더)</code>
+        </div>
+      </div>
+
+      <div class="cap">
+        프레임 702×620 · 리치 마크다운(이미지·HTML 임베드) 불가 — ADR-0031 안전 토큰 부분집합(목록·표·코드블록·mermaid)만 · 편집 UI 없음 ·
+        상태 아이콘 전부 인라인 SVG ·
+        카드 radius 16px는 P4 목표값 (코드 현재 --card-radius:10px).
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

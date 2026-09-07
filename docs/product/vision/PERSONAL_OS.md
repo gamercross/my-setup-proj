@@ -184,8 +184,8 @@ flowchart TB
 |---|---|---|---|
 | **P0** | 이 문서 + PROGRESS 다이어그램 | `PERSONAL_OS.md`, PROGRESS §추가 | — |
 | **P1 (문서)** | ADR 초안 + 요구사항 | ADR-0027(라이트 테마)·0028(단일 캐시)·0029(자동 분류)·0030(OKR 모델)·0031(안전 마크다운 렌더), ADR-0013 재활성, ADR-0018 결정, `requirements/OKR.md`, `UI_STYLE.md` 개정 | P0 |
-| **P2 (디자인)** | 목표 화면 목업 | `design` 스킬 캔버스 (라이트 테마 대시보드 · OKR · 칸반 · 에이전트 위젯) + 토큰 확정 | P1 |
-| ~~P3 (빌드)~~ ✅ | T5 라이트 테마 1차 (2026-09-07, ADR-0027 채택) | `styles.css` `:root` 팔레트 전환(다크→라이트) + `[data-theme=dark]` 블록(정의만) + 하드코딩 hex→`var(--*)` 치환 (10개 파일) → 데모 반영. 카드 여백·라운드·점그리드·전역 다크 토글은 P4 | P2 생략(레퍼런스 명확) — PO-1/2 결정 |
+| ~~P2 (디자인)~~ ✅ | 목표 화면 목업 (2026-09-07) | design 캔버스 6 아트보드 + 토큰 v2 확정. https://claude.ai/code/artifact/a8e15d6b-2bfb-42d9-96c7-cdb0d964ebf3 | P1 |
+| ~~P3 (빌드)~~ ✅ | T5 라이트 테마 1차 (2026-09-07, ADR-0027 채택) | `styles.css` `:root` 팔레트 전환(다크→라이트) + `[data-theme=dark]` 블록(정의만) + 하드코딩 hex→`var(--*)` 치환 (10개 파일) → 데모 반영. 카드 여백·라운드·점그리드·전역 다크 토글은 P4 | P2 는 P3 이후 소급 확정(2026-09-07) — PO-1/2 결정 |
 | **P4** | T5 공통 컴포넌트 | 스탯 타일 · 점-그리드 진행바 · 칩 (OKR·에이전트 공용) | P3 |
 | **P5** | T1 단일 캐시 + 칸반 뷰 | `useTaskStore` id 키잉, 칸반(완료 체크·우선순위 열·태그) | P3 |
 | **P6** | T2 자동 분류 | 스키마 마이그레이션 + 에이전트 분류 + 칩 필터 | P4·P5 |
@@ -218,6 +218,7 @@ flowchart TB
 - [../reference/UI_STYLE.md](../reference/UI_STYLE.md) — 시각 참조 틀 (개정 예정)
 - [../architecture/adr/README.md](../architecture/adr/README.md) — ADR 목록
 - [../../progress/PROGRESS.md](../../progress/PROGRESS.md) — 진행 다이어그램·주차 계획
+- [P2 UI 기본틀 캔버스](https://claude.ai/code/artifact/a8e15d6b-2bfb-42d9-96c7-cdb0d964ebf3) — 6 아트보드 목업 (2026-09-07, supervisor PASS)
 
 ---
 

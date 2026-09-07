@@ -32,6 +32,9 @@ scripts/daily-brief.log*
 # 작업 보조 산출물 (레포 외 도구)
 making-os/
 
+# 디자인 캔버스 seed (2.5MB, 편집기 코드 포함) — 소스 아트보드(.dc.html)·canvas.json 만 커밋
+design-p2/*-canvas.html
+
 # IDE / OS
 .vscode/
 .idea/

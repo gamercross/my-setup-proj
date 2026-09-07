@@ -1,0 +1,307 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    /* 토큰 대조표: frontend/src/styles.css :root (ADR-0027 / UI_SPEC §1) 와 1:1 */
+    :root {
+      --bg:#f7f7f5; --panel:#ffffff; --panel-2:#f2f2ef; --border:#ececec;
+      --text:#1a1a1a; --muted:#8a8a8a;
+      --accent:#2f6feb; --accent-soft:rgba(47,111,235,.12);
+      --ok:#2e7d5b; --warn:#c2691f; --bad:#c23b3b;
+      --priority-high:#ef4444; --priority-medium:#f59e0b; --priority-low:#64748b;
+      --radius:8px; --chip-radius:999px; --pad:10px;
+      /* --card-radius: 코드값 10px → 캔버스는 P4 목표값 16px 사용(캡션 표기) */
+      --card-radius:16px;
+    }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--text);
+      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }
+    .card { background:var(--panel); border:1px solid var(--border);
+      border-radius:var(--card-radius); box-shadow:0 1px 2px rgba(0,0,0,.04);
+      display:flex; flex-direction:column; overflow:hidden; }
+    .tbar { display:flex; align-items:center; gap:6px; padding:6px 8px;
+      border-bottom:1px solid var(--border); font-size:13px; color:var(--text); }
+    .tbar .name { font-weight:600; }
+    .tbar .count { color:var(--muted); }
+    .tctl { color:var(--muted); display:inline-flex; }
+    .wbody { flex:1; padding:14px; overflow:hidden; }
+    .chip { display:inline-flex; align-items:center; padding:2px 10px;
+      border-radius:var(--chip-radius); font-size:11px; font-weight:600;
+      background:var(--panel-2); color:var(--muted); }
+    .chip.on { background:var(--accent-soft); color:var(--accent); }
+    .pbadge { display:inline-flex; align-items:center; padding:2px 9px;
+      border-radius:var(--chip-radius); font-size:11px; font-weight:700;
+      background:var(--panel-2); }
+    .box { width:16px; height:16px; border:2px solid var(--border);
+      border-radius:5px; display:inline-flex; align-items:center; justify-content:center; flex:none; }
+    .box.done { background:var(--ok); border-color:var(--ok); }
+    .dotbar { display:flex; gap:3px; flex-wrap:wrap; }
+    .dot { width:8px; height:8px; border-radius:2px; background:var(--border); }
+    .dot.on { background:var(--accent); }
+    .cap { font-size:11px; color:var(--muted); }
+    svg { flex:none; }
+  </style>
+</helmet>
+
+<div style="width:1440px; min-height:900px; background:var(--bg);">
+
+  <!-- App 헤더 (App.jsx: 우측정렬, --panel-2, 12px --muted) -->
+  <div style="display:flex; justify-content:flex-end; align-items:center; gap:10px;
+    padding:6px 24px; background:var(--panel-2); color:var(--muted); font-size:12px;
+    border-bottom:1px solid var(--border);">
+    <span>v0.1.0 · Electron 30.0.0 · Node 20.11.0</span>
+    <span style="display:inline-flex; align-items:center; gap:6px; color:var(--ok);">
+      <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="4" fill="currentColor"/></svg>
+      백엔드 연결됨
+    </span>
+  </div>
+
+  <!-- 셸 바 (WidgetShell.jsx: 좌측 제목, 우측 버튼 3개, --panel + --border 하단선) -->
+  <div style="display:flex; align-items:center; gap:8px; padding:6px 12px;
+    background:var(--panel); border-bottom:1px solid var(--border);">
+    <strong style="font-size:14px; margin-right:auto;">AI Computer OS</strong>
+    <button style="display:inline-flex; align-items:center; gap:5px; font-size:13px;
+      padding:4px 10px; border-radius:6px; border:1px solid var(--border);
+      background:var(--panel-2); color:var(--text); cursor:pointer;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+      편집
+    </button>
+    <button style="display:inline-flex; align-items:center; gap:5px; font-size:13px;
+      padding:4px 10px; border-radius:6px; border:1px solid var(--border);
+      background:var(--panel-2); color:var(--text); cursor:pointer;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+      위젯 추가
+    </button>
+    <button style="display:inline-flex; align-items:center; gap:5px; font-size:13px;
+      padding:4px 10px; border-radius:6px; border:1px solid var(--border);
+      background:var(--panel-2); color:var(--text); cursor:pointer;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+      초기화
+    </button>
+  </div>
+
+  <!-- 위젯 그리드 (defaultLayout.js + RGL 기하: W=1440 → colWidth 107px, margin 12px) -->
+  <div style="position:relative; width:1440px; height:672px; margin:0 auto;">
+
+    <!-- 할 일  tasks(x0,y0,4×6) → left 12, top 12, 464×300 -->
+    <div class="card" style="position:absolute; left:12px; top:12px; width:464px; height:300px;">
+      <div class="tbar">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        <span class="name">할 일</span>
+        <span class="count">3</span>
+        <span style="margin-left:auto; display:inline-flex; gap:4px;">
+          <span class="tctl"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.4-2.3.9a7 7 0 0 0-1.7-1l-.4-2.5h-4l-.4 2.5a7 7 0 0 0-1.7 1l-2.3-.9-2 3.4 2 1.5a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.3-.9a7 7 0 0 0 1.7 1l.4 2.5h4l.4-2.5a7 7 0 0 0 1.7-1l2.3.9 2-3.4-2-1.5c.1-.3.1-.7.1-1Z"/></svg></span>
+          <span class="tctl"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/></svg></span>
+          <span class="tctl"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"/></svg></span>
+        </span>
+      </div>
+      <div class="wbody" style="display:flex; flex-direction:column; gap:9px;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span class="box"></span>
+          <span style="flex:1; font-size:14px;">위젯 셸 레이아웃 저장 버그 재현</span>
+          <span class="pbadge" style="color:var(--priority-high);">높음</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span class="box"></span>
+          <span style="flex:1; font-size:14px;">Notion 저장 재시도 로그 확인</span>
+          <span class="pbadge" style="color:var(--priority-medium);">보통</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px; opacity:.5;">
+          <span class="box done"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--panel)" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span style="flex:1; font-size:14px; text-decoration:line-through;">페이지 교체 알고리즘 정리 노트</span>
+          <span class="pbadge" style="color:var(--priority-low);">낮음</span>
+        </div>
+        <div style="display:flex; gap:6px; margin-top:2px; align-items:center;">
+          <input type="text" placeholder="새 할 일 입력" style="flex:1; font-size:12px; padding:5px 8px;
+            border:1px solid var(--border); border-radius:var(--radius); background:var(--panel); color:var(--text);">
+          <button style="font-size:12px; padding:5px 10px; border-radius:var(--radius);
+            border:1px solid var(--border); background:var(--panel-2); color:var(--text); cursor:pointer;">추가</button>
+        </div>
+        <div class="cap">현재 코드: 배지 영문(high/medium/low)·배경=색. 캔버스는 "높음/보통/낮음" + soft 배경 목표안 (코드 변경 P4/P5).</div>
+      </div>
+    </div>
+
+    <!-- 오늘 브리핑  brief(x0,y6,4×6) → left 12, top 324, 464×300 -->
+    <div class="card" style="position:absolute; left:12px; top:324px; width:464px; height:300px;">
+      <div class="tbar">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        <span class="name">오늘 브리핑</span>
+        <span style="margin-left:auto; display:inline-flex; gap:4px;">
+          <span class="tctl"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.4-2.3.9a7 7 0 0 0-1.7-1l-.4-2.5h-4l-.4 2.5a7 7 0 0 0-1.7 1l-2.3-.9-2 3.4 2 1.5a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.3-.9a7 7 0 0 0 1.7 1l.4 2.5h4l.4-2.5a7 7 0 0 0 1.7-1l2.3.9 2-3.4-2-1.5c.1-.3.1-.7.1-1Z"/></svg></span>
+          <span class="tctl"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/></svg></span>
+          <span class="tctl"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"/></svg></span>
+        </span>
+      </div>
+      <div class="wbody" style="display:flex; flex-direction:column; gap:10px;">
+        <div style="font-size:13.5px; line-height:1.6; white-space:pre-wrap; color:var(--text);">오늘의 우선순위 TOP 3
+1. 위젯 셸 저장 버그를 먼저 재현해 원인을 좁히세요.
+2. 운영체제 과제 3번 풀이를 시작하세요 — 금요일 마감.
+3. 릴스 썸네일 시안은 짧게라도 오늘 손대두면 수월합니다.</div>
+        <div style="display:flex; gap:10px; align-items:center; font-size:12px; color:var(--muted);">
+          <span>생성 07:30</span>
+          <button style="display:inline-flex; align-items:center; gap:5px; font-size:12px;
+            padding:2px 8px; border-radius:6px; border:1px solid var(--muted);
+            background:transparent; color:var(--text); cursor:pointer;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>
+            Notion 링크 복사
+          </button>
+        </div>
+        <div class="cap">BriefCard.jsx: 본문 plain text(white-space:pre-wrap), 마크다운 없음(NFR-SEC-04). Notion 링크는 &lt;a&gt; 아님 — 클립보드 복사 버튼.</div>
+      </div>
+    </div>
+
+    <!-- 프로젝트  projects(x4,y0,4×6) → left 488, top 12, 464×300 -->
+    <div class="card" style="position:absolute; left:488px; top:12px; width:464px; height:300px;">
+      <div class="tbar">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        <span class="name">프로젝트</span>
+        <span style="margin-left:auto; display:inline-flex; gap:4px;">
+          <span class="tctl"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.4-2.3.9a7 7 0 0 0-1.7-1l-.4-2.5h-4l-.4 2.5a7 7 0 0 0-1.7 1l-2.3-.9-2 3.4 2 1.5a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.3-.9a7 7 0 0 0 1.7 1l.4 2.5h4l.4-2.5a7 7 0 0 0 1.7-1l2.3.9 2-3.4-2-1.5c.1-.3.1-.7.1-1Z"/></svg></span>
+          <span class="tctl"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/></svg></span>
+          <span class="tctl"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"/></svg></span>
+        </span>
+      </div>
+      <div class="wbody" style="display:flex; flex-direction:column; gap:14px;">
+        <div>
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:14px; margin-bottom:6px;">
+            <strong>AI 대시보드 프로토타입</strong>
+            <span style="display:inline-flex; align-items:center; gap:6px;">
+              <span class="chip" style="gap:3px;">진행 중<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg></span>
+              <span style="color:var(--muted); font-size:12px;">70%</span>
+            </span>
+          </div>
+          <div class="dotbar">
+            <span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          </div>
+          <input type="range" min="0" max="100" step="5" value="70" style="width:100%; margin-top:6px; accent-color:var(--accent);">
+        </div>
+        <div>
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:14px; margin-bottom:6px;">
+            <strong>우송대 운영체제 과제</strong>
+            <span style="display:inline-flex; align-items:center; gap:6px;">
+              <span class="chip" style="gap:3px;">보류<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg></span>
+              <span style="color:var(--muted); font-size:12px;">40%</span>
+            </span>
+          </div>
+          <div class="dotbar">
+            <span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          </div>
+          <input type="range" min="0" max="100" step="5" value="40" style="width:100%; margin-top:6px; accent-color:var(--accent);">
+        </div>
+        <div class="cap">ProjectCard.jsx: 이름 + 상태 select(진행 중/완료/보류) + % + range 슬라이더(step 5). 진행바를 점그리드로 바꿔도 % 텍스트·슬라이더·상태 select 유지. 상태 칩 옆 chevron 은 select 컨트롤 암시.</div>
+      </div>
+    </div>
+
+    <!-- 일정  calendar(x8,y0,4×5) → left 964, top 12, 464×248 -->
+    <div class="card" style="position:absolute; left:964px; top:12px; width:464px; height:248px;">
+      <div class="tbar">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+        <span class="name">일정</span>
+        <span style="margin-left:auto; display:inline-flex; gap:4px;">
+          <span class="tctl"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.4-2.3.9a7 7 0 0 0-1.7-1l-.4-2.5h-4l-.4 2.5a7 7 0 0 0-1.7 1l-2.3-.9-2 3.4 2 1.5a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.3-.9a7 7 0 0 0 1.7 1l.4 2.5h4l.4-2.5a7 7 0 0 0 1.7-1l2.3.9 2-3.4-2-1.5c.1-.3.1-.7.1-1Z"/></svg></span>
+          <span class="tctl"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/></svg></span>
+          <span class="tctl"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"/></svg></span>
+        </span>
+      </div>
+      <div class="wbody" style="display:flex; flex-direction:column; gap:8px;">
+        <div style="display:flex; align-items:center; gap:10px; padding:8px 12px; background:var(--panel);
+          border-left:3px solid var(--accent); border-radius:6px; font-size:13px;">
+          <span style="color:var(--muted); min-width:42px;">09:30</span>
+          <span style="flex:1;">오전 팀 스탠드업<span style="color:var(--muted);"> · 회의실 A</span></span>
+          <span style="font-size:11px; color:var(--bg); background:var(--accent); border-radius:4px; padding:2px 6px;">오늘</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px; padding:8px 12px; background:var(--panel);
+          border-left:3px solid var(--accent); border-radius:6px; font-size:13px;">
+          <span style="color:var(--muted); min-width:42px;">14:00</span>
+          <span style="flex:1;">설계 리뷰<span style="color:var(--muted);"> · 온라인</span></span>
+          <span style="font-size:11px; color:var(--bg); background:var(--accent); border-radius:4px; padding:2px 6px;">오늘</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px; padding:8px 12px; background:var(--panel);
+          border-left:3px solid var(--muted); border-radius:6px; font-size:13px;">
+          <span style="color:var(--muted); min-width:42px;">10:00</span>
+          <span style="flex:1;">운영체제 강의<span style="color:var(--muted);"> · 공학관 401</span></span>
+          <span style="font-size:11px; color:var(--bg); background:var(--muted); border-radius:4px; padding:2px 6px;">내일</span>
+        </div>
+        <div class="cap">CalendarWidget.jsx: 좌측 시간(HH:MM, 없으면 —) + 좌측 3px 컬러 보더 + 우측 배지. 오늘=--accent, 내일=--muted, 그 외=--border.</div>
+      </div>
+    </div>
+
+    <!-- 에이전트 활동 (P7 추가) → left 488, top 324, 464×300 -->
+    <div class="card" style="position:absolute; left:488px; top:324px; width:464px; height:300px;">
+      <div class="tbar">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M12 8V4M8 2h8M9 14h.01M15 14h.01"/></svg>
+        <span class="name">에이전트 활동</span>
+        <span style="margin-left:auto; display:inline-flex; gap:4px;">
+          <span class="tctl"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.4-2.3.9a7 7 0 0 0-1.7-1l-.4-2.5h-4l-.4 2.5a7 7 0 0 0-1.7 1l-2.3-.9-2 3.4 2 1.5a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.3-.9a7 7 0 0 0 1.7 1l.4 2.5h4l.4-2.5a7 7 0 0 0 1.7-1l2.3.9 2-3.4-2-1.5c.1-.3.1-.7.1-1Z"/></svg></span>
+          <span class="tctl"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/></svg></span>
+          <span class="tctl"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"/></svg></span>
+        </span>
+      </div>
+      <div class="wbody" style="display:flex; flex-direction:column; gap:9px; font-size:13px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="4" fill="var(--ok)"/></svg>
+          <span style="flex:1;">Calendar 동기화</span><span style="color:var(--muted);">07:30</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="4" fill="var(--bad)"/></svg>
+          <span style="flex:1;">Gmail 동기화</span><span style="color:var(--muted);">실패</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="4" fill="var(--ok)"/></svg>
+          <span style="flex:1;">Notion 저장</span><span style="color:var(--muted);">07:31</span>
+        </div>
+        <div style="font-size:12px; color:var(--muted); margin-top:2px;">다음 실행 — 내일 07:30 · launchd</div>
+        <div class="cap">P7 추가 위젯. widgetMeta.js 미등록 — defaultSize w=4, h=6 제안. 상세는 "에이전트 활동 위젯" 아트보드 참조.</div>
+      </div>
+    </div>
+
+    <!-- 진행 현황 (P9 추가) → left 964, top 276, 464×348 -->
+    <div class="card" style="position:absolute; left:964px; top:276px; width:464px; height:348px;">
+      <div class="tbar">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v16h16"/><path d="M8 14l3-4 3 3 4-6"/></svg>
+        <span class="name">진행 현황</span>
+        <span class="count" style="margin-left:6px; font-size:12px;">PROGRESS.md</span>
+        <span style="margin-left:auto; display:inline-flex; gap:4px;">
+          <span class="tctl"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.4-2.3.9a7 7 0 0 0-1.7-1l-.4-2.5h-4l-.4 2.5a7 7 0 0 0-1.7 1l-2.3-.9-2 3.4 2 1.5a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.3-.9a7 7 0 0 0 1.7 1l.4 2.5h4l.4-2.5a7 7 0 0 0 1.7-1l2.3.9 2-3.4-2-1.5c.1-.3.1-.7.1-1Z"/></svg></span>
+          <span class="tctl"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/></svg></span>
+          <span class="tctl"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"/></svg></span>
+        </span>
+      </div>
+      <div class="wbody" style="display:flex; flex-direction:column; gap:8px; font-size:13px;">
+        <div style="display:flex; gap:8px; align-items:center;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>
+          P3 라이트 테마 완료
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--warn)" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18Z" fill="var(--warn)" stroke="none"/></svg>
+          P4 공통 컴포넌트 진행
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>
+          P5 칸반 + 단일 캐시
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>
+          P8 OKR Phase
+        </div>
+        <div class="cap">P9 추가 위젯. widgetMeta.js 미등록 — defaultSize w=4, h=6 제안. 상세는 "진행 현황 위젯" 아트보드 참조.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="padding:8px 24px 20px; font-size:11px; color:var(--muted); line-height:1.6;">
+    프레임 1440×900 · 카드 radius 16px는 P4 목표값(코드 현재 --card-radius:10px) · 위젯 아이콘은 SVG 목표안(코드 widgetMeta.js 는 이모지) ·
+    RGL 기하: colWidth 107px, itemW = w×107 + (w−1)×12 → w=4 → 464px, itemH = h×40 + (h−1)×12 → h=6 → 300px / h=5 → 248px ·
+    확인 필요: PO-7(칸반이 할 일 위젯 대체 vs 추가 뷰 — 현재는 "추가" 전제).
+  </div>
+</div>
+</x-dc>
+</body>
+</html>
