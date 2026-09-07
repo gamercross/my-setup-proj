@@ -107,8 +107,9 @@ cd frontend && npm run preview:demo   # 로컬에서 빌드 + 미리보기
 ```
 
 - 배포본: **https://gamercross.github.io/my-setup-proj/** — `main` 의 `frontend/` 변경 시
-  `.github/workflows/deploy-demo.yml` 이 자동 배포 (저장소 Settings → Pages → Source 를
-  "GitHub Actions" 로 1회 설정 필요).
+  `.github/workflows/deploy-demo.yml` 이 자동 배포. 워크플로가 `enablement: true` 로 Pages 를
+  자동으로 켜지만, 조직 정책으로 막혀 있으면 Settings → Pages → Source "GitHub Actions" 를
+  1회 수동 설정해야 한다.
 - 데모에서 추가/이동한 내용은 새로고침하면 초기화된다.
 
 전체 환경 구축 절차는 [SETUP.md](docs/setup/SETUP.md), 프로젝트 맥락은 [ONBOARDING.md](docs/ONBOARDING.md) 를 본다.
