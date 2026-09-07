@@ -73,6 +73,11 @@ syntax_check "backend services/tasks.js 문법"    node node -c backend/src/serv
 syntax_check "backend services/projects.js 문법" node node -c backend/src/services/projects.js
 syntax_check "backend routes/calendar.js 문법"    node node -c backend/src/routes/calendar.js
 syntax_check "backend services/calendar.js 문법"  node node -c backend/src/services/calendar.js
+syntax_check "backend routes/mail.js 문법"        node node -c backend/src/routes/mail.js
+syntax_check "backend services/mail.js 문법"      node node -c backend/src/services/mail.js
+syntax_check "backend routes/brief.js 문법"       node node -c backend/src/routes/brief.js
+syntax_check "backend services/brief.js 문법"     node node -c backend/src/services/brief.js
+syntax_check "scripts/seed-demo.js 문법"          node node -c scripts/seed-demo.js
 syntax_check "backend routes/diagrams.js 문법"    node node -c backend/src/routes/diagrams.js
 syntax_check "backend services/diagrams.js 문법"  node node -c backend/src/services/diagrams.js
 syntax_check "backend supabase.js 문법"           node node -c backend/src/supabase.js

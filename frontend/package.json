@@ -9,6 +9,8 @@
     "dev:vite": "vite",
     "dev:electron": "wait-on tcp:localhost:5173 && cross-env NODE_ENV=development electron . --enable-logging",
     "build": "vite build",
+    "build:demo": "cross-env VITE_DEMO=1 vite build",
+    "preview:demo": "cross-env VITE_DEMO=1 vite build && vite preview",
     "test": "node --test test/*.test.mjs",
     "package": "electron-builder"
   },

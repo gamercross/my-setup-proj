@@ -18,10 +18,25 @@ function handleError(err, res, { logPrefix, failMessage }) {
   res.status(500).json({ error: failMessage });
 }
 
-// GET /api/tasks - 할일 전체 목록
+// GET /api/tasks - 할일 목록 (선택 쿼리 ?project_id=<int|none>, FR-TASK-06)
 router.get('/', (req, res) => {
   try {
-    res.json({ tasks: tasksService.listTasks() });
+    const filter = {};
+    const raw = req.query.project_id;
+    if (raw !== undefined) {
+      if (raw === 'none' || raw === 'null') {
+        filter.projectId = null;
+      } else {
+        const n = Number(raw);
+        if (!Number.isInteger(n) || n <= 0) {
+          return res
+            .status(400)
+            .json({ error: 'project_id 는 양의 정수이거나 "none" 이어야 합니다.' });
+        }
+        filter.projectId = n;
+      }
+    }
+    res.json({ tasks: tasksService.listTasks(filter) });
   } catch (err) {
     handleError(err, res, { logPrefix: '할일 조회 실패:', failMessage: '할일을 불러오지 못했습니다.' });
   }

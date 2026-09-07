@@ -148,4 +148,40 @@ describe('할일 API', () => {
     assert.equal(res.status, 400);
     assert.equal(res.body.error, '입력값이 허용된 값 범위를 벗어났습니다.');
   });
+
+  // FR-TASK-06 — GET /api/tasks?project_id=
+  it('TC-TASK-12: ?project_id=<id> 는 그 프로젝트의 할일만 반환', async () => {
+    const p1 = (await request(app).post('/api/projects').send({ name: 'p1' })).body.project.id;
+    const p2 = (await request(app).post('/api/projects').send({ name: 'p2' })).body.project.id;
+    await request(app).post('/api/tasks').send({ title: 'p1-a', project_id: p1 });
+    await request(app).post('/api/tasks').send({ title: 'p1-b', project_id: p1 });
+    await request(app).post('/api/tasks').send({ title: 'p2-a', project_id: p2 });
+    await request(app).post('/api/tasks').send({ title: '단독' });
+
+    const res = await request(app).get(`/api/tasks?project_id=${p1}`);
+    assert.equal(res.status, 200);
+    assert.deepEqual(res.body.tasks.map((t) => t.title), ['p1-a', 'p1-b']);
+  });
+
+  it('TC-TASK-12b: ?project_id=none 은 단독 할일(project_id NULL)만 반환', async () => {
+    const p1 = (await request(app).post('/api/projects').send({ name: 'p1' })).body.project.id;
+    await request(app).post('/api/tasks').send({ title: 'p1-a', project_id: p1 });
+    await request(app).post('/api/tasks').send({ title: '단독1' });
+    await request(app).post('/api/tasks').send({ title: '단독2' });
+
+    const res = await request(app).get('/api/tasks?project_id=none');
+    assert.equal(res.status, 200);
+    assert.deepEqual(res.body.tasks.map((t) => t.title), ['단독1', '단독2']);
+  });
+
+  it('TC-TASK-12c: 없는 project_id 는 200 + 빈 목록, 잘못된 값은 400', async () => {
+    const ok = await request(app).get('/api/tasks?project_id=99999');
+    assert.equal(ok.status, 200);
+    assert.deepEqual(ok.body.tasks, []);
+
+    for (const bad of ['abc', '0', '-3', '1.5']) {
+      const res = await request(app).get(`/api/tasks?project_id=${bad}`);
+      assert.equal(res.status, 400, `bad=${bad}`);
+    }
+  });
 });

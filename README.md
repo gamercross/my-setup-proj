@@ -97,6 +97,20 @@ cd frontend && npm run dev
 - CORS 는 C1(2026-09-03)에서 처리됨 — dev 오리진 `localhost:5173`, prod Electron `file://`(`Origin: null`) 허용.
 - **미정 (Week 5~ / 패키징 전 결정):** ① Electron 이 백엔드 프로세스를 자동 기동할지(`child_process`) vs 계속 분리. ② 패키징된 앱에서 백엔드 실행 주체. ③ 백엔드 비정상 종료 시 앱의 재연결 정책. → 결정 시 ADR + [DESIGN.md](docs/product/architecture/DESIGN.md) §실행 구조에 반영.
 
+### 웹 데모 (프로토타입, 백엔드 없이)
+
+대시보드를 브라우저에서 바로 보려면 데모 빌드를 쓴다 — 인메모리 샘플 데이터로 동작하며
+Electron·백엔드가 필요 없다 ([ADR-0026](docs/product/architecture/adr/ADR-0026-web-demo-mode.md)).
+
+```bash
+cd frontend && npm run preview:demo   # 로컬에서 빌드 + 미리보기
+```
+
+- 배포본: **https://gamercross.github.io/my-setup-proj/** — `main` 의 `frontend/` 변경 시
+  `.github/workflows/deploy-demo.yml` 이 자동 배포 (저장소 Settings → Pages → Source 를
+  "GitHub Actions" 로 1회 설정 필요).
+- 데모에서 추가/이동한 내용은 새로고침하면 초기화된다.
+
 전체 환경 구축 절차는 [SETUP.md](docs/setup/SETUP.md), 프로젝트 맥락은 [ONBOARDING.md](docs/ONBOARDING.md) 를 본다.
 
 ---

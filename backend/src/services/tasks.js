@@ -18,9 +18,11 @@ function assertProjectId(value) {
   }
 }
 
-// 할일 목록 조회 (생성 순서)
-function listTasks() {
-  return db.getTasks();
+// 할일 목록 조회 (생성 순서). filter.projectId (FR-TASK-06):
+// - undefined: 전체   - 정수: 그 프로젝트   - null: 단독 할일(project_id 없음)
+// 존재하지 않는 프로젝트 id 는 빈 목록으로 돌려준다 (404 아님 — 필터는 조회 편의).
+function listTasks(filter = {}) {
+  return db.getTasks(filter);
 }
 
 // 할일 단건 조회 (없으면 undefined — 라우트가 404 처리)

@@ -102,7 +102,9 @@ CI(`.github/workflows/test.yml`)에 `npm test`(backend), `pytest -m "not network
 | TC-TASK-09 | FR-TASK-04 | 할일 1건 | `DELETE /api/tasks/:id` → `GET` | 200 `{ok:true}`, 목록에서 사라짐 | P0 |
 | TC-TASK-10 | FR-TASK-04 | — | `DELETE /api/tasks/99999` | 404 | P0 |
 | TC-TASK-11 | FR-TASK-04 AC-3 | 할일 1건 | `PUT /api/tasks/:id {title:""}` | 400 (빈 제목 덮어쓰기 금지 — 구현 후) | P1 |
-| TC-TASK-12 | FR-TASK-06 | 혼합 상태 할일 | `GET /api/tasks?status=todo` | `todo` 만 반환 | P1 |
+| TC-TASK-12 | FR-TASK-06 | 프로젝트 2개 + 각 할일 | `GET /api/tasks?project_id=<p1>` | p1 의 할일만 (생성 순) | P1 · ✅ |
+| TC-TASK-12b | FR-TASK-06 | 연결/단독 혼재 | `GET /api/tasks?project_id=none` | `project_id` NULL 인 할일만 | P1 · ✅ |
+| TC-TASK-12c | FR-TASK-06 | — | `?project_id=99999` / `?project_id=abc\|0\|-3\|1.5` | 전자 200 + `[]`, 후자 400 | P1 · ✅ |
 
 ### 3.2 프로젝트 API — `backend/test/projects.test.js`
 
@@ -336,19 +338,32 @@ fake service 주입, 네트워크 0회. 재시도 테스트는 `services.retry.s
 | TC-MW-08 | NFR-OBS-01 | 개발 환경 요청 1건 | `requestLogger` 가 `METHOD path status ms` 1줄 출력 |
 | TC-MW-09 | NFR-SEC-06 | 200KB 본문 POST | 413 `{error:'요청 본문이 너무 큽니다.'}` (영어 메시지 미매치) |
 
-### 3.5c 캘린더 API — `backend/test/calendar.test.js` (Phase C3)
+### 3.5c 캘린더 API — `backend/test/calendar.test.js` (Phase C3 → D-마무리)
 
-> 데이터는 `backend/src/services/calendar.js` 의 인메모리 더미 (호출 시점 로컬 자정 기준 상대 생성). D2 에서 `calendar_events` 캐시로 교체해도 계약 동일.
+> 데이터는 `calendar_events` 캐시 테이블 (agent `sync.py` 가 채움). 테스트는 테이블에 직접 INSERT 로 심는다. 백엔드는 SELECT·필터·정렬만.
 
 | ID | 대상 | 입력 | 기대 결과 | 우선 |
 |---|---|---|---|:---:|
-| TC-CAL-01 | FR-CAL-01 AC-1 | `GET /api/calendar/events` | 200, `events` 배열, 첫 항목에 `id/event_id/title/start_time/end_time/location/synced_at` | P1 |
+| TC-CAL-01 | FR-CAL-01 AC-1 | `calendar_events` 5행 심음 → `GET /api/calendar/events` | 200, `events` 배열, 첫 항목에 `id/event_id/title/start_time/end_time/location/synced_at` | P1 |
+| TC-CAL-01b | FR-CAL-01 | 캐시 비어 있음 | 200 + `{ events: [] }` (동기화 전 정상) | P1 |
 | TC-CAL-02 | FR-CAL-01 AC-3 / FR-CAL-02 AC-8 | 위 응답 | `start_time` 있는 항목 오름차순, null 은 맨 뒤 | P1 |
 | TC-CAL-03 | FR-CAL-01 AC-2 | `?from=<오늘 00:00>&to=<오늘 23:59>` | 반환된 유효 `start_time` 전건이 구간 내 (자정 경계 취약 → `>= 1` 로 완화) | P1 |
 | TC-CAL-04 | FR-CAL-01 AC-2 / AC-8 | `?from=<+100일>` | 200, 유효 `start_time` 일정 0건, 시간 미정 항목만 남음 | P1 |
 | TC-CAL-05 | FR-CAL-01 AC-4 | `?from=notadate` | 400 `{error:"from 은 ISO8601 형식이어야 합니다."}` | P1 |
 | TC-CAL-06 | FR-CAL-01 AC-4 | `?to=abc` | 400 `{error:"to 는 ISO8601 형식이어야 합니다."}` | P1 |
 | TC-CAL-07 | FR-CAL-01 AC-3 | `?from=<오늘>&to=<어제>` (from > to) | 200 (400 아님), 유효 `start_time` 일정 0건 | P1 |
+
+### 3.5e 이메일 조회 API — `backend/test/mail.test.js` (D-마무리)
+
+> 데이터는 `emails` 캐시 테이블 (agent `sync.py`). 테스트는 직접 INSERT. `GET /api/mail/unread`.
+
+| ID | 대상 | 입력 | 기대 결과 | 우선 |
+|---|---|---|---|:---:|
+| TC-MAIL-B-01 | FR-MAIL-01 | 읽음/미읽음 혼재 3행 | 200 `{emails:[…]}`, `is_read=0` 2건만, 7키 노출 | P1 · ✅ |
+| TC-MAIL-B-02 | FR-MAIL-01 | 캐시 비어 있음 | 200 + `{ emails: [] }` | P1 · ✅ |
+| TC-MAIL-B-03 | FR-MAIL-01 | `received_at` 다른 3행 | 내림차순(최신 먼저) | P1 · ✅ |
+| TC-MAIL-B-04 | FR-MAIL-01 | 5행 + `?limit=2` | 2건 | P1 · ✅ |
+| TC-MAIL-B-05 | FR-MAIL-01 | `?limit=0\|-1\|abc` | 400 | P1 · ✅ |
 
 ### 3.6 수동 체크리스트 (Electron / OAuth)
 

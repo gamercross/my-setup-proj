@@ -89,7 +89,7 @@
 개발: 72%
 ```
 
-> Phase A2·A3·B1·B2·C1·C2·C3·C4·C5·C6·D1·D2-a·D2-b·D3 완료, 감사 후속 정리(안전 종료·서비스 계층·문서 정합, fix/ai-results-cleanup 2026-09-07) 완료, B3·C2 코드 배선 완료. 다음: 백엔드 mail/calendar 조회 API 실 캐시 배선, B3~C6 브라우저 E2E 로컬 검증, Google 최초 로그인, Notion·launchd 로컬 설정.
+> Phase A2·A3·B1·B2·C1~C6·D1·D2-a·D2-b·D3·D-마무리 완료, 웹 데모 프로토타입(ADR-0026, GitHub Pages) 완료. Notion·launchd 로컬 설정·검증 완료(2026-09-07). 다음: 웹 데모 Pages 활성화(저장소 설정 1회), Google 최초 로그인(D2-b), Phase E(다중 사용자) 착수 전 Week 10 인증/RLS ADR.
 > 검증 스냅샷: `node v26.8.1 / npm 11.19.0 / python 3.14.4`, `verify.sh` 27/0/0, `agent pytest` 54/0 (4 deselected), `frontend npm test` 9/0, `backend npm test` 59/0, `check-docs.sh` 11/0/0, `frontend npm run build` 성공.
 
 ---
@@ -241,9 +241,9 @@ wc -l                  # 줄 수 세기
 
 ### 진행 상황 요약
 ```
-완료한 작업: 16개 (React 컴포넌트 스캐폴드, 번들러(Vite) 연결 = B1, Express CRUD 라우트, 자동화 테스트 골격 + CI, SQLite 교체 = B2, 프론트↔백엔드 코드 배선 = B3, 백엔드 미들웨어 정식화 = C1, 프로젝트 CRUD 프론트 배선 + errors.js + tasks.project_id = C2, 캘린더 위젯 + /api/calendar/events 더미 = C3, 다이어그램 뷰어 + /api/diagrams = C4, 위젯 셸 대시보드 OS + Dashboard.jsx 삭제 = C5, 위젯 커스터마이즈 WidgetSettings + themePresets + displayConfig = C6, Daily Brief 에이전트 실데이터 배선 + agent/db.py = D1, Claude 재시도 백오프 + sync_logs 기록 + GET /api/sync/logs = D2-a, Google OAuth Fernet 암호화 + Gmail/Calendar 실 수집 = D2-b, Notion 저장 + Brief API·위젯 + launchd 자동 실행 = D3)
+완료한 작업: 18개 (… C6 까지 = C1~C6, Daily Brief 에이전트 배선 = D1, 재시도·sync_logs = D2-a, Google OAuth + Gmail/Calendar 수집 = D2-b, Notion 저장 + Brief API·위젯 + launchd = D3, 백엔드 조회 API 실 캐시 배선 + mail 엔드포인트 + task 필터 + seed-demo = D-마무리, 웹 데모 모드(VITE_DEMO 목 어댑터) + GitHub Pages 배포 = 웹 데모)
 진행 중: 1개 (B3·C2·C3·C4·C5·C6 브라우저 E2E·GUI 수동체크 — 로컬 대기)
-예정된 작업: 2개 (샘플 데이터, 백엔드 mail/calendar 조회 API 실 캐시 배선)
+예정된 작업: 1개 (Phase E — 다중 사용자, Week 10 인증/RLS ADR 선행)
 
 진행도: 90%
 강의 수강: 0%

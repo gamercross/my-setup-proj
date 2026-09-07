@@ -14,6 +14,10 @@ const db = getDb();
 const TASK_COLS =
   'id, title, description, due_date, priority, status, project_id, created_at, updated_at';
 const PROJECT_COLS = 'id, name, progress, status, notion_id, created_at, updated_at';
+// calendar_events·emails 는 에이전트가 채우는 캐시 — 백엔드는 SELECT 만 한다 (ADR-0011).
+const EVENT_COLS = 'id, event_id, title, start_time, end_time, location, synced_at';
+const EMAIL_COLS =
+  'id, email_id, from_address, subject, snippet, received_at, is_read, synced_at';
 
 // 병합 허용 필드 (라우트의 isValidationError 정규식이 오류 메시지에 의존하므로 문자열 불변)
 const TASK_FIELDS = ['title', 'description', 'due_date', 'priority', 'status', 'project_id'];
@@ -22,6 +26,12 @@ const PROJECT_FIELDS = ['name', 'progress', 'status', 'notion_id'];
 // prepared statement 는 모듈 로드 시 준비한다.
 const stmts = {
   listTasks: db.prepare(`SELECT ${TASK_COLS} FROM tasks ORDER BY id`),
+  listTasksByProject: db.prepare(
+    `SELECT ${TASK_COLS} FROM tasks WHERE project_id = ? ORDER BY id`
+  ),
+  listTasksNoProject: db.prepare(
+    `SELECT ${TASK_COLS} FROM tasks WHERE project_id IS NULL ORDER BY id`
+  ),
   getTask: db.prepare(`SELECT ${TASK_COLS} FROM tasks WHERE id = ?`),
   insertTask: db.prepare(
     `INSERT INTO tasks (title, description, due_date, priority, status, project_id, created_at, updated_at)
@@ -61,6 +71,21 @@ const stmts = {
   getBriefByDate: db.prepare(
     'SELECT id, date, content, notion_url, created_at FROM briefs WHERE date = ?'
   ),
+
+  // calendar_events — 에이전트가 채우는 캐시. 백엔드는 SELECT 만 (ADR-0011).
+  // start_time 이 NULL 인 항목(시간 미정)은 항상 포함하고 정렬에서 맨 뒤로 보낸다.
+  listEvents: db.prepare(
+    `SELECT ${EVENT_COLS} FROM calendar_events
+     ORDER BY (start_time IS NULL), start_time, id`
+  ),
+
+  // emails — 에이전트가 채우는 미읽음 캐시. 백엔드는 SELECT 만 (ADR-0011).
+  listUnreadEmails: db.prepare(
+    `SELECT ${EMAIL_COLS} FROM emails
+     WHERE is_read = 0
+     ORDER BY (received_at IS NULL), received_at DESC, id DESC
+     LIMIT @limit`
+  ),
 };
 
 // 동기화 서비스 화이트리스트 (schema.sql 의 CHECK 와 일치)
@@ -74,8 +99,18 @@ function toId(id) {
 
 // ── 할일(tasks) ─────────────────────────────
 
-// 할일 목록 조회 (생성 순서)
-function getTasks() {
+// 할일 목록 조회 (생성 순서).
+// filter.projectId: 정수면 그 프로젝트, null 이면 단독 할일(project_id IS NULL),
+// undefined 면 전체 (FR-TASK-06).
+function getTasks(filter = {}) {
+  if (filter.projectId === null) {
+    return stmts.listTasksNoProject.all();
+  }
+  if (filter.projectId !== undefined) {
+    const nid = toId(filter.projectId);
+    if (nid === null) return [];
+    return stmts.listTasksByProject.all(nid);
+  }
   return stmts.listTasks.all();
 }
 
@@ -209,10 +244,28 @@ function getBriefByDate(date) {
   return stmts.getBriefByDate.get(date);
 }
 
+// ── 캘린더 일정(calendar_events) — 읽기 전용 ─────────────────────────────
+
+// 전체 일정을 start_time 오름차순(NULL 맨 뒤)으로 반환한다.
+// from/to 범위 필터·직렬화는 services/calendar.js 가 담당한다.
+function getCalendarEvents() {
+  return stmts.listEvents.all();
+}
+
+// ── 이메일(emails) — 읽기 전용 ─────────────────────────────
+
+// 미읽음 메일을 received_at 내림차순으로 반환한다 (기본 50건).
+function getUnreadEmails({ limit } = {}) {
+  const lim = Number.isInteger(limit) && limit > 0 ? limit : 50;
+  return stmts.listUnreadEmails.all({ limit: lim });
+}
+
 module.exports = {
   SYNC_SERVICES,
   getSyncLogs,
   getBriefByDate,
+  getCalendarEvents,
+  getUnreadEmails,
   getTasks,
   getTask,
   addTask,

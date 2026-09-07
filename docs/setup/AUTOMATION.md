@@ -183,6 +183,7 @@ scripts/
   slack-notify.sh            # 슬랙 Incoming Webhook 전송
   render-diagrams.sh         # docs/ 의 Mermaid 블록 → SVG (docs/setup/DIAGRAMS.md)
   daily-brief-run.sh         # 07:30: sync → daily_brief 래퍼 (FR-AGENT-05)
+  seed-demo.js               # 데모/프로토타입용 샘플 데이터 시드 (node scripts/seed-demo.js [--reset])
   install-worklog-launchd.sh / install-dailybrief-launchd.sh  # launchd 설치(경로 자동)
   com.aicomputeros.worklog.plist / com.aicomputeros.dailybrief.plist  # launchd 템플릿
 .github/workflows/test.yml   # 문법 검사 CI

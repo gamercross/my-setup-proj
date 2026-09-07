@@ -106,16 +106,17 @@
   "updated_at": "2026-09-02T09:00:00.000Z"
 }
 ```
-- `project_id`: 연결된 프로젝트 id (정수) 또는 `null`(= 단독 할일). ADR-0012. `GET /api/tasks?project_id=` 필터는 FR-TASK-06 과 함께 이월.
+- `project_id`: 연결된 프로젝트 id (정수) 또는 `null`(= 단독 할일). ADR-0012.
 
 ### `GET /api/tasks` — 할일 목록 ✅
 
-FR-TASK-02
+FR-TASK-02, FR-TASK-06
 
-**쿼리 파라미터** (🔷 필터는 FR-TASK-06, 예정)
+**쿼리 파라미터**
 
 | 이름 | 타입 | 필수 | 설명 |
 |---|---|:---:|---|
+| `project_id` | number \| `"none"` | — | ✅ FR-TASK-06. 정수면 그 프로젝트의 할일만, `none`(또는 `null`)이면 단독 할일(`project_id` NULL)만. 없는 id 는 200 + 빈 목록, 양의 정수/`none` 이 아니면 400 |
 | `status` | string | — | `todo`\|`in_progress`\|`done` 로 필터 (예정) |
 | `priority` | string | — | `high`\|`medium`\|`low` 로 필터 (예정) |
 | `due` | string | — | `today`\|`tomorrow`\|`overdue` (FR-TASK-07, 예정) |
@@ -300,24 +301,34 @@ FR-CAL-01, FR-CAL-02
 { "error": "from 은 ISO8601 형식이어야 합니다." }
 ```
 
-- 데이터 출처: **C3 — `backend/src/services/calendar.js` 인메모리 더미** / D2 이후 — `calendar_events` 캐시 (agent 가 채움, [ADR-0011](../architecture/adr/ADR-0011-agent-backend-db-access.md)). 읽기 전용.
+- 데이터 출처: ✅ **`calendar_events` 캐시 테이블** (agent `sync.py` 가 채움 — [ADR-0011](../architecture/adr/ADR-0011-agent-backend-db-access.md)). 백엔드는 SELECT 만. 동기화 전이면 `{ "events": [] }`. 로컬 데모 데이터는 `scripts/seed-demo.js` 로 채운다.
 
 ---
 
-## 이메일 (mail) 🔷 예정 — Week 6
+## 이메일 (mail) ✅
 
 ### `GET /api/mail/unread` — 캐시된 미읽은 메일
 
-FR-MAIL-01 · 🔷 **백엔드 엔드포인트 미구현** (별도 Phase). Phase D2-b 에서 에이전트(`agent/sync.py`)가 `emails` 캐시를 채우는 것까지 완료됐고, 이를 노출하는 백엔드 라우트는 아직 없다. 아래는 계약 초안.
+FR-MAIL-01
+
+| 쿼리 | 설명 |
+|---|---|
+| `limit` | 1 이상의 정수. 최대 반환 개수 (기본 50). 그 외 값은 400 |
+
+- `is_read = 0` 인 메일만, `received_at` 내림차순(최신 먼저).
+- 동기화 전이면 `{ "emails": [] }` (200).
+- 데이터 출처: ✅ **`emails` 캐시 테이블** (agent `sync.py` 가 채움 — [ADR-0011](../architecture/adr/ADR-0011-agent-backend-db-access.md)). 백엔드는 SELECT 만. 보내기·읽음 처리 없음.
 
 **응답 200**
 ```json
 { "emails": [ {
   "id": 1, "email_id": "18f9a...", "from_address": "prof@univ.ac.kr",
   "subject": "과제 안내", "snippet": "이번 주 과제는...",
-  "received_at": "2026-09-02T01:00:00Z", "is_read": 0
+  "received_at": "2026-09-02T01:00:00Z", "is_read": 0, "synced_at": "2026-09-02T02:00:00Z"
 } ] }
 ```
+
+**응답 400** — `{ "error": "limit 은 1 이상의 정수여야 합니다." }`
 
 ---
 
