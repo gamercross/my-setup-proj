@@ -87,7 +87,7 @@ C 세부: C1 미들웨어(CORS·로깅·에러) ✅(2026-09-03) → C2 프로젝
 | FR-UI-04 | — | UI_SPEC §3.6 | B3 | TC-UI-02, TC-UI-11,12 | `frontend/src/components/ErrorBanner.jsx`, `frontend/src/components/ErrorBoundary.jsx`, `frontend/src/api/client.js`, `frontend/src/store/useTaskStore.js` | ✅ AC-1~5 (ErrorBanner + ErrorBoundary), 단 실제 실패 트리거 확인은 로컬 대기 |
 | FR-UI-05 | G9 | [ADR-0014](../architecture/adr/ADR-0014-dashboard-diagram-viewer.md), API_REFERENCE `GET /diagrams`, requirements/UI.md | C4 | TC-DIAG-01~05, TC-UI-09 | `backend/src/services/diagrams.js`, `backend/src/routes/diagrams.js`, `backend/test/diagrams.test.js`, `frontend/src/components/DiagramPanel.jsx`, `frontend/src/widgets/views/DiagramsWidgetView.jsx` | ✅ C4 (2026-09-06) — 구현·백엔드 테스트(TC-DIAG-01~05)·ADR-0014 채택. 브라우저 수동(TC-UI-09 계열) 로컬 대기 |
 | FR-WIDGET-01~04 | — | [DASHBOARD_OS.md](../vision/DASHBOARD_OS.md), [ADR-0020](../architecture/adr/ADR-0020-widget-shell-architecture.md)/[0021](../architecture/adr/ADR-0021-widget-layout-persistence.md), UI_SPEC §3.8 | C5 | TC-WIDGET-01~06 (수동, TEST_PLAN §3.7) | `frontend/src/widgets/{registry,defaultLayout,layoutStorage,themeVars}.js`, `frontend/src/widgets/views/*`, `components/Widget{Shell,Host,Frame,Picker}.jsx`, `store/useLayoutStore.js` | ✅ C5 (2026-09-06) — 브라우저 수동 로컬 대기 |
-| FR-WIDGET-05~06 | — | [ADR-0022](../architecture/adr/ADR-0022-per-widget-theming.md), UI_SPEC §3.10, §1(디자인 토큰) | C6 | TC-WIDGET-09~13 (자동, `frontend/test/*.test.mjs`) · TC-WIDGET-14~19 (수동, TEST_PLAN §3.7) | `frontend/src/styles.css`(신규), `components/WidgetSettings.jsx`(신규), `widgets/{themePresets,displayConfig}.js`(신규), `widgets/themeVars.js`(구현), `widgets/registry.js`(configSchema), `components/WidgetFrame.jsx`, `widgets/views/{Tasks,Projects,Calendar}WidgetView.jsx` | ✅ C6 (2026-09-06) — 브라우저 수동 로컬 대기 |
+| FR-WIDGET-05~06 | — | [ADR-0022](../architecture/adr/ADR-0022-per-widget-theming.md), [ADR-0027](../architecture/adr/ADR-0027-light-theme-default.md), UI_SPEC §3.10, §1(디자인 토큰 v2) | C6, 개인 OS P3 | TC-WIDGET-09~13 (자동, `frontend/test/*.test.mjs`) · TC-WIDGET-14~19 (수동, TEST_PLAN §3.7) | `frontend/src/styles.css`, `components/WidgetSettings.jsx`, `widgets/{themePresets,displayConfig,themeVars}.js`, `widgets/registry.js`, `components/WidgetFrame.jsx` | ✅ C6 (per-widget 테마) + ✅ P3 (2026-09-07 — 라이트 테마 기본, 토큰 v2, ADR-0027). 브라우저 수동 로컬 대기 |
 | FR-WIDGET-07~08 | — | [ADR-0020](../architecture/adr/ADR-0020-widget-shell-architecture.md), WIDGET.md | C5 | TC-WIDGET-07~08 (수동, TEST_PLAN §3.7) | 위젯별 `ErrorBoundary`(fallback prop), `WidgetFrame.jsx`, `widgets/registry.js` | ✅ C5 (2026-09-06) |
 
 ---
@@ -144,6 +144,11 @@ Phase A~D 를 막던 제안 ADR 4건은 **2026-09-02 채택** → `/build-next` 
 | [ADR-0020](../architecture/adr/ADR-0020-widget-shell-architecture.md) 위젯 셸 아키텍처 (react-grid-layout) | FR-WIDGET | ✅ 채택 (2026-09-06) + C5 골격 구현 — RGL 2.2.4 `/legacy`(WidthProvider), 단일 lg 브레이크포인트, `widgets/registry.js` 계약 |
 | [ADR-0021](../architecture/adr/ADR-0021-widget-layout-persistence.md) 위젯 레이아웃 영속화 (localStorage→SQLite) | FR-WIDGET-04~06 | ✅ 채택 (2026-09-06) + C5 구현 — 단계 1 `localStorage` `dashboard.layout.v1`, 300ms 디바운스, 손상 시 기본값 폴백. SQLite(단계 2) 이월 |
 | [ADR-0022](../architecture/adr/ADR-0022-per-widget-theming.md) 위젯별 테마 (스코프 CSS 변수) | FR-WIDGET-05 | ✅ 채택 — C6 구현 완료 (2026-09-06) |
+| [ADR-0027](../architecture/adr/ADR-0027-light-theme-default.md) 라이트 테마 기본 + 토큰 v2 | FR-WIDGET-05/06 | ✅ 채택 — 개인 OS P3 구현 (2026-09-07). PO-1/2 결정. US-1 종결 |
+| [ADR-0028](../architecture/adr/ADR-0028-single-client-cache.md) 단일 클라이언트 캐시 | FR-TASK-02/03 | 제안 — 개인 OS P1 (PO-7) |
+| [ADR-0029](../architecture/adr/ADR-0029-task-auto-category.md) 할 일 자동 분류 | FR-TASK-08 | 제안 — 개인 OS P1 (PO-3/4), ADR-0018 선행 |
+| [ADR-0030](../architecture/adr/ADR-0030-okr-data-model.md) OKR 데이터 모델 | FR-OKR-* | 제안 — 개인 OS P1 (PO-5/6) |
+| [ADR-0031](../architecture/adr/ADR-0031-safe-markdown-render.md) 안전 마크다운 렌더 | FR-UI-06 | 제안 — 개인 OS P1 (PO-11) |
 
 ### 착수 전 결정할 사항 (ADR 아님)
 
