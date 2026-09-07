@@ -54,7 +54,19 @@ TC: TC-CAL-02 (정렬·null 위치), TC-UI-18 (수동 — 배지·강조)
 
 ## FR-CAL-03 — Google Calendar 실제 동기화 (P1)
 
-**상태** ⏳ D2-b 이월. agent 가 Google Calendar 를 폴링해 `calendar_events` 캐시를 채우고, API 는 더미 대신 캐시를 읽는다 (ADR-0011). 응답 계약 불변.
+**우선순위** P1 · **목표 주차** W5 · **상태** ✅ Phase D2-b (2026-09-07) — agent 측 수집·캐시. 백엔드 API 는 아직 더미(FR-CAL-01 은 🚧 유지).
+
+agent 가 `agent/sync.py` 로 Google Calendar 를 폴링해 `calendar_events` 캐시를 채운다 (ADR-0011). 인증은 [AUTH.md](AUTH.md) / [ADR-0024](../architecture/adr/ADR-0024-oauth-token-storage.md).
+
+### 수용 기준
+- **AC-1** `sync_calendar()` 는 로컬 오늘 00:00 ~ +7일 일정을 `event_id/title/start_time/end_time/location` 으로 정규화해 `calendar_events` 에 upsert 한다.
+- **AC-2** 동기화 창 안에서 Google 에 더 이상 없는 일정은 캐시에서 제거된다(창 안 전체 교체).
+- **AC-3** `start_time`/`end_time` 은 ISO8601. 종일 일정은 `YYYY-MM-DDT00:00:00`(로컬).
+- **AC-4** Google 호출 실패 시 예외를 전파하지 않고 `sync_logs('calendar','failed', 원인)` 기록 후 `False`, 기존 캐시는 직전 값을 유지한다. `status=='cancelled'` 일정은 제외. 429/5xx 는 3회 백오프(1s·2s), 401/403 은 즉시 실패(NFR-REL-05).
+
+### 관련
+`agent/services/calendar.py` · `agent/sync.py` · `agent/db.py` (`replace_calendar_events`, `get_today_events`, `get_week_events`)
+TC: TC-CAL-08~13
 
 ---
 

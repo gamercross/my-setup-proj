@@ -64,8 +64,8 @@ C 세부: C1 미들웨어(CORS·로깅·에러) ✅(2026-09-03) → C2 프로젝
 | FR-PROJ-04 | G7 | DATA_DICTIONARY `projects.notion_id` | D2 | — | `agent/services/notion.py` | ⏳ |
 | FR-CAL-01 | G7 | [requirements/CAL.md](CAL.md), API_REFERENCE `/calendar/events`, [ADR-0006](../architecture/adr/ADR-0006-agent-owns-external-apis.md), [ADR-0011](../architecture/adr/ADR-0011-agent-backend-db-access.md) | C3, D2 | TC-CAL-01~07, TC-UI-17,19 | `backend/src/routes/calendar.js`, `backend/src/services/calendar.js`, `frontend/src/store/useCalendarStore.js`, `components/CalendarWidget.jsx`, `frontend/src/widgets/views/CalendarWidgetView.jsx` | 🚧 C3 (더미) — 실 데이터 D2 |
 | FR-CAL-02 | — | [requirements/CAL.md](CAL.md), UI_SPEC §3.4 | C3 | TC-UI-18 | `components/CalendarWidget.jsx`, `frontend/src/widgets/views/CalendarWidgetView.jsx` | ✅ C3 |
-| FR-CAL-03 | — | DATA_DICTIONARY `calendar_events` | D2 | — | `agent/db.py` | ⏳ |
-| FR-MAIL-01 | G7 | API_REFERENCE `/mail/unread`, [ADR-0006](../architecture/adr/ADR-0006-agent-owns-external-apis.md) | D2 | — | `agent/services/gmail.py` | ⏳ |
+| FR-CAL-03 | G7 | [requirements/CAL.md](CAL.md), DATA_DICTIONARY `calendar_events`, [ADR-0011](../architecture/adr/ADR-0011-agent-backend-db-access.md), [ADR-0024](../architecture/adr/ADR-0024-oauth-token-storage.md) | D2-b | TC-CAL-08~13 | `agent/services/calendar.py`, `agent/sync.py`, `agent/db.py` (`replace_calendar_events`,`get_today_events`,`get_week_events`) | ✅ D2-b (2026-09-07) — agent 수집·캐시. 백엔드 API 는 더미(FR-CAL-01 🚧) |
+| FR-MAIL-01 | G7 | [requirements/MAIL.md](MAIL.md), [ADR-0006](../architecture/adr/ADR-0006-agent-owns-external-apis.md), [ADR-0011](../architecture/adr/ADR-0011-agent-backend-db-access.md) | D2-b | TC-MAIL-01~09 | `agent/services/gmail.py`, `agent/services/google_common.py`, `agent/sync.py`, `agent/db.py` (`upsert_emails`,`mark_emails_read_except`,`get_unread_emails`) | ✅ D2-b (2026-09-07) — agent 수집·캐시. 조회 API 는 별도 Phase |
 | FR-MAIL-02 | G8 | — | E (W9) | — | `agent/services/gmail.py` | ⏳ |
 | FR-MAIL-03 | G8 | — | E (W9) | — | `components/EmailView.jsx`(신규) | ⏳ |
 | FR-AGENT-01 | G7 | DESIGN §7 (시퀀스), [ADR-0011](../architecture/adr/ADR-0011-agent-backend-db-access.md) | D1 | TC-AGENT-01,02,10~13 | `agent/daily_brief.py`, `agent/db.py` | ✅ |
@@ -77,8 +77,8 @@ C 세부: C1 미들웨어(CORS·로깅·에러) ✅(2026-09-03) → C2 프로젝
 | FR-AGENT-07 | — | requirements/AGENT.md | E (W11) | — | `agent/schedule_advisor.py`(신규) | ⏳ |
 | FR-SYNC-01 | G8 | [ADR-0008](../architecture/adr/ADR-0008-supabase-deferred.md) | E2 | — | 신규 동기화 모듈 (선행: `backend/src/supabase.js`) | ⏳ |
 | FR-SYNC-02 | G8 | [ADR-0008](../architecture/adr/ADR-0008-supabase-deferred.md) | E2 | — | 동상 (선행: `backend/src/supabase.js`) | ⏳ |
-| FR-SYNC-03 | G7 | API_REFERENCE `/sync/logs`, DATA_DICTIONARY `sync_logs` | D2-a | TC-SYNC-06~10 | `agent/db.py`, `backend/src/routes/sync.js`, `backend/src/db.js` | 🚧 (D2-a: `log_sync` 기록 + `GET /sync/logs` 조회 API 완료 / 실 수집 배선 D2-b) |
-| FR-AUTH-01 | G7 | NFR-SEC-05 | D2 | TC-UI-06 | `agent/auth/google_oauth.py`(신규) | ⏳ |
+| FR-SYNC-03 | G7 | API_REFERENCE `/sync/logs`, DATA_DICTIONARY `sync_logs` | D2-a·D2-b | TC-SYNC-06~10, TC-MAIL-03,06, TC-CAL-10,12 | `agent/db.py`, `agent/services/gmail.py`, `agent/services/calendar.py`, `backend/src/routes/sync.js`, `backend/src/db.js` | ✅ (D2-a: `log_sync` + `GET /sync/logs` / D2-b: Gmail·Calendar 수집 경로 배선) |
+| FR-AUTH-01 | G7 | [requirements/AUTH.md](AUTH.md), NFR-SEC-05, [ADR-0024](../architecture/adr/ADR-0024-oauth-token-storage.md) | D2-b | TC-AUTH-01~08 | `agent/auth/google_oauth.py` | ✅ D2-b (2026-09-07) |
 | FR-AUTH-02 | G8 | [ADR-0008](../architecture/adr/ADR-0008-supabase-deferred.md) | E1 | — | 신규 | ⏳ |
 | FR-AUTH-03 | — | requirements(예정) | E1 | — | 신규 | ⏳ |
 | FR-UI-01 | G3 | UI_SPEC §2, DESIGN §3 (flowchart) | B3, C, D3 | TC-UI-02, TC-UI-10 | `components/WidgetShell.jsx`, `components/WidgetHost.jsx`, `frontend/src/widgets/views/*`, `frontend/src/store/useTaskStore.js` | 🚧 배선·4상태 ✅, E2E C1 대기 |
@@ -99,14 +99,14 @@ C 세부: C1 미들웨어(CORS·로깅·에러) ✅(2026-09-03) → C2 프로젝
 | NFR-SEC-01 | `.gitignore` `.env`, [ENV_REFERENCE.md](../../setup/ENV_REFERENCE.md) | 상시 | `security-review`, grep | ✅ |
 | NFR-SEC-03 | Claude 키 백엔드/에이전트 전용, `preload.js` 화이트리스트 | B1 | 코드리뷰 | 🚧 |
 | NFR-SEC-04 | Electron `contextIsolation:true`/`nodeIntegration:false` | 상시 | TC-UI-05 | ✅ |
-| NFR-SEC-05 | OAuth 토큰 암호화 저장 | D2 | TC-UI-06 | ⏳ |
+| NFR-SEC-05 | OAuth 토큰 암호화 저장 (Fernet 암호화 JSON 파일 — [ADR-0024](../architecture/adr/ADR-0024-oauth-token-storage.md)) | D2-b | TC-AUTH-03 | ✅ D2-b |
 | NFR-SEC-06 | CORS 로컬 오리진 화이트리스트 (`backend/src/middleware/cors.js`) | C1 | TC-MW-01~04, TC-MW-09 | ✅ (2026-09-03) |
 | NFR-SEC-07 | API 경계 입력 검증 | C1, B2, C2 | TC-TASK-02,03 / TC-PROJ-02,03,09,09c,09d / TC-DB-04a~d / TC-MW-05,06 | 🚧 (C2: `backend/src/errors.js` 가 SQLite CHECK/NOTNULL/FK → 400 한국어 매핑, `project_id` 사전 검증. `due_date` 형식 검증·빈 title 덮어쓰기 금지는 이월) |
 | NFR-REL-01 | 모든 외부 호출·IO try/catch | 상시 | supervisor 리뷰 | 🚧 |
 | NFR-REL-02 | 외부 API 실패가 앱 크래시로 안 이어짐 | D1 | TC-AGENT-03, TC-UI-02 | 🚧 |
 | NFR-REL-03 | 백엔드 `unhandledRejection` 로깅·생존 | 상시 | 예외 주입 | ✅ (`server.js`) |
 | NFR-REL-04 | 오프라인 로컬 캐시 조회 | C3, D2 | 수동 (비행기모드) | ⏳ |
-| NFR-REL-05 | 네트워크 재시도 (지수 백오프 ×3) | D2-a | 단위(모킹) TC-AGENT-16,17,18 | 🚧 (Claude 호출에 지수 백오프 적용 / Gmail·Calendar·Notion 재시도는 D2-b) |
+| NFR-REL-05 | 네트워크 재시도 (지수 백오프 ×3) | D2-a·D2-b | 단위(모킹) TC-AGENT-16,17,18, TC-MAIL-07,08, TC-CAL-* | ✅ (Claude + Gmail·Calendar 가 `call_with_retry`/`execute_with_retry` 3회 백오프, 401/403 즉시 실패. Notion 은 미적용) |
 | NFR-REL-06 | graceful shutdown (SIGTERM) | E4 (W9) | `kill -TERM` | ⏳ |
 | NFR-MAINT-02 | 계층 분리 routes→services→db | C1 | 코드리뷰 | 🚧 (미들웨어 계층 분리 ✅ — `backend/src/middleware/`, 2026-09-03) |
 | NFR-MAINT-03 | `db.js` 인터페이스 불변 | B2 | TC-DB-02 | ✅ (공개 함수 10개 시그니처·반환·오류 불변, 2026-09-02) |
@@ -114,7 +114,7 @@ C 세부: C1 미들웨어(CORS·로깅·에러) ✅(2026-09-03) → C2 프로젝
 | NFR-MAINT-05 | 한 기능 = `/feature` 1회 | 상시 | 커밋 히스토리 | 🚧 |
 | NFR-OBS-01 | 백엔드 요청 로깅 미들웨어 (`backend/src/middleware/requestLogger.js`) | C1 | TC-MW-08 | ✅ (2026-09-03) |
 | NFR-OBS-02 | 에이전트 4단계 로깅 | D1 | 실행 로그 | ⏳ |
-| NFR-OBS-03 | `sync_logs` 영속 | D2-a | SQL, TC-SYNC-06,08 | 🚧 (`db.log_sync` 구현·`GET /api/sync/logs` 완료 / 수집 경로 배선은 D2-b) |
+| NFR-OBS-03 | `sync_logs` 영속 | D2-a·D2-b | SQL, TC-SYNC-06,08, TC-MAIL-03,06, TC-CAL-10,12 | ✅ (Gmail·Calendar 동기화 성공·실패가 `sync_logs` 에 기록) |
 | NFR-TEST-01 | backend supertest | A3 | `npm test` | ✅ (15 pass, 2026-09-02) |
 | NFR-TEST-02 | agent pytest | A3 | `pytest` | ✅ (3 pass, 2026-09-02) |
 | NFR-TEST-03 | CI 문법 + 테스트 | A3 | Actions | ✅ (`npm test` + `pytest -m "not network"` 연결) |

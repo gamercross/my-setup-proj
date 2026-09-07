@@ -91,7 +91,7 @@ flowchart TB
 
 | 영역 | 상태 |
 |---|---|
-| 개념 설계 · 요구사항 · 아키텍처 문서 · 23개 ADR | ✅ 완료 (product/) |
+| 개념 설계 · 요구사항 · 아키텍처 문서 · 24개 ADR | ✅ 완료 (product/) |
 | 자동화 인프라 (에이전트 팀 · `/feature` · `/build-next` · 작업로그 · CI) | ✅ 동작 |
 | 로컬 환경 (node v26 · npm 11 · python 3.14 · venv) | ✅ Phase A2, `verify.sh` 27/0/0 |
 | 백엔드 tasks/projects CRUD 라우트 | ✅ SQLite 영속화(B2) + 미들웨어 정식화(C1) + `errors.js` 오류 매핑·`tasks.project_id`(C2). 프론트 배선 완료(B3 할일 / C2 프로젝트) |
@@ -100,10 +100,10 @@ flowchart TB
 | 위젯 셸 (대시보드 OS) | ✅ C5 (레지스트리 · `useLayoutStore` · 배치·리사이즈·최소화 · localStorage 영속 · 위젯별 격리) / ⏳ C6 테마·표시 옵션 |
 | Supabase | ✅ 클라이언트 부트스트랩만 (`backend/src/supabase.js` + `GET /api/sync/health`) — 동기화·인증·`user_id` 없음 (Week 10+, ADR-0008) |
 | DB (SQLite) | ✅ B2 (better-sqlite3, WAL, DATABASE_PATH) |
-| AI 에이전트 | 🚧 뼈대 + 스텁 (모듈 import 확인) |
-| 자동화 테스트 | ✅ backend 56 / agent 3 (Phase A3~C5 + Supabase 부트스트랩), `verify.sh` 27/0/0 |
+| AI 에이전트 | ✅ D1 Daily Brief 실데이터 + D2-a 재시도/`sync_logs` + D2-b Google OAuth(Fernet 토큰) + Gmail/Calendar 실 수집(`agent/sync.py`). Notion 저장은 뼈대 |
+| 자동화 테스트 | ✅ backend 59 / agent 45 (Phase A3~D2-b), `verify.sh` 27/0/0 |
 
-**다음 착수:** Phase D2 (실 Google/Notion 연동), 그리고 B3~C6 브라우저 E2E 로컬 검증. (C6 위젯 커스터마이즈·D1 에이전트 DB 배선은 2026-09-06 완료)
+**다음 착수:** 백엔드 mail/calendar 조회 API 를 실 캐시로 배선, Notion 실 연동, B3~C6 브라우저 E2E 로컬 검증. Google 최초 로그인은 사용자가 `python agent/auth/google_oauth.py login` 로 1회 수행. (D2-b 는 2026-09-07 완료)
 (제안 ADR 0009~0012 채택됨, D2 부터 `.env` API 키 필요).
 
 ---

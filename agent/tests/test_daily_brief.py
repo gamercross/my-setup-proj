@@ -24,12 +24,12 @@ def test_agent_01_build_context_includes_sources(monkeypatch):
     monkeypatch.setattr(
         daily_brief,
         "get_unread_emails",
-        lambda: [{"from": "a@b.com", "subject": "제목"}],
+        lambda: [{"from_address": "a@b.com", "subject": "제목"}],
     )
     monkeypatch.setattr(
         daily_brief,
         "get_today_events",
-        lambda: [{"start": "09:00", "title": "스탠드업"}],
+        lambda: [{"start_time": "09:00", "title": "스탠드업"}],
     )
 
     text = daily_brief.build_context()
@@ -80,7 +80,7 @@ def test_agent_13_task_load_failure_is_isolated(monkeypatch):
 
     monkeypatch.setattr(daily_brief, "get_today_tasks", boom)
     monkeypatch.setattr(
-        daily_brief, "get_unread_emails", lambda: [{"from": "a@b.com", "subject": "제목"}]
+        daily_brief, "get_unread_emails", lambda: [{"from_address": "a@b.com", "subject": "제목"}]
     )
     monkeypatch.setattr(daily_brief, "get_today_events", lambda: [])
 
@@ -139,6 +139,33 @@ def test_agent_19_run_bootstraps_schema_on_empty_db(tmp_path, monkeypatch):
 
     assert ok is True
     assert db.get_brief(today)["content"] == "브리핑 본문"
+
+
+def test_agent_20_email_cache_failure_is_isolated(monkeypatch):
+    """TC-AGENT-20: 이메일 캐시 조회 예외 → 대체 문구 + 할일 블록 정상."""
+    def boom():
+        raise RuntimeError("DB 잠김")
+
+    monkeypatch.setattr(
+        daily_brief, "get_today_tasks",
+        lambda: [{"priority": "high", "title": "보고서", "status": "todo"}],
+    )
+    monkeypatch.setattr(daily_brief, "get_unread_emails", boom)
+    monkeypatch.setattr(daily_brief, "get_today_events", lambda: [])
+
+    text = daily_brief.build_context()
+
+    assert "(이메일을 불러오지 못함)" in text
+    assert "보고서" in text
+
+
+def test_agent_21_build_context_does_not_import_network_services():
+    """TC-AGENT-21: daily_brief 는 services.gmail / services.calendar 를 import 하지 않는다."""
+    import inspect
+
+    src = inspect.getsource(daily_brief)
+    assert "services.gmail" not in src
+    assert "services.calendar" not in src
 
 
 @pytest.mark.network

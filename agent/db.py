@@ -5,6 +5,7 @@
 쓰기 주체 분리:
   - tasks / projects 는 **읽기 전용**으로만 사용한다 (백엔드가 소유).
   - briefs 는 에이전트가 date 기준으로 upsert 한다.
+  - emails / calendar_events 는 **에이전트 소유**다 (백엔드는 읽기 전용 — ADR-0011).
 
 스키마 초기화 책임은 백엔드에 있다(ADR-0011). 여기서는 파일이 비어있을 때를
 대비한 방어적 멱등 실행(ensure_schema)만 제공한다.
@@ -14,7 +15,7 @@ import logging
 import os
 import sqlite3
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -141,6 +142,149 @@ def log_sync(service: str, status: str, error_message: str | None = None) -> Non
                 )
     except Exception as err:  # noqa: BLE001 - 로깅 실패는 삼킨다
         logger.warning("sync_logs 기록 실패 (service=%s, status=%s): %s", service, status, err)
+
+
+def upsert_emails(items: list[dict]) -> int:
+    """미읽은 메일 목록을 emails 에 upsert 한다 (FR-MAIL-01 AC-1).
+
+    email_id 충돌 시 필드를 갱신하고 is_read=0 으로 되돌린다 (다시 미읽음으로 나타난 경우).
+    executemany 로 단일 트랜잭션에서 처리한다.
+    """
+    if not items:
+        return 0
+    now = datetime.now().isoformat()
+    rows = [
+        (
+            it.get("email_id"),
+            it.get("from_address"),
+            it.get("subject"),
+            it.get("snippet"),
+            it.get("received_at"),
+            now,
+        )
+        for it in items
+    ]
+    with connect() as conn:
+        with conn:
+            conn.executemany(
+                "INSERT INTO emails "
+                "(email_id, from_address, subject, snippet, received_at, is_read, synced_at) "
+                "VALUES (?, ?, ?, ?, ?, 0, ?) "
+                "ON CONFLICT(email_id) DO UPDATE SET "
+                "  from_address = excluded.from_address, "
+                "  subject = excluded.subject, "
+                "  snippet = excluded.snippet, "
+                "  received_at = excluded.received_at, "
+                "  is_read = 0, "
+                "  synced_at = excluded.synced_at",
+                rows,
+            )
+    return len(rows)
+
+
+def mark_emails_read_except(email_ids: list[str]) -> int:
+    """이번 동기화에 없는 기존 미읽음 행을 is_read=1 로 바꾼다 (FR-MAIL-01 AC-3).
+
+    email_ids 가 비어 있으면 미읽음 전체를 읽음 처리한다.
+    """
+    with connect() as conn:
+        with conn:
+            if email_ids:
+                placeholders = ",".join("?" for _ in email_ids)
+                cur = conn.execute(
+                    f"UPDATE emails SET is_read = 1 "
+                    f"WHERE is_read = 0 AND email_id NOT IN ({placeholders})",
+                    email_ids,
+                )
+            else:
+                cur = conn.execute("UPDATE emails SET is_read = 1 WHERE is_read = 0")
+    return cur.rowcount
+
+
+def get_unread_emails(limit: int = 10) -> list[dict]:
+    """미읽은 메일을 최신순으로 반환한다 (읽기 전용)."""
+    with connect() as conn:
+        rows = conn.execute(
+            "SELECT email_id, from_address, subject, snippet, received_at "
+            "FROM emails WHERE is_read = 0 "
+            "ORDER BY received_at DESC LIMIT ?",
+            (limit,),
+        ).fetchall()
+    return [dict(row) for row in rows]
+
+
+def replace_calendar_events(window_start: str, window_end: str, items: list[dict]) -> int:
+    """동기화 창(window_start ≤ start_time < window_end) 안의 일정을 통째로 교체한다.
+
+    단일 트랜잭션에서 창 안 기존 행을 모두 삭제한 뒤 재삽입한다 (FR-CAL-03 AC-2).
+    """
+    now = datetime.now().isoformat()
+    rows = [
+        (
+            it.get("event_id"),
+            it.get("title"),
+            it.get("start_time"),
+            it.get("end_time"),
+            it.get("location"),
+            now,
+        )
+        for it in items
+    ]
+    with connect() as conn:
+        with conn:
+            conn.execute(
+                "DELETE FROM calendar_events "
+                "WHERE start_time >= ? AND start_time < ?",
+                (window_start, window_end),
+            )
+            if rows:
+                conn.executemany(
+                    "INSERT INTO calendar_events "
+                    "(event_id, title, start_time, end_time, location, synced_at) "
+                    "VALUES (?, ?, ?, ?, ?, ?) "
+                    "ON CONFLICT(event_id) DO UPDATE SET "
+                    "  title = excluded.title, "
+                    "  start_time = excluded.start_time, "
+                    "  end_time = excluded.end_time, "
+                    "  location = excluded.location, "
+                    "  synced_at = excluded.synced_at",
+                    rows,
+                )
+    return len(rows)
+
+
+def get_today_events(date: str | None = None) -> list[dict]:
+    """오늘 구간(00:00~24:00)에 시작하는 일정을 시간순으로 반환한다 (읽기 전용)."""
+    if date is None:
+        date = f"{datetime.now():%Y-%m-%d}"
+    day_start = f"{date}T00:00:00"
+    day_end = f"{date}T23:59:59"
+    with connect() as conn:
+        rows = conn.execute(
+            "SELECT event_id, title, start_time, end_time, location "
+            "FROM calendar_events "
+            "WHERE start_time >= ? AND start_time <= ? "
+            "ORDER BY start_time ASC",
+            (day_start, day_end),
+        ).fetchall()
+    return [dict(row) for row in rows]
+
+
+def get_week_events(start_date: str | None = None, days: int = 7) -> list[dict]:
+    """start_date 부터 days 일간의 일정을 시간순으로 반환한다 (읽기 전용)."""
+    if start_date is None:
+        start_date = f"{datetime.now():%Y-%m-%d}"
+    start = datetime.fromisoformat(f"{start_date}T00:00:00")
+    end = start + timedelta(days=days)
+    with connect() as conn:
+        rows = conn.execute(
+            "SELECT event_id, title, start_time, end_time, location "
+            "FROM calendar_events "
+            "WHERE start_time >= ? AND start_time < ? "
+            "ORDER BY start_time ASC",
+            (start.isoformat(), end.isoformat()),
+        ).fetchall()
+    return [dict(row) for row in rows]
 
 
 def get_brief(date: str) -> dict | None:

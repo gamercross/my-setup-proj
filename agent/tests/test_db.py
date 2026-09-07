@@ -104,3 +104,76 @@ def test_agent_05_upsert_brief_is_single_row(temp_db):
     assert len(rows) == 1
     assert rows[0]["content"] == "두 번째"
     assert db.get_brief("2026-09-06")["content"] == "두 번째"
+
+
+def test_sync_11_upsert_emails_dedupes_and_updates(temp_db):
+    """TC-SYNC-11: 같은 email_id 재삽입 → 1행 유지 + 필드 갱신 + is_read 리셋."""
+    db.upsert_emails([
+        {"email_id": "x1", "from_address": "a@b.com", "subject": "옛 제목",
+         "snippet": "old", "received_at": "2026-09-01T09:00:00"},
+    ])
+    db.mark_emails_read_except([])  # x1 을 읽음 처리
+    db.upsert_emails([
+        {"email_id": "x1", "from_address": "a@b.com", "subject": "새 제목",
+         "snippet": "new", "received_at": "2026-09-02T09:00:00"},
+    ])
+    with db.connect() as conn:
+        rows = conn.execute("SELECT subject, is_read FROM emails WHERE email_id='x1'").fetchall()
+    assert len(rows) == 1
+    assert rows[0]["subject"] == "새 제목"
+    assert rows[0]["is_read"] == 0
+
+
+def test_sync_12_replace_calendar_events_leaves_outside_window(temp_db):
+    """TC-SYNC-12: replace_calendar_events 는 창 밖 일정을 건드리지 않는다."""
+    db.replace_calendar_events(
+        "2026-09-01T00:00:00", "2026-09-08T00:00:00",
+        [{"event_id": "old", "title": "지난주", "start_time": "2026-09-02T10:00:00",
+          "end_time": "2026-09-02T11:00:00", "location": None}],
+    )
+    db.replace_calendar_events(
+        "2026-09-08T00:00:00", "2026-09-15T00:00:00",
+        [{"event_id": "new", "title": "이번주", "start_time": "2026-09-09T10:00:00",
+          "end_time": "2026-09-09T11:00:00", "location": None}],
+    )
+    with db.connect() as conn:
+        ids = {r["event_id"] for r in conn.execute("SELECT event_id FROM calendar_events")}
+    assert ids == {"old", "new"}
+
+
+def test_sync_13_get_unread_emails_filters_and_orders(temp_db):
+    """TC-SYNC-13: is_read=0 만, received_at DESC."""
+    db.upsert_emails([
+        {"email_id": "a", "from_address": "a", "subject": "a", "snippet": "a",
+         "received_at": "2026-09-01T09:00:00"},
+        {"email_id": "b", "from_address": "b", "subject": "b", "snippet": "b",
+         "received_at": "2026-09-03T09:00:00"},
+    ])
+    db.mark_emails_read_except(["a", "b"])
+    db.upsert_emails([
+        {"email_id": "c", "from_address": "c", "subject": "c", "snippet": "c",
+         "received_at": "2026-09-02T09:00:00"},
+    ])
+    with db.connect() as conn:
+        conn.execute("UPDATE emails SET is_read=1 WHERE email_id='a'")
+        conn.commit()
+    ids = [e["email_id"] for e in db.get_unread_emails()]
+    assert ids == ["b", "c"]
+
+
+def test_sync_14_get_today_events_filters_today_asc(temp_db):
+    """TC-SYNC-14: get_today_events 는 오늘 구간만 시간순으로 반환."""
+    today = f"{datetime.now():%Y-%m-%d}"
+    db.replace_calendar_events(
+        f"{today}T00:00:00", "2999-01-01T00:00:00",
+        [
+            {"event_id": "late", "title": "오후", "start_time": f"{today}T15:00:00",
+             "end_time": f"{today}T16:00:00", "location": None},
+            {"event_id": "early", "title": "오전", "start_time": f"{today}T09:00:00",
+             "end_time": f"{today}T10:00:00", "location": None},
+            {"event_id": "tmr", "title": "내일", "start_time": "2999-01-01T09:00:00",
+             "end_time": "2999-01-01T10:00:00", "location": None},
+        ],
+    )
+    titles = [e["title"] for e in db.get_today_events()]
+    assert titles == ["오전", "오후"]

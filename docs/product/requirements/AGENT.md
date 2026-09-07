@@ -16,7 +16,7 @@
 
 **사용자 스토리:** 에이전트로서 나는 오늘의 할일·일정·미읽은 메일을 모아 Claude 에게 줄 입력을 만들어야 한다.
 
-**우선순위** P0 · **목표 주차** W7 · **상태** ✅ (D1: 할일=실 SQLite, 일정/메일은 더미 유지 — D2 배선)
+**우선순위** P0 · **목표 주차** W7 · **상태** ✅ (D1: 할일=실 SQLite / D2-b: 일정·메일도 로컬 캐시에서 읽음 — `build_context` 는 네트워크 호출 안 함)
 
 ### 수용 기준
 - **AC-1** Given 로컬 DB 에 오늘 할일 2건·일정 1건·미읽은 메일 3건, When `build_context()`, Then 세 종류가 사람이 읽을 수 있는 텍스트 블록으로 합쳐지고 기준 시각이 포함된다.
@@ -25,14 +25,16 @@
 - **AC-4** 수집 단계는 어떤 소스에서 몇 건을 읽었는지 로깅한다.
 
 ### 데이터 소스 (단계적)
-| 소스 | W7 초기 | 이후 |
+| 소스 | 지금 (D2-b) | 적재 주체 |
 |---|---|---|
-| 할일 | 로컬 SQLite `tasks` (오늘 `due_date`) | 동일 |
-| 일정 | 로컬 `calendar_events` 캐시 (없으면 "없음") | Google Calendar 실시간 (FR-CAL-01) |
-| 메일 | 로컬 `emails` 캐시 | Gmail 실시간 (FR-MAIL-01) |
+| 할일 | 로컬 SQLite `tasks` (오늘 `due_date`) | 백엔드 |
+| 일정 | 로컬 `calendar_events` 캐시 (`get_today_events`, 없으면 "없음") | `agent/sync.py` → `services/calendar.py` (D2-b 실배선) |
+| 메일 | 로컬 `emails` 캐시 (`get_unread_emails`, 없으면 "없음") | `agent/sync.py` → `services/gmail.py` (D2-b 실배선) |
+
+> `build_context()` 는 로컬 DB 만 읽는다 — Gmail·Calendar 네트워크 호출은 `agent/sync.py` 의 책임이며 브리핑 경로와 분리돼 있다. 이메일/일정 캐시 조회 실패는 각각 `"(이메일을 불러오지 못함)"` / `"(일정을 불러오지 못함)"` 로 격리한다.
 
 ### 관련
-`agent/daily_brief.py` `build_context()` · `agent/db.py` (`get_today_tasks`) · DESIGN §7
+`agent/daily_brief.py` `build_context()` · `agent/db.py` (`get_today_tasks`, `get_unread_emails`, `get_today_events`) · `agent/sync.py` · DESIGN §7
 
 ---
 

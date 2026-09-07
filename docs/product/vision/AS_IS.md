@@ -120,18 +120,20 @@ flowchart TB
   end
 
   subgraph AGT["agent"]
-    DBF["daily_brief.py"] --> SGM["services/gmail.py"]
-    DBF --> SCA["services/calendar.py"]
+    SYNC["sync.py"] --> SGM["services/gmail.py"]
+    SYNC --> SCA["services/calendar.py"]
+    SGM --> ADB["agent/db.py"]
+    SCA --> ADB
+    DBF["daily_brief.py"] --> ADB
     DBF --> SNO["services/notion.py"]
     DBF --> SCL["services/claude.py"]
     TCL["test_claude.py"] --> SCL
-    SGM -. "스텁" .-> X1[" "]
-    SCA -. "스텁" .-> X1
-    SNO -. "스텁" .-> X1
+    SGM -. "읽기 전용" .-> GAPI["Google API<br/>(Gmail·Calendar)"]
+    SCA -. "읽기 전용" .-> GAPI
   end
 
   CLI -->|"HTTP REST :3000/api (C2·C3·C5 배선)"| SRV
-  DBF -. "예정: agent/db.py 로<br/>같은 SQLite 접근 (ADR-0011)" .-> SCHEMA
+  ADB -->|"같은 SQLite 접근 (ADR-0011)"| SCHEMA
 ```
 
 > **갱신 2026-09-02 (Phase A2):** 환경 구축 완료.
@@ -158,7 +160,7 @@ flowchart TB
 | G4 | 로컬 환경 미검증 | 중간 | ✅ Phase A2 완료 (2026-09-02) |
 | G5 | 경로 이관 변경분 미커밋 | 낮음 | ✅ 커밋 `fc4404c` |
 | G6 | 자동화 테스트 없음 (CI 문법 검사만) | 중간 | ✅ Phase A3 (backend 15 + agent 3, CI 연결) |
-| G7 | 외부 API(Gmail/Calendar/Notion) 스텁 | 낮음 | ⏳ Week 6~7 (계획대로) |
+| G7 | 외부 API(Gmail/Calendar/Notion) 스텁 | 낮음 | 🚧 Gmail·Calendar 실 수집 완료 (D2-b, 2026-09-07 — agent `sync.py` → `emails`·`calendar_events` 캐시). Notion·백엔드 조회 API 는 후속 |
 | G8 | 다중 사용자·Supabase·Docker 미착수 | 낮음 | ⏳ Week 10~12 (계획대로) |
 | G9 | 프로젝트 다이어그램(`docs/**/*.md` 의 Mermaid)을 저장소를 열지 않고는 볼 수 없음 — 앱 안에서 구조·진행을 그림으로 확인 불가 | 낮음 | ⏳ Phase C4 (FR-UI-05, [ADR-0014](../architecture/adr/ADR-0014-dashboard-diagram-viewer.md)) |
 

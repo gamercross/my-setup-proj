@@ -308,7 +308,7 @@ FR-CAL-01, FR-CAL-02
 
 ### `GET /api/mail/unread` — 캐시된 미읽은 메일
 
-FR-MAIL-01
+FR-MAIL-01 · 🔷 **백엔드 엔드포인트 미구현** (별도 Phase). Phase D2-b 에서 에이전트(`agent/sync.py`)가 `emails` 캐시를 채우는 것까지 완료됐고, 이를 노출하는 백엔드 라우트는 아직 없다. 아래는 계약 초안.
 
 **응답 200**
 ```json
