@@ -11,5 +11,3 @@
 | `ref-monitor.png` | 모니터 탭 — CLI/세션 카드 + 픽셀 "사무실" 뷰 | P5 모니터 카드 (+ 5장의 "안 가져오는 것" 예시) |
 | `ref-skill-modal.png` | 스킬 생성 / 프로젝트 배정 모달 | P6 모달 폼 |
 
-> 출처: <https://www.instagram.com/reel/DW0zzaGkwiu/>
-> 저작권상 원본 영상은 커밋하지 않는다. 정지 캡처만, 참조 목적.
