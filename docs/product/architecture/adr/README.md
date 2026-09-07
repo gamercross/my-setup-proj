@@ -69,3 +69,4 @@
 | [0029](ADR-0029-task-auto-category.md) | 할 일 자동 분류 — 에이전트 배치, `tasks.category` | 제안 — 개인 OS P1 (PO-3/4) | FR-TASK-08 | — |
 | [0030](ADR-0030-okr-data-model.md) | OKR 데이터 모델 + 주간 플래너 | 제안 — 개인 OS P1 (PO-5/6) | FR-OKR-* | — |
 | [0031](ADR-0031-safe-markdown-render.md) | 안전 마크다운 렌더 + 파일 트리 API (서버 토큰화·`GET /api/tree`) | 제안 — 개인 OS P1 (PO-11/12) | FR-UI-06 | — |
+| [0032](ADR-0032-sidebar-shell-per-topic-layouts.md) | 사이드바 셸 + 주제별 위젯 레이아웃 (`activeTopic` state·레이아웃 v1→v2) | 제안 — 개인 OS (US-5/6, UI_STYLE v2) | FR-UI-01, FR-WIDGET-04 | — |
