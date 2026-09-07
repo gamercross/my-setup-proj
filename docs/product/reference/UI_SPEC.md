@@ -80,7 +80,8 @@ stateDiagram-v2
 | `--accent-soft` | `rgba(47,111,235,.12)` | `rgba(96,165,250,.16)` | 강조 배경(칩 활성·배지) |
 | `--ok` / `--warn` / `--bad` | `#2e7d5b` / `#c2691f` / `#c23b3b` | `#4ade80` / `#fbbf24` / `#f87171` | 달성 90%+/40~90%/<40%, 상태 |
 | `--priority-high` / `--priority-medium` / `--priority-low` | `#ef4444` / `#f59e0b` / `#64748b` | `#ef4444` / `#f59e0b` / `#94a3b8` | 우선순위 배지 (강조색과 독립) |
-| `--radius` / `--card-radius` / `--chip-radius` | `8px` / `10px` / `999px` | (동일) | 모서리 (`--card-radius` 상향은 P4) |
+| `--radius` / `--card-radius` / `--chip-radius` | `8px` / `16px` / `999px` | (동일) | 모서리 (`--card-radius` 10→16 은 P4) |
+| `--shadow-card` | `0 1px 2px rgba(0,0,0,.04)` | `0 1px 2px rgba(0,0,0,.32)` | 카드·위젯 프레임 그림자 (P4 추가, `WidgetFrame` wrapper) |
 | `--pad` | `10px` | (동일) | 위젯 본문 패딩 |
 
 > ✅ **P3 완료** (2026-09-07, ADR-0027): `:root` 를 라이트 v2 로 재정의 + `[data-theme=dark]` 블록(정의만). `App.jsx`·`WidgetShell`·`WidgetPicker`·`TaskForm`·`ProjectForm`·`CalendarWidget`·`DiagramPanel`(mermaid `theme:'default'` + `PALETTE`)·`WidgetSettings`(GLOBAL_DEFAULTS)·`WidgetFrame`·`ErrorBoundary`·`index.html` 의 하드코딩 hex → 토큰. 대부분 1:1 치환, 라이트 대비 조정 몇 곳(`--priority-low` `#94a3b8`→`#64748b`, 캘린더 '내일' 배지 → `--muted`, 위젯 피커 항목 중립화). `styles.css` 는 `renderer.jsx` 상단에서 import.
@@ -297,12 +298,24 @@ stateDiagram-v2
 | `TaskForm` | `onSubmit(payload)`, `disabled` | `title, priority, dueDate` | `onSubmit` | ✅ B3 |
 | `ErrorBanner` | `message: string`, `onRetry()` | — | `onRetry` | ✅ B3 |
 | `ErrorBoundary` | `children`, `fallback?`, `onReset?` | `hasError` | — | ✅ B3 + C5 (`fallback` prop — 없으면 기존 전면 폴백) |
-| `ProjectCard` | `project: Project`, `onDelete(id)?`, `onProgressChange(id, next)?`, `onStatusChange(id, value)?` | `draft` (슬라이더 로컬값) | `onDelete`, `onProgressChange`, `onStatusChange` | ✅ C2 (순수 프레젠테이션, 콜백 없으면 읽기 전용, `on_hold` 통일) |
+| `ProjectCard` | `project: Project`, `onDelete(id)?`, `onProgressChange(id, next)?`, `onStatusChange(id, value)?` | `draft` (슬라이더 로컬값) | `onDelete`, `onProgressChange`, `onStatusChange` | ✅ C2 · P4 (진행바 → `DotProgress`, 슬라이더·commit·clamp 유지, `on_hold` 통일) |
 | `ProjectForm` | `onSubmit(payload): Promise<boolean>`, `disabled` | `name, progress, hint` | `onSubmit` | ✅ C2 (payload `{name, progress?}`) |
 | `CalendarWidget` | `events: Event[]` | — | — | ✅ C3 |
 | `BriefCard` | `brief: Brief \| null`, `showMeta: bool` | `copied` (복사 피드백) | — | ✅ D3 (순수 프레젠테이션, plain text pre-wrap, Notion 링크 복사 버튼) |
 | `BriefWidgetView` | `config`, `configSchema` | `useBriefStore` 구독 + `useEffect(fetchBrief)` | — | ✅ D3 (4상태 소유) |
 | `DiagramPanel` | — (props 없음) | `diagrams`, `activeDoc`, `loading`, `error`, `rendered` | — | ✅ C4 (자체 fetch·4상태 소유, 스토어 없음) |
+
+### 4.1 공통 프레젠테이션 컴포넌트 ✅ P4 (2026-09-07, `frontend/src/components/`, design-p2/Components.dc.html 기준)
+
+순수·무상태. 데이터는 상위에서 주입. OKR·에이전트·프로젝트 위젯 공용.
+
+| 컴포넌트 | props | 토큰·규격 | 비고 |
+|---|---|---|---|
+| `StatTile` | `label`, `value`, `tone?` (`default`\|`accent`\|`ok`\|`warn`\|`bad`) | bg `--panel` · border `1px --border` · radius `14px` · padding `18px` · 숫자 `font-weight:700`/`40px`/`line-height:1` · 라벨 `12px --muted` · 숫자색 tone→`--text`/`--accent`/`--ok`/`--warn`/`--bad` | 큰 숫자 1개 + 라벨 (달성률 색코딩) |
+| `DotProgress` | `label`, `pct`, `total?` (기본 20), `showPercent?` (기본 true) | 점 `8×8` radius `2px` gap `4px` flex-wrap · 채움 `var(--w-accent, var(--accent))` / 빈칸 `--border` · `role="progressbar"` + `aria-valuenow/min/max` (+ `aria-label` = label) · `%` 텍스트 `13px`, `--muted`, `font-weight:700` | 순수 로직은 `dotFill.js` (`dotFill`/`normalizeTotal`/`clampPct`). `total`·채움에 같은 정규화 적용 |
+| `Chip` | `variant?` (`active`\|`neutral`\|`ok`\|`warn`\|`bad`), `onClick?`, `title?`, `children` | radius `var(--chip-radius)` · padding `3px 11px` · `12px`/`font-weight:600` · `active`→`--accent-soft`/`--accent`, 그 외 `--panel-2` + 상태색 | `onClick` 있으면 `<button>`, 없으면 `<span>` |
+
+> `dotFill.js` 규칙: `normalizeTotal` — 0 이하·비정수·NaN → 20. `clampPct` — 숫자 변환 실패 시 0, 0~100 clamp, 정수 반올림. `dotFill(pct, total=20)` = `round(clampPct(pct)/100 * normalizeTotal(total))`. 테스트 `frontend/test/dotFill.test.mjs` TC-P4-01~05.
 
 **타입 형태**는 [DATA_DICTIONARY.md](DATA_DICTIONARY.md) 및 [API_REFERENCE.md](API_REFERENCE.md) 의 리소스 객체와 동일 (필드명 snake_case 유지).
 
