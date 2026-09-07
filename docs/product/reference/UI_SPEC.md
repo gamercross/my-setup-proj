@@ -66,7 +66,7 @@ stateDiagram-v2
 
 ### 디자인 토큰 v2 ([ADR-0027](../architecture/adr/ADR-0027-light-theme-default.md) — `frontend/src/styles.css`)
 
-**라이트가 기본.** 다크는 셸 바의 🌙 토글 → `document.documentElement.dataset.theme = 'dark'`, `localStorage['dashboard.theme']` 영속. `:root[data-theme='dark']` 가 토큰을 대칭 재정의.
+**라이트가 기본.** 다크 토큰은 `:root[data-theme='dark']` 로 **정의만** 돼 있다 (대칭 재정의). 전역 라이트/다크 전환 UI 는 후속 스텝 — 지금은 라이트 고정.
 
 | CSS 변수 | 라이트(`:root`) | 다크(`[data-theme=dark]`) | 용도 |
 |---|---|---|---|
@@ -74,18 +74,16 @@ stateDiagram-v2
 | `--panel` | `#ffffff` | `#1e293b` | 카드·위젯 본문 |
 | `--panel-2` | `#f2f2ef` | `#172033` | 중첩 카드·셸 바·헤더 |
 | `--border` | `#ececec` | `#334155` | 테두리·구분선 |
-| `--shadow-card` | `0 1px 2px rgba(0,0,0,.04)` | `none` | 라이트에서만 옅은 그림자 |
 | `--text` | `#1a1a1a` | `#e2e8f0` | 본문 텍스트 |
 | `--muted` | `#8a8a8a` | `#94a3b8` | 보조 텍스트·섹션 제목 |
 | `--accent` | `#2f6feb` | `#60a5fa` | 강조 숫자·활성·포커스·[실행] (US-1 종결: 파랑) |
-| `--accent-soft` | `rgba(47,111,235,.12)` | `rgba(96,165,250,.16)` | 강조 배경(칩 활성·편집 힌트) |
+| `--accent-soft` | `rgba(47,111,235,.12)` | `rgba(96,165,250,.16)` | 강조 배경(칩 활성·배지) |
 | `--ok` / `--warn` / `--bad` | `#2e7d5b` / `#c2691f` / `#c23b3b` | `#4ade80` / `#fbbf24` / `#f87171` | 달성 90%+/40~90%/<40%, 상태 |
-| `--priority-high/medium/low` | `#ef4444` / `#f59e0b` / `#94a3b8` | (동일) | 우선순위 배지 (강조색과 독립) |
-| `--radius` / `--card-radius` / `--chip-radius` | `10px` / `16px` / `999px` | (동일) | 모서리 |
-| `--pad` | `12px` | (동일) | 위젯 본문 패딩 |
-| `.stat-number` | `font-weight:700; font-size:clamp(28px,4vw,44px)` | | 스탯 타일 초점 숫자 (P4 컴포넌트화) |
+| `--priority-high` / `--priority-medium` / `--priority-low` | `#ef4444` / `#f59e0b` / `#64748b` | `#ef4444` / `#f59e0b` / `#94a3b8` | 우선순위 배지 (강조색과 독립) |
+| `--radius` / `--card-radius` / `--chip-radius` | `8px` / `10px` / `999px` | (동일) | 모서리 (`--card-radius` 상향은 P4) |
+| `--pad` | `10px` | (동일) | 위젯 본문 패딩 |
 
-> ✅ **P3 완료** (2026-09-07, ADR-0027): `:root` 를 라이트 v2 로 재정의 + `[data-theme=dark]` 블록. `App.jsx`·`WidgetShell.jsx`(테마 토글)·`WidgetPicker`·`TaskForm`·`ProjectForm`·`CalendarWidget`·`DiagramPanel`(mermaid PALETTE)·`WidgetSettings`(GLOBAL_DEFAULTS)·`ErrorBoundary`·`index.html` 의 하드코딩 hex → 토큰. `styles.css` 는 `renderer.jsx` 상단에서 import.
+> ✅ **P3 완료** (2026-09-07, ADR-0027): `:root` 를 라이트 v2 로 재정의 + `[data-theme=dark]` 블록(정의만). `App.jsx`·`WidgetShell`·`WidgetPicker`·`TaskForm`·`ProjectForm`·`CalendarWidget`·`DiagramPanel`(mermaid `theme:'default'` + `PALETTE`)·`WidgetSettings`(GLOBAL_DEFAULTS)·`WidgetFrame`·`ErrorBoundary`·`index.html` 의 하드코딩 hex → 토큰. 대부분 1:1 치환, 라이트 대비 조정 몇 곳(`--priority-low` `#94a3b8`→`#64748b`, 캘린더 '내일' 배지 → `--muted`, 위젯 피커 항목 중립화). `styles.css` 는 `renderer.jsx` 상단에서 import.
 > 위젯 프레임이 인스턴스 `config.theme` 를 화이트리스트 CSS 변수(`--w-bg`/`--w-accent`/`--w-text`/`--w-radius`/`--w-pad`)로 자기 wrapper 에 주입하고,
 > 위젯 내부 CSS 는 `var(--w-bg, var(--bg))`·`var(--w-text, var(--text))`·`var(--w-accent, var(--accent))` 폴백 체인을 쓴다 ([ADR-0022](../architecture/adr/ADR-0022-per-widget-theming.md)). titlebar solid/ghost/hidden 은 `WidgetFrame` 이 인라인 style 로 처리(D-3: 편집 모드면 hidden 무시).
 
@@ -237,7 +235,7 @@ stateDiagram-v2
 |---|---|
 | 목적 | `docs/**/*.md` 의 Mermaid 다이어그램을 앱에서 열람 — 프로젝트 구조·진행을 그림으로 |
 | 위치 | C5: `diagrams` 위젯 (`widgets/views/DiagramsWidgetView.jsx` 가 `DiagramPanel` 을 그대로 래핑). 폭이 커서 기본 레이아웃 제외 — 피커로만 추가 |
-| 요소 | `DiagramPanel` — 문서 선택 바(문서 basename 버튼, 활성 `#38bdf8`) + 선택 문서의 블록별 제목 + SVG. (컴포넌트 무수정) |
+| 요소 | `DiagramPanel` — 문서 선택 바(문서 basename 버튼, 활성 `var(--accent)`) + 선택 문서의 블록별 제목 + SVG. mermaid `PALETTE` 상수는 라이트 값(P3). |
 | 데이터 출처 | `apiGet('/diagrams')` → 로컬 컴포넌트 state (스토어 없음 — 읽기 전용·정적) |
 | 렌더 | `import('mermaid')` 동적 로딩(별도 청크, 최초 1회 `initialize`), `mermaid.initialize({ startOnLoad:false, theme:'dark', securityLevel:'strict' })` 후 선택 문서 블록만 순차 `render()` |
 | 관련 FR | FR-UI-05 · [ADR-0014](../architecture/adr/ADR-0014-dashboard-diagram-viewer.md) |
@@ -264,7 +262,7 @@ stateDiagram-v2
 |---|---|
 | 목적 | 개별 위젯의 크롬(타이틀바)·격리·테마 주입 지점 |
 | 요소 | 타이틀바(`.widget-titlebar` — RGL draggableHandle): 아이콘 + 위젯 이름 + `⚙`(설정 모달, title="위젯 설정") + `─`(최소화) + `✕`(제거). 버튼은 `.widget-titlebar-btn`(draggableCancel). 본문: 레지스트리 뷰 |
-| 테마 주입 | wrapper `<div className="widget" style={{ background:'var(--w-bg, var(--bg))', borderRadius:'var(--w-radius, var(--card-radius))', color:'var(--w-text, var(--text))', outline:'1px solid var(--w-accent, #38bdf8)', zIndex, ...themeToVars(config?.theme) }}>` — ✅ C6 (`themeToVars` 화이트리스트 매핑) ([ADR-0022](../architecture/adr/ADR-0022-per-widget-theming.md)). 본문 padding 은 `var(--w-pad, var(--pad))`. `configSchema` 는 `WidgetFrame` 이 뷰에 prop 으로 전달(뷰→registry 순환 import 회피) |
+| 테마 주입 | wrapper `<div className="widget" style={{ background:'var(--w-bg, var(--bg))', borderRadius:'var(--w-radius, var(--card-radius))', color:'var(--w-text, var(--text))', outline:'1px solid var(--w-accent, var(--accent))', zIndex, ...themeToVars(config?.theme) }}>` — ✅ C6 (`themeToVars` 화이트리스트 매핑) ([ADR-0022](../architecture/adr/ADR-0022-per-widget-theming.md)). 본문 padding 은 `var(--w-pad, var(--pad))`. `configSchema` 는 `WidgetFrame` 이 뷰에 prop 으로 전달(뷰→registry 순환 import 회피) |
 | ⚙ 설정 | ✅ C6 — `onClick` 이 `WidgetSettings` 모달을 연다(stopPropagation 으로 드래그·bringToFront 차단). 타이틀바 표시(solid/ghost/hidden)는 `WidgetFrame` 인라인 style 로 처리 (D-3: `titlebar:'hidden'` 은 비편집일 때만 숨김, 편집 모드에선 hidden 무시하고 항상 렌더) |
 | 격리 | 위젯별 `ErrorBoundary fallback={<ErrorBanner .../>}`(뷰 렌더 예외 → 위젯 내부 폴백, 셸 무영향) + 뷰의 4상태 |
 | 미등록 타입 | `getWidgetMeta(type)===null` → 본문 대신 "알 수 없는 위젯입니다 (type)" + `✕` (FR-WIDGET-08 AC-2) |
