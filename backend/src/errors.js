@@ -6,6 +6,30 @@
 //
 // 클라이언트에는 SQLite 영문 원문을 절대 노출하지 않는다 (한국어 메시지로 치환).
 
+// 서비스 계층(services/*)이 던지는 도메인 오류.
+// 라우트는 이 타입을 보고 상태코드를 정한다 (400 / 404).
+// db.js 는 여전히 평범한 Error 를 던지므로 아래 정규식 판정도 그대로 유지한다.
+class ValidationError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'ValidationError';
+    this.status = 400;
+  }
+}
+
+class NotFoundError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'NotFoundError';
+    this.status = 404;
+  }
+}
+
+// 404(리소스 없음) 오류인지 판정한다
+function isNotFoundError(err) {
+  return err instanceof NotFoundError;
+}
+
 // 400 으로 매핑할 SQLite 제약 위반 코드
 const CLIENT_SQLITE_CODES = new Set([
   'SQLITE_CONSTRAINT_CHECK',
@@ -16,7 +40,9 @@ const CLIENT_SQLITE_CODES = new Set([
 // 검증(400) 오류인지 판정한다
 function isValidationError(err) {
   if (!err) return false;
+  if (err instanceof ValidationError) return true;
   if (err.code && CLIENT_SQLITE_CODES.has(err.code)) return true;
+  // db.js 는 평범한 Error 를 계속 던지므로 메시지 정규식 판정을 유지한다 (제거 금지).
   return /필수|0~100/.test(err.message || '');
 }
 
@@ -38,4 +64,10 @@ function toClientMessage(err) {
   return (err && err.message) || '잘못된 요청입니다.';
 }
 
-module.exports = { isValidationError, toClientMessage };
+module.exports = {
+  ValidationError,
+  NotFoundError,
+  isValidationError,
+  isNotFoundError,
+  toClientMessage,
+};

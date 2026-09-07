@@ -56,9 +56,12 @@ flowchart TB
 backend/
   test/                     # *.test.js — node --test 가 수집
     helpers/
-      testApp.js            # app.js + :memory: DB 를 supertest 로 감싸는 헬퍼
+      testApp.js            # app.js + :memory: DB 를 supertest 로 감싸는 헬퍼 (loadService 포함)
+      crashFixture.js        # ✅ fix/ai-results-cleanup (TC-REL-06 자식 프로세스 픽스처)
     tasks.test.js
     projects.test.js
+    services.test.js         # ✅ fix/ai-results-cleanup (서비스 계층, TC-MAINT-01~05)
+    lifecycle.test.js        # ✅ fix/ai-results-cleanup (프로세스 수명주기, TC-REL-01~06)
     calendar.test.js         # ✅ Phase C3 (캘린더 더미 API, TC-CAL-01~07)
     db.test.js               # ✅ Phase B2 (SQLite 회귀, TC-DB-01~03)
 agent/
@@ -251,6 +254,31 @@ fake service 주입, 네트워크 0회. 재시도 테스트는 `services.retry.s
 
 > TC-SYNC-06/07 은 `agent/tests/test_db.py`(pytest), TC-SYNC-08~10 은 `backend/test/sync.test.js`(`supertest` + `node --test`, `:memory:` DB). `/api/sync/logs` 는 읽기 전용 조회 — 쓰기 주체는 에이전트(`db.log_sync`).
 
+### 3.5e 서비스 계층 — `backend/test/services.test.js` (fix/ai-results-cleanup)
+
+> 앱 없이 `backend/src/services/*` 를 직접 호출, `:memory:` 격리 (`loadService` 헬퍼). 오류 타입은 `name`/`status` 로 판정.
+
+| ID | 대상 | 입력 | 기대 결과 | 우선 |
+|---|---|---|---|:---:|
+| TC-MAINT-01 | NFR-MAINT-02 | `services/tasks.createTask({})` | `ValidationError` — `'title 은 필수입니다.'` | P1 |
+| TC-MAINT-02 | NFR-MAINT-02 | `services/tasks.updateTask(9999,{project_id:1})` | `NotFoundError` (존재 확인이 project_id 검증보다 우선) | P1 |
+| TC-MAINT-03 | NFR-MAINT-02 / ADR-0012 | `services/tasks.assertProjectId('1')` | `ValidationError` — `'project_id 는 프로젝트 id(정수) 또는 null 이어야 합니다.'` | P1 |
+| TC-MAINT-04 | NFR-MAINT-02 | `services/projects.updateProject(id,{progress:200})` | `ValidationError` — `'progress 는 0~100 사이 숫자여야 합니다.'` | P1 |
+| TC-MAINT-05 | NFR-MAINT-02 | `routes/tasks.js`·`projects.js` 원문 grep | `require('../db')` 미포함 (fitness) | P1 |
+
+### 3.5f 신뢰성·수명주기 — `backend/test/lifecycle.test.js` (fix/ai-results-cleanup)
+
+> 단위(01~04)는 `createShutdown`/`logFatal` 에 mock 의존성 주입. 통합(05~06)은 `child_process.spawn` + 10초 타임아웃 가드.
+
+| ID | 대상 | 절차 | 기대 결과 | 우선 |
+|---|---|---|---|:---:|
+| TC-REL-01 | NFR-REL-03 AC-2 | mock server/closeDb/exit 주입 → `shutdown('uncaughtException',1)` | `server.close` 1회 → `closeDb` 1회 → `exit(1)` 순서 | P1 |
+| TC-REL-02 | NFR-REL-03 AC-4 | `shutdown` 2회 연속 호출 | `closeDb`·`exit` 각 1회 (멱등) | P1 |
+| TC-REL-03 | NFR-REL-03 AC-5 | `server.close` 콜백 미호출 + `timeoutMs=20` | 타임아웃 후 강제 `exit` | P1 |
+| TC-REL-04 | NFR-REL-03 AC-1 | `logFatal('uncaughtException', Error('boom'))` | 1줄 로그에 종류·메시지, 스택 별도 줄로 보존 | P1 |
+| TC-REL-05 | NFR-REL-03 AC-3 / NFR-REL-06 | `node src/server.js` spawn(임시 포트·DB) → health 200 → `kill -TERM` | `exit 0`, 종료 로그, `-wal`/`-shm` 정리 | P1 |
+| TC-REL-06 | NFR-REL-03 AC-2 | `helpers/crashFixture.js` spawn (비동기 예외) | `exit 1` + `uncaughtException` 로그 | P1 |
+
 ### 3.5b 미들웨어 — `backend/test/middleware.test.js` (Phase C1)
 
 | ID | 대상 | 절차 | 기대 결과 |
@@ -384,10 +412,11 @@ supervisor 는 리뷰 시 "이 변경에 대응하는 테스트가 있는가"를
 
 ---
 
-## 7. 현재 상태 (2026-09-07, Phase D2-b 완료)
+## 7. 현재 상태 (2026-09-07, fix/ai-results-cleanup)
 
-- 백엔드 자동화 테스트: **59케이스 작성됨** — `backend/test/tasks.test.js` (TC-TASK-01,02,04~10 + TC-PROJ-08/09/09b/09c/09d + TC-DB-04a), `backend/test/projects.test.js` (TC-PROJ-01~07,10,11 + TC-DB-04b), `backend/test/calendar.test.js` (TC-CAL-01~07), `backend/test/db.test.js` (TC-DB-01~03 + TC-DB-04c/d), `backend/test/middleware.test.js` (TC-MW-01~09), `backend/test/diagrams.test.js` (TC-DIAG-01~05), `backend/test/supabase.test.js` (TC-SYNC-01~05), `backend/test/sync.test.js` (TC-SYNC-08~10, D2-a 신규 3건). `supertest` + `node --test`, `:memory:` DB. (TC-DB-04b 는 project status 검증이라 `projects.test.js` 에 위치.)
-- 에이전트 자동화 테스트: **D2-a 기준 작성됨** — `agent/tests/test_daily_brief.py` (TC-AGENT-01,02,03,06,13,14,15,19) + `agent/tests/test_db.py` (TC-AGENT-05,09,10,11,12 + TC-SYNC-06/07) + `agent/tests/test_retry.py` (TC-AGENT-16,17,18, D2-a 신규) + `agent/tests/conftest.py`(`temp_db` fixture). `test_claude.py` 는 연결 확인용(키 없으면 skip). D2-b 신규: `test_google_oauth.py`(TC-AUTH-01~08), `test_gmail.py`(TC-MAIL-01~09), `test_calendar.py`(TC-CAL-08~14), `test_db.py`(+TC-SYNC-11~14), `test_daily_brief.py`(+TC-AGENT-20/21, 이메일/일정 소스를 `db` 에서 import 하도록 fixture 키 변경). 현재 `pytest -m "not network"` 46 passed (4 network deselected).
+- 백엔드 자동화 테스트: **70케이스 작성됨** — `backend/test/tasks.test.js` (TC-TASK-01,02,04~10 + TC-PROJ-08/09/09b/09c/09d + TC-DB-04a), `backend/test/projects.test.js` (TC-PROJ-01~07,10,11 + TC-DB-04b), `backend/test/services.test.js` (TC-MAINT-01~05), `backend/test/lifecycle.test.js` (TC-REL-01~06), `backend/test/calendar.test.js` (TC-CAL-01~07), `backend/test/db.test.js` (TC-DB-01~03 + TC-DB-04c/d), `backend/test/middleware.test.js` (TC-MW-01~09), `backend/test/diagrams.test.js` (TC-DIAG-01~05), `backend/test/supabase.test.js` (TC-SYNC-01~05), `backend/test/sync.test.js` (TC-SYNC-08~10). `supertest` + `node --test`, `:memory:` DB. (TC-DB-04b 는 project status 검증이라 `projects.test.js` 에 위치.)
+- fix/ai-results-cleanup(2026-09-07): C1 `backend/src/lifecycle.js`(신규 — `logFatal`/`createShutdown`/`registerProcessHandlers`, `uncaughtException`→로그 후 안전 종료 exit 1, SIGTERM/SIGINT→graceful shutdown exit 0, `unhandledRejection`→로그만), `backend/src/server.js`(배선), `backend/db/index.js`(`checkpointAndClose` 추가), `backend/test/lifecycle.test.js`·`test/helpers/crashFixture.js`(신규, TC-REL-01~06). C2 `backend/src/services/{tasks,projects}.js`(신규 — 서비스 계층), `backend/src/errors.js`(`ValidationError`/`NotFoundError` + `isNotFoundError`, 기존 정규식 판정 유지), `backend/src/routes/{tasks,projects}.js`(얇게 — `require('../db')` 제거), `backend/test/services.test.js`·`test/helpers/testApp.js`(`loadService`). 기존 회귀 테스트 무수정 통과. NFR-REL-03 문구 개정, NFR-MAINT-02 ✅.
+- 에이전트 자동화 테스트: **D2-a 기준 작성됨** — `agent/tests/test_daily_brief.py` (TC-AGENT-01,02,03,06,13,14,15,19) + `agent/tests/test_db.py` (TC-AGENT-05,09,10,11,12 + TC-SYNC-06/07) + `agent/tests/test_retry.py` (TC-AGENT-16,17,18, D2-a 신규) + `agent/tests/conftest.py`(`temp_db` fixture). `test_claude.py` 는 연결 확인용(키 없으면 skip). D2-b 신규: `test_google_oauth.py`(TC-AUTH-01~08), `test_gmail.py`(TC-MAIL-01~09), `test_calendar.py`(TC-CAL-08~14), `test_db.py`(+TC-SYNC-11~14), `test_daily_brief.py`(+TC-AGENT-20/21, 이메일/일정 소스를 `db` 에서 import 하도록 fixture 키 변경). 현재 `pytest -m "not network"` 54 passed (4 deselected).
 - Phase D2-a(2026-09-07): `agent/services/retry.py`(`call_with_retry` — 3회 시도/재시도 2회/1·2s 지수 백오프, 인증·4xx 즉시 실패), `agent/services/claude.py`(`ask()` 재시도 적용 + `Anthropic(timeout=30, max_retries=0)`), `agent/db.py`(`log_sync()` — `sync_logs` 기록, 예외 안 냄), `agent/daily_brief.py`(`_run()` 에서 `ensure_schema` 배선), `backend` `GET /api/sync/logs`(읽기 전용) + `db.getSyncLogs`. TC-AGENT-16~19, TC-SYNC-06~10. 커버: FR-AGENT-06 AC-3, NFR-REL-05, NFR-OBS-03(부분), FR-SYNC-03(조회 API). OAuth·실 수집은 D2-b 이월.
 - Phase D2-b(2026-09-07): Google OAuth 데스크톱 흐름 + Gmail·Calendar 실 수집. `agent/auth/google_oauth.py`(신규 — Fernet 암호화 토큰 저장, ADR-0024), `agent/services/google_common.py`(신규 — `execute_with_retry`), `agent/services/{gmail,calendar}.py`(전면 교체 — `sync_gmail`/`sync_calendar` + 더미 함수 삭제), `agent/db.py`(+`upsert_emails`/`mark_emails_read_except`/`get_unread_emails`/`replace_calendar_events`/`get_today_events`/`get_week_events`), `agent/sync.py`(신규 엔트리포인트), `agent/daily_brief.py`(이메일·일정을 `db` 캐시에서 읽음, 네트워크 미접촉), `agent/requirements.txt`(google/cryptography 정확 핀), `agent/.gitignore`(`.secrets/`·`*.enc`). 커버: FR-AUTH-01, FR-MAIL-01, FR-CAL-03, NFR-SEC-05, NFR-REL-05, NFR-OBS-03. 백엔드 무변경(FR-CAL-01 🚧 유지). `pytest -m "not network"` 46/46, `verify.sh` 27/0/0, backend `npm test` 59/59. 실 Google 연동(TC-MAIL-09·TC-CAL-13)은 사용자 최초 로그인 필요. supervisor CHANGES_NEEDED 반영(2026-09-07): 종일 일정 창 경계 타임존 naive 통일(TC-CAL-14 추가), 캘린더 에러 마스킹 `google_common._sanitize_error` 공용화.
 - CI: 문법 검사 + `npm test`(backend) + `pytest -m "not network"`(agent) 연결됨. `node -c src/app.js`, `src/db.js`, `db/index.js` 추가.

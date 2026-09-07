@@ -9,7 +9,7 @@
 ## 1. 설계 원칙
 
 1. **계층 고정 (목표)** — `routes → services → db`. 라우트에 비즈니스 로직·SQL 금지 (NFR-MAINT-02).
-   - **현재(AS-IS):** `services/` 계층은 C3 에서 도입됐다(`backend/src/services/calendar.js` — 더미 이벤트 생성; C4 에서 `services/diagrams.js` — `docs/` mermaid 파싱 추가). 할일·프로젝트 라우트는 아직 `db.js` 를 직접 호출한다. 도메인 로직이 커지는 시점에 점진적으로 이관한다. 미들웨어(`backend/src/middleware/`, C1)는 이 계층과 별개인 횡단 관심사.
+   - **현재(AS-IS):** `services/` 계층이 전 도메인에 적용됐다 — `backend/src/services/{tasks,projects,calendar,diagrams}.js`. 할일·프로젝트 라우트는 `fix/ai-results-cleanup` 에서 얇게 정리돼 `db.js` 를 직접 호출하지 않는다(서비스가 `NotFoundError`/`ValidationError` 를 던지고 라우트가 404/400 으로 매핑). `sync` 라우트는 읽기 전용 조회라 `db.js` 를 직접 호출한다. 미들웨어(`backend/src/middleware/`, C1)는 이 계층과 별개인 횡단 관심사.
 2. **DB 인터페이스 불변** — `db.js` 의 `getX/addX/updateX/deleteX` 시그니처는 저장소가 바뀌어도 유지 (NFR-MAINT-03).
 3. **오프라인 우선** — 로컬 SQLite 가 진실의 원천, 클라우드/외부 API 는 그 위에 얹는 캐시·동기화 (NFR-REL-04).
    - **보장 범위:** 네트워크가 없어도 (a) 할일·프로젝트는 완전한 CRUD, (b) 마지막으로 동기화된 일정·메일·브리핑은 **조회만** 가능. 캐시 최신성은 각 행의 `synced_at` 으로 표시.
@@ -66,6 +66,7 @@
 ## 3. 목표 아키텍처 (TO-BE)
 
 > 다이어그램은 Mermaid. GitHub 에서 자동 렌더된다. 로컬/오프라인 이미지는 [DIAGRAMS.md](../../setup/DIAGRAMS.md) 참고.
+> AS-IS(현재 구조)는 [AS_IS.md](../vision/AS_IS.md) §현재 모듈 의존 관계. 두 그림의 차이가 남은 작업이다.
 
 ```mermaid
 flowchart TB
@@ -87,15 +88,18 @@ flowchart TB
   subgraph BE["Backend (backend/, Express)"]
     SRV["app.js<br/>requestLogger → cors → json → routes → 404 → errorHandler"]
     SRV --> RT["routes/<br/>tasks · projects · calendar · mail · brief · sync · diagrams"]
-    RT --> SVC["services/"]
+    RT --> SVC["services/<br/>tasks · projects · calendar · diagrams"]
     SVC --> DBM["db/ (better-sqlite3)"]
     SVC --> DOCS["docs/**/*.md<br/>(mermaid 소스, 읽기 전용)"]
   end
 
   subgraph AG["Python Agent (agent/)"]
-    DB2["daily_brief.py<br/>launchd/cron 매일 08:00"]
-    DB2 --> GS["services/ gmail · calendar · notion · claude"]
-    DB2 --> ADB["db.py"]
+    SY["sync.py<br/>수집 (launchd/cron, brief 전)"]
+    DB2["daily_brief.py<br/>생성 (launchd/cron 매일 08:00)"]
+    SY --> GS["services/ gmail · calendar · notion"]
+    DB2 --> CLS["services/ claude · notion"]
+    SY --> ADB["db.py"]
+    DB2 --> ADB
   end
 
   SQLITE[("SQLite<br/>schema.sql")]
@@ -103,11 +107,12 @@ flowchart TB
   R -- "HTTP REST :3000/api" --> SRV
   DBM --> SQLITE
   ADB --> SQLITE
-  GS -. "OAuth / HTTPS" .-> EXT["Gmail · Google Calendar<br/>Notion · Claude API"]
+  GS -. "OAuth / HTTPS (수집)" .-> EXT["Gmail · Google Calendar<br/>Notion · Claude API"]
+  CLS -. "HTTPS (생성·저장)" .-> EXT
   SQLITE -. "Week 10+ 증분 동기화" .-> SUPA[("Supabase")]
 ```
 
-핵심 변경점: **① renderer 를 React 로 교체, ② db 를 SQLite 로 교체, ③ 프론트–백엔드 fetch 연결, ④ agent 가 같은 SQLite 에 씀.**
+핵심 변경점: **① renderer 를 React 로 교체, ② db 를 SQLite 로 교체, ③ 프론트–백엔드 fetch 연결, ④ agent 가 같은 SQLite 에 씀 — `sync.py`(수집)가 먼저 캐시를 채우고 `daily_brief.py`(생성)는 캐시만 읽는다.**
 
 ---
 
@@ -276,20 +281,21 @@ sequenceDiagram
 
 ```
 agent/
-  daily_brief.py       엔트리 (launchd/cron)
-  db.py                신규: 백엔드와 같은 SQLite 파일 — tasks 읽기 전용, 캐시 테이블(briefs 등) 직접 write (ADR-0011)
+  sync.py              엔트리 (launchd/cron, brief 전에 실행) — Gmail·Calendar 수집 → 캐시 upsert
+  daily_brief.py       엔트리 (launchd/cron) — 캐시만 읽어 브리핑 생성 (네트워크 미접촉)
+  db.py                백엔드와 같은 SQLite 파일 — tasks 읽기 전용, 캐시 테이블(emails·calendar_events·briefs) 직접 write (ADR-0011)
   services/
-    gmail.py     get_unread_emails()  → 실 Gmail API (Week 6)
-    calendar.py  get_today_events()   → 실 Calendar API (Week 5~6)
-    notion.py    save_to_notion()     → 실 Notion API (Week 7)
+    gmail.py     sync_gmail()      → 실 Gmail API (D2-b 완료)
+    calendar.py  sync_calendar()   → 실 Calendar API (D2-b 완료)
+    notion.py    save_to_notion()  → 실 Notion API (Week 7)
     claude.py    ask()  (완료)
   auth/
-    google_oauth.py    토큰 획득·갱신·암호화 저장 (Week 6, NFR-SEC-05)
+    google_oauth.py    토큰 획득·갱신·암호화 저장 (D2-b 완료, NFR-SEC-05)
 ```
 
 흐름 (FR-AGENT-01~06):
-1. `gmail/calendar` 에서 수집 → `emails`/`calendar_events` 테이블 upsert + `sync_logs` 기록
-2. `db.py` 로 오늘 할일 + 위 데이터 조회 → `build_context()`
+1. **`sync.py`**: `gmail/calendar` 에서 수집 → `emails`/`calendar_events` 테이블 upsert + `sync_logs` 기록
+2. **`daily_brief.py`**: `db.py` 로 오늘 할일 + 캐시된 이메일·일정 조회 → `build_context()` (외부 API 접촉 안 함)
 3. `claude.ask(context, system=SYSTEM_PROMPT)` — 실패 시 로그+종료(앱 영향 없음)
 4. 결과를 `briefs` 테이블 저장 + `notion.save_to_notion()` → `notion_url` 갱신
 
@@ -297,25 +303,27 @@ agent/
 
 ```mermaid
 sequenceDiagram
-  participant SCH as launchd/cron (08:00)
-  participant DB2 as daily_brief.py
+  participant SCH as launchd/cron
+  participant SY as sync.py (07:50)
   participant GM as gmail / calendar
+  participant DB2 as daily_brief.py (08:00)
   participant DBP as db.py (SQLite)
   participant CL as claude.py → Claude API
   participant NO as notion.py
 
-  SCH->>DB2: 실행
-  DB2->>GM: 수집 요청
+  SCH->>SY: 수집 실행 (brief 전)
+  SY->>GM: 수집 요청
   alt 외부 API 실패
-    GM-->>DB2: 오류
-    DB2->>DBP: sync_logs('gmail','failed', 원인)
-    Note over DB2: 해당 소스는 "없음"으로 대체, 계속 진행
+    GM-->>SY: 오류
+    SY->>DBP: sync_logs('gmail','failed', 원인)
+    Note over SY: 캐시는 이전 상태 유지
   else 정상
-    GM-->>DB2: 이메일·일정
-    DB2->>DBP: emails / calendar_events upsert + sync_logs(success)
+    GM-->>SY: 이메일·일정
+    SY->>DBP: emails / calendar_events upsert + sync_logs(success)
   end
-  DB2->>DBP: 오늘 tasks 조회
-  DBP-->>DB2: 할일 목록
+  SCH->>DB2: 브리핑 실행
+  DB2->>DBP: 오늘 tasks + 캐시된 emails·calendar_events 조회
+  DBP-->>DB2: 할일 · 이메일 · 일정 (네트워크 미접촉)
   DB2->>DB2: build_context()
   DB2->>CL: ask(context, system=SYSTEM_PROMPT)
   alt Claude 실패

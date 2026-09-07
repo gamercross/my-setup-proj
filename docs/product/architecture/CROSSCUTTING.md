@@ -64,7 +64,8 @@ flowchart LR
 
 | 프로세스 | 미처리 예외 | 정책 |
 |---|---|---|
-| 백엔드 | `unhandledRejection`/`uncaughtException` | 로깅 후 프로세스 유지 (NFR-REL-03) |
+| 백엔드 | `unhandledRejection` | 로깅 후 프로세스 유지 (NFR-REL-03) |
+| 백엔드 | `uncaughtException` / `SIGTERM` · `SIGINT` | 로깅 후 graceful shutdown — HTTP close·WAL 체크포인트·`exit 1`(신호는 `exit 0`), 감독자가 재기동 (NFR-REL-03, ADR-0016) |
 | 에이전트 | 최상위 try/except | `sync_logs` 기록 + 비정상 exit code, 크래시 로그. 앱 영향 0 |
 | Electron main | `process.on('uncaughtException')` | 로깅, 창 유지 |
 

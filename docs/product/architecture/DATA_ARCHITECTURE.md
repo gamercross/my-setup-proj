@@ -8,15 +8,25 @@
 
 ```mermaid
 flowchart LR
-  EXT["외부 API<br/>Gmail·Calendar·Notion"] -->|"에이전트가 번역(ACL)"| CACHE[("캐시 테이블<br/>emails·calendar_events")]
+  GM["Gmail"] -->|"에이전트 sync.py (ACL)"| EMAILS[("emails")]
+  GC["Google Calendar"] -->|"에이전트 sync.py (ACL)"| CEV[("calendar_events")]
   U["사용자 입력"] -->|"백엔드 CRUD"| OWN[("사용자 테이블<br/>tasks·projects")]
-  CACHE & OWN --> BRIEF[("briefs<br/>Claude 생성")]
-  CACHE -->|"보관 윈도우 밖 삭제"| PURGE["정리 (에이전트)"]
-  OWN -->|"updated_at 커서"| SYNC["동기화 계층<br/>(Week 10+)"]
-  SYNC <-->|"필드 단위 LWW + 툼스톤"| SUPA[("Supabase")]
-  MIG["마이그레이션 러너<br/>(백엔드 부팅 시)"] -->|"버전 적용 + .bak"| OWN & CACHE
+  EMAILS --> BRIEF[("briefs")]
+  CEV --> BRIEF
+  OWN -->|"진행 중 프로젝트"| BRIEF
+  CLA["Claude API"] -->|"생성"| BRIEF
+  EMAILS -->|"보관 윈도우 밖 삭제"| PURGE["정리 (에이전트)"]
+  CEV -->|"보관 윈도우 밖 삭제"| PURGE
+  BRIEF -->|"daily_brief.py 저장"| NOTION["Notion 외부 페이지"]
+  NOTION -->|"page url"| NURL[("briefs.notion_url")]
+  OWN -.->|"updated_at 커서"| SYNC["동기화 계층<br/>🔷 제안 · Week 10+ · 미구현"]
+  SYNC -.->|"필드 단위 LWW + 툼스톤"| SUPA[("Supabase<br/>🔷 현재는 연결 진단만")]
+  MIG["마이그레이션 러너<br/>🔷 제안(ADR-0018) · 미구현"] -.->|"버전 적용 + .bak"| OWN
+  MIG -.-> EMAILS
   UISTATE["위젯 레이아웃·테마<br/>(UI 상태)"] -->|"디바운스 저장"| LSTORE[("localStorage<br/>→ widget_instances (C5 단계2)")]
 ```
+
+> 범례: **실선 = 구현됨**, 점선 = 제안/미구현. Notion 은 브리핑의 **출력처**(캐시 입력원 아님) — 본문은 우리가 소유하고 `briefs.notion_url` 만 역참조한다(§5).
 
 쓰기 주체는 테이블마다 하나(§2). 스키마 변경은 마이그레이션으로만(§3, [ADR-0018](adr/ADR-0018-schema-migration-strategy.md)).
 위젯 레이아웃은 도메인 데이터와 분리된 UI 상태 계층 — 손상되면 기본값으로 폴백한다([ADR-0021](adr/ADR-0021-widget-layout-persistence.md)).

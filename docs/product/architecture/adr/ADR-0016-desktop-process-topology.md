@@ -27,3 +27,13 @@ Electron·Express·에이전트는 독립 프로세스다([ADR-0015](ADR-0015-lo
 - 자식 백엔드의 stdout/stderr 를 파일 로그로 리다이렉트해야 함(NFR-DEPLOY-04).
 - 에이전트는 여전히 이 토폴로지 밖(launchd) — 변경 없음.
 - 재검토: Stage 3(서버측 배포)로 가면 백엔드가 클라우드로 이동, 이 ADR 폐기.
+
+## 실패·종료 정책 (후속, 2026-09-07)
+
+> 이 절만 **구현됨(백엔드 측)** — 나머지 결정은 "제안" 유지.
+
+- **미처리 예외(`uncaughtException`):** 기존 로그 정책(1줄 + 스택)대로 기록한 뒤 열린 HTTP 서버 close → SQLite WAL 체크포인트·close → `process.exit(1)`. 프로세스를 오염된 상태로 유지하지 않는다. 재기동은 감독자(Electron main, 위 결정 3항)의 책임이다.
+- **종료 신호(`SIGTERM`/`SIGINT`):** 같은 종료 절차 + `exit 0`.
+- **`unhandledRejection`:** 기존 동작 유지 — 로그만 남기고 종료하지 않는다 (회귀 방지).
+- 종료 절차는 멱등하며, 서버 close 가 5s 안에 안 끝나면 강제 종료한다.
+- 구현: `backend/src/lifecycle.js`, 배선 `backend/src/server.js`, 검증 `backend/test/lifecycle.test.js` (TC-REL-01~06).

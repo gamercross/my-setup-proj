@@ -13,10 +13,13 @@
 | **Electron renderer** | Chromium | main 이 창 생성 시 | — | main | 동일 |
 | **Vite dev 서버** | Node | 개발 중만 | 5173 | `npm run dev` (concurrently) | dev 만, prod 없음 |
 | **Express 백엔드** | Node | 상시 | 3000 | **사용자가 별도 터미널** (`cd backend && npm start`) | **미결 — [§5](#5-미결-결정)** |
-| **Python 에이전트** | Python | 실행 후 종료 (배치) | — | launchd/cron 08:00, 또는 수동 | 동일 |
+| **Python 에이전트 — `sync.py`** (수집) | Python | 실행 후 종료 (배치) | — | 수동 (`python -m agent.sync`); 스케줄 주체 launchd/cron 은 FR-AGENT-05 로 미구현 | launchd/cron 07:50, brief 보다 먼저 |
+| **Python 에이전트 — `daily_brief.py`** (생성) | Python | 실행 후 종료 (배치) | — | 수동; 스케줄 미구현 | launchd/cron 08:00, sync 완료 후 |
 | **launchd job** (`com.aicomputeros.worklog`) | — | OS 상주 | — | OS | OS |
 
 핵심: **백엔드와 에이전트는 Electron 의 자식이 아니다.** 셋은 독립 프로세스이고 SQLite 파일과 HTTP 로만 연결된다.
+
+에이전트는 두 배치로 나뉜다: `sync.py` 가 Gmail·Calendar·Notion 을 `emails`·`calendar_events` 캐시로 수집(ACL)하고, 그 다음 `daily_brief.py` 가 캐시만 읽어 Claude 로 브리핑을 만들어 `briefs` 에 쓴다. **실행 순서는 sync → brief** (스케줄 주체는 launchd/cron, FR-AGENT-05 로 아직 미구현이라 현재는 수동).
 
 ```mermaid
 flowchart TB
@@ -26,7 +29,8 @@ flowchart TB
     end
     VITE["Vite :5173<br/>(dev only)"]
     BE["Express :3000"]
-    AG["python daily_brief.py<br/>(배치, launchd 08:00)"]
+    SYNC["python sync.py<br/>(수집, 배치 · 먼저)"]
+    AG["python daily_brief.py<br/>(생성, 배치 · sync 후)"]
     LD["launchd<br/>worklog 23:50"]
     DB[("app.db<br/>+ -wal / -shm")]
   end
@@ -34,8 +38,10 @@ flowchart TB
   RND -- "loadURL(:5173)" --- VITE
   RND -- "HTTP /api" --> BE
   BE -- "better-sqlite3" --> DB
-  AG -- "직접 접근 (WAL)" --> DB
-  AG -. "OAuth/HTTPS" .-> EXT["Gmail·Calendar·Notion·Claude"]
+  SYNC -- "직접 접근 (WAL) · emails·calendar_events upsert" --> DB
+  SYNC -. "OAuth/HTTPS" .-> EXT["Gmail·Calendar·Notion"]
+  AG -- "직접 접근 (WAL) · 캐시 read + briefs write" --> DB
+  AG -. "HTTPS" .-> CLA["Claude API"]
   LD --> WL["worklog.sh → git + slack"]
 ```
 
@@ -74,7 +80,7 @@ sequenceDiagram
 
 | 프로세스 | 신호 | 해야 할 일 | 현재 | 목표 (NFR-REL-06) |
 |---|---|---|---|---|
-| Express | SIGTERM/SIGINT | 진행 중 요청 완료 → SQLite 체크포인트(`PRAGMA wal_checkpoint(TRUNCATE)`) → 커넥션 close → exit 0 | 기본 종료 | Week 9 에서 핸들러 추가 |
+| Express | SIGTERM/SIGINT | 진행 중 요청 완료 → SQLite 체크포인트(`PRAGMA wal_checkpoint(TRUNCATE)`) → 커넥션 close → exit 0 | SIGTERM/SIGINT 핸들러 + WAL 체크포인트 (`fix/ai-results-cleanup`, `src/lifecycle.js`); `uncaughtException` 은 같은 절차 + exit 1 | Electron 자식 정리 연동은 E4 |
 | Electron main | `window-all-closed` / `before-quit` | 자식 프로세스(있다면) 종료, 렌더러 정리 | 기본 | spawn 도입 시 자식 kill |
 | 에이전트 | 배치라 해당 없음 | 트랜잭션 커밋 후 자연 종료 | ✅ | 유지 |
 

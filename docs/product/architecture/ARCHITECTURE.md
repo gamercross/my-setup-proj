@@ -202,27 +202,37 @@ ALTER TABLE tasks ADD COLUMN is_synced BOOLEAN;
 
 > 구현 단위의 정확한 시퀀스(에러 분기 포함)는 [DESIGN.md](DESIGN.md) §6·§7.
 
-### 1️⃣ 아침 자동 브리핑 흐름
+### 1️⃣ 아침 자동 브리핑 흐름 (D3 목표)
 
 ```mermaid
 sequenceDiagram
-  participant SCH as 스케줄러 (08:00)
-  participant AG as Python 에이전트
+  participant SCH as 스케줄러 (07:50 / 08:00)
+  participant SY as sync.py (수집)
+  participant AG as daily_brief.py (생성)
   participant EXT as Gmail / Calendar / Notion
   participant CL as Claude API
   participant DB as SQLite
+  participant API as Express API
   participant UI as 앱 UI
 
-  SCH->>AG: generate_daily_brief()
-  AG->>EXT: 미읽은 메일 · 오늘 일정 · 진행 중 프로젝트 수집
-  EXT-->>AG: 데이터
-  AG->>CL: "우선순위별로 정리해줘" (+ 수집 컨텍스트)
+  SCH->>SY: sync (07:50, brief 보다 먼저)
+  SY->>EXT: 미읽은 메일 · 오늘 일정 수집 (ACL)
+  EXT-->>SY: 데이터
+  SY->>DB: emails · calendar_events 캐시 upsert
+  SCH->>AG: generate_daily_brief() (08:00)
+  AG->>DB: 캐시 + 진행 중 프로젝트 조회 (네트워크 미접촉)
+  DB-->>AG: 컨텍스트
+  AG->>CL: "우선순위별로 정리해줘" (+ 컨텍스트)
   CL-->>AG: 브리핑 텍스트
-  AG->>DB: briefs 저장 (+ 캐시 테이블 upsert)
-  AG->>EXT: Notion 페이지로 저장
-  UI->>DB: GET /api/brief/today
-  DB-->>UI: "아침 브리핑 준비됨"
+  AG->>DB: briefs 저장
+  AG->>EXT: Notion 페이지로 저장 → briefs.notion_url
+  UI->>API: GET /api/brief/today
+  API->>DB: briefs 조회
+  DB-->>API: brief
+  API-->>UI: "아침 브리핑 준비됨"
 ```
+
+> `sync.py` 는 D2-b 에서 실 수집 구현 완료. `GET /api/brief/today` 와 스케줄러(FR-AGENT-05)는 D3 목표.
 
 ### 2️⃣ 사용자 할일 입력 흐름
 

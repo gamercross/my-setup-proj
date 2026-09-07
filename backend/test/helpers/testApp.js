@@ -34,4 +34,11 @@ function loadDb(dbPath) {
   return require('../../src/db');
 }
 
-module.exports = { createTestApp, loadDb };
+// src/services/<name>.js 를 새 커넥션으로 로드해 반환한다 (앱 없이 서비스 계층만 테스트).
+function loadService(name, dbPath) {
+  process.env.DATABASE_PATH = dbPath || ':memory:';
+  clearModuleCache();
+  return require(`../../src/services/${name}`);
+}
+
+module.exports = { createTestApp, loadDb, loadService };

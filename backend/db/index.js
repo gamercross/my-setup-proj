@@ -72,4 +72,21 @@ function closeDatabase() {
   }
 }
 
-module.exports = { getDb, closeDatabase, resolveDbPath };
+// WAL 체크포인트 후 커넥션 종료 — 프로세스 안전 종료(src/lifecycle.js) 전용.
+// 열린 커넥션이 없으면 no-op. 각 단계 예외는 로그 후 무시한다 (':memory:' 포함).
+function checkpointAndClose() {
+  if (!conn) return;
+  try {
+    conn.pragma('wal_checkpoint(TRUNCATE)');
+  } catch (err) {
+    console.error('WAL 체크포인트 실패:', err.message);
+  }
+  try {
+    conn.close();
+  } catch (err) {
+    console.error('DB 커넥션 종료 실패:', err.message);
+  }
+  conn = null;
+}
+
+module.exports = { getDb, closeDatabase, resolveDbPath, checkpointAndClose };
