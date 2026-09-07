@@ -401,6 +401,7 @@ sequenceDiagram
 | **D2-a** | ✅ (2026-09-07, `feature/d2a-sync-logs-retry`). `agent/services/retry.py` 지수 백오프(3회 시도/재시도 2회, 1·2s, 인증 오류 즉시 실패), `claude.ask()` 재시도 적용 + `Anthropic(timeout=30, max_retries=0)`, `db.log_sync()` (`sync_logs` 기록·예외 안 냄), `daily_brief._run()` 에서 `ensure_schema` 배선, `GET /api/sync/logs` (읽기 전용) + backend `getSyncLogs`. TC-AGENT-16~19, TC-SYNC-06~10. | FR-AGENT-06 AC-3, NFR-REL-05, NFR-OBS-03(부분), FR-SYNC-03(조회 API) |
 | D2-b | Google OAuth(refresh token Fernet 암호화 저장) + Gmail/Calendar 실 수집 → `emails`/`calendar_events` upsert + `sync_logs` 배선 + `build_context` 캐시 전환 | FR-AUTH-01, FR-MAIL-01, FR-CAL-01, FR-SYNC-03 |
 | ~~D3~~ ✅ | Notion 저장(`services/notion.py`, requests 직접) + launchd/cron 자동 실행(`scripts/daily-brief-run.sh`, 07:30) + Brief API(`/api/brief/today`, 빈 결과 200/null — ADR-0025) + BriefCard 위젯 | FR-AGENT-03/04/05 |
+| ~~D-마무리~~ ✅ | 백엔드 조회 API 를 실 캐시로 배선 (2026-09-07). `services/calendar.js` 더미 제거 → `calendar_events` SELECT, `GET /api/mail/unread`(신규, `emails` 캐시), `GET /api/tasks?project_id=`(FR-TASK-06 필터), `scripts/seed-demo.js`(데모 샘플 데이터). TC-CAL-01b·TC-MAIL-B-01~05·TC-TASK-12~12c | FR-CAL-01, FR-MAIL-01, FR-TASK-06 |
 
 > D2 는 두 서브단계로 분할: **D2-a** = 복원력 기반(재시도·`log_sync`·`ensure_schema` 배선·`sync_logs` 조회 API, 네트워크 무의존), **D2-b** = Google OAuth + 실 수집·upsert·캐시 전환.
 

@@ -50,7 +50,7 @@ flowchart LR
 | UI | [requirements/UI.md](UI.md) | P0 완료 |
 | AGENT | [requirements/AGENT.md](AGENT.md) | P0 완료, P1 초안 |
 | PROJ | [requirements/PROJ.md](PROJ.md) | P0 완료 (C2, 2026-09-03) |
-| CAL | [requirements/CAL.md](CAL.md) | FR-CAL-01/02 완료 (C3 — 더미, 2026-09-06), FR-CAL-03 D2-b 이월 |
+| CAL | [requirements/CAL.md](CAL.md) | FR-CAL-01/02 완료 (C3 위젯 + D-마무리 캐시 조회), FR-CAL-03 D2-b 완료 |
 | WIDGET | [requirements/WIDGET.md](WIDGET.md) | 초안 (제안 — 착수 전 DASHBOARD_OS §8 결정) |
 | MAIL / SYNC / AUTH | (예정) | 아래 표만 — 해당 주차 착수 전 상세화 |
 
@@ -65,7 +65,7 @@ flowchart LR
 | FR-TASK-03 | 사용자는 할일의 완료 상태(todo/in_progress/done)를 토글할 수 있다 | P0 | W3 | 🚧 |
 | FR-TASK-04 | 사용자는 할일을 수정·삭제할 수 있다 | P0 | W3 | 🚧 (API만) |
 | FR-TASK-05 | 할일은 로컬 DB에 영속 저장되어 앱 재시작 후에도 유지된다 | P0 | W5 | ⏳ |
-| FR-TASK-06 | 할일 목록을 마감일·우선순위·상태로 정렬/필터할 수 있다 | P1 | W4 | ⏳ |
+| FR-TASK-06 | 할일 목록을 마감일·우선순위·상태로 정렬/필터할 수 있다 | P1 | W4 | 🚧 (D-마무리 — `?project_id=` 필터 ✅, status·priority·sort 이월) |
 | FR-TASK-07 | "오늘/내일 할 일"을 별도로 볼 수 있다 | P1 | W5 | ⏳ |
 
 ## 2. 프로젝트 추적 (PROJ)
@@ -81,7 +81,7 @@ flowchart LR
 
 | ID | 요구사항 | 우선순위 | 목표 주차 | 상태 |
 |---|---|:---:|:---:|:---:|
-| FR-CAL-01 | Google Calendar 의 오늘·이번주 일정을 조회해 표시한다 | P1 | W5 | 🚧 (C3 — 더미, 실 API D2) |
+| FR-CAL-01 | Google Calendar 의 오늘·이번주 일정을 조회해 표시한다 | P1 | W5 | ✅ (D-마무리 — 백엔드가 `calendar_events` 캐시 조회, 2026-09-07) |
 | FR-CAL-02 | 오늘/내일 일정을 강조 표시한다 | P1 | W5 | ✅ (C3) |
 | FR-CAL-03 | 일정을 로컬 DB에 캐시해 오프라인에서도 최근 일정을 본다 | P2 | W5 | ✅ (D2-b, 2026-09-07) |
 
@@ -89,7 +89,7 @@ flowchart LR
 
 | ID | 요구사항 | 우선순위 | 목표 주차 | 상태 |
 |---|---|:---:|:---:|:---:|
-| FR-MAIL-01 | Gmail 의 미읽은 메일 목록(보낸사람·제목·스니펫)을 조회한다 | P1 | W6 | ✅ (D2-b, 2026-09-07 — agent 캐시) |
+| FR-MAIL-01 | Gmail 의 미읽은 메일 목록(보낸사람·제목·스니펫)을 조회한다 | P1 | W6 | ✅ (D2-b agent 캐시 + D-마무리 `GET /api/mail/unread`, 2026-09-07) |
 | FR-MAIL-02 | 여러 Gmail 계정을 한 화면에서 통합 조회한다 | P2 | W9 | ⏳ |
 | FR-MAIL-03 | 메일 상세 보기·답장·삭제를 할 수 있다 | P2 | W9 | ⏳ |
 

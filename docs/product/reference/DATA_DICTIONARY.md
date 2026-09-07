@@ -67,6 +67,7 @@
 
 - 인덱스: `idx_events_start(start_time)` — "오늘/이번주" 조회 (FR-CAL-01/02).
 - 소스는 읽기 전용. 앱에서 일정을 생성·수정하지 않는다(현 범위).
+- 쓰기 주체: **에이전트**(`agent/db.py:replace_calendar_events`). 백엔드는 `db.js:getCalendarEvents` → `services/calendar.js` 로 SELECT·필터만 (ADR-0011, D-마무리).
 
 ## 4. `emails` — 이메일 (Gmail 미읽은 메일 캐시)
 
@@ -83,6 +84,7 @@
 
 - 인덱스: `idx_emails_received(received_at)` — 최신순 조회.
 - 현 범위는 미읽은 메일 조회(FR-MAIL-01)까지. 답장·삭제(FR-MAIL-03)는 Week 9.
+- 쓰기 주체: **에이전트**(`agent/db.py:upsert_emails`). 백엔드는 `db.js:getUnreadEmails` → `services/mail.js` → `GET /api/mail/unread` 로 SELECT 만 (ADR-0011, D-마무리).
 
 ## 5. `briefs` — 일일 브리핑
 
