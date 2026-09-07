@@ -2,13 +2,25 @@
 // - 모든 에러 메시지는 한국어로 정규화한다. 스택·상태코드 원문은 화면에 노출하지 않는다.
 // - path 는 base(`window.appInfo.apiBaseUrl`) 이후의 경로만 넘긴다. 예: '/tasks', '/tasks/3'
 
+// 웹 데모(프로토타입) 모드 — VITE_DEMO=1 빌드에서만 참 (Vite 가 정적 치환).
+// 이때는 백엔드 없이 인메모리 샘플 데이터로 응답한다 (ADR-0026).
+const DEMO =
+  typeof import.meta !== 'undefined' &&
+  import.meta.env &&
+  import.meta.env.VITE_DEMO === '1';
+
 // preload 브리지에서 API base URL 을 읽는다 (없으면 null)
 function getBaseUrl() {
-  return window.appInfo?.apiBaseUrl ?? null;
+  return (typeof window !== 'undefined' && window.appInfo?.apiBaseUrl) ?? null;
 }
 
 // 공통 요청 함수
 async function request(method, path, body) {
+  if (DEMO) {
+    const { demoRequest } = await import('./demoClient.js');
+    return demoRequest(method, path, body);
+  }
+
   const base = getBaseUrl();
   if (!base) {
     // 브리지가 없으면 fetch 시도조차 하지 않는다

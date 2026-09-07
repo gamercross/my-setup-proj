@@ -50,6 +50,7 @@
 | [0023](adr/ADR-0023-branch-model.md) | 브랜치 모델 — `feature/* → PR → main` (Git Flow 미채택) | 채택 |
 | [0024](adr/ADR-0024-oauth-token-storage.md) | OAuth 토큰은 Fernet 암호화 JSON 파일 (`TOKEN_ENCRYPTION_KEY`) | 채택 — D2-b |
 | [0025](adr/ADR-0025-brief-empty-response.md) | 브리핑 빈 결과는 404 아닌 200 + `{ brief: null }` | 채택 — D3 |
+| [0026](adr/ADR-0026-web-demo-mode.md) | 웹 데모 모드 — `VITE_DEMO` 목 어댑터 + GitHub Pages 배포 | 채택 — 2026-09-07 |
 
 > 🆕 **대시보드 OS 전환 (2026-09-03)** — 고정 패널 → 위젯 셸. 개념: [../vision/DASHBOARD_OS.md](../vision/DASHBOARD_OS.md),
 > 요구사항: [../requirements/WIDGET.md](../requirements/WIDGET.md), 화면: [../reference/UI_SPEC.md](../reference/UI_SPEC.md) §3.8~.
@@ -402,6 +403,7 @@ sequenceDiagram
 | D2-b | Google OAuth(refresh token Fernet 암호화 저장) + Gmail/Calendar 실 수집 → `emails`/`calendar_events` upsert + `sync_logs` 배선 + `build_context` 캐시 전환 | FR-AUTH-01, FR-MAIL-01, FR-CAL-01, FR-SYNC-03 |
 | ~~D3~~ ✅ | Notion 저장(`services/notion.py`, requests 직접) + launchd/cron 자동 실행(`scripts/daily-brief-run.sh`, 07:30) + Brief API(`/api/brief/today`, 빈 결과 200/null — ADR-0025) + BriefCard 위젯 | FR-AGENT-03/04/05 |
 | ~~D-마무리~~ ✅ | 백엔드 조회 API 를 실 캐시로 배선 (2026-09-07). `services/calendar.js` 더미 제거 → `calendar_events` SELECT, `GET /api/mail/unread`(신규, `emails` 캐시), `GET /api/tasks?project_id=`(FR-TASK-06 필터), `scripts/seed-demo.js`(데모 샘플 데이터). TC-CAL-01b·TC-MAIL-B-01~05·TC-TASK-12~12c | FR-CAL-01, FR-MAIL-01, FR-TASK-06 |
+| ~~웹 데모~~ ✅ | 프로토타입을 보여줄 URL (2026-09-07, [ADR-0026](adr/ADR-0026-web-demo-mode.md)). `VITE_DEMO=1` 빌드 → `api/client.js` 가 인메모리 목 어댑터(`api/demoClient.js`) 사용, Electron·백엔드 불필요. `.github/workflows/deploy-demo.yml` → GitHub Pages. `npm run build:demo`. TC-DEMO-01~07 | FR-UI-*, FR-WIDGET-* (시각 검증 수단) |
 
 > D2 는 두 서브단계로 분할: **D2-a** = 복원력 기반(재시도·`log_sync`·`ensure_schema` 배선·`sync_logs` 조회 API, 네트워크 무의존), **D2-b** = Google OAuth + 실 수집·upsert·캐시 전환.
 
