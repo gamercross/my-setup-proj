@@ -104,11 +104,11 @@ C 세부: C1 미들웨어(CORS·로깅·에러) ✅(2026-09-03) → C2 프로젝
 | NFR-SEC-07 | API 경계 입력 검증 | C1, B2, C2 | TC-TASK-02,03 / TC-PROJ-02,03,09,09c,09d / TC-DB-04a~d / TC-MW-05,06 | 🚧 (C2: `backend/src/errors.js` 가 SQLite CHECK/NOTNULL/FK → 400 한국어 매핑, `project_id` 사전 검증. `due_date` 형식 검증·빈 title 덮어쓰기 금지는 이월) |
 | NFR-REL-01 | 모든 외부 호출·IO try/catch | 상시 | supervisor 리뷰 | 🚧 |
 | NFR-REL-02 | 외부 API 실패가 앱 크래시로 안 이어짐 | D1 | TC-AGENT-03, TC-UI-02 | 🚧 |
-| NFR-REL-03 | 백엔드 `unhandledRejection` 로깅·생존 | 상시 | 예외 주입 | ✅ (`server.js`) |
+| NFR-REL-03 | 백엔드 `uncaughtException` 로깅 후 안전 종료 / `unhandledRejection` 로깅·생존 | 상시 | TC-REL-01~06 | ✅ (`src/server.js` + `src/lifecycle.js`, `test/lifecycle.test.js`, 2026-09-07) |
 | NFR-REL-04 | 오프라인 로컬 캐시 조회 | C3, D2 | 수동 (비행기모드) | ⏳ |
 | NFR-REL-05 | 네트워크 재시도 (지수 백오프 ×3) | D2-a·D2-b | 단위(모킹) TC-AGENT-16,17,18, TC-MAIL-07,08, TC-CAL-* | ✅ (Claude + Gmail·Calendar 가 `call_with_retry`/`execute_with_retry` 3회 백오프, 401/403 즉시 실패. Notion 은 미적용) |
-| NFR-REL-06 | graceful shutdown (SIGTERM) | E4 (W9) | `kill -TERM` | ⏳ |
-| NFR-MAINT-02 | 계층 분리 routes→services→db | C1 | 코드리뷰 | 🚧 (미들웨어 계층 분리 ✅ — `backend/src/middleware/`, 2026-09-03) |
+| NFR-REL-06 | graceful shutdown (SIGTERM) | E4 (W9) | `kill -TERM` | 🚧 (Express 측 완료 — `src/lifecycle.js`, TC-REL-05; Electron 자식 종료 연동은 E4) |
+| NFR-MAINT-02 | 계층 분리 routes→services→db | C1 | 코드리뷰 · TC-MAINT-01~05 | ✅ (`backend/src/services/{tasks,projects,calendar,diagrams}.js`, 2026-09-07; `routes/sync.js` 는 읽기 전용 직접 조회 예외) |
 | NFR-MAINT-03 | `db.js` 인터페이스 불변 | B2 | TC-DB-02 | ✅ (공개 함수 10개 시그니처·반환·오류 불변, 2026-09-02) |
 | NFR-MAINT-04 | 모델 상수 1곳 (`claude.py DEFAULT_MODEL`) | 상시 | grep | ✅ |
 | NFR-MAINT-05 | 한 기능 = `/feature` 1회 | 상시 | 커밋 히스토리 | 🚧 |

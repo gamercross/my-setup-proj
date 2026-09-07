@@ -35,18 +35,18 @@
 
 | 항목 | 현황 | 평가 |
 |---|---|---|
-| 서버 (`src/server.js`) | 포트 3000, `express.json()`, `GET /` 헬스체크, `/api` 라우터, 404·에러 핸들러, `unhandledRejection` 방어 | ✅ 코드상 완성 |
-| API 라우터 (`src/routes/api.js`) | `GET /api/health`, `/api/tasks`·`/api/projects` 서브라우터 연결 | ✅ |
-| 할일 라우트 (`src/routes/tasks.js`) | GET(목록/단건)·POST·PUT·DELETE, 검증오류 400 / 그 외 500 매핑 | ✅ |
-| 프로젝트 라우트 (`src/routes/projects.js`) | tasks 와 동일 구조 CRUD. C2: `errors.js` 로 SQLite CHECK/FK → 400 한국어 매핑, status `on_hold` 통일 | ✅ + 프론트 배선(C2) |
-| 오류 매핑 (`src/errors.js`) | `isValidationError`/`toClientMessage` — 일반 Error + SQLite 제약 위반(CHECK/NOTNULL/FK) → 400 한국어 (C2) | ✅ |
+| 서버 (`src/server.js`) | 포트 3000, `express.json()`, `GET /` 헬스체크, `/api` 라우터, 404·에러 핸들러. 수명주기 핸들러 `registerProcessHandlers`(`src/lifecycle.js`) — `uncaughtException` 로그 후 안전 종료(exit 1), SIGTERM/SIGINT graceful shutdown + WAL 체크포인트(exit 0), `unhandledRejection` 은 로그만 | ✅ 코드상 완성 |
+| API 라우터 (`src/routes/api.js`) | `GET /api/health`, `/api/tasks`·`/api/projects`·`/api/calendar`·`/api/diagrams`·`/api/sync` 서브라우터 연결 | ✅ |
+| 할일·프로젝트 라우트 (`src/routes/{tasks,projects}.js`) | GET(목록/단건)·POST·PUT·DELETE. **얇은 계층**: 입력을 `src/services/{tasks,projects}.js` 로 넘기고 결과만 직렬화. 오류는 `NotFoundError`→404 / `ValidationError`·SQLite 제약→400 / 그 외 500 (`fix/ai-results-cleanup`, NFR-MAINT-02) | ✅ routes→services→db |
+| 서비스 계층 (`src/services/{tasks,projects,calendar,diagrams}.js`) | 도메인 규칙·검증·존재 확인. HTTP(req/res) 를 모른다. `db.js` 시그니처 불변 | ✅ (calendar·diagrams C3·C4, tasks·projects `fix/ai-results-cleanup`) |
+| 오류 매핑 (`src/errors.js`) | `ValidationError`/`NotFoundError` 클래스 + `isValidationError`/`isNotFoundError`/`toClientMessage` — 도메인 오류 + 일반 Error + SQLite 제약 위반(CHECK/NOTNULL/FK) → 400/404 한국어 | ✅ |
 | `tasks.project_id` (ADR-0012) | `POST`/`PUT /api/tasks` 검증·API 응답 노출. `?project_id=` 필터는 이월 | ✅ (C2) |
 | 데이터 저장 (`src/db.js`) | ✅ **better-sqlite3 (B2)** — `db/index.js` 커넥션 싱글턴 경유, WAL 모드, `DATABASE_PATH` 로 경로 주입(기본 `backend/data/app.db`). 공개 함수 10개 시그니처 불변 | ✅ 영속화 |
 | CORS | `backend/src/middleware/cors.js` — 로컬 오리진 화이트리스트 + `Origin: null` | ✅ (C1, 2026-09-03) |
 | 로깅 미들웨어 | `backend/src/middleware/requestLogger.js` — 모든 요청 1줄 (`METHOD path status ms`) | ✅ (C1, 2026-09-03) |
 | 실행 검증 | ✅ 기동 + CRUD curl 왕복 확인 (A2). C1 후 CORS·미들웨어 스모크(TC-MW) 통과. 브라우저 E2E 는 로컬 대기 | ✅ |
 
-**핵심 문제:** (B2 해소) `db.js` 내부가 better-sqlite3 로 교체돼 프로세스 재시작 후에도 데이터가 유지된다. 라우트·검증 로직은 무수정(NFR-MAINT-03).
+**핵심 문제:** (B2 해소) `db.js` 내부가 better-sqlite3 로 교체돼 프로세스 재시작 후에도 데이터가 유지된다. (`fix/ai-results-cleanup`) tasks·projects 라우트가 서비스 계층으로 분리돼 `routes → services → db` 가 전 도메인에서 성립하고, 백엔드가 미처리 예외·종료 신호에 안전 종료한다.
 
 ### 2.3 Agent — `agent/` (Python Claude 에이전트 스텁)
 
@@ -84,9 +84,9 @@
 | 항목 | 현황 |
 |---|---|
 | `tests/` (크로스 프로젝트) | README 만. 실제 테스트 0개 (Week 12+) |
-| backend | ✅ supertest + `node --test` 56케이스 (tasks/projects/db/calendar/diagrams/middleware/supabase), `:memory:` DB — Phase A3·B2·C1·C3·C4 + Supabase 부트스트랩 |
+| backend | ✅ supertest + `node --test` 70케이스 (tasks/projects/db/calendar/diagrams/middleware/supabase/sync + services TC-MAINT-01~05 + lifecycle TC-REL-01~06), `:memory:` DB — Phase A3·B2·C1·C3·C4·D2-a + `fix/ai-results-cleanup` |
 | frontend | Jest 미도입 |
-| agent | ✅ pytest 3케이스 (TC-AGENT-01~03) `agent/tests/test_daily_brief.py` — Phase A3. `test_claude.py` 는 `agent/tests/` 로 이동(연결 확인용) |
+| agent | ✅ pytest 54케이스 (`pytest -m "not network"`, 4 deselected) `agent/tests/test_daily_brief.py`·`test_db.py`·`test_retry.py`·`test_google_oauth.py`·`test_gmail.py`·`test_calendar.py` — Phase A3·D2-a·D2-b. `test_claude.py` 는 `agent/tests/` (연결 확인용, 키 없으면 skip) |
 
 ### 2.7 현재 모듈 의존 관계
 
@@ -111,12 +111,14 @@ flowchart TB
 
   subgraph BE["backend/src"]
     SRV["server.js"] --> AR["routes/api.js"]
-    AR --> TR["routes/tasks.js"]
-    AR --> PR["routes/projects.js"]
-    TR --> DBJS["db.js<br/>(better-sqlite3)"]
-    PR --> DBJS
+    SRV --> LC["lifecycle.js"]
+    AR --> RT["routes/<br/>tasks · projects · calendar · diagrams · sync"]
+    RT --> SVC["services/<br/>tasks · projects · calendar · diagrams"]
+    RT -.->|"sync: 읽기 전용 직접 조회"| DBJS
+    SVC --> DBJS["db.js<br/>(better-sqlite3)"]
     DBJS --> DBIDX["db/index.js<br/>(커넥션 싱글턴)"]
     DBIDX --> SCHEMA["db/schema.sql"]
+    LC --> DBIDX
   end
 
   subgraph AGT["agent"]

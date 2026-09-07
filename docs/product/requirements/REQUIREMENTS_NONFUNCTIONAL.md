@@ -52,7 +52,7 @@ flowchart TB
 |---|---|---|---|
 | NFR-REL-01 | 모든 외부 호출·IO 는 예외 처리로 감싼다 | try/catch 누락 0 | 코드리뷰 (supervisor) |
 | NFR-REL-02 | 외부 API(Claude/Google/Notion) 실패가 앱 크래시로 이어지지 않는다 | 실패 시 사용자 메시지 + 앱 정상 유지 | 네트워크 차단 후 수동 테스트 |
-| NFR-REL-03 | 백엔드는 `unhandledRejection` / `uncaughtException` 을 로깅하고 죽지 않는다 | 프로세스 유지 | 강제 예외 주입 테스트 |
+| NFR-REL-03 | 백엔드는 `uncaughtException` 을 로깅한 뒤 **안전 종료**(감독자가 재기동). 로그 없이 죽거나 오염된 상태로 계속 실행하지 않는다. `unhandledRejection` 은 로그만(회귀 방지). | 로그(1줄+스택) 후 HTTP close·WAL 체크포인트·`exit 1` | TC-REL-01~06 (`backend/test/lifecycle.test.js`), ADR-0016 "실패·종료 정책" |
 | NFR-REL-04 | 오프라인에서도 로컬 캐시 데이터 조회가 가능하다 | 네트워크 없이 할일·최근 일정 조회 | 비행기모드 수동 테스트 |
 | NFR-REL-05 | 네트워크 실패 시 재시도 로직 (지수 백오프, 최대 3회) | 재시도 후 `sync_logs` 에 최종 상태 기록 | 단위 테스트 (모킹) |
 | NFR-REL-06 | 앱 종료 시 graceful shutdown (진행 중 쓰기 완료 후 종료) | SIGTERM 수신 후 정상 종료 | `kill -TERM` 테스트 (강의 Week 9) |
