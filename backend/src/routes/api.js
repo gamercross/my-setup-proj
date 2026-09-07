@@ -12,6 +12,7 @@ router.get('/health', (req, res) => {
 router.use('/tasks', require('./tasks'));
 router.use('/projects', require('./projects'));
 router.use('/calendar', require('./calendar'));
+router.use('/brief', require('./brief'));
 router.use('/diagrams', require('./diagrams'));
 router.use('/sync', require('./sync'));
 
