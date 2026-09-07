@@ -29,7 +29,7 @@ function dayLabel(startISO, now) {
 // 배지 라벨 → accent 색
 function accentFor(label) {
   if (label === '오늘') return 'var(--w-accent, var(--accent))';
-  if (label === '내일') return '#38bdf8';
+  if (label === '내일') return 'var(--accent)';
   return 'var(--border)';
 }
 

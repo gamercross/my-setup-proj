@@ -12,7 +12,7 @@ import { THEME_PRESETS } from '../widgets/themePresets.js';
 import { resolveDisplay } from '../widgets/displayConfig.js';
 
 // input[type=color] 는 #rrggbb 만 받는다. 전역 기본값(현재 색과 동일).
-const GLOBAL_DEFAULTS = { bg: '#0f172a', accent: '#f59e0b', text: '#e2e8f0' };
+const GLOBAL_DEFAULTS = { bg: '#f7f7f5', accent: '#2f6feb', text: '#1a1a1a' };
 
 const BACKDROP_STYLE = {
   position: 'fixed',

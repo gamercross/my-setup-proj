@@ -9,8 +9,8 @@ const PANEL_STYLE = {
   top: '44px',
   left: '12px',
   zIndex: 1000,
-  background: '#1e293b',
-  border: '1px solid #334155',
+  background: 'var(--panel)',
+  border: '1px solid var(--border)',
   borderRadius: '8px',
   padding: '8px',
   width: '300px',
@@ -23,10 +23,10 @@ export default function WidgetPicker({ activeTypes, onAdd, onClose }) {
   return (
     <div style={PANEL_STYLE}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-        <strong style={{ fontSize: '13px', color: '#e2e8f0' }}>위젯 추가</strong>
+        <strong style={{ fontSize: '13px', color: 'var(--text)' }}>위젯 추가</strong>
         <button
           onClick={onClose}
-          style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer' }}
+          style={{ background: 'transparent', border: 'none', color: 'var(--muted)', cursor: 'pointer' }}
         >
           ✕
         </button>
@@ -45,8 +45,8 @@ export default function WidgetPicker({ activeTypes, onAdd, onClose }) {
               gap: '8px',
               width: '100%',
               textAlign: 'left',
-              background: added ? '#0f172a' : '#334155',
-              color: added ? '#64748b' : '#e2e8f0',
+              background: added ? 'var(--panel-2)' : 'var(--accent-soft)',
+              color: added ? 'var(--muted)' : 'var(--accent)',
               border: 'none',
               borderRadius: '6px',
               padding: '8px',
@@ -57,7 +57,7 @@ export default function WidgetPicker({ activeTypes, onAdd, onClose }) {
             <span aria-hidden="true">{meta.icon}</span>
             <span style={{ flex: 1 }}>
               <span style={{ display: 'block', fontSize: '13px' }}>{meta.name}</span>
-              <span style={{ display: 'block', fontSize: '11px', color: '#94a3b8' }}>
+              <span style={{ display: 'block', fontSize: '11px', color: 'var(--muted)' }}>
                 {meta.description}
               </span>
             </span>

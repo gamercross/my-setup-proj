@@ -328,6 +328,7 @@ flowchart LR
   P5 --> P8
 
   style P0 fill:#dcfce7,stroke:#16a34a
+  style P3 fill:#dcfce7,stroke:#16a34a
 ```
 
 | 단계 | 상태 | 산출물 |
@@ -335,7 +336,8 @@ flowchart LR
 | P0 | ✅ 2026-09-07 | `PERSONAL_OS.md` · 이 다이어그램 |
 | P1 문서 | ⏳ | ADR 4건 초안 + 0013 재활성 + 0018 결정 + `OKR.md` + `UI_STYLE.md` 개정 |
 | P2 디자인 | ⏳ | 목업 캔버스 + 토큰 확정 |
-| P3~P9 빌드 | ⏳ | 위 다이어그램 순서대로 (P9 진행 현황 뷰 = 이 문서를 대시보드에서 보기) |
+| P3 라이트 테마 | ✅ 2026-09-07 | `styles.css` 토큰 v2 + `[data-theme=dark]` 토글, 하드코딩 hex → 토큰 (ADR-0027 채택) |
+| P4~P9 빌드 | ⏳ | 위 다이어그램 순서대로 — **`/feature` 파이프라인으로 진행** (P9 진행 현황 뷰 = 이 문서를 대시보드에서 보기) |
 
 **열린 질문 PO-1~10** (착수 전 결정) 은 [PERSONAL_OS.md §8](../product/vision/PERSONAL_OS.md) 참조 — 특히 PO-1(라이트 기본 전환), PO-7(칸반이 할 일 위젯 대체 vs 추가), PO-10(Phase E 와의 순서).
 

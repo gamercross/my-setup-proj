@@ -76,7 +76,7 @@ export default function WidgetFrame({ instance }) {
         // 겹침 허용(프리폼) 으로 갈 때는 z 를 `.react-grid-item` 쪽으로 옮겨야 한다.
         // 현재는 compactType:'vertical' + preventCollision:false 라 위젯이 겹치지 않으므로 무해.
         zIndex: z,
-        outline: focused ? '1px solid var(--w-accent, #38bdf8)' : 'none',
+        outline: focused ? '1px solid var(--w-accent, var(--accent))' : 'none',
         ...themeToVars(config?.theme),
       }}
     >
