@@ -5,6 +5,7 @@
 // - 앱 조립은 app.js 에서 담당한다
 
 const { createApp } = require('./app');
+const { registerProcessHandlers } = require('./lifecycle');
 
 const app = createApp();
 const PORT = process.env.PORT || 3000;
@@ -14,9 +15,10 @@ const server = app.listen(PORT, () => {
   console.log(`✅ 백엔드 서버 실행 중: http://localhost:${PORT}`);
 });
 
-// 예기치 못한 오류로부터 서버를 보호한다
-process.on('unhandledRejection', (reason) => {
-  console.error('처리되지 않은 Promise 거부:', reason);
-});
+// 프로세스 수명주기 핸들러 등록 (lifecycle.js):
+//  - uncaughtException → 로그 후 안전 종료(exit 1)
+//  - SIGTERM/SIGINT → WAL 체크포인트 후 graceful shutdown(exit 0)
+//  - unhandledRejection → 로그만 (기존 동작 유지)
+registerProcessHandlers({ server });
 
 module.exports = server;

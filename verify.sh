@@ -66,8 +66,11 @@ syntax_check "backend db.js 문법"       node    node -c backend/src/db.js
 syntax_check "backend db/index.js 문법" node    node -c backend/db/index.js
 syntax_check "frontend main.js 문법"    node    node -c frontend/src/main.js
 syntax_check "backend errors.js 문법"   node    node -c backend/src/errors.js
+syntax_check "backend lifecycle.js 문법" node   node -c backend/src/lifecycle.js
 syntax_check "backend tasks.js 문법"    node    node -c backend/src/routes/tasks.js
 syntax_check "backend projects.js 문법" node    node -c backend/src/routes/projects.js
+syntax_check "backend services/tasks.js 문법"    node node -c backend/src/services/tasks.js
+syntax_check "backend services/projects.js 문법" node node -c backend/src/services/projects.js
 syntax_check "backend routes/calendar.js 문법"    node node -c backend/src/routes/calendar.js
 syntax_check "backend services/calendar.js 문법"  node node -c backend/src/services/calendar.js
 syntax_check "backend routes/diagrams.js 문법"    node node -c backend/src/routes/diagrams.js

@@ -30,6 +30,7 @@ jobs:
       - run: node -c src/app.js  # 문법 검사
       - run: node -c src/db.js  # 문법 검사
       - run: node -c db/index.js  # 문법 검사
+      - run: node -c src/lifecycle.js  # 문법 검사
       - run: npm test
       - run: bash ../scripts/smoke.sh   # 서비스 스모크 (기동·health·SQLite 쓰기)
 
