@@ -13,13 +13,13 @@
 | **Electron renderer** | Chromium | main 이 창 생성 시 | — | main | 동일 |
 | **Vite dev 서버** | Node | 개발 중만 | 5173 | `npm run dev` (concurrently) | dev 만, prod 없음 |
 | **Express 백엔드** | Node | 상시 | 3000 | **사용자가 별도 터미널** (`cd backend && npm start`) | **미결 — [§5](#5-미결-결정)** |
-| **Python 에이전트 — `sync.py`** (수집) | Python | 실행 후 종료 (배치) | — | 수동 (`python -m agent.sync`); 스케줄 주체 launchd/cron 은 FR-AGENT-05 로 미구현 | launchd/cron 07:50, brief 보다 먼저 |
-| **Python 에이전트 — `daily_brief.py`** (생성) | Python | 실행 후 종료 (배치) | — | 수동; 스케줄 미구현 | launchd/cron 08:00, sync 완료 후 |
-| **launchd job** (`com.aicomputeros.worklog`) | — | OS 상주 | — | OS | OS |
+| **Python 에이전트 — `sync.py`** (수집) | Python | 실행 후 종료 (배치) | — | `scripts/daily-brief-run.sh` (launchd/cron) 또는 수동 | 07:30 브리핑 실행 시 brief 보다 먼저 |
+| **Python 에이전트 — `daily_brief.py`** (생성) | Python | 실행 후 종료 (배치) | — | `scripts/daily-brief-run.sh` (launchd/cron 07:30, D3 구현 완료) 또는 수동 | sync 완료 후 |
+| **launchd job** (`com.aicomputeros.worklog` · `com.aicomputeros.dailybrief`) | — | OS 상주 | — | OS | worklog 23:50 / dailybrief 07:30 |
 
 핵심: **백엔드와 에이전트는 Electron 의 자식이 아니다.** 셋은 독립 프로세스이고 SQLite 파일과 HTTP 로만 연결된다.
 
-에이전트는 두 배치로 나뉜다: `sync.py` 가 Gmail·Calendar·Notion 을 `emails`·`calendar_events` 캐시로 수집(ACL)하고, 그 다음 `daily_brief.py` 가 캐시만 읽어 Claude 로 브리핑을 만들어 `briefs` 에 쓴다. **실행 순서는 sync → brief** (스케줄 주체는 launchd/cron, FR-AGENT-05 로 아직 미구현이라 현재는 수동).
+에이전트는 두 배치로 나뉜다: `sync.py` 가 Gmail·Calendar·Notion 을 `emails`·`calendar_events` 캐시로 수집(ACL)하고, 그 다음 `daily_brief.py` 가 캐시만 읽어 Claude 로 브리핑을 만들어 `briefs` 에 쓴다. **실행 순서는 sync → brief** (스케줄 주체는 launchd/cron 07:30 — `scripts/daily-brief-run.sh` 래퍼가 순서·로그·`.env` 로딩 담당, D3 구현 완료. 설치는 `scripts/install-dailybrief-launchd.sh`). 브리핑 성공 시 `save_to_notion` 으로 Notion 페이지도 만든다(미설정 시 스킵).
 
 ```mermaid
 flowchart TB

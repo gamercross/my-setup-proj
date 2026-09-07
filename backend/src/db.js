@@ -56,6 +56,11 @@ const stmts = {
     `SELECT id, service, status, last_sync, error_message FROM sync_logs
      WHERE service = @service ORDER BY id DESC LIMIT @limit`
   ),
+
+  // briefs 는 에이전트 소유 — 백엔드는 SELECT 만 한다 (ADR-0011).
+  getBriefByDate: db.prepare(
+    'SELECT id, date, content, notion_url, created_at FROM briefs WHERE date = ?'
+  ),
 };
 
 // 동기화 서비스 화이트리스트 (schema.sql 의 CHECK 와 일치)
@@ -197,9 +202,17 @@ function getSyncLogs({ service, limit } = {}) {
   return stmts.listSyncLogs.all({ limit: lim });
 }
 
+// ── 일일 브리핑(briefs) — 읽기 전용 ─────────────────────────────
+
+// 특정 날짜('YYYY-MM-DD')의 브리핑 1건 조회 (없으면 undefined)
+function getBriefByDate(date) {
+  return stmts.getBriefByDate.get(date);
+}
+
 module.exports = {
   SYNC_SERVICES,
   getSyncLogs,
+  getBriefByDate,
   getTasks,
   getTask,
   addTask,

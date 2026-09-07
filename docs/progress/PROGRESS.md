@@ -89,7 +89,7 @@
 개발: 72%
 ```
 
-> Phase A2·A3·B1·B2·C1·C2·C3·C4·C5·C6·D1·D2-a·D2-b 완료, 감사 후속 정리(안전 종료·서비스 계층·문서 정합, fix/ai-results-cleanup 2026-09-07) 완료, B3·C2 코드 배선 완료. 다음: 백엔드 mail/calendar 조회 API 실 캐시 배선, B3~C6 브라우저 E2E 로컬 검증, Google 최초 로그인.
+> Phase A2·A3·B1·B2·C1·C2·C3·C4·C5·C6·D1·D2-a·D2-b·D3 완료, 감사 후속 정리(안전 종료·서비스 계층·문서 정합, fix/ai-results-cleanup 2026-09-07) 완료, B3·C2 코드 배선 완료. 다음: 백엔드 mail/calendar 조회 API 실 캐시 배선, B3~C6 브라우저 E2E 로컬 검증, Google 최초 로그인, Notion·launchd 로컬 설정.
 > 검증 스냅샷: `node v26.8.1 / npm 11.19.0 / python 3.14.4`, `verify.sh` 27/0/0, `agent pytest` 54/0 (4 deselected), `frontend npm test` 9/0, `backend npm test` 59/0, `check-docs.sh` 11/0/0, `frontend npm run build` 성공.
 
 ---
@@ -210,6 +210,17 @@
   - FR-AUTH-01 ✅, FR-MAIL-01 ✅, FR-CAL-03 ✅ (agent 측), NFR-SEC-05 ✅, NFR-REL-05 ✅, NFR-OBS-03 ✅. FR-CAL-01 🚧 (백엔드 더미 유지)
   - 상태 구분: 코드 구현 ✅ / 자동 테스트 ✅ (`pytest -m "not network"`, 실 API 미접촉 모킹) / 로컬 수동 검증 ⏳ 사용자 대기
   - 사용자 개입 필요: Google 최초 로그인(`python agent/auth/google_oauth.py login`) — 브라우저 동의. OAuth 첫 로그인·실 API 스모크(TC-MAIL-09·TC-CAL-13) 는 사용자 로컬 검증 대기
+- [x] Notion 저장 + Brief API·위젯 + launchd 자동 실행 (Phase D3, Week 7 / Phase 3) → 완료 (2026-09-07, feature/d3-brief-ui-schedule)
+  - [x] `agent/services/notion.py` 전면 재작성 — `requests` 직접 호출(notion-client 미사용), `NOTION_VERSION=2022-06-28`, `NotionNotConfigured`(스킵)·`TransientNotionError`(429/5xx 3회 백오프), 2000자 paragraph 블록 분할, URL 반환
+  - [x] `agent/services/sanitize.py` 신규 — `_sanitize_error` 를 `google_common` 에서 분리(재노출로 하위호환). `agent/daily_brief.py` Notion 블록 교체(성공→`upsert_brief`+`log_sync('notion','success')`, 실패→`log_sync('notion','failed', 마스킹)`, 미설정→ℹ️ 스킵)
+  - [x] `agent/requirements.txt` — `notion-client` 제거, `requests==2.34.2` 핀
+  - [x] 백엔드: `db.js:getBriefByDate` + `services/brief.js`(로컬 `todayString`) + `routes/brief.js`(`GET /api/brief/today` → 빈 결과 200+`{brief:null}`, ADR-0025) + `routes/api.js` 배선
+  - [x] 프론트: `store/useBriefStore.js`(loaded 플래그) + `components/BriefCard.jsx`(순수, plain-text pre-wrap, Notion 링크 복사 버튼) + `widgets/views/BriefWidgetView.jsx`(4상태) + `widgets/widgetMeta.js` 분리(레지스트리 JSX 비의존 테스트용) + `registry.js`/`defaultLayout.js` brief 추가
+  - [x] 스케줄: `scripts/daily-brief-run.sh`(venv+`.env` 명시 로딩, sync→brief, 로그 회전) + `scripts/install-dailybrief-launchd.sh`(07:30 기본, `--uninstall`) + `scripts/com.aicomputeros.dailybrief.plist`(`__REPO_ROOT__` 템플릿) + `.gitignore`
+  - [x] 테스트: `agent/tests/test_notion.py`(TC-AGENT-22~28) + `test_daily_brief.py`(TC-AGENT-04·29·30) + `backend/test/brief.test.js`(TC-BRIEF-01~06) + `frontend/test/registry.test.mjs`(TC-BRIEF-07) + `displayConfig.test.mjs`(TC-BRIEF-08). agent 64/0, backend 76/0, frontend 13/0, build OK, verify 30/0, check-docs 11/0
+  - [x] 문서: ADR-0025 신규(+DESIGN·adr/README), AGENT.md·API_REFERENCE·UI_SPEC 의 404→200/null 정정, ENV_REFERENCE(+`NOTION_PARENT_PAGE_ID`), `.env.example`, AUTOMATION.md §3.5(+worklog install 경고 정정), DATA_DICTIONARY §5, TRACEABILITY, REQUIREMENTS_FUNCTIONAL, TEST_PLAN §3.4e~g
+  - FR-AGENT-03 ✅, FR-AGENT-04 ✅, FR-AGENT-05 ✅, FR-AGENT-06 AC-5 ✅
+  - 사용자 개입 필요: (1) `.env` 에 `NOTION_API_KEY`·`NOTION_PARENT_PAGE_ID` 설정 + Notion 부모 페이지 Connections 에 integration 추가 (없으면 Notion 저장만 스킵). (2) `bash scripts/install-dailybrief-launchd.sh` 로 launchd 등록(수동, TC-SCHED-01~07 는 로컬 수동 검증). (3) 기존 사용자는 brief 위젯을 피커로 추가하거나 레이아웃 초기화
 - [x] 감사 후속 정리 — 안전 종료 + 서비스 계층 완성 + 문서 정합 (fix/ai-results-cleanup) → 완료 (2026-09-07)
   - [x] C1: NFR-REL-03 안전 종료 — `backend/src/lifecycle.js` 신규(`uncaughtException`→로그 후 exit 1, SIGTERM/SIGINT→graceful shutdown exit 0, `unhandledRejection`→로그만), `backend/src/server.js` 배선, `backend/db/index.js` `checkpointAndClose`, `backend/test/lifecycle.test.js`+`helpers/crashFixture.js` (TC-REL-01~06). NFR-REL-03 요구 문구를 '프로세스 유지'→'로깅 후 안전 종료'로 개정(ADR-0016 근거)
   - [x] C2: NFR-MAINT-02 계층 완성 — `backend/src/services/{tasks,projects}.js` 신규, `backend/src/errors.js`(`ValidationError`/`NotFoundError`), `routes/{tasks,projects}.js` 얇게(`require('../db')` 제거), `backend/test/services.test.js`+`helpers/testApp.js` (TC-MAINT-01~05). `routes/sync.js` 는 읽기 전용 직접 조회 예외
@@ -230,7 +241,7 @@ wc -l                  # 줄 수 세기
 
 ### 진행 상황 요약
 ```
-완료한 작업: 15개 (React 컴포넌트 스캐폴드, 번들러(Vite) 연결 = B1, Express CRUD 라우트, 자동화 테스트 골격 + CI, SQLite 교체 = B2, 프론트↔백엔드 코드 배선 = B3, 백엔드 미들웨어 정식화 = C1, 프로젝트 CRUD 프론트 배선 + errors.js + tasks.project_id = C2, 캘린더 위젯 + /api/calendar/events 더미 = C3, 다이어그램 뷰어 + /api/diagrams = C4, 위젯 셸 대시보드 OS + Dashboard.jsx 삭제 = C5, 위젯 커스터마이즈 WidgetSettings + themePresets + displayConfig = C6, Daily Brief 에이전트 실데이터 배선 + agent/db.py = D1, Claude 재시도 백오프 + sync_logs 기록 + GET /api/sync/logs = D2-a, Google OAuth Fernet 암호화 + Gmail/Calendar 실 수집 = D2-b)
+완료한 작업: 16개 (React 컴포넌트 스캐폴드, 번들러(Vite) 연결 = B1, Express CRUD 라우트, 자동화 테스트 골격 + CI, SQLite 교체 = B2, 프론트↔백엔드 코드 배선 = B3, 백엔드 미들웨어 정식화 = C1, 프로젝트 CRUD 프론트 배선 + errors.js + tasks.project_id = C2, 캘린더 위젯 + /api/calendar/events 더미 = C3, 다이어그램 뷰어 + /api/diagrams = C4, 위젯 셸 대시보드 OS + Dashboard.jsx 삭제 = C5, 위젯 커스터마이즈 WidgetSettings + themePresets + displayConfig = C6, Daily Brief 에이전트 실데이터 배선 + agent/db.py = D1, Claude 재시도 백오프 + sync_logs 기록 + GET /api/sync/logs = D2-a, Google OAuth Fernet 암호화 + Gmail/Calendar 실 수집 = D2-b, Notion 저장 + Brief API·위젯 + launchd 자동 실행 = D3)
 진행 중: 1개 (B3·C2·C3·C4·C5·C6 브라우저 E2E·GUI 수동체크 — 로컬 대기)
 예정된 작업: 2개 (샘플 데이터, 백엔드 mail/calendar 조회 API 실 캐시 배선)
 

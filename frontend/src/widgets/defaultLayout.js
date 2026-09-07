@@ -4,6 +4,7 @@
 
 export const DEFAULT_INSTANCES = [
   { id: 'tasks', type: 'tasks', x: 0, y: 0, w: 4, h: 6, z: 1, minimized: false, config: {} },
+  { id: 'brief', type: 'brief', x: 0, y: 6, w: 4, h: 6, z: 4, minimized: false, config: {} },
   { id: 'projects', type: 'projects', x: 4, y: 0, w: 4, h: 6, z: 2, minimized: false, config: {} },
   { id: 'calendar', type: 'calendar', x: 8, y: 0, w: 4, h: 5, z: 3, minimized: false, config: {} },
 ];

@@ -91,17 +91,45 @@ flowchart LR
 2. `작업로그.md` 에 변경이 있으면 `docs: 작업로그 <날짜>` 로 커밋 후 현재 브랜치에 푸시
 3. **오늘 요약 블록**을 슬랙 채널에 전송 (커밋 목록이 아니라 요약 + 커밋 수)
 
-설치:
+설치 (경로 자동 생성 — plist 를 직접 복사하지 않는다):
 
 ```bash
-cp scripts/com.aicomputeros.worklog.plist ~/Library/LaunchAgents/
-launchctl load ~/Library/LaunchAgents/com.aicomputeros.worklog.plist
+bash scripts/install-worklog-launchd.sh            # 설치/재설치
+bash scripts/install-worklog-launchd.sh --uninstall
 ```
 
-해제는 `launchctl unload ...` 후 파일 삭제. 시간 변경은 plist 의 `Hour`/`Minute` 수정 후 unload → load.
+시간 변경은 `scripts/install-worklog-launchd.sh` 의 `Hour`/`Minute` 수정 후 다시 실행.
 
-> ⚠️ plist 안의 경로가 `/Users/jaeyeup/proj/my-setup-proj/my-setup-proj` 로 하드코딩돼 있다.
-> 다른 컴퓨터·경로에서는 plist 의 `ProgramArguments` / `WorkingDirectory` / 로그 경로를 고쳐야 한다.
+> `scripts/com.aicomputeros.worklog.plist` 는 참고용 템플릿이다. 경로가 개발 머신 기준이므로
+> 다른 컴퓨터에서는 반드시 위 install 스크립트로 설치한다(ROOT 자동 계산).
+
+---
+
+## 3.5 일일 브리핑 자동 실행 (FR-AGENT-05)
+
+매일 아침 **07:30**(기본) 에 `scripts/daily-brief-run.sh` 가 `agent/sync.py` → `agent/daily_brief.py`
+순으로 실행된다. sync 가 실패해도 캐시된 데이터로 브리핑은 시도한다.
+
+- 로그: `scripts/daily-brief.log` (1MB 초과 시 `.log.1` 로 1회 회전, `.gitignore` 대상)
+- 래퍼가 `agent/venv` 활성화 + `.env` 명시 로딩(launchd 는 셸 프로파일 미로딩)
+- 실패해도 재시도하지 않는다 (`KeepAlive` 없음) — 다음 날 스케줄까지 대기
+
+**macOS (launchd):**
+
+```bash
+bash scripts/install-dailybrief-launchd.sh          # 07:30 설치/재설치
+bash scripts/install-dailybrief-launchd.sh 8 15     # 08:15 로 설치
+bash scripts/install-dailybrief-launchd.sh --uninstall
+```
+
+**Linux (cron):**
+
+```cron
+30 7 * * * /절대경로/스크립트/daily-brief-run.sh
+```
+
+> `scripts/com.aicomputeros.dailybrief.plist` 는 `__REPO_ROOT__` 플레이스홀더 템플릿이다.
+> 직접 복사하지 말고 install 스크립트를 쓴다.
 
 ---
 
@@ -154,7 +182,9 @@ scripts/
   worklog-eod.sh             # 23:50: 커밋·푸시·슬랙
   slack-notify.sh            # 슬랙 Incoming Webhook 전송
   render-diagrams.sh         # docs/ 의 Mermaid 블록 → SVG (docs/setup/DIAGRAMS.md)
-  com.aicomputeros.worklog.plist   # launchd 예약 작업
+  daily-brief-run.sh         # 07:30: sync → daily_brief 래퍼 (FR-AGENT-05)
+  install-worklog-launchd.sh / install-dailybrief-launchd.sh  # launchd 설치(경로 자동)
+  com.aicomputeros.worklog.plist / com.aicomputeros.dailybrief.plist  # launchd 템플릿
 .github/workflows/test.yml   # 문법 검사 CI
 setup.sh / verify.sh         # 로컬 환경 구축·점검
 ```

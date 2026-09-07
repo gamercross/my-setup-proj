@@ -16,10 +16,12 @@ from db import (
     get_today_events,
     get_today_tasks,
     get_unread_emails,
+    log_sync,
     upsert_brief,
 )
 from services.claude import ask
-from services.notion import save_to_notion
+from services.notion import NotionNotConfigured, save_to_notion
+from services.sanitize import sanitize_error as _sanitize_error
 
 logger = logging.getLogger(__name__)
 
@@ -107,17 +109,27 @@ def _run() -> tuple[bool, str]:
         logger.error("로컬 저장 실패: %s", err)
         result = f"{brief}\n\n⚠️ 로컬 저장 실패: {err}"
 
+    notion_url = None
     try:
-        save_to_notion(
+        notion_url = save_to_notion(
             {
                 "title": f"Daily Brief - {today}",
                 "content": brief,
                 "date": datetime.now().isoformat(),
             }
         )
-        logger.info("Notion 저장 완료")
+        if notion_url:
+            # 같은 date 행에 notion_url 만 병합한다 (created_at 은 유지 — COALESCE).
+            upsert_brief(today, brief, notion_url)
+        log_sync("notion", "success")
+        logger.info("Notion 저장 완료: %s", notion_url)
+    except NotionNotConfigured as err:
+        # 미설정은 실패가 아니다 — sync_logs 에 남기지 않고 안내만 덧붙인다.
+        logger.warning("Notion 저장 건너뜀: %s", err)
+        result = f"{result}\n\nℹ️ {err}"
     except Exception as err:  # noqa: BLE001 - Notion 실패는 로컬 저장에 영향 없음(AC-2)
         logger.warning("Notion 저장만 실패: %s", err)
+        log_sync("notion", "failed", _sanitize_error(err))
         result = f"{result}\n\n⚠️ Notion 저장만 실패: {err}"
 
     return True, result

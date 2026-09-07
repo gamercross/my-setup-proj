@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  일일 브리핑 자동 실행 launchd 예약 작업. **참고용 템플릿이다 — 직접 복사 금지.**
+
+  아래 __REPO_ROOT__ 는 플레이스홀더다. 다른 컴퓨터에서는 이 파일을 복사하지 말고
+  아래 스크립트로 설치한다 (경로·시각 자동 생성):
+
+    bash scripts/install-dailybrief-launchd.sh            # 07:30 설치/재설치
+    bash scripts/install-dailybrief-launchd.sh 8 0        # 08:00
+    bash scripts/install-dailybrief-launchd.sh --uninstall
+
+  Ubuntu 는 launchd 가 없다 → cron:  30 7 * * * /경로/scripts/daily-brief-run.sh
+  실패해도 재시도하지 않는다(KeepAlive 없음) — 다음날 스케줄까지 대기한다.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.aicomputeros.dailybrief</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>__REPO_ROOT__/scripts/daily-brief-run.sh</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>__REPO_ROOT__</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+  </dict>
+
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key>
+    <integer>7</integer>
+    <key>Minute</key>
+    <integer>30</integer>
+  </dict>
+
+  <key>StandardOutPath</key>
+  <string>__REPO_ROOT__/scripts/daily-brief.log</string>
+  <key>StandardErrorPath</key>
+  <string>__REPO_ROOT__/scripts/daily-brief.log</string>
+</dict>
+</plist>

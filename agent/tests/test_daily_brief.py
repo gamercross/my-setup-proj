@@ -125,6 +125,79 @@ def test_agent_14_notion_failure_keeps_local_brief(temp_db, monkeypatch):
     assert db.get_brief(today)["content"] == "브리핑 본문"
 
 
+def _sync_rows(service):
+    """temp_db 의 sync_logs 행을 (status, error_message) 리스트로 반환한다."""
+    with db.connect() as conn:
+        rows = conn.execute(
+            "SELECT status, error_message FROM sync_logs WHERE service = ? ORDER BY id",
+            (service,),
+        ).fetchall()
+    return [(r["status"], r["error_message"]) for r in rows]
+
+
+def test_agent_04_notion_failure_logs_sync(temp_db, monkeypatch):
+    """TC-AGENT-04: Notion 예외 → briefs 유지, sync_logs('notion','failed') 1행, notion_url NULL."""
+    monkeypatch.setattr(daily_brief, "get_today_tasks", lambda: [])
+    monkeypatch.setattr(daily_brief, "get_unread_emails", lambda: [])
+    monkeypatch.setattr(daily_brief, "get_today_events", lambda: [])
+    monkeypatch.setattr(daily_brief, "ask", lambda *a, **k: "브리핑 본문")
+
+    def boom(data):
+        raise RuntimeError("Authorization: Bearer secret_abc123")
+
+    monkeypatch.setattr(daily_brief, "save_to_notion", boom)
+
+    ok, result = daily_brief._run()
+    today = f"{datetime.now():%Y-%m-%d}"
+
+    assert ok is True
+    row = db.get_brief(today)
+    assert row["content"] == "브리핑 본문"
+    assert row["notion_url"] is None
+    logs = _sync_rows("notion")
+    assert len(logs) == 1
+    assert logs[0][0] == "failed"
+    assert "secret_abc123" not in logs[0][1]  # 마스킹됨
+
+
+def test_agent_29_notion_success_fills_url(temp_db, monkeypatch):
+    """TC-AGENT-29: save_to_notion → URL → briefs.notion_url 채움, sync_logs success, created_at 불변."""
+    monkeypatch.setattr(daily_brief, "get_today_tasks", lambda: [])
+    monkeypatch.setattr(daily_brief, "get_unread_emails", lambda: [])
+    monkeypatch.setattr(daily_brief, "get_today_events", lambda: [])
+    monkeypatch.setattr(daily_brief, "ask", lambda *a, **k: "브리핑 본문")
+    monkeypatch.setattr(daily_brief, "save_to_notion", lambda data: "https://notion.so/page-x")
+
+    ok, _ = daily_brief._run()
+    today = f"{datetime.now():%Y-%m-%d}"
+
+    assert ok is True
+    row = db.get_brief(today)
+    assert row["notion_url"] == "https://notion.so/page-x"
+    assert _sync_rows("notion") == [("success", None)]
+
+
+def test_agent_30_notion_not_configured_is_skipped(temp_db, monkeypatch):
+    """TC-AGENT-30: NotionNotConfigured → _run() True, 결과에 ℹ️, sync_logs 0행, 브리핑은 저장됨."""
+    monkeypatch.setattr(daily_brief, "get_today_tasks", lambda: [])
+    monkeypatch.setattr(daily_brief, "get_unread_emails", lambda: [])
+    monkeypatch.setattr(daily_brief, "get_today_events", lambda: [])
+    monkeypatch.setattr(daily_brief, "ask", lambda *a, **k: "브리핑 본문")
+
+    def not_configured(data):
+        raise daily_brief.NotionNotConfigured("NOTION_PARENT_PAGE_ID 를 .env 에 넣고 Connections 추가")
+
+    monkeypatch.setattr(daily_brief, "save_to_notion", not_configured)
+
+    ok, result = daily_brief._run()
+    today = f"{datetime.now():%Y-%m-%d}"
+
+    assert ok is True
+    assert "ℹ️" in result
+    assert _sync_rows("notion") == []
+    assert db.get_brief(today)["content"] == "브리핑 본문"
+
+
 def test_agent_19_run_bootstraps_schema_on_empty_db(tmp_path, monkeypatch):
     """TC-AGENT-19: 빈 DB 에서 _run() 이 ensure_schema 로 테이블을 만든 뒤 정상 진행한다."""
     monkeypatch.setenv("DATABASE_PATH", str(tmp_path / "fresh.db"))  # 부트스트랩 안 된 경로

@@ -5,51 +5,24 @@ googleapiclient 요청의 일시적 오류(429·5xx)만 call_with_retry 로 3회
 """
 
 import logging
-import re
 
 from services.retry import call_with_retry
+
+# _sanitize_error 는 services.sanitize 로 이동했다 (notion 등과 공용 — NFR-SEC-04).
+# 기존 import 경로(services.google_common._sanitize_error)를 유지하기 위해 재노출한다.
+from services.sanitize import sanitize_error as _sanitize_error
 
 logger = logging.getLogger(__name__)
 
 # 재시도 대상 HTTP 상태 코드.
 RETRYABLE_STATUS = {429, 500, 502, 503, 504}
 
-# sync_logs.error_message 에 저장하기 전 토큰류를 마스킹한다 (gmail·calendar 공용).
-# HttpError.str() 이 응답 본문 JSON 을 그대로 담으므로 다음 형태를 모두 커버한다:
-#  1) key=value / key: value  (client_secret 등 민감 키가 명시된 경우)
-#  2) JSON 형태 "key": "value" / 'key':'value'
-#  3) Authorization 헤더 및 Bearer <token> 단독 형태
-_SENSITIVE_KEYS = "access_token|refresh_token|id_token|client_secret|authorization"
-
-# 키 뒤 값이 따옴표로 감싸진 JSON 형태: "access_token": "1//abc.DEF" 등.
-_KEYED_QUOTED_PATTERN = re.compile(
-    rf"(?P<key>{_SENSITIVE_KEYS})"
-    r"(?P<sep>[\"']?\s*[=:]\s*)"
-    r"(?P<q>[\"'])"
-    r"(?:Bearer\s+)?[^\"']+"
-    r"(?P=q)",
-    re.IGNORECASE,
-)
-# 키 뒤 값이 따옴표 없이 이어지는 형태: access_token=ya29... / Authorization: Bearer ya29...
-_KEYED_BARE_PATTERN = re.compile(
-    rf"(?P<key>{_SENSITIVE_KEYS})"
-    r"(?P<sep>\s*[=:]\s*)"
-    r"(?:Bearer\s+)?[^\s\"']+",
-    re.IGNORECASE,
-)
-# Bearer <token> 단독 형태.
-_BEARER_PATTERN = re.compile(r"Bearer\s+[^\s\"']+", re.IGNORECASE)
-_MAX_ERROR_LEN = 500
-
-
-def _sanitize_error(msg) -> str:
-    """에러 메시지에서 토큰류를 마스킹하고 500자로 절단한다."""
-    text = str(msg)
-    # 원래 구조(따옴표 등)는 최대한 보존하고 값만 *** 로 바꾼다.
-    text = _KEYED_QUOTED_PATTERN.sub(r"\g<key>\g<sep>\g<q>***\g<q>", text)
-    text = _KEYED_BARE_PATTERN.sub(r"\g<key>\g<sep>***", text)
-    text = _BEARER_PATTERN.sub("Bearer ***", text)
-    return text[:_MAX_ERROR_LEN]
+__all__ = [
+    "RETRYABLE_STATUS",
+    "TransientApiError",
+    "execute_with_retry",
+    "_sanitize_error",
+]
 
 
 class TransientApiError(OSError):

@@ -49,6 +49,7 @@
 | [0022](adr/ADR-0022-per-widget-theming.md) | 위젯별 테마 (스코프된 CSS 변수) | 채택 — C6 구현 완료 |
 | [0023](adr/ADR-0023-branch-model.md) | 브랜치 모델 — `feature/* → PR → main` (Git Flow 미채택) | 채택 |
 | [0024](adr/ADR-0024-oauth-token-storage.md) | OAuth 토큰은 Fernet 암호화 JSON 파일 (`TOKEN_ENCRYPTION_KEY`) | 채택 — D2-b |
+| [0025](adr/ADR-0025-brief-empty-response.md) | 브리핑 빈 결과는 404 아닌 200 + `{ brief: null }` | 채택 — D3 |
 
 > 🆕 **대시보드 OS 전환 (2026-09-03)** — 고정 패널 → 위젯 셸. 개념: [../vision/DASHBOARD_OS.md](../vision/DASHBOARD_OS.md),
 > 요구사항: [../requirements/WIDGET.md](../requirements/WIDGET.md), 화면: [../reference/UI_SPEC.md](../reference/UI_SPEC.md) §3.8~.
@@ -196,7 +197,7 @@ frontend/src/
     ProjectCard.jsx  props 확장 (onDelete/onProgressChange/onStatusChange, C2)
     ProjectForm.jsx  프로젝트 추가 폼 (C2)
     CalendarWidget.jsx  (C3) 위젯 뷰
-    BriefCard.jsx       (D3) 위젯 뷰
+    BriefCard.jsx       (D3) 순수 프레젠테이션 (props {brief, showMeta}). 뷰는 widgets/views/BriefWidgetView.jsx
     DiagramPanel.jsx    (FR-UI-05, C4 — mermaid 동적 import) DO-6: diagrams 위젯으로 래핑(피커 전용)
     ErrorBanner.jsx     (FR-UI-04, NFR-REL-02)
     ErrorBoundary.jsx   렌더 예외 격리 — 셸 전역 + 위젯별
@@ -287,7 +288,8 @@ agent/
   services/
     gmail.py     sync_gmail()      → 실 Gmail API (D2-b 완료)
     calendar.py  sync_calendar()   → 실 Calendar API (D2-b 완료)
-    notion.py    save_to_notion()  → 실 Notion API (Week 7)
+    notion.py    save_to_notion()  → 실 Notion REST API (requests 직접, NOTION_VERSION 2022-06-28) (D3 완료)
+    sanitize.py  sanitize_error()  → 토큰 마스킹 (google_common 이 재노출, D3 이동)
     claude.py    ask()  (완료)
   auth/
     google_oauth.py    토큰 획득·갱신·암호화 저장 (D2-b 완료, NFR-SEC-05)
@@ -398,7 +400,7 @@ sequenceDiagram
 | **D1** | ✅ (2026-09-06, `feature/d1-agent-db`, `5d874ac`). `agent/db.py` 신설 — 백엔드와 같은 SQLite(`DATABASE_PATH`, ADR-0009) 열어 `tasks` 읽기 전용 조회 + `briefs` `date` upsert(`ON CONFLICT`, 에이전트가 직접 write — ADR-0011), `resolve_db_path`/`connect`(WAL·busy_timeout)/`ensure_schema`(방어적 멱등). `daily_brief._run()` 배선 — 컨텍스트(할일=실데이터, 일정/메일 더미 유지), `SYSTEM_PROMPT` 보강, 4단계 로깅, Claude·DB·Notion 실패 각각 격리. **재시도(FR-AGENT-06 AC-3)는 D2 이월.** TC-AGENT-01,02,03,06,09~14 | FR-AGENT-01/02, FR-AGENT-06(부분) |
 | **D2-a** | ✅ (2026-09-07, `feature/d2a-sync-logs-retry`). `agent/services/retry.py` 지수 백오프(3회 시도/재시도 2회, 1·2s, 인증 오류 즉시 실패), `claude.ask()` 재시도 적용 + `Anthropic(timeout=30, max_retries=0)`, `db.log_sync()` (`sync_logs` 기록·예외 안 냄), `daily_brief._run()` 에서 `ensure_schema` 배선, `GET /api/sync/logs` (읽기 전용) + backend `getSyncLogs`. TC-AGENT-16~19, TC-SYNC-06~10. | FR-AGENT-06 AC-3, NFR-REL-05, NFR-OBS-03(부분), FR-SYNC-03(조회 API) |
 | D2-b | Google OAuth(refresh token Fernet 암호화 저장) + Gmail/Calendar 실 수집 → `emails`/`calendar_events` upsert + `sync_logs` 배선 + `build_context` 캐시 전환 | FR-AUTH-01, FR-MAIL-01, FR-CAL-01, FR-SYNC-03 |
-| D3 | Notion 저장 + launchd/cron 자동 실행 + BriefCard 표시 | FR-AGENT-03/04/05 |
+| ~~D3~~ ✅ | Notion 저장(`services/notion.py`, requests 직접) + launchd/cron 자동 실행(`scripts/daily-brief-run.sh`, 07:30) + Brief API(`/api/brief/today`, 빈 결과 200/null — ADR-0025) + BriefCard 위젯 | FR-AGENT-03/04/05 |
 
 > D2 는 두 서브단계로 분할: **D2-a** = 복원력 기반(재시도·`log_sync`·`ensure_schema` 배선·`sync_logs` 조회 API, 네트워크 무의존), **D2-b** = Google OAuth + 실 수집·upsert·캐시 전환.
 

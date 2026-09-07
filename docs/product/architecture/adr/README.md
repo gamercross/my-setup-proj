@@ -62,3 +62,4 @@
 | [0022](ADR-0022-per-widget-theming.md) | 위젯별 테마 (스코프된 CSS 변수 + 구조화 config) | 채택 — C6 구현 완료 | FR-WIDGET-05, NFR-SEC-04 | A-W6, C-W5·C-W6 |
 | [0023](ADR-0023-branch-model.md) | 브랜치 모델 — `feature/* → PR → main` (Git Flow 미채택) | 채택 | GIT_WORKFLOW §2 | B-W13, C-W13 |
 | [0024](ADR-0024-oauth-token-storage.md) | OAuth 토큰은 Fernet 암호화 JSON 파일 (`TOKEN_ENCRYPTION_KEY`) | 채택 — D2-b | FR-AUTH-01, NFR-SEC-05 | A-W11, B-W7 |
+| [0025](ADR-0025-brief-empty-response.md) | 브리핑 빈 결과는 404 아닌 200 + `{ brief: null }` | 채택 — D3 | FR-AGENT-04 | A-W7 |

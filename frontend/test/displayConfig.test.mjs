@@ -33,3 +33,12 @@ test('resolveDisplay: display 없으면 전부 default', () => {
 test('resolveDisplay: 빈 스키마는 빈 객체', () => {
   assert.deepEqual(resolveDisplay({}, { anything: 1 }), {});
 });
+
+// TC-BRIEF-08: brief 위젯 showMeta(bool) 폴백
+const briefSchema = { showMeta: { type: 'bool', default: true } };
+
+test('TC-BRIEF-08: brief showMeta 잘못된 값은 default(true) 로 폴백', () => {
+  assert.equal(resolveDisplay(briefSchema, { showMeta: 'nope' }).showMeta, true);
+  assert.equal(resolveDisplay(briefSchema, undefined).showMeta, true);
+  assert.equal(resolveDisplay(briefSchema, { showMeta: false }).showMeta, false);
+});

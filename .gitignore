@@ -27,6 +27,7 @@ docs/diagrams/
 # 로그
 *.log
 npm-debug.log*
+scripts/daily-brief.log*
 
 # 작업 보조 산출물 (레포 외 도구)
 making-os/

@@ -321,22 +321,25 @@ FR-MAIL-01 · 🔷 **백엔드 엔드포인트 미구현** (별도 Phase). Phase
 
 ---
 
-## 브리핑 (brief) 🔷 예정 — Week 7
+## 브리핑 (brief) ✅ Week 7 (D3)
 
 ### `GET /api/brief/today` — 오늘 브리핑
 
 FR-AGENT-04
 
-**응답 200**
+**응답 200** (있을 때)
 ```json
 { "brief": {
   "id": 1, "date": "2026-09-02",
-  "content": "## 오늘의 우선순위\n1. ...",
+  "content": "오늘의 우선순위 TOP 3\n1. ...",
   "notion_url": "https://notion.so/...", "created_at": "2026-09-02T08:00:05Z"
 } }
 ```
-**응답 404** — `{ "error": "오늘 브리핑이 아직 없습니다." }`
-- 데이터 출처: `briefs` 테이블 (agent 가 매일 아침 upsert).
+**응답 200** (오늘 행 없음) — `{ "brief": null }` (404 아님 — [ADR-0025](../architecture/adr/ADR-0025-brief-empty-response.md))
+- `content` 는 plain text 다. 클라이언트는 pre-wrap 으로 렌더한다(마크다운 파싱 안 함).
+- `notion_url` 은 `null` 일 수 있다.
+- "오늘"은 서버 로컬 시각 기준 `YYYY-MM-DD`.
+- 데이터 출처: `briefs` 테이블 (agent 가 매일 아침 upsert — 백엔드는 SELECT 만).
 
 ---
 
@@ -459,7 +462,7 @@ curl -s $BASE/tasks/99999
 | D5 | 쿼리 필터/정렬 | 미구현 | Week 4 (FR-TASK-06) |
 | ~~D6~~ | CORS 화이트리스트 | ✅ 해소 — `middleware/cors.js` (C1, 2026-09-03) | — |
 | ~~D7~~ | 요청 로깅 미들웨어 | ✅ 해소 — `middleware/requestLogger.js` (C1, 2026-09-03) | — |
-| D8 | `mail`/`brief`/`sync` 라우트 | 없음 | Week 5~7 (`calendar` 는 C3 에서 더미로 해소, 실 데이터 D2) |
+| D8 | `mail`/`brief`/`sync` 라우트 | `brief`·`sync` ✅ (D3·D2-a), `mail` 미구현 | `mail` 은 Week 5 이월 |
 | D9 | `diagrams` 라우트 + `services/diagrams.js` | ✅ 구현 (C4, 2026-09-06) — prod `docs/` 동봉 설정은 E3 이월 | — |
 
 ---

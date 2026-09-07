@@ -57,26 +57,30 @@
 
 ## FR-AGENT-03 — Notion 저장 (P1)
 
-**우선순위** P1 · **목표 주차** W7 · **상태** ⏳
+**우선순위** P1 · **목표 주차** W7 · **상태** ✅ (D3 — `agent/services/notion.py`, requests 직접 호출, `NOTION_VERSION=2022-06-28`)
 
 ### 수용 기준
-- **AC-1** Given 생성된 브리핑, When `save_to_notion({title,content,date})`, Then 지정 Notion DB/페이지에 새 페이지가 생기고 URL 을 반환한다.
-- **AC-2** 저장 성공 시 `briefs.notion_url` 을 채운다. 실패 시 NULL 유지 + `sync_logs('notion','failed',...)` 기록 + 브리핑 자체는 로컬에 이미 저장돼 있으므로 손실 없음.
-- **AC-3** `NOTION_API_KEY` 미설정 시 이 단계를 건너뛰고 경고만 로깅한다.
+- **AC-1** Given 생성된 브리핑, When `save_to_notion({title,content,date})`, Then `NOTION_PARENT_PAGE_ID` 아래에 새 페이지가 생기고 URL 을 반환한다. 본문 2000자 초과 시 paragraph 블록으로 분할.
+- **AC-2** 저장 성공 시 `briefs.notion_url` 을 채운다 + `sync_logs('notion','success')`. 실패 시 NULL 유지 + `sync_logs('notion','failed', <마스킹된 사유>)` 기록 + 브리핑 자체는 로컬에 이미 저장돼 있으므로 손실 없음.
+- **AC-3** `NOTION_API_KEY` **또는** `NOTION_PARENT_PAGE_ID` 미설정 시 이 단계를 건너뛰고(`NotionNotConfigured`) 안내만 로깅한다 — 실패로 치지 않으며 `sync_logs` 에도 남기지 않는다.
+- **AC-4** 429·5xx 는 최대 3회 지수 백오프 재시도(1s·2s), 401·400 등은 즉시 실패.
+
+### 한계 (v1)
+- 하루 재실행 시 같은 날짜의 Notion 페이지가 **중복 생성**될 수 있다. 로컬 `briefs` 는 `date` upsert 라 1건이지만 Notion 측 중복 제거는 하지 않는다.
 
 ---
 
 ## FR-AGENT-04 — 로컬 캐시 + UI 조회 (P1)
 
-**우선순위** P1 · **목표 주차** W7 · **상태** ⏳
+**우선순위** P1 · **목표 주차** W7 · **상태** ✅ (D3)
 
 ### 수용 기준
 - **AC-1** 생성된 브리핑은 `briefs` 테이블에 `date` 기준 upsert 된다(같은 날 재실행 시 갱신).
-- **AC-2** `GET /api/brief/today` → 오늘 `briefs` 행을 반환, 없으면 404.
-- **AC-3** 대시보드 `BriefCard` 가 이 API 를 호출해 마크다운을 렌더한다. 없으면 "오늘 브리핑이 아직 없습니다".
+- **AC-2** `GET /api/brief/today` → 오늘 `briefs` 행을 `{ brief: {...} }` 로 반환. **없으면 200 + `{ brief: null }`** (404 아님 — [ADR-0025](../architecture/adr/ADR-0025-brief-empty-response.md)).
+- **AC-3** 대시보드 `BriefCard` 가 이 API 를 호출해 **plain text(pre-wrap)** 로 렌더한다(마크다운 파서 없음 — NFR-SEC-04). 없으면 "오늘 브리핑이 아직 없습니다".
 
 ### 관련
-API `GET /api/brief/today` · UI `BriefCard` · 데이터 `briefs`
+API `GET /api/brief/today` · UI `BriefCard`(+`BriefWidgetView`·`useBriefStore`) · 데이터 `briefs` · [ADR-0025](../architecture/adr/ADR-0025-brief-empty-response.md)
 
 ---
 
@@ -84,17 +88,17 @@ API `GET /api/brief/today` · UI `BriefCard` · 데이터 `briefs`
 
 **사용자 스토리:** 사용자로서 나는 매일 아침 브리핑이 내가 아무것도 안 해도 준비돼 있길 바란다.
 
-**우선순위** P0 · **목표 주차** W7 · **상태** ⏳
+**우선순위** P0 · **목표 주차** W7 · **상태** ✅ (D3)
 
 ### 수용 기준
-- **AC-1** macOS: launchd plist 로 매일 지정 시각(기본 08:00)에 `daily_brief.py` 가 실행된다.
-- **AC-2** Linux: cron 항목으로 동일 동작 (`0 8 * * * ...`). 설치 방법이 문서화된다.
-- **AC-3** 실행 로그가 파일로 남는다 (`scripts/*.log` 규약, `.gitignore` 에 `*.log` 포함).
-- **AC-4** 이미 worklog 에 쓰는 launchd 패턴을 재사용한다 (별도 상주 프로세스 없음, ADR-07).
-- **AC-5** 실행 실패(비정상 종료)해도 다음 날 스케줄은 정상 동작한다.
+- **AC-1** macOS: launchd plist 로 매일 지정 시각(**기본 07:30**)에 `scripts/daily-brief-run.sh`(→ `sync.py` → `daily_brief.py`)가 실행된다. 설치: `bash scripts/install-dailybrief-launchd.sh`.
+- **AC-2** Linux: cron 항목으로 동일 동작 (`30 7 * * * .../scripts/daily-brief-run.sh`). 설치 방법이 [AUTOMATION.md](../../setup/AUTOMATION.md) 에 문서화된다.
+- **AC-3** 실행 로그가 파일로 남는다 (`scripts/daily-brief.log`, 1MB 초과 시 `.log.1` 회전. `.gitignore` 에 `scripts/daily-brief.log*` 포함).
+- **AC-4** 이미 worklog 에 쓰는 launchd 패턴을 재사용한다 (별도 상주 프로세스 없음, ADR-07). 래퍼가 `.env` 를 명시 로딩한다(launchd 는 셸 프로파일 미로딩).
+- **AC-5** 실행 실패(비정상 종료)해도 다음 날 스케줄은 정상 동작한다 (`KeepAlive` 미설정 — 재시도 안 함).
 
 ### 관련
-`scripts/` · ADR-07 · NFR-DEPLOY-03 · [AUTOMATION.md](../../setup/AUTOMATION.md)
+`scripts/daily-brief-run.sh` · `scripts/install-dailybrief-launchd.sh` · `scripts/com.aicomputeros.dailybrief.plist` · ADR-07 · NFR-DEPLOY-03 · [AUTOMATION.md](../../setup/AUTOMATION.md)
 
 ---
 
@@ -102,14 +106,14 @@ API `GET /api/brief/today` · UI `BriefCard` · 데이터 `briefs`
 
 **사용자 스토리:** 사용자로서 나는 Claude 나 외부 API 가 죽어도 앱은 멀쩡하길 바란다.
 
-**우선순위** P0 · **목표 주차** W7 · **상태** 🚧 (AC-1/2/4 완료, AC-3 재시도·지수 백오프 D2-a 완료 [`agent/services/retry.py`] / AC-5 는 D3 `/api/brief/today` 대기)
+**우선순위** P0 · **목표 주차** W7 · **상태** ✅ (D3 — AC-5 `/api/brief/today` 완료)
 
 ### 수용 기준
 - **AC-1** Given `ANTHROPIC_API_KEY` 없음/무효, When 실행, Then `⚠️ Claude 호출 실패: <원인>` 을 반환하고 종료 코드는 비정상이지만 스택 트레이스로 죽지 않는다.
 - **AC-2** Given Notion 저장 실패, Then 브리핑은 로컬에 저장된 상태로 남고 사용자에게 "Notion 저장만 실패" 로 구분해 알린다.
 - **AC-3** Given 네트워크 타임아웃, Then 최대 3회 지수 백오프 재시도 후 실패 처리 (NFR-REL-05).
 - **AC-4** 모든 실패는 `sync_logs` 또는 로그에 원인과 함께 기록된다. (D1: 로깅만 — `sync_logs.service` CHECK 가 `claude` 를 허용하지 않아 Claude 실패는 로그에만 남긴다.)
-- **AC-5** 백엔드 API(`/api/brief/today`)는 에이전트 상태와 무관하게 항상 응답한다(있으면 데이터, 없으면 404).
+- **AC-5** 백엔드 API(`/api/brief/today`)는 에이전트 상태와 무관하게 항상 응답한다(있으면 `{brief:{...}}`, 없으면 200 + `{brief:null}` — ADR-0025).
 
 ### 관련
 NFR-REL-02, NFR-REL-05, NFR-OBS-02
