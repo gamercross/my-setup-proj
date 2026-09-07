@@ -8,8 +8,10 @@ python-dotenv>=1.0.0
 google-auth-oauthlib>=1.2.0
 google-auth-httplib2>=0.2.0
 google-api-python-client>=2.100.0
-notion-client>=2.2.0
 apscheduler>=3.10.0
+
+# Notion REST 직접 호출 (Phase D3 — notion-client SDK 대신 requests 사용)
+requests==2.34.2
 
 # 개발/테스트
 pytest>=7.4.0
