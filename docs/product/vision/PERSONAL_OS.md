@@ -206,7 +206,7 @@ flowchart TB
 | PO-4 | 분류 시점·주체: 백엔드 POST 시 Claude 호출 vs 에이전트 배치 vs 별도 테이블 | ADR-0029 |
 | PO-5 | OKR = 1급 엔티티(`objectives`/`key_results`) vs `projects` 재해석 | ADR-0030 |
 | PO-6 | 주간 요약: 순수 집계 vs Claude "Weekly Brief" | OKR.md |
-| PO-7 | 칸반이 할 일 위젯을 **대체**하나, **추가 뷰**인가 (DO-2 타입당 1개와 충돌?) | ADR-0028 / WIDGET.md |
+| ~~PO-7~~ | 칸반이 할 일 위젯을 대체하나, 추가 뷰인가 | **종결 (2026-09-08): `tasks` 위젯 안의 리스트/보드 뷰 전환(`config.view`). 별 위젯 타입 아님. 위젯 개수 불변 → DO-2 유지. ADR-0028 §결정4 반영** |
 | PO-8 | 차트 라이브러리: Recharts vs 인라인 SVG (`dataviz` 스킬 참조) | P2 → **인라인 SVG 결정 (2026-09-08)** |
 | PO-13 | 사이드바 그룹·항목 최종 구성 (UI_STYLE v2 §4 초안) | ADR-0032 / P4.5 (= UI_STYLE US-5) |
 | PO-14 | 사이드바 rail 접기 모드·⌘K 검색 동작을 P4.5 범위에 넣을지 (기본: 후속) | ADR-0032 / P4.5 (= UI_STYLE US-6/7) |

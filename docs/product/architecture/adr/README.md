@@ -65,7 +65,7 @@
 | [0025](ADR-0025-brief-empty-response.md) | 브리핑 빈 결과는 404 아닌 200 + `{ brief: null }` | 채택 — D3 | FR-AGENT-04 | A-W7 |
 | [0026](ADR-0026-web-demo-mode.md) | 웹 데모 모드 — `VITE_DEMO` 목 어댑터 + GitHub Pages | 채택 — 2026-09-07 | FR-UI-*, FR-WIDGET-* | C-W7 |
 | [0027](ADR-0027-light-theme-default.md) | 라이트 테마 기본 전환 + 디자인 토큰 v2 | 채택 — P3 (2026-09-07) | FR-WIDGET-05/06 | — |
-| [0028](ADR-0028-single-client-cache.md) | 단일 클라이언트 캐시 — 뷰는 파생만, 칸반 별 타입 | 제안 — 개인 OS P1 (PO-7) | FR-TASK-02/03, FR-UI-01 | — |
+| [0028](ADR-0028-single-client-cache.md) | 단일 클라이언트 캐시 — 뷰는 파생만, 칸반은 tasks 위젯 내 리스트/보드 토글 | 제안 — 개인 OS P5 (PO-7 반영) | FR-TASK-02/03, FR-UI-01 | — |
 | [0029](ADR-0029-task-auto-category.md) | 할 일 자동 분류 — 에이전트 배치, `tasks.category` | 제안 — 개인 OS P1 (PO-3/4) | FR-TASK-08 | — |
 | [0030](ADR-0030-okr-data-model.md) | OKR 데이터 모델 + 주간 플래너 | 제안 — 개인 OS P1 (PO-5/6) | FR-OKR-* | — |
 | [0031](ADR-0031-safe-markdown-render.md) | 안전 마크다운 렌더 + 파일 트리 API (서버 토큰화·`GET /api/tree`) | 제안 — 개인 OS P1 (PO-11/12) | FR-UI-06 | — |
