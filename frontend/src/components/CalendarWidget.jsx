@@ -26,10 +26,10 @@ function dayLabel(startISO, now) {
   return `${d.getMonth() + 1}/${d.getDate()}`;
 }
 
-// 배지 라벨 → accent 색
+// 배지 라벨 → 색 (오늘 = 강조, 내일 = 은은, 그 외 = 경계선)
 function accentFor(label) {
   if (label === '오늘') return 'var(--w-accent, var(--accent))';
-  if (label === '내일') return 'var(--accent)';
+  if (label === '내일') return 'var(--muted)';
   return 'var(--border)';
 }
 

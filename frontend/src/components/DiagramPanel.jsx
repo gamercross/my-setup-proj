@@ -14,7 +14,8 @@ function loadMermaid() {
     mermaidPromise = import('mermaid').then((m) => {
       const mermaid = m.default ?? m;
       // securityLevel:'strict' — mermaid 가 SVG 출력을 sanitize 한다 (dangerouslySetInnerHTML 안전성 근거)
-      mermaid.initialize({ startOnLoad: false, theme: 'dark', securityLevel: 'strict' });
+      // theme:'default' — 라이트 카드 위 렌더 (ADR-0027 P3). PALETTE 도 라이트 값.
+      mermaid.initialize({ startOnLoad: false, theme: 'default', securityLevel: 'strict' });
       return mermaid;
     });
   }
@@ -24,7 +25,8 @@ function loadMermaid() {
 const key = (d) => `${d.path}#${d.index}`;
 const domId = (d) => 'mmd-' + key(d).replace(/[^a-zA-Z0-9_-]/g, '-');
 
-const PALETTE = { bg: '#ffffff', panel: '#f7f7f5', text: '#1a1a1a', muted: '#8a8a8a', accent: '#2f6feb' };
+// styles.css :root 토큰과 같은 의미 (mermaid·인라인 style 은 CSS 변수를 못 읽어 리터럴).
+const PALETTE = { bg: '#f7f7f5', panel: '#ffffff', text: '#1a1a1a', muted: '#8a8a8a', accent: '#2f6feb' };
 
 export default function DiagramPanel() {
   const [diagrams, setDiagrams] = useState([]);

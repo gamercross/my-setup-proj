@@ -1,6 +1,7 @@
 // 위젯 테마 프리셋 (C6 — FR-WIDGET-05)
 // - 각 theme 은 themeToVars 화이트리스트 키만 담는다.
-// - 전역 --accent(#f59e0b) 는 그대로 두고, 보라(#7c6cf5)는 '강조' 프리셋 accent 에만 쓴다.
+// - 전역 --accent 는 파랑 #2f6feb (ADR-0027 라이트 테마, US-1 종결). 아래 프리셋 값은
+//   위젯별 오버라이드용이며 P3 범위 밖이라 손대지 않는다 — 라이트 정합은 P4 에서.
 
 export const THEME_PRESETS = [
   {

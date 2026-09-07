@@ -74,17 +74,16 @@ stateDiagram-v2
 | `--panel` | `#ffffff` | `#1e293b` | 카드·위젯 본문 |
 | `--panel-2` | `#f2f2ef` | `#172033` | 중첩 카드·셸 바·헤더 |
 | `--border` | `#ececec` | `#334155` | 테두리·구분선 |
-| `--shadow-card` | `0 1px 2px rgba(0,0,0,.04)` | `none` | 라이트에서만 옅은 그림자 |
 | `--text` | `#1a1a1a` | `#e2e8f0` | 본문 텍스트 |
 | `--muted` | `#8a8a8a` | `#94a3b8` | 보조 텍스트·섹션 제목 |
 | `--accent` | `#2f6feb` | `#60a5fa` | 강조 숫자·활성·포커스·[실행] (US-1 종결: 파랑) |
-| `--accent-soft` | `rgba(47,111,235,.12)` | `rgba(96,165,250,.16)` | 강조 배경(칩 활성·편집 힌트) |
+| `--accent-soft` | `rgba(47,111,235,.12)` | `rgba(96,165,250,.16)` | 강조 배경(칩 활성·배지) |
 | `--ok` / `--warn` / `--bad` | `#2e7d5b` / `#c2691f` / `#c23b3b` | `#4ade80` / `#fbbf24` / `#f87171` | 달성 90%+/40~90%/<40%, 상태 |
-| `--priority-high/medium/low` | `#ef4444` / `#f59e0b` / `#94a3b8` | (동일) | 우선순위 배지 (강조색과 독립) |
+| `--priority-high` / `--priority-medium` / `--priority-low` | `#ef4444` / `#f59e0b` / `#64748b` | `#ef4444` / `#f59e0b` / `#94a3b8` | 우선순위 배지 (강조색과 독립) |
 | `--radius` / `--card-radius` / `--chip-radius` | `8px` / `10px` / `999px` | (동일) | 모서리 (`--card-radius` 상향은 P4) |
 | `--pad` | `10px` | (동일) | 위젯 본문 패딩 |
 
-> ✅ **P3 완료** (2026-09-07, ADR-0027): `:root` 를 라이트 v2 로 재정의 + `[data-theme=dark]` 블록(정의만). `App.jsx`·`WidgetShell.jsx`·`WidgetPicker`·`TaskForm`·`ProjectForm`·`CalendarWidget`·`DiagramPanel`(mermaid PALETTE)·`WidgetSettings`(GLOBAL_DEFAULTS)·`ErrorBoundary`·`index.html` 의 하드코딩 hex → 토큰 (1:1 치환). `styles.css` 는 `renderer.jsx` 상단에서 import.
+> ✅ **P3 완료** (2026-09-07, ADR-0027): `:root` 를 라이트 v2 로 재정의 + `[data-theme=dark]` 블록(정의만). `App.jsx`·`WidgetShell`·`WidgetPicker`·`TaskForm`·`ProjectForm`·`CalendarWidget`·`DiagramPanel`(mermaid `theme:'default'` + `PALETTE`)·`WidgetSettings`(GLOBAL_DEFAULTS)·`WidgetFrame`·`ErrorBoundary`·`index.html` 의 하드코딩 hex → 토큰. 대부분 1:1 치환, 라이트 대비 조정 몇 곳(`--priority-low` `#94a3b8`→`#64748b`, 캘린더 '내일' 배지 → `--muted`, 위젯 피커 항목 중립화). `styles.css` 는 `renderer.jsx` 상단에서 import.
 > 위젯 프레임이 인스턴스 `config.theme` 를 화이트리스트 CSS 변수(`--w-bg`/`--w-accent`/`--w-text`/`--w-radius`/`--w-pad`)로 자기 wrapper 에 주입하고,
 > 위젯 내부 CSS 는 `var(--w-bg, var(--bg))`·`var(--w-text, var(--text))`·`var(--w-accent, var(--accent))` 폴백 체인을 쓴다 ([ADR-0022](../architecture/adr/ADR-0022-per-widget-theming.md)). titlebar solid/ghost/hidden 은 `WidgetFrame` 이 인라인 style 로 처리(D-3: 편집 모드면 hidden 무시).
 
