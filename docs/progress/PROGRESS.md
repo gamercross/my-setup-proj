@@ -89,7 +89,7 @@
 개발: 72%
 ```
 
-> Phase A2·A3·B1·B2·C1·C2·C3·C4·C5·C6·D1·D2-a·D2-b 완료, B3·C2 코드 배선 완료 (D2-b: 2026-09-07). 다음: 백엔드 mail/calendar 조회 API 실 캐시 배선, B3~C6 브라우저 E2E 로컬 검증, Google 최초 로그인.
+> Phase A2·A3·B1·B2·C1·C2·C3·C4·C5·C6·D1·D2-a·D2-b 완료, 감사 후속 정리(안전 종료·서비스 계층·문서 정합, fix/ai-results-cleanup 2026-09-07) 완료, B3·C2 코드 배선 완료. 다음: 백엔드 mail/calendar 조회 API 실 캐시 배선, B3~C6 브라우저 E2E 로컬 검증, Google 최초 로그인.
 > 검증 스냅샷: `node v26.8.1 / npm 11.19.0 / python 3.14.4`, `verify.sh` 27/0/0, `agent pytest` 54/0 (4 deselected), `frontend npm test` 9/0, `backend npm test` 59/0, `check-docs.sh` 11/0/0, `frontend npm run build` 성공.
 
 ---
@@ -210,6 +210,14 @@
   - FR-AUTH-01 ✅, FR-MAIL-01 ✅, FR-CAL-03 ✅ (agent 측), NFR-SEC-05 ✅, NFR-REL-05 ✅, NFR-OBS-03 ✅. FR-CAL-01 🚧 (백엔드 더미 유지)
   - 상태 구분: 코드 구현 ✅ / 자동 테스트 ✅ (`pytest -m "not network"`, 실 API 미접촉 모킹) / 로컬 수동 검증 ⏳ 사용자 대기
   - 사용자 개입 필요: Google 최초 로그인(`python agent/auth/google_oauth.py login`) — 브라우저 동의. OAuth 첫 로그인·실 API 스모크(TC-MAIL-09·TC-CAL-13) 는 사용자 로컬 검증 대기
+- [x] 감사 후속 정리 — 안전 종료 + 서비스 계층 완성 + 문서 정합 (fix/ai-results-cleanup) → 완료 (2026-09-07)
+  - [x] C1: NFR-REL-03 안전 종료 — `backend/src/lifecycle.js` 신규(`uncaughtException`→로그 후 exit 1, SIGTERM/SIGINT→graceful shutdown exit 0, `unhandledRejection`→로그만), `backend/src/server.js` 배선, `backend/db/index.js` `checkpointAndClose`, `backend/test/lifecycle.test.js`+`helpers/crashFixture.js` (TC-REL-01~06). NFR-REL-03 요구 문구를 '프로세스 유지'→'로깅 후 안전 종료'로 개정(ADR-0016 근거)
+  - [x] C2: NFR-MAINT-02 계층 완성 — `backend/src/services/{tasks,projects}.js` 신규, `backend/src/errors.js`(`ValidationError`/`NotFoundError`), `routes/{tasks,projects}.js` 얇게(`require('../db')` 제거), `backend/test/services.test.js`+`helpers/testApp.js` (TC-MAINT-01~05). `routes/sync.js` 는 읽기 전용 직접 조회 예외
+  - [x] B: 다이어그램·수치 정합 — ARCHITECTURE·DATA_ARCHITECTURE·DESIGN·RUNTIME_VIEW·AS_IS 다이어그램/테스트 수치, ai_결과값.md 점검 결과 갱신
+  - [x] 검증: backend `npm test` 70/0, `bash scripts/smoke.sh` 통과, `bash verify.sh` 30/0/0, `scripts/check-docs.sh` 11/0/0, `scripts/render-diagrams.sh` 실패 0, agent `pytest -m "not network"` 54 passed (4 deselected) — 무회귀
+  - 상태 구분: 코드 구현 ✅ / 자동 테스트 ✅ / 로컬 수동 검증(창·데스크톱 신호) ⏳ 사용자 대기
+  - 계획 이탈 2건: lifecycle 테스트가 `err.name` 으로 판정(문자열 매칭 대신), `routes/sync.js` 는 서비스 계층 미경유(읽기 전용 예외)
+  - NFR-REL-03 ✅, NFR-MAINT-02 ✅
 
 ### 배운 Linux 명령어
 ```bash
