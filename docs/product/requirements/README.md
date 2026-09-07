@@ -20,6 +20,8 @@
 | [AGENT.md](AGENT.md) | Daily Brief 에이전트 상세 (수집·Claude·실패 격리) (P0 완료, P1 초안) | Phase D 착수 시 | FR-AGENT-08(작업 큐)는 [ADR-0013](../architecture/adr/ADR-0013-dashboard-agent-queue.md) 제안 상태 |
 | [PROJ.md](PROJ.md) | 프로젝트 도메인 상세 (P0 완료, C2) | FR-PROJ-* | `tasks.project_id` 는 [ADR-0012](../architecture/adr/ADR-0012-task-project-link.md) |
 | [CAL.md](CAL.md) | 캘린더/일정 도메인 상세 — FR-CAL-01~03 (조회 API·날짜 배지·캐시) (C3 — 더미 데이터) | FR-CAL-* 구현/리뷰 | C3 는 `services/calendar.js` 더미, 실 데이터는 D2 ([ADR-0011](../architecture/adr/ADR-0011-agent-backend-db-access.md)); `from > to` 는 400 아닌 200 |
+| [MAIL.md](MAIL.md) | 이메일 도메인 상세 — FR-MAIL-01 (Gmail 미읽은 메일 수집·캐시) (D2-b — agent 측 완료) | FR-MAIL-* 구현/리뷰 | 조회 API `GET /api/mail/unread` 는 아직 미구현 (별도 Phase). 캐시는 `emails` — 에이전트 소유([ADR-0011](../architecture/adr/ADR-0011-agent-backend-db-access.md)) |
+| [AUTH.md](AUTH.md) | 인증 도메인 상세 — FR-AUTH-01 (Google OAuth 데스크톱 흐름 + 암호화 토큰 저장) (D2-b 완료) | Phase D·E 착수 시 | 토큰 저장은 [ADR-0024](../architecture/adr/ADR-0024-oauth-token-storage.md) (Fernet). `GOOGLE_REDIRECT_URI` 는 미사용 |
 | [WIDGET.md](WIDGET.md) | 🆕 위젯 셸 상세 — FR-WIDGET-01~08 (배치·생명주기·z-order·영속화·위젯별 테마·표시 옵션·격리·레지스트리) | Phase C5~C6 착수 시 | 전부 **제안** — 착수 전 [../vision/DASHBOARD_OS.md](../vision/DASHBOARD_OS.md) §8 DO-1~6 결정 |
 
 ---

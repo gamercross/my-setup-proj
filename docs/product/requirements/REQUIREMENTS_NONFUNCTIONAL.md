@@ -65,7 +65,7 @@ flowchart TB
 | NFR-SEC-02 | 모든 외부 API 통신은 HTTPS | http:// 외부 호출 0 | 코드리뷰 |
 | NFR-SEC-03 | Claude API Key 는 백엔드/에이전트에서만 사용, 렌더러에 노출 안 됨 | `preload.js` 화이트리스트에 키 없음 | 코드리뷰 |
 | NFR-SEC-04 | Electron: `contextIsolation: true`, `nodeIntegration: false` 유지 | 설정 고정 | `main.js` 리뷰 |
-| NFR-SEC-05 | OAuth refresh token 은 로컬에 암호화 저장 (평문 금지) | OS 키체인 또는 암호화 파일 | 저장 포맷 확인 |
+| NFR-SEC-05 | OAuth refresh token 은 로컬에 암호화 저장 (평문 금지) | Fernet 암호화 JSON 파일 (`TOKEN_ENCRYPTION_KEY`, 권한 0600 — [ADR-0024](../architecture/adr/ADR-0024-oauth-token-storage.md)) | TC-AUTH-03 (저장 바이트에 평문 토큰 없음 + 0600) |
 | NFR-SEC-06 | 백엔드 CORS 는 로컬 오리진만 허용 | `origin` 화이트리스트 | 설정 리뷰 |
 | NFR-SEC-07 | 입력 검증: 필수값·타입·범위(progress 0–100 등)를 API 경계에서 검증 | 400 응답 반환 | supertest |
 

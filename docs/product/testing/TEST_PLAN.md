@@ -64,6 +64,11 @@ backend/
 agent/
   tests/                    # test_*.py — pytest 가 수집
     test_daily_brief.py
+    test_db.py
+    test_retry.py            # ✅ Phase D2-a (call_with_retry)
+    test_google_oauth.py     # ✅ Phase D2-b (OAuth + Fernet 토큰, TC-AUTH-01~08)
+    test_gmail.py            # ✅ Phase D2-b (Gmail 수집, TC-MAIL-01~09)
+    test_calendar.py         # ✅ Phase D2-b (Calendar 수집, TC-CAL-08~14)
     test_claude.py          # (이동됨) 실호출 스모크 — 키 없으면 skip
   pytest.ini                # testpaths=tests, network 마커 정의
 tests/                      # 크로스 프로젝트 통합 (Week 12+, 지금은 README)
@@ -150,6 +155,61 @@ CI(`.github/workflows/test.yml`)에 `npm test`(backend), `pytest -m "not network
 | TC-AGENT-19 | FR-AGENT-01 (스키마 부트스트랩) | 빈 파일 DB 에서 `daily_brief._run()` | `ensure_schema` 호출 → `tasks`/`briefs` 생성 후 정상 진행, 크래시 없음 | P1 · ✅ 작성됨 (`test_daily_brief.py`) |
 
 `agent/tests/test_retry.py` (Phase D2-a 신규): `call_with_retry` 의 성공·재시도·즉시 실패 경로 (`time.sleep` monkeypatch, 네트워크 무접촉).
+
+| TC-AGENT-20 | FR-AGENT-01 AC-3 | `get_unread_emails` 예외 (캐시 조회 실패) | 컨텍스트에 `"(이메일을 불러오지 못함)"`, 할일 블록 정상 | P1 · ✅ 작성됨 (`test_daily_brief.py`) |
+| TC-AGENT-21 | AGENT.md (네트워크 격리) | `daily_brief` 소스 검사 | `services.gmail`·`services.calendar` 를 import 하지 않음 | P1 · ✅ 작성됨 (`test_daily_brief.py`) |
+
+#### 3.4a Google OAuth — `agent/tests/test_google_oauth.py` (Phase D2-b)
+
+`Credentials`·`Fernet` 은 실 라이브러리, `InstalledAppFlow` 만 monkeypatch. 네트워크 0회.
+
+| ID | 대상 | 입력 | 기대 결과 | 우선 |
+|---|---|---|---|:---:|
+| TC-AUTH-01 | FR-AUTH-01 AC-1 | `TOKEN_ENCRYPTION_KEY` 삭제 → `_get_fernet()` | `TokenEncryptionKeyMissing`, 메시지에 키 생성 명령 포함 | P1 |
+| TC-AUTH-02 | FR-AUTH-01 AC-1 | 잘못된 키 `"not-a-key"` | 동일 예외 (`ValueError` 누출 금지) | P1 |
+| TC-AUTH-03 | FR-AUTH-01 AC-3·AC-6 / NFR-SEC-05 | 유효 키 + 더미 creds → `save_credentials` | 파일 바이트에 refresh token 평문 없음 + 권한 0600 | P1 |
+| TC-AUTH-04 | FR-AUTH-01 AC-4 | `save`→`load` 왕복 | refresh token 복원 | P1 |
+| TC-AUTH-05 | FR-AUTH-01 AC-4 | 토큰 파일 없음 → `load_credentials` | `GoogleNotAuthorized`, 로그인 명령 안내 | P1 |
+| TC-AUTH-06 | FR-AUTH-01 AC-2 | `GOOGLE_CLIENT_ID` 미설정 → `login()` | `GoogleClientConfigMissing`, 브라우저 흐름 미기동 | P1 |
+| TC-AUTH-07 | FR-AUTH-01 AC-5 | `SCOPES` 검사 | 정확히 2개, 둘 다 `.readonly` | P1 |
+| TC-AUTH-08 | FR-AUTH-03 | `logout()` ×2 | 파일 삭제, 재호출 예외 없음 | P2 |
+
+#### 3.4b Gmail 수집 — `agent/tests/test_gmail.py` (Phase D2-b)
+
+fake service 주입, 네트워크 0회. 재시도 테스트는 `services.retry.sleep` 모킹.
+
+| ID | 대상 | 입력 | 기대 결과 | 우선 |
+|---|---|---|---|:---:|
+| TC-MAIL-01 | FR-MAIL-01 | 미읽음 2건 | `fetch_unread` 가 5키(`email_id/from_address/subject/snippet/received_at`) 정규화, `received_at` ISO8601 | P1 |
+| TC-MAIL-02 | FR-MAIL-01 | 개별 `get` 1건 예외 | 나머지 1건 반환 (건너뜀) | P1 |
+| TC-MAIL-03 | FR-MAIL-01 / NFR-OBS-03 | `sync_gmail()` 성공 | `emails` 2행 + `sync_logs` gmail/success | P1 |
+| TC-MAIL-04 | FR-MAIL-01 (UNIQUE) | 2회 실행 | `emails` 2행 유지 | P1 |
+| TC-MAIL-05 | FR-MAIL-01 AC-3 | 3건 → 1건 | 빠진 2건 `is_read=1`, `get_unread_emails` 1건 | P1 |
+| TC-MAIL-06 | FR-MAIL-01 AC-4 | `fetch_unread` 예외 (토큰 문자열 포함) | `sync_gmail` False + gmail/failed + `error_message` 존재·토큰 마스킹, 예외 미전파 | P1 |
+| TC-MAIL-07 | NFR-REL-05 | `list` 가 503 2회 후 성공 | 3회째 성공, `sleep` 1s·2s | P1 |
+| TC-MAIL-08 | NFR-REL-05 | `list` 가 401 | 재시도 0, `sleep` 미호출, 즉시 실패 | P1 |
+| TC-MAIL-09 | FR-MAIL-01 | 실 Gmail (`network` 마커) | 토큰 없으면 skip | P2 |
+
+#### 3.4c Calendar 수집 — `agent/tests/test_calendar.py` (Phase D2-b)
+
+| ID | 대상 | 입력 | 기대 결과 | 우선 |
+|---|---|---|---|:---:|
+| TC-CAL-08 | FR-CAL-03 AC-3 | `dateTime` + 종일(`date`) 혼재 | 둘 다 ISO 정규화, 종일은 `T00:00:00` | P1 |
+| TC-CAL-09 | FR-CAL-03 AC-4 | `status=='cancelled'` 포함 | 취소 일정 제외 | P1 |
+| TC-CAL-10 | FR-CAL-03 / NFR-OBS-03 | `sync_calendar()` 성공 | `calendar_events` + `sync_logs` calendar/success | P1 |
+| TC-CAL-11 | FR-CAL-03 AC-2 | 3건 → 같은 창 2건 | 사라진 1건 캐시 제거, 총 2행 | P1 |
+| TC-CAL-12 | FR-CAL-03 AC-4 | `fetch_events` 예외(토큰 포함 메시지) | False + calendar/failed + 기존 캐시 보존 + 토큰 마스킹 | P1 |
+| TC-CAL-13 | FR-CAL-03 | 실 Calendar (`network` 마커) | 토큰 없으면 skip | P2 |
+| TC-CAL-14 | FR-CAL-03 AC-2 | 종일 일정 2건 → 같은 창 0건 | 창 안 종일 일정 캐시에서 제거 (경계 타임존 통일 회귀) | P1 |
+
+#### 3.4d 캐시 DB 함수 — `agent/tests/test_db.py` 추가 (Phase D2-b)
+
+| ID | 대상 | 입력 | 기대 결과 | 우선 |
+|---|---|---|---|:---:|
+| TC-SYNC-11 | `upsert_emails` | 같은 `email_id` 재삽입 | 1행 유지 + 필드 갱신 + `is_read` 리셋 | P1 |
+| TC-SYNC-12 | `replace_calendar_events` | 다른 창 2회 | 창 밖 일정 안 건드림 | P1 |
+| TC-SYNC-13 | `get_unread_emails` | 읽음/미읽음 혼재 | `is_read=0` 만, `received_at` DESC | P1 |
+| TC-SYNC-14 | `get_today_events` | 오늘/내일 혼재 | 오늘 구간만 시간순(ASC) | P1 |
 
 `agent/tests/test_claude.py` (이동 완료): `ANTHROPIC_API_KEY` 없으면 `skip`, 있으면 1회 실호출 성공 확인.
 
@@ -324,11 +384,12 @@ supervisor 는 리뷰 시 "이 변경에 대응하는 테스트가 있는가"를
 
 ---
 
-## 7. 현재 상태 (2026-09-07, Phase D2-a 완료)
+## 7. 현재 상태 (2026-09-07, Phase D2-b 완료)
 
 - 백엔드 자동화 테스트: **59케이스 작성됨** — `backend/test/tasks.test.js` (TC-TASK-01,02,04~10 + TC-PROJ-08/09/09b/09c/09d + TC-DB-04a), `backend/test/projects.test.js` (TC-PROJ-01~07,10,11 + TC-DB-04b), `backend/test/calendar.test.js` (TC-CAL-01~07), `backend/test/db.test.js` (TC-DB-01~03 + TC-DB-04c/d), `backend/test/middleware.test.js` (TC-MW-01~09), `backend/test/diagrams.test.js` (TC-DIAG-01~05), `backend/test/supabase.test.js` (TC-SYNC-01~05), `backend/test/sync.test.js` (TC-SYNC-08~10, D2-a 신규 3건). `supertest` + `node --test`, `:memory:` DB. (TC-DB-04b 는 project status 검증이라 `projects.test.js` 에 위치.)
-- 에이전트 자동화 테스트: **D2-a 기준 작성됨** — `agent/tests/test_daily_brief.py` (TC-AGENT-01,02,03,06,13,14,15,19) + `agent/tests/test_db.py` (TC-AGENT-05,09,10,11,12 + TC-SYNC-06/07) + `agent/tests/test_retry.py` (TC-AGENT-16,17,18, D2-a 신규) + `agent/tests/conftest.py`(`temp_db` fixture). `test_claude.py` 는 연결 확인용(키 없으면 skip). 현재 `pytest -m "not network"` 18 passed.
+- 에이전트 자동화 테스트: **D2-a 기준 작성됨** — `agent/tests/test_daily_brief.py` (TC-AGENT-01,02,03,06,13,14,15,19) + `agent/tests/test_db.py` (TC-AGENT-05,09,10,11,12 + TC-SYNC-06/07) + `agent/tests/test_retry.py` (TC-AGENT-16,17,18, D2-a 신규) + `agent/tests/conftest.py`(`temp_db` fixture). `test_claude.py` 는 연결 확인용(키 없으면 skip). D2-b 신규: `test_google_oauth.py`(TC-AUTH-01~08), `test_gmail.py`(TC-MAIL-01~09), `test_calendar.py`(TC-CAL-08~14), `test_db.py`(+TC-SYNC-11~14), `test_daily_brief.py`(+TC-AGENT-20/21, 이메일/일정 소스를 `db` 에서 import 하도록 fixture 키 변경). 현재 `pytest -m "not network"` 46 passed (4 network deselected).
 - Phase D2-a(2026-09-07): `agent/services/retry.py`(`call_with_retry` — 3회 시도/재시도 2회/1·2s 지수 백오프, 인증·4xx 즉시 실패), `agent/services/claude.py`(`ask()` 재시도 적용 + `Anthropic(timeout=30, max_retries=0)`), `agent/db.py`(`log_sync()` — `sync_logs` 기록, 예외 안 냄), `agent/daily_brief.py`(`_run()` 에서 `ensure_schema` 배선), `backend` `GET /api/sync/logs`(읽기 전용) + `db.getSyncLogs`. TC-AGENT-16~19, TC-SYNC-06~10. 커버: FR-AGENT-06 AC-3, NFR-REL-05, NFR-OBS-03(부분), FR-SYNC-03(조회 API). OAuth·실 수집은 D2-b 이월.
+- Phase D2-b(2026-09-07): Google OAuth 데스크톱 흐름 + Gmail·Calendar 실 수집. `agent/auth/google_oauth.py`(신규 — Fernet 암호화 토큰 저장, ADR-0024), `agent/services/google_common.py`(신규 — `execute_with_retry`), `agent/services/{gmail,calendar}.py`(전면 교체 — `sync_gmail`/`sync_calendar` + 더미 함수 삭제), `agent/db.py`(+`upsert_emails`/`mark_emails_read_except`/`get_unread_emails`/`replace_calendar_events`/`get_today_events`/`get_week_events`), `agent/sync.py`(신규 엔트리포인트), `agent/daily_brief.py`(이메일·일정을 `db` 캐시에서 읽음, 네트워크 미접촉), `agent/requirements.txt`(google/cryptography 정확 핀), `agent/.gitignore`(`.secrets/`·`*.enc`). 커버: FR-AUTH-01, FR-MAIL-01, FR-CAL-03, NFR-SEC-05, NFR-REL-05, NFR-OBS-03. 백엔드 무변경(FR-CAL-01 🚧 유지). `pytest -m "not network"` 46/46, `verify.sh` 27/0/0, backend `npm test` 59/59. 실 Google 연동(TC-MAIL-09·TC-CAL-13)은 사용자 최초 로그인 필요. supervisor CHANGES_NEEDED 반영(2026-09-07): 종일 일정 창 경계 타임존 naive 통일(TC-CAL-14 추가), 캘린더 에러 마스킹 `google_common._sanitize_error` 공용화.
 - CI: 문법 검사 + `npm test`(backend) + `pytest -m "not network"`(agent) 연결됨. `node -c src/app.js`, `src/db.js`, `db/index.js` 추가.
 - `verify.sh`: + `backend/src/routes/calendar.js`·`backend/src/services/calendar.js` 문법 체크 추가 (21/0/0, SKIP 없음).
 - 미작성(후속): TC-TASK-03/11/12, TC-AGENT-04(Notion+sync_logs — D3).

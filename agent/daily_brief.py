@@ -1,18 +1,24 @@
 """일일 브리핑 에이전트 (Phase D1).
 
-흐름: 컨텍스트 수집(할일=실 SQLite, 일정/메일=더미) -> Claude 분석 -> briefs upsert -> Notion 저장.
+흐름: 컨텍스트 수집(전부 로컬 SQLite 캐시) -> Claude 분석 -> briefs upsert -> Notion 저장.
 외부 호출 실패는 프로세스를 죽이지 않고 결과 텍스트에 사유를 담아 반환한다(FR-AGENT-06).
 
-일정/메일은 아직 더미다 — 실데이터 배선은 D2 범위.
+할일·이메일·일정은 모두 로컬 DB 에서 읽는다. 이메일/일정 캐시 적재는 agent/sync.py 의
+책임이며, build_context 는 네트워크를 만지지 않는다 (Phase D2-b).
 """
 
 import logging
 from datetime import datetime
 
-from db import connect, ensure_schema, get_today_tasks, upsert_brief
-from services.calendar import get_today_events
+from db import (
+    connect,
+    ensure_schema,
+    get_today_events,
+    get_today_tasks,
+    get_unread_emails,
+    upsert_brief,
+)
 from services.claude import ask
-from services.gmail import get_unread_emails
 from services.notion import save_to_notion
 
 logger = logging.getLogger(__name__)
@@ -43,12 +49,25 @@ def build_context() -> str:
         task_lines = "(할일을 불러오지 못함)"
         logger.warning("할일 수집 실패: %s", err)
 
-    emails = get_unread_emails()
-    events = get_today_events()
+    try:
+        emails = get_unread_emails()
+        email_lines = (
+            "\n".join(f"- {e['from_address']}: {e['subject']}" for e in emails) or "없음"
+        )
+        logger.info("수집: 이메일 %d건", len(emails))
+    except Exception as err:  # noqa: BLE001 - 실패 격리(AC-3)
+        email_lines = "(이메일을 불러오지 못함)"
+        logger.warning("이메일 캐시 조회 실패: %s", err)
 
-    email_lines = "\n".join(f"- {e['from']}: {e['subject']}" for e in emails) or "없음"
-    event_lines = "\n".join(f"- {ev['start']} {ev['title']}" for ev in events) or "없음"
-    logger.info("수집: 이메일 %d건, 일정 %d건", len(emails), len(events))
+    try:
+        events = get_today_events()
+        event_lines = (
+            "\n".join(f"- {ev['start_time']} {ev['title']}" for ev in events) or "없음"
+        )
+        logger.info("수집: 일정 %d건", len(events))
+    except Exception as err:  # noqa: BLE001 - 실패 격리(AC-3)
+        event_lines = "(일정을 불러오지 못함)"
+        logger.warning("일정 캐시 조회 실패: %s", err)
 
     return (
         f"✅ 오늘 할일:\n{task_lines}\n\n"

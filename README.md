@@ -109,6 +109,7 @@ cd frontend && npm run dev
 |---|---|---|---|---|
 | `ANTHROPIC_API_KEY` | [console.anthropic.com](https://console.anthropic.com) → API Keys | 사용량 과금 (에이전트 호출 시) | 에이전트 (D1~) | `sk-ant-...`. `ant auth login` 프로필이 있으면 생략 가능 |
 | `GOOGLE_CLIENT_ID` / `_SECRET` | [console.cloud.google.com](https://console.cloud.google.com) | **무료** (아래 참고) | Gmail·Calendar 실 연동 (D2-b) | OAuth 2.0 클라이언트 **"데스크톱 앱"** 유형 |
+| `TOKEN_ENCRYPTION_KEY` | 로컬 생성 (Fernet) | — | Gmail·Calendar 실 연동 (D2-b) | `python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"` 출력을 `.env` 에. 토큰 파일 암호화 (ADR-0024) |
 | `NOTION_API_KEY` | [notion.so/my-integrations](https://www.notion.so/my-integrations) | 무료 | 프로젝트 읽기·브리핑 저장 (D3) | Internal Integration Token + 대상 페이지에 Connection 추가 |
 | `SLACK_WEBHOOK_URL` | Slack → Apps → Incoming Webhooks | 무료 | 선택 (진행·EOD 알림) | 없으면 조용히 스킵 |
 | `SUPABASE_URL` / `SUPABASE_KEY` | [supabase.com](https://supabase.com) → Project Settings → API | 무료 티어 | 선택 (부트스트랩·`/api/sync/health`) | **`anon public`** 키만. `service_role` 은 `.env` 에 두지 않음 |
@@ -126,7 +127,8 @@ Google Cloud 에서 과금되는 건 Compute·Cloud Run·BigQuery 같은 **인�
    - 데스크톱 앱 유형은 `http://localhost` loopback 리다이렉트를 자동 허용한다.
 5. 클라이언트 ID·시크릿을 `.env` 의 `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` 에 붙여넣기
 6. 스코프는 읽기 전용만: `gmail.readonly`, `calendar.readonly`
-7. 발급된 refresh token 은 로컬에 **암호화 저장**한다 (평문 금지 — NFR-SEC-05).
+7. 발급된 refresh token 은 로컬에 **암호화 저장**한다 (평문 금지 — NFR-SEC-05, Fernet + `TOKEN_ENCRYPTION_KEY`, ADR-0024).
+8. 최초 로그인: `cd agent && source venv/bin/activate && python auth/google_oauth.py login` → 브라우저 동의 → `agent/.secrets/google_token.enc` 생성. 이후 `python sync.py` 로 수집.
 
 ---
 

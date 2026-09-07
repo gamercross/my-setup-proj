@@ -166,3 +166,111 @@ frontend build는 성공하지만 Mermaid core와 일부 다이어그램 chunk�
 현재 프로젝트는 C6까지의 데스크톱 위젯 기반과 D1의 Daily Brief 핵심 흐름이 구현된 상태입니다. 자동 테스트와 build는 정상으로 보이지만, 완전한 완료를 막는 핵심 사항은 **`uncaughtException` 처리 누락**, **tasks/projects의 계층 위반**, **D1 외부 데이터·자동 실행 미완료**, **Electron·브라우저 수동 검증 미완료**입니다.
 
 따라서 다음 기능으로 바로 확장하기 전에 D1의 테스트·문서 상태를 확정하고, S1·S2 구조 문제를 별도 feature로 처리하는 것이 적절합니다.
+
+## 다이어그램·링크 정합성 감사 (2026-09-07)
+
+### 자동 검증 결과
+
+문서 구조와 Mermaid 렌더링을 현재 `feature/d2b-google-oauth` 브랜치에서 다시 확인했습니다.
+
+- 문서 정합성 검사: **11/0/0 통과**
+- 상대 링크: 깨진 링크 없음
+- Mermaid fence·다이어그램 타입 검사: 통과
+- 폴더 README 커버리지: 10개 폴더 전체 통과
+- ADR 교차참조: 24개 전체 연결
+- FR 추적: 43개 전체 연결
+- 실제 Mermaid 렌더링: 27개 문서, 실패 0
+
+따라서 링크 경로와 Mermaid 문법 자체에는 문제가 없습니다. 다만 문법 검사는 다이어그램의 의미가 실제 코드와 맞는지까지 확인하지 않으므로, 아래 내용상 불일치를 별도로 수정해야 합니다.
+
+### 내용상 불일치
+
+#### 1. 높음: Daily Brief 다이어그램이 현재 실행 구조와 다름
+
+[DESIGN.md](docs/product/architecture/DESIGN.md#L300)의 Daily Brief 시퀀스는 `daily_brief.py`가 Gmail·Calendar를 직접 호출하는 것처럼 표현합니다.
+
+현재 구현은 다음과 같이 분리되어 있습니다.
+
+```text
+sync.py
+	→ Gmail / Calendar API
+	→ emails / calendar_events 캐시
+
+daily_brief.py
+	→ SQLite 캐시 조회
+	→ Claude 분석
+	→ briefs 저장
+```
+
+따라서 현재 다이어그램의 `DB2 -> GM: 수집 요청` 흐름은 실제 코드와 맞지 않습니다. 다이어그램을 `sync.py` 동기화 흐름과 `daily_brief.py` 캐시 조회 흐름으로 분리해야 합니다.
+
+#### 2. 높음: `sync.py` 프로세스가 런타임 다이어그램에서 빠짐
+
+[RUNTIME_VIEW.md](docs/product/architecture/RUNTIME_VIEW.md#L16-L30)는 Python 에이전트를 `daily_brief.py` 하나로만 표현합니다. 하지만 현재는 다음 두 배치 작업이 존재합니다.
+
+- `daily_brief.py`: 로컬 캐시 조회와 브리핑 생성
+- `sync.py`: Gmail·Calendar 동기화와 캐시 저장
+
+프로세스 목록, 실행 주체, 외부 API 흐름에 `sync.py`를 별도 항목으로 추가해야 합니다. 현재 `launchd/cron 08:00` 표현도 실제로 `sync.py`와 `daily_brief.py` 중 무엇을 실행하는지 명확히 해야 합니다.
+
+#### 3. 중간: UI가 SQLite에 직접 접근하는 것처럼 표현됨
+
+[ARCHITECTURE.md](docs/product/architecture/ARCHITECTURE.md#L205-L224)의 브리핑 시퀀스는 `UI -> DB: GET /api/brief/today`로 되어 있습니다.
+
+실제 구조는 다음입니다.
+
+```text
+UI → Express API → SQLite
+SQLite → Express API → UI
+```
+
+UI가 SQLite에 직접 접근하지 않으므로, 시퀀스의 DB 참여자를 backend API로 교체해야 합니다.
+
+#### 4. 중간: Notion이 캐시 테이블에 연결된 것처럼 표현됨
+
+[DATA_ARCHITECTURE.md](docs/product/architecture/DATA_ARCHITECTURE.md#L11)의 데이터 수명주기 다이어그램은 Gmail·Calendar·Notion을 모두 `emails·calendar_events` 캐시로 연결합니다.
+
+실제 책임은 다음과 같이 나눠야 합니다.
+
+- Gmail → `emails`
+- Google Calendar → `calendar_events`
+- Claude → `briefs`
+- Notion → 외부 페이지 저장 및 `briefs.notion_url`
+
+Notion은 이메일·일정 캐시의 입력원이 아니므로 별도 흐름으로 분리해야 합니다.
+
+#### 5. 중간: 현재 구조와 목표 구조가 한 다이어그램에 혼재함
+
+[DESIGN.md](docs/product/architecture/DESIGN.md#L90-L110)의 목표 아키텍처는 `routes → services → db` 구조를 표시하지만, 현재 tasks/projects 라우트는 DB를 직접 호출합니다.
+
+해당 다이어그램이 TO-BE라면 제목과 주석에 “목표 구조”임을 명확히 표시하고, 현재 구조를 설명하는 다이어그램에는 `routes → db`를 반영하거나 AS-IS/TO-BE를 분리해야 합니다.
+
+#### 6. 낮음: 미구현 Supabase·마이그레이션 흐름이 실제 완료처럼 보일 수 있음
+
+[DATA_ARCHITECTURE.md](docs/product/architecture/DATA_ARCHITECTURE.md#L11)의 마이그레이션 러너와 Supabase 동기화 흐름은 아직 제안·미구현 범위입니다. Supabase는 현재 연결 진단만 구현됐고, 실제 동기화·RLS·충돌 해결은 Phase E 범위입니다.
+
+다이어그램에 `제안`, `Week 10+`, `미구현` 표기를 추가해 현재 구현과 목표 설계를 구분해야 합니다.
+
+### 보안 긴급 조치
+
+이번 검수 과정에서 `.env`의 Google·Notion·Slack·Claude 자격 증명이 대화에 노출되었습니다. 값 자체는 이 문서에 기록하지 않지만, 이미 노출된 것으로 간주해야 합니다.
+
+- Google Client Secret 즉시 폐기·재발급
+- Notion API Key 즉시 폐기·재발급
+- Slack Webhook 즉시 폐기·재발급
+- Anthropic API Key 즉시 폐기·재발급
+- Supabase 키는 publishable/anon 정책을 확인하고 필요하면 교체
+- 새 값은 채팅이나 저장소에 입력하지 않고 로컬 `.env`에만 저장
+
+### 다이어그램 수정 우선순위
+
+| 순서 | 수정 대상 | 조치 |
+|---:|---|---|
+| 1 | `DESIGN.md` Daily Brief 흐름 | `sync.py`와 `daily_brief.py` 흐름 분리 |
+| 2 | `RUNTIME_VIEW.md` | `sync.py` 프로세스와 실행 스케줄 추가 |
+| 3 | `ARCHITECTURE.md` | UI → API → SQLite 흐름으로 수정 |
+| 4 | `DATA_ARCHITECTURE.md` | Gmail·Calendar·Claude·Notion 데이터 흐름 분리 |
+| 5 | 목표 구조 다이어그램 | TO-BE·미구현·Week 10+ 라벨 명확화 |
+| 6 | 문서 재검증 | `check-docs.sh`와 `render-diagrams.sh` 재실행 |
+
+**판정:** 링크와 Mermaid 렌더링은 정상이나, D2-b에서 추가된 `sync.py`와 캐시 중심 Daily Brief 구조가 일부 다이어그램에 반영되지 않았습니다. 다음 문서 정리 작업에서는 위 5개 다이어그램을 우선 수정해야 합니다.

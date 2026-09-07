@@ -13,3 +13,20 @@ apscheduler>=3.10.0
 
 # 개발/테스트
 pytest>=7.4.0
+
+# ── Phase D2-b: Google OAuth + Gmail/Calendar 실 수집 ──────────────
+# 재현성을 위해 정확 핀. python 3.14 venv 에서 검증됨.
+cryptography==50.0.1
+google-api-python-client==2.200.0
+google-api-core==2.34.0
+google-auth==2.57.0
+google-auth-httplib2==0.4.2
+google-auth-oauthlib==1.4.1
+googleapis-common-protos==1.75.2
+httplib2==0.32.0
+oauthlib==3.3.1
+protobuf==7.36.1
+pyasn1==0.6.4
+pyasn1_modules==0.4.2
+requests-oauthlib==2.0.0
+uritemplate==4.2.0
