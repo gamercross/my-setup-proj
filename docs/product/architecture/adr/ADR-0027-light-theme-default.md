@@ -1,6 +1,6 @@
 # ADR-0027: 라이트 테마를 기본으로 전환 + 디자인 토큰 v2
 
-- 상태: **제안** (2026-09-07) — P1 착수. 사용자 결정: PO-1, PO-2.
+- 상태: **채택** (2026-09-07) — P3 구현. 사용자 결정: PO-1(라이트 기본)·PO-2(강조색 파랑) 채택.
 - 관련: [PERSONAL_OS.md](../../vision/PERSONAL_OS.md) T5, [../../reference/UI_STYLE.md](../../reference/UI_STYLE.md), [ADR-0022](ADR-0022-per-widget-theming.md)(위젯별 테마), FR-WIDGET-05/06, Phase 개인 OS P3
 
 ## 맥락

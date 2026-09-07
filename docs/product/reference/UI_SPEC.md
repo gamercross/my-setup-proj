@@ -62,26 +62,30 @@ stateDiagram-v2
 | 위젯 배치 엔진 | `react-grid-layout` ([ADR-0020](../architecture/adr/ADR-0020-widget-shell-architecture.md)) |
 | 레이아웃 영속 | localStorage → SQLite ([ADR-0021](../architecture/adr/ADR-0021-widget-layout-persistence.md)) |
 
-> 🎨 **시각 방향:** 화면 골격·컴포넌트 패턴·톤의 목표 틀은 [UI_STYLE.md](UI_STYLE.md) (릴스 "Claude 워크스페이스 대시보드" 참조). 이 문서는 계약, `UI_STYLE.md` 는 방향.
+> 🎨 **시각 방향:** 화면 골격·컴포넌트 패턴·톤의 목표 틀은 [UI_STYLE.md](UI_STYLE.md) (노션 위젯 라이트 스타일 참조 — [PERSONAL_OS.md](../vision/PERSONAL_OS.md) §4). 이 문서는 계약, `UI_STYLE.md` 는 방향.
 
-### 디자인 토큰 (C6 이후 — `frontend/src/styles.css` `:root`)
+### 디자인 토큰 v2 ([ADR-0027](../architecture/adr/ADR-0027-light-theme-default.md) — `frontend/src/styles.css`)
 
-| CSS 변수 | 값 | 용도 |
-|---|---|---|
-| `--bg` | `#0f172a` | 화면 배경 |
-| `--panel` | `#1e293b` | 카드·리스트 아이템 배경 |
-| `--border` | `#334155` | 테두리·구분선 |
-| `--text` | `#e2e8f0` | 본문 텍스트 |
-| `--muted` | `#94a3b8` | 보조 텍스트·섹션 제목 |
-| `--accent` | `#f59e0b` | 진행도 바, 포커스 아웃라인 |
-| `--priority-high` | `#ef4444` | 할일 우선순위 배지 |
-| `--priority-medium` | `#f59e0b` | 할일 우선순위 배지 (현재 `--accent` 와 동일 값, 이름 분리 — US-1 대비) |
-| `--priority-low` | `#64748b` | 할일 우선순위 배지 |
-| `--radius` | `8px` | 일반 모서리 |
-| `--card-radius` | `10px` | 카드 모서리 |
-| `--pad` | `10px` | 위젯 본문 패딩 |
+**라이트가 기본.** 다크는 셸 바의 🌙 토글 → `document.documentElement.dataset.theme = 'dark'`, `localStorage['dashboard.theme']` 영속. `:root[data-theme='dark']` 가 토큰을 대칭 재정의.
 
-> ✅ **C6 완료**: 전역 인라인 hex/px → `:root` CSS 변수로 1:1 치환(시각 변화 0). `styles.css` 는 `renderer.jsx` 상단에서 import.
+| CSS 변수 | 라이트(`:root`) | 다크(`[data-theme=dark]`) | 용도 |
+|---|---|---|---|
+| `--bg` | `#f7f7f5` | `#0f172a` | 앱 배경(오프화이트) |
+| `--panel` | `#ffffff` | `#1e293b` | 카드·위젯 본문 |
+| `--panel-2` | `#f2f2ef` | `#172033` | 중첩 카드·셸 바·헤더 |
+| `--border` | `#ececec` | `#334155` | 테두리·구분선 |
+| `--shadow-card` | `0 1px 2px rgba(0,0,0,.04)` | `none` | 라이트에서만 옅은 그림자 |
+| `--text` | `#1a1a1a` | `#e2e8f0` | 본문 텍스트 |
+| `--muted` | `#8a8a8a` | `#94a3b8` | 보조 텍스트·섹션 제목 |
+| `--accent` | `#2f6feb` | `#60a5fa` | 강조 숫자·활성·포커스·[실행] (US-1 종결: 파랑) |
+| `--accent-soft` | `rgba(47,111,235,.12)` | `rgba(96,165,250,.16)` | 강조 배경(칩 활성·편집 힌트) |
+| `--ok` / `--warn` / `--bad` | `#2e7d5b` / `#c2691f` / `#c23b3b` | `#4ade80` / `#fbbf24` / `#f87171` | 달성 90%+/40~90%/<40%, 상태 |
+| `--priority-high/medium/low` | `#ef4444` / `#f59e0b` / `#94a3b8` | (동일) | 우선순위 배지 (강조색과 독립) |
+| `--radius` / `--card-radius` / `--chip-radius` | `10px` / `16px` / `999px` | (동일) | 모서리 |
+| `--pad` | `12px` | (동일) | 위젯 본문 패딩 |
+| `.stat-number` | `font-weight:700; font-size:clamp(28px,4vw,44px)` | | 스탯 타일 초점 숫자 (P4 컴포넌트화) |
+
+> ✅ **P3 완료** (2026-09-07, ADR-0027): `:root` 를 라이트 v2 로 재정의 + `[data-theme=dark]` 블록. `App.jsx`·`WidgetShell.jsx`(테마 토글)·`WidgetPicker`·`TaskForm`·`ProjectForm`·`CalendarWidget`·`DiagramPanel`(mermaid PALETTE)·`WidgetSettings`(GLOBAL_DEFAULTS)·`ErrorBoundary`·`index.html` 의 하드코딩 hex → 토큰. `styles.css` 는 `renderer.jsx` 상단에서 import.
 > 위젯 프레임이 인스턴스 `config.theme` 를 화이트리스트 CSS 변수(`--w-bg`/`--w-accent`/`--w-text`/`--w-radius`/`--w-pad`)로 자기 wrapper 에 주입하고,
 > 위젯 내부 CSS 는 `var(--w-bg, var(--bg))`·`var(--w-text, var(--text))`·`var(--w-accent, var(--accent))` 폴백 체인을 쓴다 ([ADR-0022](../architecture/adr/ADR-0022-per-widget-theming.md)). titlebar solid/ghost/hidden 은 `WidgetFrame` 이 인라인 style 로 처리(D-3: 편집 모드면 hidden 무시).
 

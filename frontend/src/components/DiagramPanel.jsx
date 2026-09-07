@@ -24,7 +24,7 @@ function loadMermaid() {
 const key = (d) => `${d.path}#${d.index}`;
 const domId = (d) => 'mmd-' + key(d).replace(/[^a-zA-Z0-9_-]/g, '-');
 
-const PALETTE = { bg: '#0f172a', panel: '#1e293b', text: '#e2e8f0', muted: '#94a3b8', accent: '#38bdf8' };
+const PALETTE = { bg: '#ffffff', panel: '#f7f7f5', text: '#1a1a1a', muted: '#8a8a8a', accent: '#2f6feb' };
 
 export default function DiagramPanel() {
   const [diagrams, setDiagrams] = useState([]);

@@ -37,7 +37,11 @@ export default function App() {
   }, []);
 
   const statusColor =
-    health.status === 'ok' ? '#4ade80' : health.status === 'error' ? '#f87171' : '#94a3b8';
+    health.status === 'ok'
+      ? 'var(--ok)'
+      : health.status === 'error'
+        ? 'var(--bad)'
+        : 'var(--muted)';
 
   return (
     <div>
@@ -49,18 +53,19 @@ export default function App() {
           alignItems: 'center',
           gap: '10px',
           padding: '6px 24px',
-          background: '#0f172a',
-          color: '#94a3b8',
+          background: 'var(--panel-2)',
+          color: 'var(--muted)',
           fontSize: '12px',
+          borderBottom: '1px solid var(--border)',
         }}
       >
         {DEMO ? (
           <span
             style={{
               padding: '2px 8px',
-              borderRadius: '999px',
-              background: 'rgba(124, 108, 245, 0.18)',
-              color: '#a5b4fc',
+              borderRadius: 'var(--chip-radius)',
+              background: 'var(--accent-soft)',
+              color: 'var(--accent)',
               fontWeight: 600,
             }}
           >

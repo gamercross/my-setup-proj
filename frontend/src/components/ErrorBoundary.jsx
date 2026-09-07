@@ -26,7 +26,7 @@ export default class ErrorBoundary extends React.Component {
       // fallback 미지정 시 기존 전면 폴백 (동작 동일)
       return (
         this.props.fallback ?? (
-          <div style={{ padding: '24px', background: '#0f172a', minHeight: '100vh' }}>
+          <div style={{ padding: '24px', background: 'var(--bg)', minHeight: '100vh' }}>
             <ErrorBanner message="화면을 그리는 중 오류가 발생했습니다" />
           </div>
         )

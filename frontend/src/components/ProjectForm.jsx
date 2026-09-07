@@ -29,9 +29,9 @@ export default function ProjectForm({ onSubmit, disabled }) {
   };
 
   const inputStyle = {
-    background: '#1e293b',
-    color: '#e2e8f0',
-    border: '1px solid #e2e8f0',
+    background: 'var(--panel)',
+    color: 'var(--text)',
+    border: '1px solid var(--border)',
     borderRadius: '6px',
     padding: '6px 8px',
   };
@@ -60,8 +60,8 @@ export default function ProjectForm({ onSubmit, disabled }) {
         type="submit"
         disabled={disabled}
         style={{
-          background: '#f59e0b',
-          color: '#0f172a',
+          background: 'var(--accent)',
+          color: '#ffffff',
           border: 'none',
           borderRadius: '6px',
           padding: '6px 12px',
@@ -71,7 +71,7 @@ export default function ProjectForm({ onSubmit, disabled }) {
         + 프로젝트 추가
       </button>
       {hint && (
-        <p style={{ width: '100%', margin: '2px 0 0', color: '#ef4444', fontSize: '12px' }}>{hint}</p>
+        <p style={{ width: '100%', margin: '2px 0 0', color: 'var(--bad)', fontSize: '12px' }}>{hint}</p>
       )}
     </form>
   );
