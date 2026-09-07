@@ -1,0 +1,43 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html",       "x": 0,   "y": 0,    "w": 1440, "h": 900,  "title": "대시보드 전체" },
+    { "file": "Components.dc.html",  "x": 0,   "y": 1020, "w": 1200, "h": 1100, "title": "공통 컴포넌트" },
+    { "file": "Okr.dc.html",        "x": 0,   "y": 2240, "w": 940,  "h": 560,  "title": "OKR 위젯" },
+    { "file": "Kanban.dc.html",     "x": 0,   "y": 2920, "w": 1416, "h": 720,  "title": "칸반 위젯" },
+    { "file": "Agent.dc.html",      "x": 0,   "y": 3760, "w": 464,  "h": 620,  "title": "에이전트 활동 위젯" },
+    { "file": "Progress.dc.html",   "x": 584, "y": 3760, "w": 702,  "h": 620,  "title": "진행 현황 위젯" }
+  ],
+  "annotations": [
+    {
+      "id": "intro",
+      "x": -520, "y": 0, "w": 460,
+      "kind": "title1",
+      "text": "개인 생산성 OS — 디자인 캔버스 (P2)\n엔트리: 대시보드 전체. 색 리터럴은 전부 frontend/src/styles.css :root 토큰(ADR-0027 / UI_SPEC §1)과 1:1이며 임의 hex는 없다. UI 문자열 한국어, 아이콘 인라인 SVG."
+    },
+    {
+      "id": "tokens",
+      "x": -520, "y": 1020, "w": 460,
+      "color": "blue",
+      "text": "공통 컴포넌트 시트가 P4 계약의 시각 기준이다. 아직 토큰이 아닌 값(배지 soft 배경, --shadow-card, --card-radius 16px 등)은 시트 하단 \"P4 신규 토큰 제안\" 표에 텍스트로만 모아 둔다."
+    },
+    {
+      "id": "card-radius",
+      "x": -520, "y": 300, "w": 460,
+      "color": "orange",
+      "text": "--card-radius 이중값: 코드 현재 10px, 캔버스는 P4 목표값 16px. 6개 아트보드 전부 하단 캡션에 \"P4 목표값\"으로 표기."
+    },
+    {
+      "id": "open-questions",
+      "x": -520, "y": 2920, "w": 460,
+      "color": "orange",
+      "text": "미결 사항: PO-7(칸반이 할 일 위젯 대체 vs 추가 뷰 — 현재 \"추가\" 전제) · PO-8(차트 라이브러리 Recharts vs 인라인 SVG — 인라인 SVG로 그림) · PO-9/ADR-0013(에이전트 \"지금 실행\" 버튼 — 미노출) · OKR/칸반 defaultSize는 widgetMeta.js 미등록(w=8·h=10 제안)."
+    },
+    {
+      "id": "scope",
+      "x": -520, "y": 3760, "w": 460,
+      "color": "green",
+      "text": "P2 범위: 디자인 캔버스만. frontend/backend/agent 코드 변경 0건."
+    }
+  ],
+  "launch": { "view": "focused", "file": "Main.dc.html" }
+}
