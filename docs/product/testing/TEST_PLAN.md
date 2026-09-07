@@ -205,6 +205,26 @@ CI(`.github/workflows/test.yml`)에 `npm test`(backend), `pytest -m "not network
 | TC-P4-04 | 비정상 total | `dotFill(50, 0)` / `dotFill(50, 3.5)` | 둘 다 `10` (total→20) | ✅ |
 | TC-P4-05 | `normalizeTotal`·`clampPct` 규칙 | 정상값 그대로 / 0 이하·비정수·NaN→20 · clampPct NaN→0·clamp·정수반올림 | 전부 일치 | ✅ |
 
+#### 3.4i 사이드바 셸 + 주제별 레이아웃 — `frontend/test/{layoutStorage,topics,uiStore}.test.mjs` (Phase P4.5, ADR-0032)
+
+순수 모듈(JSX 아님)만 import. `window.localStorage` 는 인메모리 스텁 주입(`test/_fakeStorage.mjs`). `cd frontend && npm test`.
+
+| ID | 대상 | 전제 | 기대 결과 | 상태 |
+|---|---|---|---|:---:|
+| TC-SHELL-01 | `layoutStorage.loadAllTopics` (v1 마이그레이션) | `dashboard.layout.v1` 존재 | 첫 로드 후 `overview` 에 동일 인스턴스, `dashboard.layout.v2` 생성, **v1 키 삭제** | ✅ |
+| TC-SHELL-02 | v1 손상 방어 | v1 이 깨진 JSON / `version:0` / 빈 배열 | 마이그레이션 안 함, `{}` 반환, 예외 없음, v1 원본 보존 | ✅ |
+| TC-SHELL-03 | v2 우선 | v2 와 v1 이 모두 존재 | v2 내용만 사용, v1 은 무시·보존 | ✅ |
+| TC-SHELL-04 | 주제 격리 | `saveTopicLayout('tasks', …)` 후 | `loadTopicLayout('overview')` 불변 | ✅ |
+| TC-SHELL-05 | v2 손상 방어 | `dashboard.layout.v2` 가 깨진 JSON | `{}` + `console.warn`, 크래시 없음, 손상값 임의 삭제 안 함 | ✅ |
+| TC-SHELL-06 | `topics.TOPICS` | — | 11개, id 유일, group 유효, label·subtitle 비어있지 않음 | ✅ |
+| TC-SHELL-07 | 기본 레이아웃 정합 | 모든 주제 | `DEFAULT_LAYOUTS` 항목 보유, 각 인스턴스 type 이 `WIDGET_META` 에 등록 | ✅ |
+| TC-SHELL-08 | 기본 인스턴스 규격 | 모든 주제 | 각 인스턴스 `minSize` 이상, `x+w≤12`, 주제 내 type 중복 없음; 미정의 주제 → placeholder 1개 | ✅ |
+| TC-SHELL-09 | `useUiStore.activeTopic` | 저장값 유효/없음/미등록/손상 | 유효 시 복원, 그 외 `overview`; `setActiveTopic` 은 유효 id 만 반영·영속 | ✅ |
+| TC-SHELL-10 | `placeholder` 메타 | — | `hidden:true`, 피커 목록(`!hidden` 필터)에서 제외, 다른 메타엔 `hidden` 없음 | ✅ |
+| TC-SHELL-11 | 미등록 topicId 키 보존 | v2 에 낯선 주제 키 존재 | `sanitizeTopicMap` 이 파기하지 않고 보존 | ✅ |
+
+수동(로컬 GUI): TC-SHELL-M1 사이드바 4그룹 11항목·마지막 주제 복원, TC-SHELL-M2 항목 클릭 시 본문만 교체(새로고침 없음), TC-SHELL-M3 주제 A 편집이 B 에 무영향, TC-SHELL-M4 v1 사용자가 overview 에서 기존 배치 유지, TC-SHELL-M5 미구현 주제에 "준비 중" 위젯 1개, TC-SHELL-M6 페이지 헤더 우측 health 표시 존치. ⏳ 로컬 대기.
+
 > `DotProgress`·`StatTile`·`Chip` 자체 렌더는 프론트 러너 없음 → §3.9 수동 체크.
 
 #### 3.4g 스케줄 자동 실행 — 수동 검증 (Phase D3, 자동화 안 함)
@@ -414,7 +434,7 @@ fake service 주입, 네트워크 0회. 재시도 테스트는 `services.retry.s
 | TC-WIDGET-03 | FR-WIDGET-02 AC-5 | `+ 위젯` → 다이어그램 추가 → 다시 피커 열기 | 추가된 타입 항목이 비활성 + "이미 추가됨". 상태: C5 완료, 로컬 수동 확인 대기 |
 | TC-WIDGET-04 | FR-WIDGET-02 AC-4 | 위젯 `─` 클릭 → 다시 클릭 | 타이틀바만 남게 축소(h=1) → 재클릭 시 이전 높이(prevH) 복원. 상태: C5 완료, 로컬 수동 확인 대기 |
 | TC-WIDGET-05 | FR-WIDGET-04 AC-2 | 배치·크기·최소화 바꾸고 앱 재시작 | 마지막 레이아웃(위치·크기·z·최소화) 복원. 상태: C5 완료, 로컬 수동 확인 대기 |
-| TC-WIDGET-06 | FR-WIDGET-04 AC-4 | DevTools 에서 `localStorage['dashboard.layout.v1']` 를 깨진 JSON 으로 덮고 재시작 | 기본 레이아웃(할일·프로젝트·캘린더) + `console.warn`, 흰 화면 없음. 상태: C5 완료, 로컬 수동 확인 대기 |
+| TC-WIDGET-06 | FR-WIDGET-04 AC-4 | DevTools 에서 `localStorage['dashboard.layout.v2']` 를 깨진 JSON 으로 덮고 재시작 | 주제별 기본 레이아웃 + `console.warn`, 흰 화면 없음. 상태: C5 완료 + P4.5 v2 키, 로컬 수동 확인 대기 |
 | TC-WIDGET-07 | FR-WIDGET-08 AC-2 | 저장 레이아웃 `instances` 에 `{id:'x',type:'zzz',...}` 주입 후 재시작 | 그 위젯만 "알 수 없는 위젯입니다 (zzz)" + `✕` 로 제거 가능, 나머지 위젯 정상. 상태: C5 완료, 로컬 수동 확인 대기 |
 | TC-WIDGET-08 | FR-WIDGET-07 AC-2 | 한 위젯 뷰에 임시 `throw` 삽입 | 해당 위젯 본문만 `ErrorBanner` 폴백, 셸 바·다른 위젯 생존. 상태: C5 완료, 로컬 수동 확인 대기 |
 

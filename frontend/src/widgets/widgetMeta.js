@@ -66,4 +66,16 @@ export const WIDGET_META = {
       showMeta: { type: 'bool', default: true, label: '생성 시각·Notion 링크 표시' },
     },
   },
+  // "준비 중" 자리표시자 — 전용 위젯이 아직 없는 주제의 기본 인스턴스 (ADR-0032).
+  // hidden: true 는 옵셔널 신규 필드. 피커 목록에서 제외한다 (다른 메타엔 넣지 않는다).
+  placeholder: {
+    type: 'placeholder',
+    name: '준비 중',
+    description: '이 주제는 아직 준비 중입니다',
+    defaultSize: { w: 6, h: 4 },
+    minSize: { w: 3, h: 3 },
+    maxSize: { w: 12, h: 12 },
+    configSchema: {},
+    hidden: true,
+  },
 };
