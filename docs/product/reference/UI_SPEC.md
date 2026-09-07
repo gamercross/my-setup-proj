@@ -127,8 +127,9 @@ stateDiagram-v2
 - **셸 바:** `AI Computer OS` + `✎ 편집` 토글 + `+ 위젯` 피커 + `초기화`.
 - **위젯 프레임:** 타이틀바(아이콘·이름·⚙ 설정(C6, WidgetSettings 열기)·─ 최소화·✕ 제거) + 본문(레지스트리 뷰) + 리사이즈 핸들(편집 모드).
 - **격리:** 위젯마다 `ErrorBanner`/`ErrorBoundary` (FR-WIDGET-07). 전역 연결 오류(백엔드 다운)는 **App 헤더**의 헬스 표시(셸에서 중복 안 함).
-- **기본 레이아웃 (첫 실행):** 할일·프로젝트·캘린더 3개. 다이어그램은 피커로만 추가.
-- **와이어프레임의 `Daily Brief` 위젯은 향후 목표** — C5 레지스트리에는 뷰가 있는 tasks/projects/calendar/diagrams 만 등록.
+- **기본 레이아웃 (첫 실행):** 할일·오늘 브리핑·프로젝트·캘린더 4개. 다이어그램은 피커로만 추가.
+- 레지스트리 등록 위젯(D3): tasks/projects/calendar/diagrams/brief. 메타는 `widgets/widgetMeta.js`(순수), view 배선은 `widgets/registry.js`.
+- 기존 사용자는 레이아웃 마이그레이션이 없으므로(SCHEMA_VERSION 불변) brief 위젯이 자동으로 나타나지 않는다 — 피커로 추가하거나 "초기화" 한다.
 
 ---
 
@@ -200,15 +201,18 @@ stateDiagram-v2
 | 관련 FR | FR-CAL-01/02 |
 | 상태 | 4상태 모두 `widgets/views/CalendarWidgetView.jsx` 가 소유(C5): 로딩 / "일정이 없습니다"(빈) / 정상(`CalendarWidget`) / 에러(위젯 내부만 `ErrorBanner`+재시도, 빈 문구·목록 미표시, 다른 위젯 렌더 유지). `CalendarWidget` 은 목록 렌더만 담당(빈 상태 분기 없음). |
 
-### 3.5 오늘 브리핑 카드 🔷 예정 (Week 7)
+### 3.5 오늘 브리핑 위젯 ✅ D3 (Week 7)
 
 | 항목 | 내용 |
 |---|---|
 | 목적 | 에이전트가 생성한 "오늘의 우선순위" 표시 |
-| 요소 | `BriefCard` — 마크다운 렌더, 생성 시각, (있으면) Notion 링크 |
-| 데이터 출처 | `GET /api/brief/today` → `useAppStore.brief` |
-| 관련 FR | FR-AGENT-04 |
-| 상태 | 로딩 / "오늘 브리핑이 아직 없습니다"(404) / 정상 / 에러 |
+| 뷰 | `widgets/views/BriefWidgetView` — 스토어 구독·effect·4상태 소유 |
+| 프레젠테이션 | `components/BriefCard` (순수, props `{ brief, showMeta }`) — 본문은 **plain text pre-wrap**(마크다운 파서·`dangerouslySetInnerHTML` 없음 — NFR-SEC-04) |
+| 메타 | `showMeta` 이면 생성 시각(로컬 HH:MM) + `notion_url` 있으면 **"🔗 Notion 링크 복사"** 버튼(`navigator.clipboard`, `<a>` 아님 — Electron 외부 내비 차단) |
+| config | `showMeta`(bool, 기본 true) 하나만 |
+| 데이터 출처 | `GET /api/brief/today` → `store/useBriefStore` (`brief`, `loading`, `loaded`, `error`) |
+| 관련 FR | FR-AGENT-04, [ADR-0025](../architecture/adr/ADR-0025-brief-empty-response.md) |
+| 상태 | 에러 → `ErrorBanner(onRetry)` / 로딩(`loading && !loaded`) → "불러오는 중…" / 빈(`loaded && !brief`, 서버 200+`{brief:null}`) → "오늘 브리핑이 아직 없습니다" / 정상 → `BriefCard` |
 
 ### 3.6 ErrorBanner / ErrorBoundary ✅ B3 (FR-UI-04, 2026-09-03)
 
@@ -285,7 +289,7 @@ stateDiagram-v2
 | `WidgetHost` | `instances`, `editMode`, `onLayoutChange(layout)` | — | `onLayoutChange` | ✅ C5 (`react-grid-layout/legacy` `WidthProvider(Responsive)` 모듈 스코프) |
 | `WidgetFrame` | `instance` | — (스토어 액션 구독: bringToFront/toggleMinimize/removeWidget/focusedId) | — | ✅ C5~C6 (C6: `updateConfig`/`editMode` 구독, `WidgetSettings` 오픈, titlebar 인라인 · per-widget `ErrorBoundary fallback` + `themeToVars` 호출 지점) |
 | `WidgetPicker` | `activeTypes`, `onAdd(type)`, `onClose()` | — | `onAdd`, `onClose` | ✅ C5 (이미 추가된 타입 비활성) |
-| `*WidgetView` (tasks/projects/calendar/diagrams) | `instanceId`, `config`, `configSchema` | 도메인 스토어 필드별 구독 + `useEffect(fetch)` | — | ✅ C5 · C6 (`config.display` 클라이언트 필터, `configSchema` prop) |
+| `*WidgetView` (tasks/projects/calendar/diagrams/brief) | `instanceId`, `config`, `configSchema` | 도메인 스토어 필드별 구독 + `useEffect(fetch)` | — | ✅ C5 · C6 · D3(brief) (`config.display` 클라이언트 필터, `configSchema` prop) |
 | `WidgetSettings` | `instance`, `configSchema`, `onChange(patch)`, `onClose()` | `tab` (theme/display) | `onChange`, `onClose` | ✅ C6 (portal 중앙 모달, 테마 탭 + 표시 탭, 화이트리스트 입력만) |
 | `TaskList` | `tasks: Task[]`, `onToggle(id)`, `onDelete(id)` | — | `onToggle`, `onDelete` | ✅ |
 | `TaskForm` | `onSubmit(payload)`, `disabled` | `title, priority, dueDate` | `onSubmit` | ✅ B3 |
@@ -294,7 +298,8 @@ stateDiagram-v2
 | `ProjectCard` | `project: Project`, `onDelete(id)?`, `onProgressChange(id, next)?`, `onStatusChange(id, value)?` | `draft` (슬라이더 로컬값) | `onDelete`, `onProgressChange`, `onStatusChange` | ✅ C2 (순수 프레젠테이션, 콜백 없으면 읽기 전용, `on_hold` 통일) |
 | `ProjectForm` | `onSubmit(payload): Promise<boolean>`, `disabled` | `name, progress, hint` | `onSubmit` | ✅ C2 (payload `{name, progress?}`) |
 | `CalendarWidget` | `events: Event[]` | — | — | ✅ C3 |
-| `BriefCard` | `brief: Brief \| null` | — | — | 🔷 D3 |
+| `BriefCard` | `brief: Brief \| null`, `showMeta: bool` | `copied` (복사 피드백) | — | ✅ D3 (순수 프레젠테이션, plain text pre-wrap, Notion 링크 복사 버튼) |
+| `BriefWidgetView` | `config`, `configSchema` | `useBriefStore` 구독 + `useEffect(fetchBrief)` | — | ✅ D3 (4상태 소유) |
 | `DiagramPanel` | — (props 없음) | `diagrams`, `activeDoc`, `loading`, `error`, `rendered` | — | ✅ C4 (자체 fetch·4상태 소유, 스토어 없음) |
 
 **타입 형태**는 [DATA_DICTIONARY.md](DATA_DICTIONARY.md) 및 [API_REFERENCE.md](API_REFERENCE.md) 의 리소스 객체와 동일 (필드명 snake_case 유지).

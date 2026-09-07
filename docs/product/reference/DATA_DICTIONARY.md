@@ -90,12 +90,13 @@
 |---|---|---|---|---|
 | `id` | INTEGER | PK, auto | 식별자 | `1` |
 | `date` | TEXT | NOT NULL, UNIQUE 인덱스 | 브리핑 대상 날짜 (`YYYY-MM-DD`). **하루 1건** | `"2026-09-02"` |
-| `content` | TEXT | NOT NULL | Claude 가 생성한 브리핑 본문(마크다운) | `"## 오늘의 우선순위\n1. ..."` |
-| `notion_url` | TEXT | NULL 허용 | Notion 에 저장된 페이지 URL. 저장 전/실패 시 NULL (FR-AGENT-03) | `"https://notion.so/..."` |
-| `created_at` | TEXT | NOT NULL | 생성 시각 | — |
+| `content` | TEXT | NOT NULL | Claude 가 생성한 브리핑 본문. **plain text** (UI 는 pre-wrap 렌더, 마크다운 파싱 안 함) | `"오늘의 우선순위 TOP 3\n1. ..."` |
+| `notion_url` | TEXT | NULL 허용 | Notion 페이지 URL. 미설정 스킵/실패/저장 전 NULL (FR-AGENT-03). 성공 시 `upsert_brief(date, content, url)` 로 병합(COALESCE) | `"https://notion.so/..."` |
+| `created_at` | TEXT | NOT NULL | 최초 생성 시각. upsert 시 유지(갱신 안 함) | — |
 
-- `idx_briefs_date` UNIQUE — 같은 날 재실행 시 기존 행을 갱신(upsert).
-- UI `BriefCard` 가 `GET /api/brief/today` 로 조회 (FR-AGENT-04).
+- `idx_briefs_date` UNIQUE — 같은 날 재실행 시 기존 행을 갱신(upsert). Notion 페이지는 중복 생성 가능(v1 한계).
+- 쓰기 주체: **에이전트**(`agent/db.py:upsert_brief`). 백엔드는 `db.js:getBriefByDate` 로 SELECT 만 (ADR-0011).
+- UI `BriefWidgetView`/`BriefCard` 가 `GET /api/brief/today` 로 조회 (FR-AGENT-04). 오늘 행 없으면 API 는 200 + `{brief:null}` (ADR-0025).
 
 ## 6. `sync_logs` — 동기화 로그
 

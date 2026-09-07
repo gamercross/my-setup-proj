@@ -16,7 +16,8 @@
 | `GOOGLE_REDIRECT_URI` | ❌ | **미사용** (데스크톱 loopback 흐름). 웹 흐름 도입 시에만 필요 — 코드가 읽지 않는다 | — | 무시됨 |
 | `TOKEN_ENCRYPTION_KEY` | ✅ (에이전트, D2-b) | OAuth 토큰 파일 암호화 키 (Fernet, url-safe base64 32B — [ADR-0024](../product/architecture/adr/ADR-0024-oauth-token-storage.md)) | `agent/auth/google_oauth.py` | 스택트레이스 없이 한국어 안내(생성 명령 포함) 후 실패 |
 | `GOOGLE_TOKEN_PATH` | ❌ (선택) | 암호화 토큰 파일 경로. 비우면 `agent/.secrets/google_token.enc` | `agent/auth/google_oauth.py` | 기본 경로 사용 |
-| `NOTION_API_KEY` | ⏳ (Week 4·7) | Notion Integration Token. 프로젝트 읽기·브리핑 저장 | `agent/services/notion.py` | Notion 연동 비활성 |
+| `NOTION_API_KEY` | ✅ (D3) | Notion Internal Integration Token (`secret_...`). 브리핑 저장 | `agent/services/notion.py` | `NotionNotConfigured` — 저장 단계만 건너뜀(실패 아님) |
+| `NOTION_PARENT_PAGE_ID` | ✅ (D3) | 브리핑을 자식 페이지로 만들 부모 페이지 id (32자 hex). 그 페이지의 `...` → Connections 에 integration 추가 필요 | `agent/services/notion.py` | 동상 — `NotionNotConfigured` |
 | `SLACK_WEBHOOK_URL` | ❌ (선택) | 에이전트 진행·EOD 요약 알림용 Incoming Webhook | `scripts/slack-notify.sh`, `worklog-eod.sh` | **조용히 스킵** — 항상 호출해도 안전 |
 | `SUPABASE_URL` | ❌ (선택) | Supabase 프로젝트 URL. 2026-09-06~ 클라이언트 부트스트랩이 사용 (연결 배선·`/api/sync/health` 진단만) | `backend/src/supabase.js` | 팩토리가 `null` 반환, 프로세스당 1회 경고. 앱 부팅·기존 기능 무영향, 로컬 SQLite 전용 |
 | `SUPABASE_KEY` | ❌ (선택) | Supabase **anon public** 키 전제. `service_role` 키는 `.env` 에 두지 않는다 (사용자가 키 종류 확인 필요) | `backend/src/supabase.js` | 동상 |
@@ -60,10 +61,12 @@
 4. `agent/.secrets/google_token.enc` 생성 확인. 이후 `python sync.py` 로 수집.
 5. 로그아웃: `python auth/google_oauth.py logout` (토큰 파일 삭제).
 
-### `NOTION_API_KEY`
+### `NOTION_API_KEY` · `NOTION_PARENT_PAGE_ID`
 1. https://www.notion.so/my-integrations → **New integration**
-2. `secret_...` (Internal Integration Token) 복사
-3. 연동할 Notion 페이지/DB → `...` → **Connections** → 이 integration 추가
+2. `secret_...` (Internal Integration Token) 복사 → `NOTION_API_KEY`
+3. 브리핑을 담을 **부모 페이지**를 하나 만들고 열기. 페이지 우상단 `...` → **Connections** → 위 integration 추가
+4. 그 페이지 URL 끝의 32자 hex 문자열이 `NOTION_PARENT_PAGE_ID` (하이픈 유무 무관)
+5. 둘 중 하나라도 비어 있으면 브리핑은 로컬에만 저장되고 Notion 단계는 조용히 건너뛴다
 
 ### `SLACK_WEBHOOK_URL`
 1. Slack → **Apps** → "Incoming Webhooks" → Add to Slack

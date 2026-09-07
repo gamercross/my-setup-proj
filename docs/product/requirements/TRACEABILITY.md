@@ -70,9 +70,9 @@ C 세부: C1 미들웨어(CORS·로깅·에러) ✅(2026-09-03) → C2 프로젝
 | FR-MAIL-03 | G8 | — | E (W9) | — | `components/EmailView.jsx`(신규) | ⏳ |
 | FR-AGENT-01 | G7 | DESIGN §7 (시퀀스), [ADR-0011](../architecture/adr/ADR-0011-agent-backend-db-access.md) | D1 | TC-AGENT-01,02,10~13 | `agent/daily_brief.py`, `agent/db.py` | ✅ |
 | FR-AGENT-02 | — | DESIGN §7, CONVENTIONS §4 | D1 | TC-AGENT-06 | `agent/services/claude.py`, `agent/daily_brief.py` | ✅ |
-| FR-AGENT-03 | G7 | requirements/AGENT.md | D3 | TC-AGENT-04 | `agent/services/notion.py` | ⏳ |
-| FR-AGENT-04 | — | API_REFERENCE `/brief/today` | D3 | TC-AGENT-05 | `routes/brief.js`(신규), `components/BriefCard.jsx`(신규) | ⏳ |
-| FR-AGENT-05 | — | [ADR-0007](../architecture/adr/ADR-0007-schedule-launchd-cron.md) | D3 | — | `scripts/`, plist | ⏳ |
+| FR-AGENT-03 | G7 | requirements/AGENT.md | D3 | TC-AGENT-04·22~30 | `agent/services/notion.py`, `daily_brief.py` | ✅ |
+| FR-AGENT-04 | — | API_REFERENCE `/brief/today`, [ADR-0025](../architecture/adr/ADR-0025-brief-empty-response.md) | D3 | TC-BRIEF-01~08 | `routes/brief.js`, `services/brief.js`, `db.js:getBriefByDate`, `components/BriefCard.jsx`, `widgets/views/BriefWidgetView.jsx`, `store/useBriefStore.js` | ✅ |
+| FR-AGENT-05 | — | [ADR-0007](../architecture/adr/ADR-0007-schedule-launchd-cron.md) | D3 | TC-SCHED-01~06 | `scripts/daily-brief-run.sh`, `scripts/install-dailybrief-launchd.sh`, `scripts/com.aicomputeros.dailybrief.plist` | ✅ |
 | FR-AGENT-06 | — | DESIGN §7, NFR-REL-02 | D1, D2-a | TC-AGENT-03,14,16,17,18 | `agent/daily_brief.py`, `agent/services/retry.py`, `agent/services/claude.py` | 🚧 (AC-1/2/4 완료, AC-3 재시도·지수 백오프 D2-a 완료 / **AC-5 는 D3 `/api/brief/today` 대기**) |
 | FR-AGENT-07 | — | requirements/AGENT.md | E (W11) | — | `agent/schedule_advisor.py`(신규) | ⏳ |
 | FR-SYNC-01 | G8 | [ADR-0008](../architecture/adr/ADR-0008-supabase-deferred.md) | E2 | — | 신규 동기화 모듈 (선행: `backend/src/supabase.js`) | ⏳ |

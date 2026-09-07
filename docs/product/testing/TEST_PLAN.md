@@ -142,7 +142,7 @@ CI(`.github/workflows/test.yml`)에 `npm test`(backend), `pytest -m "not network
 | TC-AGENT-01 | FR-AGENT-01 | 할일/gmail/calendar 가 각각 데이터 반환 | `build_context()` 에 할일·이메일·일정·기준시각 텍스트 포함 | P0 · ✅ 작성됨 |
 | TC-AGENT-02 | FR-AGENT-01 AC-2 | 모든 소스가 빈 리스트 | 각 블록이 `"없음"` (3회), 예외 없음 | P0 · ✅ 작성됨 |
 | TC-AGENT-03 | FR-AGENT-06 AC-1 | `claude.ask` 가 예외 발생 | `_run()` 이 `(False, "⚠️ Claude 호출 실패: ...")`, `upsert_brief`·`save_to_notion` 미호출, 크래시 없음 | P0 · ✅ 작성됨 |
-| TC-AGENT-04 | FR-AGENT-03 AC-2 | `save_to_notion` 예외 | 브리핑은 로컬(`briefs`)에 저장됨, `sync_logs('notion','failed')` 1행 | P1 |
+| TC-AGENT-04 | FR-AGENT-03 AC-2 | `save_to_notion` 예외 | 브리핑은 로컬(`briefs`)에 저장됨, `sync_logs('notion','failed')` 1행, `notion_url` NULL, 사유 마스킹 | P1 · ✅ 작성됨 |
 | TC-AGENT-05 | FR-AGENT-04 AC-1 | 같은 날 2회 `upsert_brief` | `briefs` 에 해당 날짜 1행만, content 최신값 | P1 · ✅ 작성됨 (`test_db.py`) |
 | TC-AGENT-06 | FR-AGENT-02 | `claude.ask` 모킹 응답 | `briefs.content` 에 저장됨 | P1 · ✅ 작성됨 |
 | TC-AGENT-09 | FR-AGENT-01 | `DATABASE_PATH` env 설정/공백/미설정 | `resolve_db_path()` env 우선, 아니면 `backend/data/app.db` | P1 · ✅ 작성됨 (`test_db.py`) |
@@ -161,6 +161,49 @@ CI(`.github/workflows/test.yml`)에 `npm test`(backend), `pytest -m "not network
 
 | TC-AGENT-20 | FR-AGENT-01 AC-3 | `get_unread_emails` 예외 (캐시 조회 실패) | 컨텍스트에 `"(이메일을 불러오지 못함)"`, 할일 블록 정상 | P1 · ✅ 작성됨 (`test_daily_brief.py`) |
 | TC-AGENT-21 | AGENT.md (네트워크 격리) | `daily_brief` 소스 검사 | `services.gmail`·`services.calendar` 를 import 하지 않음 | P1 · ✅ 작성됨 (`test_daily_brief.py`) |
+
+#### 3.4e Notion 저장 — `agent/tests/test_notion.py` (Phase D3)
+
+`requests.post` monkeypatch + `retry.sleep` 무력화. `network` 마커 없음(모두 모킹).
+
+| ID | 대상 | 전제 (모킹) | 기대 결과 | 우선 |
+|---|---|---|---|:---:|
+| TC-AGENT-22 | FR-AGENT-03 AC-1 | 200 `{"url","id"}` | `save_to_notion` URL 반환, body 에 `parent.page_id`·title·children, 헤더 `Notion-Version` | P1 · ✅ |
+| TC-AGENT-23 | FR-AGENT-03 AC-3 | `NOTION_API_KEY` 삭제 | `NotionNotConfigured`, `requests.post` 미호출 | P1 · ✅ |
+| TC-AGENT-24 | FR-AGENT-03 AC-3 | `NOTION_PARENT_PAGE_ID` 만 없음 | `NotionNotConfigured` + 메시지에 `.env`·`Connections` 안내 | P1 · ✅ |
+| TC-AGENT-25 | FR-AGENT-03 AC-4 | 429 두 번 → 200 | 3회째 성공, `sleep` 1s·2s | P1 · ✅ |
+| TC-AGENT-26 | FR-AGENT-03 AC-4 | 401 | 재시도 0, `sleep` 미호출, 즉시 `RuntimeError` | P1 · ✅ |
+| TC-AGENT-27 | FR-AGENT-03 AC-1 | 5000자 content | `children` 3블록, 각 ≤2000자 | P2 · ✅ |
+| TC-AGENT-28 | NFR-SEC-04 | 토큰 포함 에러 문자열 | `sanitize_error` 로 `***` 마스킹 | P1 · ✅ |
+| TC-AGENT-29 | FR-AGENT-03 AC-2 | `save_to_notion` → URL | `briefs.notion_url` 채움, `sync_logs('notion','success')`, `created_at` 불변 | P1 · ✅ (`test_daily_brief.py`) |
+| TC-AGENT-30 | FR-AGENT-03 AC-3 | `save_to_notion` → `NotionNotConfigured` | `_run()` `(True, ...)`, 결과에 ℹ️, `sync_logs` 0행, 브리핑은 저장 | P1 · ✅ (`test_daily_brief.py`) |
+
+#### 3.4f 브리핑 API — `backend/test/brief.test.js` (Phase D3)
+
+| ID | 대상 | 전제 | 기대 결과 | 우선 |
+|---|---|---|---|:---:|
+| TC-BRIEF-01 | FR-AGENT-04 AC-2 | 오늘 `briefs` 1행 | 200 `{ brief: {5키} }` | P1 · ✅ |
+| TC-BRIEF-02 | ADR-0025 | `briefs` 비어있음 | 200 `{ brief: null }` (404 아님) | P1 · ✅ |
+| TC-BRIEF-03 | ADR-0025 | 어제 행만 | 200 `{ brief: null }` | P1 · ✅ |
+| TC-BRIEF-04 | FR-AGENT-04 | `notion_url` NULL 행 | 200, `brief.notion_url === null` | P2 · ✅ |
+| TC-BRIEF-05 | R3 (로컬 날짜) | `todayString()` 에 고정 Date 주입 | 로컬 자정 기준 `YYYY-MM-DD` | P1 · ✅ |
+| TC-BRIEF-06 | API_REFERENCE | `POST/PUT/DELETE /api/brief/today` | 404 | P2 · ✅ |
+| TC-BRIEF-07 | FR-WIDGET-08 | `widgetMeta` + `defaultLayout` | brief 등록, 모든 defaultLayout type 이 메타에, `w≤12` 및 `w≥minSize.w` | P2 · ✅ (`frontend/test/registry.test.mjs`) |
+| TC-BRIEF-08 | FR-WIDGET-06 | `resolveDisplay` + brief 스키마 | `showMeta` 잘못된 값 → default(true) | P2 · ✅ (`displayConfig.test.mjs`) |
+
+#### 3.4g 스케줄 자동 실행 — 수동 검증 (Phase D3, 자동화 안 함)
+
+launchd/cron 은 CI 에서 재현하기 어렵다. 아래는 설치 후 수동으로 확인한다.
+
+| ID | 대상 | 절차 | 기대 결과 |
+|---|---|---|---|
+| TC-SCHED-01 | FR-AGENT-05 AC-4 | `.env` 에 표식 변수 넣고 `bash scripts/daily-brief-run.sh` | 래퍼가 `.env` 를 로딩해 하위 프로세스에서 보임 |
+| TC-SCHED-02 | FR-AGENT-05 AC-1 | `bash scripts/install-dailybrief-launchd.sh` | `~/Library/LaunchAgents/com.aicomputeros.dailybrief.plist` 생성, 경로 자동 치환, Hour/Minute 07:30 |
+| TC-SCHED-03 | FR-AGENT-05 AC-1 | `bash scripts/install-dailybrief-launchd.sh 8 15` | plist 시각 08:15 |
+| TC-SCHED-04 | FR-AGENT-05 AC-3 | 실행 2회 후 `scripts/daily-brief.log` | sync/brief 단계별 시작·종료·exit code append, 1MB 초과 시 `.log.1` 회전 |
+| TC-SCHED-05 | FR-AGENT-05 AC-2 | AUTOMATION.md 의 cron 예시 | `30 7 * * * .../scripts/daily-brief-run.sh` 문서화 확인 |
+| TC-SCHED-06 | FR-AGENT-05 AC-5 | `daily_brief.py` 비정상 종료 시뮬레이션 | 래퍼 exit code 는 brief 단계 값, plist `KeepAlive` 없어 재시도 안 함 |
+| TC-SCHED-07 | FR-AGENT-05 | `bash scripts/install-dailybrief-launchd.sh --uninstall` | plist 언로드·삭제 |
 
 #### 3.4a Google OAuth — `agent/tests/test_google_oauth.py` (Phase D2-b)
 

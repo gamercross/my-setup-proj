@@ -131,7 +131,8 @@ agent/
 ├── services/
 │   ├── gmail.py        # Gmail 통합
 │   ├── calendar.py     # Calendar 통합
-│   ├── notion.py       # Notion 통합
+│   ├── notion.py       # Notion 통합 (REST 직접, 브리핑 저장 — D3)
+│   ├── sanitize.py     # 에러 토큰 마스킹 (공용 — D3)
 │   └── claude.py       # Claude API
 ├── models/
 │   └── schemas.py      # 데이터 모델
@@ -192,7 +193,7 @@ ALTER TABLE tasks ADD COLUMN is_synced BOOLEAN;
 |-----|------|------|---------|
 | **Google Calendar** | 일정 조회/생성 | OAuth 2.0 | SDK (google-api-python-client) |
 | **Gmail** | 이메일 조회 | OAuth 2.0 | SDK (google-api-python-client) |
-| **Notion** | 프로젝트 관리 | Integration Token | SDK (notion-client) |
+| **Notion** | 브리핑 저장 | Integration Token (`NOTION_API_KEY`) + `NOTION_PARENT_PAGE_ID` | REST 직접 (`requests`, `Notion-Version: 2022-06-28`) — D3 |
 | **Claude API** | AI 에이전트 | API Key | anthropic SDK |
 | **Supabase** | 클라우드 DB | API Key + JWT | REST API — **backend 소유**(수집 API 아님). 현재 연결 배선만 |
 
@@ -202,37 +203,38 @@ ALTER TABLE tasks ADD COLUMN is_synced BOOLEAN;
 
 > 구현 단위의 정확한 시퀀스(에러 분기 포함)는 [DESIGN.md](DESIGN.md) §6·§7.
 
-### 1️⃣ 아침 자동 브리핑 흐름 (D3 목표)
+### 1️⃣ 아침 자동 브리핑 흐름 (D3 구현 완료)
 
 ```mermaid
 sequenceDiagram
-  participant SCH as 스케줄러 (07:50 / 08:00)
+  participant SCH as launchd/cron 07:30<br/>(daily-brief-run.sh)
   participant SY as sync.py (수집)
   participant AG as daily_brief.py (생성)
-  participant EXT as Gmail / Calendar / Notion
+  participant EXT as Gmail / Calendar
+  participant NO as Notion REST
   participant CL as Claude API
   participant DB as SQLite
   participant API as Express API
   participant UI as 앱 UI
 
-  SCH->>SY: sync (07:50, brief 보다 먼저)
+  SCH->>SY: sync (brief 보다 먼저)
   SY->>EXT: 미읽은 메일 · 오늘 일정 수집 (ACL)
   EXT-->>SY: 데이터
   SY->>DB: emails · calendar_events 캐시 upsert
-  SCH->>AG: generate_daily_brief() (08:00)
+  SCH->>AG: daily_brief.py (sync 실패해도 실행)
   AG->>DB: 캐시 + 진행 중 프로젝트 조회 (네트워크 미접촉)
   DB-->>AG: 컨텍스트
   AG->>CL: "우선순위별로 정리해줘" (+ 컨텍스트)
   CL-->>AG: 브리핑 텍스트
-  AG->>DB: briefs 저장
-  AG->>EXT: Notion 페이지로 저장 → briefs.notion_url
+  AG->>DB: briefs 저장 (date upsert)
+  AG->>NO: 페이지 생성 (미설정 시 스킵) → briefs.notion_url + sync_logs
   UI->>API: GET /api/brief/today
-  API->>DB: briefs 조회
-  DB-->>API: brief
-  API-->>UI: "아침 브리핑 준비됨"
+  API->>DB: briefs 조회 (오늘 date)
+  DB-->>API: brief 또는 없음
+  API-->>UI: { brief: {...} } 또는 { brief: null } (200, ADR-0025)
 ```
 
-> `sync.py` 는 D2-b 에서 실 수집 구현 완료. `GET /api/brief/today` 와 스케줄러(FR-AGENT-05)는 D3 목표.
+> `sync.py`·Notion 저장·`GET /api/brief/today`·스케줄러(FR-AGENT-03/04/05) 모두 구현 완료 (D2-b·D3).
 
 ### 2️⃣ 사용자 할일 입력 흐름
 
@@ -304,6 +306,7 @@ GOOGLE_REDIRECT_URI=http://localhost:3000/auth/callback
 
 # Notion
 NOTION_API_KEY=secret_xxx
+NOTION_PARENT_PAGE_ID=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 # Claude API
 ANTHROPIC_API_KEY=sk-ant-xxx
