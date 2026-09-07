@@ -123,14 +123,14 @@ flowchart TB
 | 관련 | `UI_STYLE.md` 개정 · ADR-0027 (예정, 라이트 테마 기본 전환 + 토큰 v2) · FR-WIDGET-05/06 |
 | 크기 | 중 (토큰·프레임) + 지속 (위젯별 다듬기) |
 
-### T6 — 프로젝트 진행 현황 뷰 (대시보드에서 우리 진행 상황 보기)
+### T6 — 진행 현황 · 파일 탐색 (대시보드에서 우리가 하는 것 보기)
 
 | | |
 |---|---|
-| 무엇 | `PROGRESS.md`·`PERSONAL_OS.md`·`작업로그.md`·`TRACEABILITY.md`·`DEMO_FEEDBACK.md` 같은 진행 문서를 대시보드 위젯에서 렌더 — 저장소를 열지 않고 "우리가 어디까지 왔나 / 다음 순서" 확인 |
-| 지금 | 다이어그램 뷰어(C4)는 mermaid 블록만 뽑아 렌더. 진행 본문은 저장소를 열어야 봄 |
-| 목표 | `GET /api/docs/:name` (허용목록) → `services/diagrams.js` 처럼 **의존성 없이** 우리 문서가 쓰는 부분집합(제목·목록·표·코드블록·mermaid·링크)만 토큰화한 JSON 반환. 프론트가 토큰을 React 요소로 매핑(`<h*>`/`<ul>`/`<table>`/`<pre>`), mermaid 블록은 기존 `DiagramPanel` 재사용. **마크다운 파서·`dangerouslySetInnerHTML` 없음** (NFR-SEC-04 규범 유지). "진행 현황" 위젯 |
-| 관련 | FR-UI-05(다이어그램 뷰어) 사촌 · 새 FR-UI-06 · ADR-0031 (예정, 안전 마크다운 렌더) · 다이어그램 뷰어 인프라(`resolveDocsRoot`·`resourcesPath` 폴백·상한) 재사용 |
+| 무엇 | 저장소를 IDE 로 열지 않고, 대시보드 위젯 하나에서 ① **왼쪽 폴더 트리** 로 프로젝트 파일 구조를 훑고 ② 파일을 클릭하면 **오른쪽 내용 패널** 에 렌더 — `PROGRESS.md`·`PERSONAL_OS.md`·`작업로그.md`·ADR·소스 파일 등. "우리가 어디까지 왔나 / 다음 순서 / 어떤 파일이 있나" 를 앱 안에서 확인 |
+| 지금 | 다이어그램 뷰어(C4)는 mermaid 블록만 뽑아 렌더. 진행 본문·파일 구조는 저장소를 열어야 봄 |
+| 목표 | **백엔드** ① `GET /api/tree` — 허용 루트(`docs`·`frontend/src`·`backend/src`·`agent`·`scripts`·루트 `*.md`)만 재귀 나열, `.env*`·`node_modules`·`.git`·`venv`·`.secrets`·`dist` 제외, 깊이·개수 상한 (`services/diagrams.js` 인프라 재사용). ② `GET /api/docs/:path` — 허용 파일 1개를 **의존성 없이** 토큰화(제목·목록·표·코드블록·mermaid·링크)한 JSON. `.md` 는 부분집합 토큰, `.js`/`.py` 등은 `<pre>` 코드블록. **마크다운 파서·`dangerouslySetInnerHTML` 없음** (NFR-SEC-04). **프론트** 위젯 내부 레이아웃 = 왼쪽 트리(~30%) + 오른쪽 내용(~70%). mermaid 블록은 기존 `DiagramPanel` 재사용. 셸의 별도 좌측 레일이 **아님** — DO-1 단일 그리드 유지 |
+| 관련 | FR-UI-05(다이어그램 뷰어) 사촌 · 새 FR-UI-06 · ADR-0031 (예정 — 안전 마크다운 렌더 + `/api/tree`) · 다이어그램 뷰어 인프라(`resolveDocsRoot`·`resourcesPath` 폴백·상한) 재사용 |
 | 크기 | 중 (`/feature` 1회) |
 | 메타 | T3 의 "PROGRESS.md 가 프로젝트에 하는 일을 앱이 사용자에게" 와 짝 — 이건 프로젝트 자신을 위한 버전 |
 
@@ -191,7 +191,7 @@ flowchart TB
 | **P6** | T2 자동 분류 | 스키마 마이그레이션 + 에이전트 분류 + 칩 필터 | P4·P5 |
 | **P7** | T4 에이전트 활동 위젯 | `sync_logs`/`health`/다음 실행 → 위젯 | P4 |
 | **P8** | T3 OKR Phase | `objectives`/`key_results` + OKR 대시보드 + 주간 플래너 + (선택) Weekly Brief | P4·P5 |
-| **P9** | T6 진행 현황 뷰 | `GET /api/docs/:name` + 안전 토큰화 + "진행 현황" 위젯 (mermaid 은 `DiagramPanel` 재사용) | P4 |
+| **P9** | T6 진행 현황 · 파일 탐색 | `GET /api/tree`(허용 루트·상한) + `GET /api/docs/:path`(안전 토큰화) + "진행 현황" 위젯(왼쪽 트리 + 오른쪽 내용, mermaid 은 `DiagramPanel` 재사용). 데모용 `demoClient.js` 목 트리 | P4 |
 
 각 빌드 단계는 `/feature` 파이프라인 1회, 개별 브랜치·PR. `frontend/` 변경은 병합 시 데모 자동 재배포.
 
@@ -210,6 +210,7 @@ flowchart TB
 | PO-9 | 에이전트 "지금 실행" 버튼 → 백엔드가 python 트리거 (ADR-0011 프로세스 분리 예외?) | ADR-0013 |
 | PO-10 | 이 방향과 Phase E(다중 사용자)의 순서 — 병행 vs 이후 | PROGRESS |
 | PO-11 | 진행 현황 뷰에 어떤 문서·섹션을 노출하나 (전체 문서 vs 큐레이션된 섹션), 접기 UI | ADR-0031 / P9 |
+| PO-12 | 파일 트리 허용 루트·제외 목록 확정. 소스 파일(`.js`/`.py`)을 코드블록으로 보여줄지, `.md` 만 렌더할지 | ADR-0031 / P9 |
 
 ## 9. 관련 문서
 

@@ -68,4 +68,4 @@
 | [0028](ADR-0028-single-client-cache.md) | 단일 클라이언트 캐시 — 뷰는 파생만, 칸반 별 타입 | 제안 — 개인 OS P1 (PO-7) | FR-TASK-02/03, FR-UI-01 | — |
 | [0029](ADR-0029-task-auto-category.md) | 할 일 자동 분류 — 에이전트 배치, `tasks.category` | 제안 — 개인 OS P1 (PO-3/4) | FR-TASK-08 | — |
 | [0030](ADR-0030-okr-data-model.md) | OKR 데이터 모델 + 주간 플래너 | 제안 — 개인 OS P1 (PO-5/6) | FR-OKR-* | — |
-| [0031](ADR-0031-safe-markdown-render.md) | 안전 마크다운 렌더 — 서버 토큰화 + React 매핑 | 제안 — 개인 OS P1 (PO-11) | FR-UI-06 | — |
+| [0031](ADR-0031-safe-markdown-render.md) | 안전 마크다운 렌더 + 파일 트리 API (서버 토큰화·`GET /api/tree`) | 제안 — 개인 OS P1 (PO-11/12) | FR-UI-06 | — |
