@@ -7,6 +7,18 @@
 
 ---
 
+## 🔗 지금 보기 / 작업하는 곳
+
+| 무엇 | 링크 | 설명 |
+|---|---|---|
+| **라이브 데모** | **<https://gamercross.github.io/my-setup-proj/>** | 지금까지 만든 대시보드를 브라우저에서 바로 — 백엔드·로그인 없이 샘플 데이터로 동작 ([ADR-0026](docs/product/architecture/adr/ADR-0026-web-demo-mode.md)). `main` 의 `frontend/` 변경 시 자동 재배포 |
+| **데모 피드백** | [docs/progress/DEMO_FEEDBACK.md](docs/progress/DEMO_FEEDBACK.md) | 데모 체크 시나리오·한계·피드백 로그. 버그·개선점은 여기에 |
+| **진행 현황** | [docs/progress/PROGRESS.md](docs/progress/PROGRESS.md) · [작업로그.md](작업로그.md) | 주간 체크리스트 / 날짜별 작업 요약 |
+| **무엇이 어디까지** | [docs/product/requirements/TRACEABILITY.md](docs/product/requirements/TRACEABILITY.md) · [DESIGN §8](docs/product/architecture/DESIGN.md) | FR별 상태 / Phase 표 |
+| **저장소·PR** | [github.com/gamercross/my-setup-proj](https://github.com/gamercross/my-setup-proj) | `feature/* → PR → main` ([ADR-0023](docs/product/architecture/adr/ADR-0023-branch-model.md)) |
+
+---
+
 ## 🖥️ 대시보드 주요 기능
 
 앱은 **"대시보드 OS"** 다 — 아래 기능들이 각각 **위젯**으로 셸에 올라가 이동·리사이즈되고, 위젯마다 사용자가 색·밀도·표시 옵션을 꾸민다 ([DASHBOARD_OS.md](docs/product/vision/DASHBOARD_OS.md) · [UI_SPEC.md](docs/product/reference/UI_SPEC.md) · [requirements/WIDGET.md](docs/product/requirements/WIDGET.md)). 위젯 셸(배치·이동·리사이즈·최소화·레이아웃 영속·위젯별 격리)은 C5(2026-09-06)에서 구현됐고 `Dashboard.jsx` 는 제거됐다. 위젯별 테마·표시 옵션은 Phase C6(2026-09-06)에서 구현됐다.
@@ -106,11 +118,10 @@ Electron·백엔드가 필요 없다 ([ADR-0026](docs/product/architecture/adr/A
 cd frontend && npm run preview:demo   # 로컬에서 빌드 + 미리보기
 ```
 
-- 배포본: **https://gamercross.github.io/my-setup-proj/** — `main` 의 `frontend/` 변경 시
-  `.github/workflows/deploy-demo.yml` 이 자동 배포. 워크플로가 `enablement: true` 로 Pages 를
-  자동으로 켜지만, 조직 정책으로 막혀 있으면 Settings → Pages → Source "GitHub Actions" 를
-  1회 수동 설정해야 한다.
-- 데모에서 추가/이동한 내용은 새로고침하면 초기화된다.
+- 배포본(라이브): **https://gamercross.github.io/my-setup-proj/** — `main` 의 `frontend/` 변경 시
+  `.github/workflows/deploy-demo.yml` 이 자동 재배포한다 (저장소 Pages Source = "GitHub Actions").
+- 데모에서 추가/이동한 내용은 새로고침하면 초기화된다. 체크 시나리오·한계·피드백은
+  [docs/progress/DEMO_FEEDBACK.md](docs/progress/DEMO_FEEDBACK.md).
 
 전체 환경 구축 절차는 [SETUP.md](docs/setup/SETUP.md), 프로젝트 맥락은 [ONBOARDING.md](docs/ONBOARDING.md) 를 본다.
 

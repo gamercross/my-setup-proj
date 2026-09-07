@@ -12,6 +12,7 @@
 |---|---|---|---|
 | [PROGRESS.md](PROGRESS.md) | 주간 진행·체크리스트·마일스톤 (매주 월요일 갱신) | 이번 주 목표, 다음 할 일 | 스냅샷 — 상세는 [../product/requirements/TRACEABILITY.md](../product/requirements/TRACEABILITY.md)(FR별 상태), [../product/architecture/DESIGN.md](../product/architecture/DESIGN.md) §8(Phase) |
 | [COURSE_MAPPING.md](COURSE_MAPPING.md) | 3강의(A·B·C) 주차 ↔ 프로젝트 산출물 매핑 | 강의 진도·발표와 맞추기 | 강의 A 는 주차별 기술 종속, 강의 B·C 는 W8·W15 마감만 제약 |
+| [DEMO_FEEDBACK.md](DEMO_FEEDBACK.md) | 라이브 웹 데모(<https://gamercross.github.io/my-setup-proj/>) 체크 시나리오·한계·피드백 로그 | 데모를 보고 버그·개선점을 남길 때, 밀려 있던 브라우저 수동 체크(TC-UI/TC-WIDGET) 진행 | 데모 한계(§3)와 실제 버그를 구분 — 새로고침 초기화·빈 위젯은 의도된 동작 |
 
 관련 (progress/ 밖):
 
