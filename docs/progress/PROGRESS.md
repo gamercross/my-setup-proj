@@ -89,7 +89,7 @@
 개발: 72%
 ```
 
-> Phase A2·A3·B1·B2·C1~C6·D1·D2-a·D2-b·D3·D-마무리 완료, 웹 데모 프로토타입(ADR-0026, GitHub Pages) 완료. Notion·launchd 로컬 설정·검증 완료(2026-09-07). 다음: 웹 데모 Pages 활성화(저장소 설정 1회), Google 최초 로그인(D2-b), Phase E(다중 사용자) 착수 전 Week 10 인증/RLS ADR.
+> Phase A2·A3·B1·B2·C1~C6·D1·D2-a·D2-b·D3·D-마무리 완료, 웹 데모 프로토타입(ADR-0026, GitHub Pages) 완료. Notion·launchd 로컬 설정·검증 완료, 웹 데모 라이브(https://gamercross.github.io/my-setup-proj/). **다음 축: 개인 생산성 OS 방향**(PERSONAL_OS.md — 라이트 테마 + OKR·칸반·자동분류·에이전트 UI). 순서: 문서(P1) → 디자인(P2) → 빌드(P3~P8). Phase E(다중 사용자)와의 순서는 PO-10.
 > 검증 스냅샷: `node v26.8.1 / npm 11.19.0 / python 3.14.4`, `verify.sh` 27/0/0, `agent pytest` 54/0 (4 deselected), `frontend npm test` 9/0, `backend npm test` 59/0, `check-docs.sh` 11/0/0, `frontend npm run build` 성공.
 
 ---
@@ -243,7 +243,7 @@ wc -l                  # 줄 수 세기
 ```
 완료한 작업: 18개 (… C6 까지 = C1~C6, Daily Brief 에이전트 배선 = D1, 재시도·sync_logs = D2-a, Google OAuth + Gmail/Calendar 수집 = D2-b, Notion 저장 + Brief API·위젯 + launchd = D3, 백엔드 조회 API 실 캐시 배선 + mail 엔드포인트 + task 필터 + seed-demo = D-마무리, 웹 데모 모드(VITE_DEMO 목 어댑터) + GitHub Pages 배포 = 웹 데모)
 진행 중: 1개 (B3·C2·C3·C4·C5·C6 브라우저 E2E·GUI 수동체크 — 로컬 대기)
-예정된 작업: 1개 (Phase E — 다중 사용자, Week 10 인증/RLS ADR 선행)
+예정된 작업: 개인 생산성 OS 방향 P1~P8 (PERSONAL_OS.md) + Phase E(다중 사용자, Week 10 ADR 선행)
 
 진행도: 90%
 강의 수강: 0%
@@ -291,6 +291,51 @@ umask -S               # 기본 권한
 강의 수강: 0%
 개발: 0%
 ```
+
+---
+
+## 🧭 개인 생산성 OS 방향 (Personal OS)
+
+> Phase D(에이전트) 완료 직후 사용자가 제시한 새 작업 축. 상세: [../product/vision/PERSONAL_OS.md](../product/vision/PERSONAL_OS.md).
+> 순서 원칙: **문서 → 디자인 → 빌드.** 각 빌드 단계는 `/feature` 파이프라인 1회, 개별 PR, `frontend/` 변경은 병합 시 [웹 데모](https://gamercross.github.io/my-setup-proj/) 자동 재배포.
+
+**역량 테마:** T1 단일 완료 · T2 자동 분류 · T3 OKR·주간 플래너 · T4 에이전트 활동 UI · T5 라이트 비주얼 시스템
+
+```mermaid
+flowchart LR
+  subgraph DOC["① 문서"]
+    P0["P0 · PERSONAL_OS.md<br/>+ 이 다이어그램 ✅"]
+    P1["P1 · ADR 0027·0028·0029·0030<br/>+ 0013 재활성 · 0018 결정<br/>+ requirements/OKR.md<br/>+ UI_STYLE.md 개정"]
+  end
+  subgraph DES["② 디자인"]
+    P2["P2 · 목표 화면 목업<br/>(라이트 대시보드·OKR·칸반·에이전트)<br/>토큰 v2 확정"]
+  end
+  subgraph BUILD["③ 빌드 (/feature 파이프라인)"]
+    P3["P3 · T5 라이트 테마 1차<br/>styles.css 토큰 v2 + data-theme<br/>→ 데모 반영"]
+    P4["P4 · T5 공통 컴포넌트<br/>스탯 타일 · 점-그리드 진행바 · 칩"]
+    P5["P5 · T1 단일 캐시 + 칸반 뷰<br/>완료 체크 · 우선순위 열 · 태그"]
+    P6["P6 · T2 자동 분류<br/>스키마 마이그레이션 + 에이전트 분류"]
+    P7["P7 · T4 에이전트 활동 위젯<br/>sync_logs · health · 다음 실행"]
+    P8["P8 · T3 OKR Phase<br/>objectives·key_results + 대시보드<br/>+ 주간 플래너"]
+  end
+
+  P0 --> P1 --> P2 --> P3 --> P4
+  P4 --> P5 --> P6
+  P4 --> P7
+  P4 --> P8
+  P5 --> P8
+
+  style P0 fill:#dcfce7,stroke:#16a34a
+```
+
+| 단계 | 상태 | 산출물 |
+|---|---|---|
+| P0 | ✅ 2026-09-07 | `PERSONAL_OS.md` · 이 다이어그램 |
+| P1 문서 | ⏳ | ADR 4건 초안 + 0013 재활성 + 0018 결정 + `OKR.md` + `UI_STYLE.md` 개정 |
+| P2 디자인 | ⏳ | 목업 캔버스 + 토큰 확정 |
+| P3~P8 빌드 | ⏳ | 위 다이어그램 순서대로 |
+
+**열린 질문 PO-1~10** (착수 전 결정) 은 [PERSONAL_OS.md §8](../product/vision/PERSONAL_OS.md) 참조 — 특히 PO-1(라이트 기본 전환), PO-7(칸반이 할 일 위젯 대체 vs 추가), PO-10(Phase E 와의 순서).
 
 ---
 

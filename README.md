@@ -15,6 +15,7 @@
 | **데모 피드백** | [docs/progress/DEMO_FEEDBACK.md](docs/progress/DEMO_FEEDBACK.md) | 데모 체크 시나리오·한계·피드백 로그. 버그·개선점은 여기에 |
 | **진행 현황** | [docs/progress/PROGRESS.md](docs/progress/PROGRESS.md) · [작업로그.md](작업로그.md) | 주간 체크리스트 / 날짜별 작업 요약 |
 | **무엇이 어디까지** | [docs/product/requirements/TRACEABILITY.md](docs/product/requirements/TRACEABILITY.md) · [DESIGN §8](docs/product/architecture/DESIGN.md) | FR별 상태 / Phase 표 |
+| **다음 방향** | [docs/product/vision/PERSONAL_OS.md](docs/product/vision/PERSONAL_OS.md) | 개인 생산성 OS (라이트 테마 · OKR · 칸반 · 자동분류 · 에이전트 UI) — 문서→디자인→빌드 |
 | **저장소·PR** | [github.com/gamercross/my-setup-proj](https://github.com/gamercross/my-setup-proj) | `feature/* → PR → main` ([ADR-0023](docs/product/architecture/adr/ADR-0023-branch-model.md)) |
 
 ---
@@ -71,7 +72,7 @@ flowchart TB
 |---|---|---|---|
 | [docs/](docs/README.md) | 전체 허브 | ONBOARDING · STUDY_GUIDE | 어디로 갈지 모를 때 |
 | [product/](docs/product/README.md) | 무엇을 만드나 (5 카테고리 허브) | — | 제품 전반 |
-| [product/vision/](docs/product/vision/README.md) | 왜·완료의 정의 | VISION · DASHBOARD_OS · AS_IS · RISKS | 방향·범위 판단 |
+| [product/vision/](docs/product/vision/README.md) | 왜·완료의 정의 | VISION · DASHBOARD_OS · **PERSONAL_OS** · AS_IS · RISKS | 방향·범위 판단 |
 | [product/requirements/](docs/product/requirements/README.md) | 무엇을 만족해야 | FR · NFR · TRACEABILITY · TASK/UI/AGENT/PROJ/WIDGET | "이거 어느 FR인가" |
 | [product/architecture/](docs/product/architecture/README.md) | 어떻게 만드나 (구조·결정) | ARCHITECTURE §0 뷰 지도 · DESIGN · DRIVERS · RUNTIME/DATA/CROSSCUTTING/EVOLUTION | 구현 착수 전 |
 | [product/architecture/adr/](docs/product/architecture/adr/README.md) | 결정 이력 | ADR-0001~0026 (채택/제안) | "왜 이렇게 정했나" |
