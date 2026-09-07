@@ -172,13 +172,14 @@ bash scripts/slack-notify.sh "✅" "마무리하는 친구" "커밋 abc123 푸�
 
 ```
 .claude/
-  settings.json              # Stop 훅 → worklog.sh
+  settings.json              # Stop 훅 → worklog.sh · PreToolUse 훅 → hook-code-branch-guard.sh
   agents/{planner,developer,supervisor,finisher}.md
   agents/README.md
   commands/feature.md        # /feature — 한 기능 파이프라인
   commands/build-next.md     # /build-next — 로드맵 자동 진행 상위 루프
 scripts/
   worklog.sh                 # 매 턴: 오늘 섹션 갱신
+  hook-code-branch-guard.sh  # PreToolUse: 코드 소스를 main 에서 직접 편집 시 승인 프롬프트 (CONVENTIONS §6)
   worklog-eod.sh             # 23:50: 커밋·푸시·슬랙
   slack-notify.sh            # 슬랙 Incoming Webhook 전송
   render-diagrams.sh         # docs/ 의 Mermaid 블록 → SVG (docs/setup/DIAGRAMS.md)

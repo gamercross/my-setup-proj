@@ -87,6 +87,8 @@
 | 스택 작업 | PR 을 쌓고 아래부터 병합, 병합 시 상위 PR base 를 `main` 으로 재지정 (PR #1~#3 선례) |
 
 > `/feature`·`/build-next` 오케스트레이터가 단계 시작 시 브랜치를 확인하고, `main` 위면 먼저 `feature/*` 를 만든다. 자세히는 [GIT_WORKFLOW.md](GIT_WORKFLOW.md) §2.
+>
+> **훅 가드:** `PreToolUse(Edit|Write)` 훅 `scripts/hook-code-branch-guard.sh` 가 `frontend/src`·`backend/src`·`agent/` 소스를 **`main` 브랜치에서 직접 편집**하려 하면 승인 프롬프트를 띄운다 (테스트·`.md`·`design-p2/` 예외). 코드 변경은 `/feature` 파이프라인으로 하라는 규칙(§7)의 안전장치. `.claude/settings.json` 에 배선.
 
 ## 7. 에이전트 파이프라인 규칙
 
