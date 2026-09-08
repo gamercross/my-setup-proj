@@ -72,7 +72,7 @@ PO-8 = 인라인 SVG 로 결정됨.
 |---|---|---|
 | P0 | 문서 + PROGRESS 다이어그램 | ✅ |
 | P1 | ADR 초안 + 요구사항 | 🚧 **부분** (아래 §4) |
-| P2 | 디자인 캔버스 6 아트보드 + 토큰 v2 | ✅ (https://claude.ai/code/artifact/a8e15d6b-2bfb-42d9-96c7-cdb0d964ebf3) |
+| P2 | 디자인 캔버스 6 아트보드 + 토큰 v2 | ✅ · **v2 재작성 2026-09-08** (UI_STYLE v2 사이드바 반영, 같은 URL: https://claude.ai/code/artifact/a8e15d6b-2bfb-42d9-96c7-cdb0d964ebf3) |
 | P3 | T5 라이트 테마 1차 (ADR-0027 채택) | ✅ |
 | P4 | T5 공통 컴포넌트 | ✅ (PR #42 병합 대기) |
 | **P5** | **T1 단일 캐시 + 칸반 뷰** — `useTaskStore` id 키잉, 칸반(완료·우선순위 열·태그) | ⏳ **다음** |

@@ -337,7 +337,7 @@ flowchart LR
 |---|---|---|
 | P0 | ✅ 2026-09-07 | `PERSONAL_OS.md` · 이 다이어그램 |
 | P1 문서 | ⏳ | ADR 4건 초안 + 0013 재활성 + 0018 결정 + `OKR.md` + `UI_STYLE.md` 개정 |
-| P2 디자인 | ✅ 2026-09-07 | 목업 캔버스 6 아트보드(대시보드 전체·공통 컴포넌트·OKR·칸반·에이전트 활동·진행 현황) + 토큰 v2 확정 (ADR-0027 반영). 캔버스: https://claude.ai/code/artifact/a8e15d6b-2bfb-42d9-96c7-cdb0d964ebf3 |
+| P2 디자인 | ✅ 2026-09-07 · v2 2026-09-08 | 목업 캔버스 6 아트보드(개요·할일 리스트+칸반·OKR·에이전트 활동·진행 현황·공통 컴포넌트) + 토큰 v2 확정 (ADR-0027 반영). **v2: UI_STYLE v2(라이트 + 왼쪽 그룹형 사이드바) 반영해 재작성, 같은 URL.** 캔버스: https://claude.ai/code/artifact/a8e15d6b-2bfb-42d9-96c7-cdb0d964ebf3 |
 | P3 라이트 테마 | ✅ 2026-09-07 | `styles.css` 토큰 v2 + `[data-theme=dark]` 블록(정의만), 하드코딩 hex → 토큰 1:1 치환 (ADR-0027 채택). 전역 다크 토글 UI 는 후속 |
 | P4 공통 컴포넌트 | ✅ 2026-09-07 | `frontend/src/components/` — `dotFill.js`(순수: `dotFill`/`normalizeTotal`/`clampPct`) + `DotProgress.jsx`(점그리드 진행바, `role=progressbar`) + `StatTile.jsx`(스탯 타일, tone별 숫자색) + `Chip.jsx`(칩, onClick 유무로 button/span). 카드 토큰 v2(`--card-radius` 16·`--shadow-card`) + `WidgetFrame` 그림자 + `ProjectCard` 진행바를 `DotProgress` 로 교체. `frontend/test/dotFill.test.mjs` TC-P4-01~05. 컴포넌트 시각 확인은 로컬 GUI 수동 검증 대기 |
 | P5~P9 빌드 | ⏳ | 위 다이어그램 순서대로 — **`/feature` 파이프라인으로 진행** (P9 진행 현황 뷰 = 이 문서를 대시보드에서 보기) |
