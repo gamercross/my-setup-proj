@@ -76,6 +76,24 @@ test('TC-P5-11: 실패하면 byId/order/tasks 3필드가 복원되고 error 가 
   assert.equal(typeof s.error, 'string');
 });
 
+test('TC-P5-14 (AC-7): fetchTasks 와 무관한 no-op 액션 뒤에도 tasks 참조가 그대로다', async () => {
+  fetchImpl = () => jsonRes({ tasks: SAMPLE });
+  const store = await freshStore();
+  await store.getState().fetchTasks();
+  const tasksRef = store.getState().tasks;
+
+  // 존재하지 않는 id → early-return, set 미호출
+  await store.getState().toggleTask(999);
+  await store.getState().removeTask(999);
+  // error 가 없을 때 clearError 도 tasks 를 건드리면 안 된다
+  store.getState().clearError();
+
+  const s = store.getState();
+  assert.equal(s.tasks, tasksRef, 'tasks 배열이 같은 참조로 유지');
+  assert.equal(s.byId, store.getState().byId);
+  assert.deepEqual(s.order, [1, 2, 3]);
+});
+
 test('TC-P5-11b: fetch 실패해도 기존 tasks 는 보존 + error 문자열', async () => {
   fetchImpl = () => jsonRes({ tasks: SAMPLE });
   const store = await freshStore();
