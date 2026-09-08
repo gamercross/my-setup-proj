@@ -130,6 +130,9 @@ describe('DB 계층', () => {
       'briefs',
       'calendar_events',
       'emails',
+      'key_results',
+      'kr_snapshots',
+      'objectives',
       'projects',
       'sync_logs',
       'task_tags',
@@ -227,6 +230,37 @@ describe('DB 계층', () => {
 
     const baks = fs.readdirSync(tmpDir).filter((f) => f.startsWith('brandnew.db.bak-'));
     assert.equal(baks.length, 0, '신규 DB 는 .bak-* 를 만들지 않는다');
+  });
+
+  it('TC-DB-06: 기존 파일 DB(v1) 재오픈 시 OKR 3테이블이 생성되고 user_version 은 1 유지', () => {
+    const dbPath = path.join(tmpDir, 'okr-tables.db');
+
+    // 1) v1 상태 파일 DB 를 만든다 (OKR 테이블 없음).
+    let db = loadDb(dbPath);
+    db.addTask({ title: '기존 데이터' });
+    let conn = require('../db').getDb();
+    assert.equal(conn.pragma('user_version', { simple: true }), 1);
+    require('../db').closeDatabase();
+
+    // 2) 재오픈 — schema.sql 의 CREATE TABLE IF NOT EXISTS 가 신규 테이블만 추가한다.
+    db = loadDb(dbPath);
+    conn = require('../db').getDb();
+    const tables = conn
+      .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'")
+      .all()
+      .map((r) => r.name);
+    for (const t of ['objectives', 'key_results', 'kr_snapshots']) {
+      assert.ok(tables.includes(t), `${t} 테이블이 생성돼야 한다`);
+    }
+    // 버전 상향 없음 (결정 C)
+    assert.equal(conn.pragma('user_version', { simple: true }), 1);
+    // 기존 데이터 보존
+    assert.equal(db.getTasks().length, 1);
+
+    // OKR 함수도 노출된다
+    assert.equal(typeof db.getObjectives, 'function');
+    assert.deepEqual(db.getObjectives(), []);
+    require('../db').closeDatabase();
   });
 
   it('TC-DB-04c: CHECK 위반은 SqliteError(code=SQLITE_CONSTRAINT_CHECK) 로 던진다', () => {

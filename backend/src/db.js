@@ -23,6 +23,15 @@ const EMAIL_COLS =
 const TASK_FIELDS = ['title', 'description', 'due_date', 'priority', 'status', 'project_id'];
 const PROJECT_FIELDS = ['name', 'progress', 'status', 'notion_id'];
 
+// ── OKR (objectives / key_results / kr_snapshots) ─────────────────────────────
+// key_results.current 는 SQLite 예약어라 DDL·SQL 에서 항상 "current" 로 인용한다.
+// SELECT 는 "current" AS current 로 되돌려 응답 키는 current 를 유지한다 (P8 주의점 1).
+const OBJECTIVE_COLS = 'id, title, period, status, created_at, updated_at';
+const KR_COLS =
+  'id, objective_id, title, target, "current" AS current, unit, project_id, created_at, updated_at';
+const OBJECTIVE_FIELDS = ['title', 'period', 'status'];
+const KR_FIELDS = ['title', 'target', 'current', 'unit', 'project_id'];
+
 // prepared statement 는 모듈 로드 시 준비한다.
 const stmts = {
   listTasks: db.prepare(`SELECT ${TASK_COLS} FROM tasks ORDER BY id`),
@@ -96,6 +105,59 @@ const stmts = {
      WHERE is_read = 0
      ORDER BY (received_at IS NULL), received_at DESC, id DESC
      LIMIT @limit`
+  ),
+
+  // ── OKR ──────────────────────────────
+  listObjectives: db.prepare(`SELECT ${OBJECTIVE_COLS} FROM objectives ORDER BY id`),
+  listObjectivesActive: db.prepare(
+    `SELECT ${OBJECTIVE_COLS} FROM objectives WHERE status <> 'archived' ORDER BY id`
+  ),
+  getObjective: db.prepare(`SELECT ${OBJECTIVE_COLS} FROM objectives WHERE id = ?`),
+  insertObjective: db.prepare(
+    `INSERT INTO objectives (title, period, status, created_at, updated_at)
+     VALUES (@title, @period, @status, @created_at, @updated_at)`
+  ),
+  updateObjective: db.prepare(
+    `UPDATE objectives SET title = @title, period = @period, status = @status,
+       updated_at = @updated_at
+     WHERE id = @id`
+  ),
+  deleteObjective: db.prepare('DELETE FROM objectives WHERE id = ?'),
+
+  listKeyResults: db.prepare(
+    `SELECT ${KR_COLS} FROM key_results ORDER BY objective_id, id`
+  ),
+  getKeyResult: db.prepare(`SELECT ${KR_COLS} FROM key_results WHERE id = ?`),
+  insertKeyResult: db.prepare(
+    `INSERT INTO key_results (objective_id, title, target, "current", unit, project_id, created_at, updated_at)
+     VALUES (@objective_id, @title, @target, @current, @unit, @project_id, @created_at, @updated_at)`
+  ),
+  updateKeyResult: db.prepare(
+    `UPDATE key_results SET title = @title, target = @target, "current" = @current,
+       unit = @unit, project_id = @project_id, updated_at = @updated_at
+     WHERE id = @id`
+  ),
+  deleteKeyResult: db.prepare('DELETE FROM key_results WHERE id = ?'),
+
+  upsertSnapshot: db.prepare(
+    `INSERT INTO kr_snapshots (key_result_id, month, pct)
+     VALUES (@key_result_id, @month, @pct)
+     ON CONFLICT(key_result_id, month) DO UPDATE SET pct = excluded.pct`
+  ),
+  listTrend: db.prepare(
+    `SELECT month, AVG(pct) AS avg FROM kr_snapshots
+     GROUP BY month ORDER BY month DESC LIMIT 12`
+  ),
+
+  // 주간 플래너 — due_date 는 [from, afterEnd) 반개구간. due_date IS NULL 은 자동 제외.
+  countTasksInRange: db.prepare(
+    `SELECT COUNT(*) AS total, SUM(status = 'done') AS done FROM tasks
+     WHERE due_date >= @from AND due_date < @afterEnd`
+  ),
+  listTasksInRange: db.prepare(
+    `SELECT ${TASK_COLS} FROM tasks
+     WHERE due_date >= @from AND due_date < @afterEnd
+     ORDER BY due_date, id LIMIT @limit`
   ),
 };
 
@@ -312,8 +374,157 @@ function getUnreadEmails({ limit } = {}) {
   return stmts.listUnreadEmails.all({ limit: lim });
 }
 
+// ── OKR: 목표(objectives) ─────────────────────────────
+
+// 목표 목록. includeArchived 면 전체, 아니면 archived 제외.
+function getObjectives({ includeArchived } = {}) {
+  return includeArchived
+    ? stmts.listObjectives.all()
+    : stmts.listObjectivesActive.all();
+}
+
+function getObjective(id) {
+  const nid = toId(id);
+  if (nid === null) return undefined;
+  return stmts.getObjective.get(nid);
+}
+
+function addObjective(o) {
+  const now = new Date().toISOString();
+  const row = {
+    title: o.title,
+    period: o.period,
+    status: o.status || 'active',
+    created_at: now,
+    updated_at: now,
+  };
+  const info = stmts.insertObjective.run(row);
+  return getObjective(info.lastInsertRowid);
+}
+
+// 목표 수정 (없으면 undefined, 허용 필드만 병합)
+function updateObjective(id, patch) {
+  const row = getObjective(id);
+  if (!row) return undefined;
+  for (const key of OBJECTIVE_FIELDS) {
+    if (patch && patch[key] !== undefined) row[key] = patch[key];
+  }
+  row.updated_at = new Date().toISOString();
+  stmts.updateObjective.run(row);
+  return getObjective(row.id);
+}
+
+function deleteObjective(id) {
+  const nid = toId(id);
+  if (nid === null) return false;
+  return stmts.deleteObjective.run(nid).changes > 0;
+}
+
+// ── OKR: 핵심 결과(key_results) ────────────────────────
+
+// 전체 KR (objective_id, id 순). 서비스에서 JS 그룹핑한다 (N+1 금지).
+function getKeyResults() {
+  return stmts.listKeyResults.all();
+}
+
+function getKeyResult(id) {
+  const nid = toId(id);
+  if (nid === null) return undefined;
+  return stmts.getKeyResult.get(nid);
+}
+
+function addKeyResult(kr) {
+  const now = new Date().toISOString();
+  const row = {
+    objective_id: kr.objective_id,
+    title: kr.title,
+    target: kr.target,
+    current: kr.current === undefined ? 0 : kr.current,
+    unit: kr.unit ?? null,
+    project_id: kr.project_id ?? null,
+    created_at: now,
+    updated_at: now,
+  };
+  const info = stmts.insertKeyResult.run(row);
+  return getKeyResult(info.lastInsertRowid);
+}
+
+function updateKeyResult(id, patch) {
+  const row = getKeyResult(id);
+  if (!row) return undefined;
+  for (const key of KR_FIELDS) {
+    if (patch && patch[key] !== undefined) row[key] = patch[key];
+  }
+  row.updated_at = new Date().toISOString();
+  stmts.updateKeyResult.run(row);
+  return getKeyResult(row.id);
+}
+
+function deleteKeyResult(id) {
+  const nid = toId(id);
+  if (nid === null) return false;
+  return stmts.deleteKeyResult.run(nid).changes > 0;
+}
+
+// ── OKR: 월별 스냅샷(kr_snapshots) ────────────────────
+
+// (key_result_id, month) UPSERT. 같은 달 재실행은 덮어쓰기(멱등).
+function upsertKrSnapshot(key_result_id, month, pct) {
+  stmts.upsertSnapshot.run({ key_result_id, month, pct });
+}
+
+// 월별 KR 평균 달성률 추이 (오름차순, 최근 12개월).
+function getKrTrend() {
+  return stmts.listTrend.all().reverse();
+}
+
+// db.transaction 헬퍼 노출 — 서비스가 여러 UPSERT 를 묶을 때 쓴다.
+function transaction(fn) {
+  return db.transaction(fn)();
+}
+
+// ── 주간 플래너 (읽기 전용 집계) ──────────────────────
+
+// [from, to] 구간(둘 다 'YYYY-MM-DD')의 마감 할 일 통계 { total, done }.
+function getTaskStatsInRange(from, to) {
+  const afterEnd = addOneDay(to);
+  const r = stmts.countTasksInRange.get({ from, afterEnd });
+  return { total: r.total || 0, done: r.done || 0 };
+}
+
+// [from, to] 구간의 마감 할 일 목록 (due_date 오름차순, tags 부착).
+function getTasksInRange(from, to, limit = 50) {
+  const afterEnd = addOneDay(to);
+  const lim = Number.isInteger(limit) && limit > 0 ? limit : 50;
+  return attachTags(stmts.listTasksInRange.all({ from, afterEnd, limit: lim }));
+}
+
+// 'YYYY-MM-DD' → 다음 날 'YYYY-MM-DD' (반개구간 종료 경계용).
+function addOneDay(dateKey) {
+  const [y, m, d] = String(dateKey).split('-').map(Number);
+  const dt = new Date(y, m - 1, d + 1);
+  return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(
+    dt.getDate()
+  ).padStart(2, '0')}`;
+}
+
 module.exports = {
   SYNC_SERVICES,
+  getObjectives,
+  getObjective,
+  addObjective,
+  updateObjective,
+  deleteObjective,
+  getKeyResults,
+  getKeyResult,
+  addKeyResult,
+  updateKeyResult,
+  deleteKeyResult,
+  upsertKrSnapshot,
+  getKrTrend,
+  transaction,
+  getTaskStatsInRange,
+  getTasksInRange,
   getSyncLogs,
   getBriefByDate,
   getCalendarEvents,

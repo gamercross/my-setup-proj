@@ -96,6 +96,43 @@ CREATE TABLE IF NOT EXISTS sync_logs (
 );
 CREATE INDEX IF NOT EXISTS idx_sync_service ON sync_logs(service, last_sync);
 
+-- ── OKR: 목표(Objective) ───────────────────────────────
+-- 사용자가 앱에서 CRUD 한다. 에이전트는 손대지 않는다 (FR-OKR-01).
+CREATE TABLE IF NOT EXISTS objectives (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  title      TEXT    NOT NULL,
+  period     TEXT    NOT NULL,                          -- 'YYYY' | 'YYYY-Q[1-4]'
+  status     TEXT    NOT NULL DEFAULT 'active' CHECK (status IN ('active','done','archived')),
+  created_at TEXT    NOT NULL,
+  updated_at TEXT    NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_objectives_status ON objectives(status);
+
+-- ── OKR: 핵심 결과(Key Result) ─────────────────────────
+CREATE TABLE IF NOT EXISTS key_results (
+  id           INTEGER PRIMARY KEY AUTOINCREMENT,
+  objective_id INTEGER NOT NULL REFERENCES objectives(id) ON DELETE CASCADE,
+  title        TEXT    NOT NULL,
+  target       REAL    NOT NULL,
+  "current"    REAL    NOT NULL DEFAULT 0,              -- SQL 예약어라 항상 인용
+  unit         TEXT,                                    -- NULL = 단위 없음
+  project_id   INTEGER REFERENCES projects(id) ON DELETE SET NULL,  -- 느슨 FK (ADR-0012)
+  created_at   TEXT    NOT NULL,
+  updated_at   TEXT    NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_key_results_objective ON key_results(objective_id);
+CREATE INDEX IF NOT EXISTS idx_key_results_project   ON key_results(project_id);
+
+-- ── OKR: 월별 달성률 스냅샷 ────────────────────────────
+-- 백엔드가 월 1회 각 KR 의 그 시점 pct 를 UPSERT 한다 (FR-OKR-04).
+CREATE TABLE IF NOT EXISTS kr_snapshots (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  key_result_id INTEGER NOT NULL REFERENCES key_results(id) ON DELETE CASCADE,
+  month         TEXT    NOT NULL,                       -- 'YYYY-MM'
+  pct           REAL    NOT NULL,                       -- 0~1
+  UNIQUE (key_result_id, month)
+);
+
 -- ── (향후) Supabase 동기화용 확장 ──────────────────────
 -- ALTER TABLE tasks    ADD COLUMN user_id    TEXT;
 -- ALTER TABLE tasks    ADD COLUMN is_synced  INTEGER NOT NULL DEFAULT 0;

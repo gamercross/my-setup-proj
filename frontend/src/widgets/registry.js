@@ -11,6 +11,8 @@ import CalendarWidgetView from './views/CalendarWidgetView.jsx';
 import DiagramsWidgetView from './views/DiagramsWidgetView.jsx';
 import BriefWidgetView from './views/BriefWidgetView.jsx';
 import AgentActivityWidgetView from './views/AgentActivityWidgetView.jsx';
+import OkrWidgetView from './views/OkrWidgetView.jsx';
+import PlannerWidgetView from './views/PlannerWidgetView.jsx';
 import PlaceholderWidgetView from './views/PlaceholderWidgetView.jsx';
 
 // 타입 → view 컴포넌트 매핑.
@@ -21,6 +23,8 @@ const VIEWS = {
   diagrams: DiagramsWidgetView,
   brief: BriefWidgetView,
   agent: AgentActivityWidgetView,
+  okr: OkrWidgetView,
+  weekly: PlannerWidgetView,
   placeholder: PlaceholderWidgetView,
 };
 

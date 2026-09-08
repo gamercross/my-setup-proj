@@ -26,6 +26,19 @@ export function createDataset() {
     { id: 4, name: '유튜브 채널 리브랜딩', progress: 15, status: 'on_hold', notion_id: null, created_at: nowIso, updated_at: nowIso },
   ];
 
+  // 지난 ISO 주(월~일)의 수요일 — 오늘 요일과 무관하게 항상 지난주에 들어간다.
+  const isoOffset = (now.getDay() + 6) % 7; // 월=0 … 일=6
+  const lastWeekWed = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate() - isoOffset - 7 + 2
+  );
+  const lastWeekThu = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate() - isoOffset - 7 + 3
+  );
+
   const t = (id, title, priority, status, dueDays, project_id, tags = []) => ({
     id,
     title,
@@ -50,6 +63,33 @@ export function createDataset() {
     t(7, '치과 예약 잡기', 'low', 'todo', 2, null, ['건강']),
     t(8, '주간 회고 작성', 'high', 'todo', 4, null, []),
   ];
+  // 주간 플래너(FR-OKR-05) 시연용 — 지난주 마감 2건 (1건 완료).
+  tasks.push(
+    {
+      id: 9,
+      title: '지난주 스프린트 데모 준비',
+      description: '',
+      due_date: dateOnly(lastWeekWed),
+      priority: 'medium',
+      status: 'done',
+      project_id: 1,
+      tags: [],
+      created_at: nowIso,
+      updated_at: nowIso,
+    },
+    {
+      id: 10,
+      title: '지난주 코드리뷰 피드백 반영',
+      description: '',
+      due_date: dateOnly(lastWeekThu),
+      priority: 'medium',
+      status: 'todo',
+      project_id: 1,
+      tags: [],
+      created_at: nowIso,
+      updated_at: nowIso,
+    }
+  );
 
   const ev = (id, title, start, end, location) => ({
     id,
@@ -123,6 +163,31 @@ export function createDataset() {
     sl(7, 'classify', 'success', 86),
   ];
 
+  // OKR(FR-OKR-01~04) 시연용 — 목표 2 / 핵심 결과 4 (평균 84% 근처).
+  const objectives = [
+    { id: 1, title: '3분기 건강 회복', period: '2026-Q3', status: 'active', created_at: nowIso, updated_at: nowIso },
+    { id: 2, title: '사이드 프로젝트 출시', period: '2026', status: 'active', created_at: nowIso, updated_at: nowIso },
+  ];
+  const key_results = [
+    { id: 1, objective_id: 1, title: '주 3회 운동', target: 36, current: 30, unit: '회', project_id: null, created_at: nowIso, updated_at: nowIso },
+    { id: 2, objective_id: 1, title: '평균 수면 7시간', target: 7, current: 6.5, unit: '시간', project_id: null, created_at: nowIso, updated_at: nowIso },
+    { id: 3, objective_id: 2, title: 'MVP 기능 완성', target: 10, current: 9, unit: null, project_id: 1, created_at: nowIso, updated_at: nowIso },
+    { id: 4, objective_id: 2, title: '베타 테스터 모집', target: 20, current: 15, unit: '명', project_id: null, created_at: nowIso, updated_at: nowIso },
+  ];
+  // 최근 4개월치 KR 평균 달성률 스냅샷 (오름차순).
+  const ym = (back) => {
+    const dt = new Date(now.getFullYear(), now.getMonth() - back, 1);
+    return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}`;
+  };
+  const kr_snapshots = [
+    { id: 1, key_result_id: 1, month: ym(3), pct: 0.55 },
+    { id: 2, key_result_id: 1, month: ym(2), pct: 0.68 },
+    { id: 3, key_result_id: 1, month: ym(1), pct: 0.8 },
+    { id: 4, key_result_id: 3, month: ym(3), pct: 0.5 },
+    { id: 5, key_result_id: 3, month: ym(2), pct: 0.7 },
+    { id: 6, key_result_id: 3, month: ym(1), pct: 0.85 },
+  ];
+
   return {
     projects,
     tasks,
@@ -130,6 +195,9 @@ export function createDataset() {
     brief,
     diagrams,
     sync_logs,
+    objectives,
+    key_results,
+    kr_snapshots,
     _runNowPending: false,
     _seq: 100,
   };

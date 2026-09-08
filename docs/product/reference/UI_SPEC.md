@@ -139,7 +139,7 @@ stateDiagram-v2
 - **위젯 프레임:** 타이틀바(아이콘·이름·⚙ 설정(C6, WidgetSettings 열기)·─ 최소화·✕ 제거) + 본문(레지스트리 뷰) + 리사이즈 핸들(편집 모드).
 - **격리:** 위젯마다 `ErrorBanner`/`ErrorBoundary` (FR-WIDGET-07). 전역 연결 오류(백엔드 다운)는 **App 헤더**의 헬스 표시(셸에서 중복 안 함).
 - **기본 레이아웃 (첫 실행):** 할일·오늘 브리핑·프로젝트·캘린더 4개. 다이어그램은 피커로만 추가.
-- 레지스트리 등록 위젯(D3): tasks/projects/calendar/diagrams/brief. 메타는 `widgets/widgetMeta.js`(순수), view 배선은 `widgets/registry.js`.
+- 레지스트리 등록 위젯: tasks/projects/calendar/diagrams/brief (D3) · agent (P7) · okr·weekly (P8). 메타는 `widgets/widgetMeta.js`(순수), view 배선은 `widgets/registry.js`.
 - 기존 사용자는 레이아웃 마이그레이션이 없으므로(SCHEMA_VERSION 불변) brief 위젯이 자동으로 나타나지 않는다 — 피커로 추가하거나 "초기화" 한다.
 
 ### 2.3 현재 (사이드바 셸 — P4.5, 2026-09-08, ADR-0032)
@@ -271,6 +271,32 @@ stateDiagram-v2
 | 데이터 출처 | `GET /api/agent/activity?limit=` → `store/useAgentStore` · `POST /api/agent/run-now` |
 | 관련 FR | FR-AGENT-08, [ADR-0011](../architecture/adr/ADR-0011-agent-backend-db-access.md), [ADR-0013](../architecture/adr/ADR-0013-dashboard-agent-queue.md) |
 | 상태 | 에러 → `ErrorBanner(onRetry)` / 로딩(`loading && !loaded`) → "불러오는 중…" / 정상 → 위 레이아웃. 빈 상태(`logs` 없음)는 **로그 영역만** "아직 에이전트 실행 기록이 없습니다" 로 대체하고 StatTile 행·health 배지·[지금 실행] 버튼·다음 실행 시각은 그대로 표시 (최초 설치 직후에도 "지금 실행" 가능) |
+
+### 3.5c OKR 위젯 ✅ P8 (FR-OKR-01~04·06, 2026-09-08)
+
+| 항목 | 내용 |
+|---|---|
+| 목적 | Objective·Key Result 달성률 대시보드 + 월별 KR 평균 달성률 추이 + 인라인 편집 |
+| 주제 | `okr` 주제의 기본 위젯(타입 `okr`, `defaultLayout.js` — 8×10). 아이콘 🎯 |
+| 뷰 | `widgets/views/OkrWidgetView.jsx` — 스토어 구독·effect·4상태 소유 |
+| 프레젠테이션 | 새 공용 컴포넌트 없음 — `StatTile`·`DotProgress`·`Chip`·`ErrorBanner` 재사용 + `LineChart.jsx`(신규, 인라인 SVG — Recharts 미도입 PO-8). 폼·행은 뷰 로컬 컴포넌트. 인라인 스타일 + CSS 변수만(`styles.css` 무변경) |
+| 레이아웃 | StatTile 6(KR 평균 달성률·Objective 수·KR 수·90%+/40–90%/<40% 구간) → objective 카드 목록(각 `DotProgress` + KR 행 인라인 현재치 수정) → objective/KR 추가 폼 → (`showTrend`) `LineChart` |
+| config | `showTrend`(bool 기본 true), `includeArchived`(bool 기본 false → `GET /api/okr?includeArchived=1`) |
+| 데이터 출처 | `GET /api/okr`·`GET /api/okr/trend` + objectives/key-results CRUD → `store/useOkrStore.js`(낙관적 갱신 + 실패 롤백, `summary` 재계산). 달성률 공식은 `store/okrMath.js` — **백엔드 `services/okr.js` 와 일치** |
+| 관련 FR | FR-OKR-01~04·06 · [ADR-0030](../architecture/adr/ADR-0030-okr-data-model.md) |
+| 상태 | 에러 → `ErrorBanner(onRetry)` / 로딩 → "불러오는 중…" / 빈(objective 0) → 안내 문구 + 추가 폼 / 정상 → 위 레이아웃 |
+
+### 3.5d 주간 플래너 위젯 ✅ P8 (FR-OKR-05·06, 2026-09-08)
+
+| 항목 | 내용 |
+|---|---|
+| 목적 | `due_date` 를 ISO 주로 버킷팅한 "지난주 완료 N / 이번주 M(완료 K) / 다음주 P" 요약 + 이번주·다음주 항목 리스트 |
+| 주제 | `weekly` 주제의 기본 위젯(타입 `weekly`, 8×8). 아이콘 🗓️ |
+| 뷰 | `widgets/views/PlannerWidgetView.jsx` — **`useTaskStore` 파생** (`GET /api/planner/weekly` 호출 안 함, `widgets/weekBuckets.js:bucketTasks` 로 클라이언트 버킷팅 — 단일 캐시 FR-TASK-09). 완료 토글은 `useTaskStore.toggleTask` 1회만 |
+| 프레젠테이션 | `StatTile`·`Chip`·`ErrorBanner` 재사용. 인라인 스타일 + CSS 변수만 |
+| config | `maxItems`(number 5~50 step5 기본 20), `hideCompleted`(bool 기본 false) |
+| 관련 FR | FR-OKR-05·06 · 백엔드 병행 API `GET /api/planner/weekly`(데모·외부용, 위젯은 미사용) |
+| 상태 | 에러 → `ErrorBanner` / 로딩 → "불러오는 중…" / 빈 → 버킷별 "없음" / 정상 → StatTile 3 + 이번주·다음주 리스트 |
 
 ### 3.6 ErrorBanner / ErrorBoundary ✅ B3 (FR-UI-04, 2026-09-03)
 

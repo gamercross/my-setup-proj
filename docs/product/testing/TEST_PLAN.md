@@ -443,6 +443,64 @@ fake service 주입, 네트워크 0회. 재시도 테스트는 `services.retry.s
 
 **수동 확인 (로컬 GUI, launchd)**: ① `activity` 주제에서 위젯이 최근 이력·다음 실행을 표시 → "지금 실행" 클릭 시 버튼 라벨 전이·`requestMessage` 표시. ② `bash scripts/install-runnow-launchd.sh` 후 `POST /api/agent/run-now` → `scripts/run-now.log` 에 trigger 실행 기록. **WatchPaths 실제 감지는 로컬 launchd 환경이 필요해 CI/개발 머신에서 미검증.**
 
+### 3.5g OKR + 주간 플래너 (P8, FR-OKR-01~06, ADR-0030)
+
+**백엔드 OKR — `backend/test/okr.test.js`** (`:memory:` 격리, supertest)
+
+| ID | 대상 | 기대 결과 | 우선 |
+|---|---|---|:---:|
+| TC-OKR-01 | `POST /api/okr/objectives` | 201 · 기본 `status=active` · `created_at`/`updated_at` | P1 |
+| TC-OKR-02 | objective 검증 | title 빈값·period 형식·status enum 오류 → 400 | P1 |
+| TC-OKR-03 | `PUT /api/okr/objectives/:id` | 보낸 필드만 병합, 없는 id → 404 | P1 |
+| TC-OKR-04 | `DELETE /api/okr/objectives/:id` | 하위 KR·스냅샷 CASCADE 삭제 | P1 |
+| TC-OKR-05 | `POST /api/okr/key-results` | 존재하는 objective 면 201 · `current` 기본 0 | P1 |
+| TC-OKR-06 | KR 검증 | `objective_id` 미존재 → **400**(404 아님), target 음수 → 400 | P1 |
+| TC-OKR-07 | `PUT /api/okr/key-results/:id` current 갱신 | 대시보드 `pct` 재계산, 없는 id → 404 | P1 |
+| TC-OKR-08 | `GET /api/okr` | 구조 + `summary.bucket` 경계(0.9/0.4) + `pct` 소수 3자리 | P1 |
+| TC-OKR-09 | `?includeArchived` | archived 기본 제외, `=1` 이면 포함 | P1 |
+| TC-OKR-10 | 빈 데이터 | objective·KR 0건 → 200 + 빈 summary | P1 |
+| TC-OKR-11a/b | `GET /api/okr/trend` | 스냅샷 0건 → `{points:[]}`; 진입 시 이번 달 스냅샷 적재 | P1 |
+| TC-OKR-12 | `snapshotCurrentMonth` 멱등 | 같은 달 재실행은 덮어쓰기 | P1 |
+| TC-OKR-13 | FR-OKR-02 AC-6 | 프로젝트 삭제 시 KR 생존 + `project_id` null | P1 |
+| TC-OKR-14 | FR-OKR-02 AC-4 | `current > target` 허용, `pct` 는 1 로 클램프 | P1 |
+
+**백엔드 주간 플래너 — `backend/test/planner.test.js`**
+
+| ID | 대상 | 기대 결과 | 우선 |
+|---|---|---|:---:|
+| TC-PLAN-01 | `GET /api/planner/weekly` | 고정 날짜로 지난주/이번주/다음주 3버킷 정확 분리 | P1 |
+| TC-PLAN-02 | 경계 | `due_date` null 제외, 주 경계 하루 밖 제외 | P1 |
+| TC-PLAN-03 | items | 필드셋(`id,title,due_date,priority,status,tags`)·정렬·상한 50 | P1 |
+| TC-PLAN-04 | 빈 데이터 | 모든 카운트 0, `items: []` | P1 |
+
+**저장소 회귀 — `backend/test/db.test.js`**: TC-DB-06 (OKR 3테이블 prepared statement CRUD · CASCADE).
+
+**프론트 순수 로직 — `frontend/test/{okrMath,weekBuckets,linePath}.test.mjs`**
+
+| ID | 대상 | 기대 결과 |
+|---|---|---|
+| TC-P8-MATH-01~05 | `store/okrMath.js` | `krPct` 클램프·target 0, `objectivePct` 평균, `summarize` 버킷 경계, 소수 3자리 반올림, `formatPct` — **백엔드 공식과 일치** |
+| TC-P8-WEEK-01~03 | `widgets/weekBuckets.js` | `startOfIsoWeek` 월요일, 3버킷 분리 + done 카운트, null 제외·경계일 포함·정렬 |
+| TC-P8-LINE-01~03 | `components/linePath.js` | 0점 → null, 1점 → 점만, N점 → `M…L` 경로 + 좌표 단조 증가 |
+
+**프론트 스토어 — `frontend/test/okrStore.test.mjs`**
+
+| ID | 대상 | 기대 결과 |
+|---|---|---|
+| TC-P8-STORE-01 | `fetchOkr` 성공 | `objectives`·`summary` 설정, `error` null |
+| TC-P8-STORE-02 | `fetchOkr` 실패 | `error` 문자열, 기존 데이터 보존 |
+| TC-P8-STORE-03 | `updateKeyResult` 낙관적 갱신 | 즉시 반영 + `summary` 재계산 |
+| TC-P8-STORE-04 | `updateKeyResult` 실패 | 롤백 |
+
+**데모 패리티 — `frontend/test/demoClient.test.mjs`**: `/api/okr`·`/api/okr/trend`·objectives/key-results CRUD·`/api/planner/weekly` 6개 목 어댑터가 실서버와 같은 스키마 반환.
+
+**수동 확인 (로컬 GUI) — 백로그**
+
+| ID | 절차 | 기대 |
+|---|---|---|
+| TC-OKR-M | `plan` 주제에서 OKR 위젯 — objective/KR 인라인 추가·현재치 수정 | 스탯 타일 6 + DotProgress + 라인차트가 즉시 갱신 |
+| TC-PLAN-M | 주간 플래너 위젯 — 지난주 완료 / 이번주(체크 토글) / 다음주 | `useTaskStore` 단일 캐시로 토글 1회 반영 |
+
 ### 3.5e 서비스 계층 — `backend/test/services.test.js` (fix/ai-results-cleanup)
 
 > 앱 없이 `backend/src/services/*` 를 직접 호출, `:memory:` 격리 (`loadService` 헬퍼). 오류 타입은 `name`/`status` 로 판정.
