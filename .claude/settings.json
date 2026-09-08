@@ -6,6 +6,18 @@
     ]
   },
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR:-.}/scripts/prune-merged-branches.sh\" 2>/dev/null || true",
+            "timeout": 30,
+            "statusMessage": "병합된 로컬 브랜치 정리 중..."
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "hooks": [
