@@ -1,6 +1,6 @@
 # ADR-0030: OKR 데이터 모델 + 주간 플래너
 
-- 상태: **제안** (2026-09-07) — P1. 사용자 결정: PO-5, PO-6.
+- 상태: **채택** (2026-09-08) — 개인 OS P8. 사용자 결정: PO-5 = 1급 엔티티, PO-6 = 순수 SQL 집계(Weekly Brief 후속). 초안대로 확정.
 - 관련: [PERSONAL_OS.md](../../vision/PERSONAL_OS.md) T3, `requirements/OKR.md`(신규), FR-OKR-*(신규), [ADR-0011](ADR-0011-agent-backend-db-access.md), ADR-0018(마이그레이션), Phase 개인 OS P8
 
 ## 맥락
