@@ -111,7 +111,7 @@
 
 | 주차 (강의 태그) | 공부 | 이 저장소에 반영 |
 |---|---|---|
-| 지금 | C4, arc42, 품질 시나리오 | 신규 문서 5종 리뷰·보완, ADR-0015~0019 채택 결정 |
+| 지금 | C4, arc42, 품질 시나리오 | 신규 문서 5종 리뷰·보완, ADR-0015·0016·0017·0019 채택 결정 (0018 은 P6 에서 채택) |
 | A-W4~5 / C-W3~4 (Phase C) | Release It! 안정성 패턴 | [CROSSCUTTING.md](product/architecture/CROSSCUTTING.md) 재시도·타임아웃을 `api/client.js`·에이전트에 실제 구현 |
 | A-W5~6 (패키징 전) | Electron 프로세스 모델, 12-factor | [RUNTIME_VIEW.md](product/architecture/RUNTIME_VIEW.md) 미결 항목 확정 → [ADR-0016](product/architecture/adr/ADR-0016-desktop-process-topology.md) 채택 |
 | A-W6~7 / B-W9 (Phase D) | 위협 모델링, OAuth 토큰 수명주기 | 보안 뷰를 DFD 로 승격, 토큰 저장/갱신/폐기 시퀀스 |

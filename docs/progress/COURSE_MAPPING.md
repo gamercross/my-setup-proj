@@ -264,7 +264,7 @@ my-setup-proj/
 | B-W1 | SW공학 기본개념 — AI시대 개발 방법·라이프사이클 | [DOC_PLAN.md](../product/DOC_PLAN.md), [ROADMAP.md](../product/ROADMAP.md) Phase A~E | — | ✅ |
 | B-W2 | 프롬프트 엔지니어링 | `.claude/agents/*.md` (역할별 프롬프트), [CLAUDE_INTEGRATION.md](../setup/CLAUDE_INTEGRATION.md) | — | ✅ |
 | B-W3 | AI 기반 요구사항 분석 | `docs/product/requirements/` (FR·NFR·도메인별), [DOC_PLAN.md](../product/DOC_PLAN.md) §3 | — | ✅ |
-| B-W4 | AI 지원 설계 및 아키텍처 | ADR 0015~0022, [ARCHITECTURE_DRIVERS.md](../product/architecture/ARCHITECTURE_DRIVERS.md) | — | ✅ (0015~0019 제안) |
+| B-W4 | AI 지원 설계 및 아키텍처 | ADR 0015~0022, [ARCHITECTURE_DRIVERS.md](../product/architecture/ARCHITECTURE_DRIVERS.md) | — | ✅ (0018 채택 P6 · 0015·0016·0017·0019 제안) |
 | B-W5 | 에이전틱 코딩 | `/feature` 4-에이전트 파이프라인, [ORCHESTRATION.md](../setup/ORCHESTRATION.md) | — | ✅ |
 | B-W6 | AI 기반 테스트 자동화 | `backend/test/*`·`agent/tests/*` (51+3), `verify.sh`, GitHub Actions, [ADR-0019](../product/architecture/adr/ADR-0019-architecture-fitness-functions.md) 피트니스 함수 | A3~ | ✅ 테스트 / [ADR-0019](../product/architecture/adr/ADR-0019-architecture-fitness-functions.md) 제안 |
 | B-W7 | MLOps 및 운영 자동화 | `scripts/worklog*.sh`·launchd([ADR-0007](../product/architecture/adr/ADR-0007-schedule-launchd-cron.md)), EOD 커밋·슬랙, `agent/daily_brief.py` cron | D3 | 🚧 |
@@ -383,7 +383,7 @@ my-setup-proj/
 - **C 주별리포트 (20%):** [PROGRESS.md](PROGRESS.md)·[작업로그.md](../../작업로그.md) 는 리포트 양식이 아니다. 별도 주별 리포트 양식 필요 — **이 문서 범위 밖 (후속 결정).**
 - **C-W2 / A-W3 C언어·알고리즘:** 강의는 C 언어·개발환경·알고리즘을 다루나 프로젝트 스택은 JS/Python. 언어 불일치로 직접 대응 없음.
 - **B·C Problem Statement 미수령:** 학기초 제시 예정. §2·§3 매핑은 잠정이며 수령 후 재검토.
-- **제안 상태 ADR:** 0013·0015~0019 는 아직 "제안". 렌즈 표(§4)에서 "(제안)" 표기. 임의로 "채택" 처리 금지.
+- **제안 상태 ADR:** 0013(전체 작업 큐)·0015·0016·0017·0019 는 아직 "제안". 렌즈 표(§4)에서 "(제안)" 표기. 임의로 "채택" 처리 금지. (0018·0027~0032 는 개인 생산성 OS 방향에서 채택됨.)
 
 ---
 

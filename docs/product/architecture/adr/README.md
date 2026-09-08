@@ -6,7 +6,7 @@
 **📂 이동:** [⬆ architecture/](../README.md) · [product/](../../README.md) · [docs/](../../../README.md) · [🚀 ONBOARDING](../../../ONBOARDING.md)
 **형제 뷰:** [DESIGN](../DESIGN.md) · [ARCHITECTURE_DRIVERS](../ARCHITECTURE_DRIVERS.md) · [RUNTIME_VIEW](../RUNTIME_VIEW.md) · [DATA_ARCHITECTURE](../DATA_ARCHITECTURE.md) · [CROSSCUTTING](../CROSSCUTTING.md) · [ARCHITECTURE_EVOLUTION](../ARCHITECTURE_EVOLUTION.md)
 
-> **상태 요약:** 0001~0012 채택 · 0013·0015~0017·0019 제안(착수 전 결정) · 0014·0020~0026 채택 (0022 는 C6, 0024 는 D2-b, 0025 는 D3, 0026 은 웹 데모) · **0027 채택(P3)** · **0028 채택(P5)** · **0018·0029 채택(P6 — 태그 자동 분류)** · 0030·0031 제안 (개인 생산성 OS 방향 P1 — [PERSONAL_OS.md](../../vision/PERSONAL_OS.md) §8 PO-1~11). 제안 ADR 은 관련 Phase 착수 전에 사용자가 결정한다.
+> **상태 요약:** 0001~0012 채택 · **0013·0015·0016·0017·0019 제안**(착수 전 결정 — 0013 은 전체 작업 큐 부분만 미결, P7 "지금 실행"=파일 플래그로 결정됨) · 0014·0020~0026 채택 (0022 는 C6, 0024 는 D2-b, 0025 는 D3, 0026 은 웹 데모) · **0027 채택(P3)** · **0032 채택(P4.5 — 사이드바 셸)** · **0028 채택(P5 — 단일 캐시·칸반)** · **0018·0029 채택(P6 — 최소 마이그레이션·태그 자동 분류)** · **0030 채택(P8 — OKR 모델)** · **0031 채택(P9 — 안전 마크다운·파일 트리)** (개인 생산성 OS 방향 — [PERSONAL_OS.md](../../vision/PERSONAL_OS.md) §7~8). 제안 ADR 은 관련 Phase 착수 전에 사용자가 결정한다.
 >
 > **강의 열:** 각 ADR 이 3개 강의([COURSE_MAPPING.md](../../../progress/COURSE_MAPPING.md)) 중 어느 주차의 렌즈로 읽히는지. 값의 단일 원천(SSOT) = COURSE_MAPPING §4. 대응 없으면 `—`.
 
