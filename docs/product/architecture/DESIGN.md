@@ -52,7 +52,7 @@
 | [0025](adr/ADR-0025-brief-empty-response.md) | 브리핑 빈 결과는 404 아닌 200 + `{ brief: null }` | 채택 — D3 |
 | [0026](adr/ADR-0026-web-demo-mode.md) | 웹 데모 모드 — `VITE_DEMO` 목 어댑터 + GitHub Pages 배포 | 채택 — 2026-09-07 |
 | [0027](adr/ADR-0027-light-theme-default.md) | 라이트 테마 기본 전환 + 디자인 토큰 v2 (US-1 종결: 강조색 파랑) | 채택 — P3 구현 (2026-09-07) |
-| [0028](adr/ADR-0028-single-client-cache.md) | 단일 클라이언트 캐시 (`byId`) — 뷰는 파생만, 칸반은 별 위젯 타입 | 제안 — 개인 OS P1 |
+| [0028](adr/ADR-0028-single-client-cache.md) | 단일 클라이언트 캐시 (`byId`) — 뷰는 파생만, 칸반은 tasks 위젯 내 리스트/보드 토글 | 제안 — 개인 OS P5 |
 | [0029](adr/ADR-0029-task-auto-category.md) | 할 일 자동 분류 — 에이전트 배치, `tasks.category`, ADR-0018 선행 강제 | 제안 — 개인 OS P1 |
 | [0030](adr/ADR-0030-okr-data-model.md) | OKR 데이터 모델 (`objectives`/`key_results`/`kr_snapshots`) + 주간 플래너 | 제안 — 개인 OS P1 |
 | [0031](adr/ADR-0031-safe-markdown-render.md) | 안전 마크다운 렌더 + 파일 트리 API (`GET /api/tree`, 파서 없음) | 제안 — 개인 OS P1 |
