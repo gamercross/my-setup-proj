@@ -223,6 +223,28 @@ CI(`.github/workflows/test.yml`)에 `npm test`(backend), `pytest -m "not network
 | TC-SHELL-10 | `placeholder` 메타 | — | `hidden:true`, 피커 목록(`!hidden` 필터)에서 제외, 다른 메타엔 `hidden` 없음 | ✅ |
 | TC-SHELL-11 | 미등록 topicId 키 보존 | v2 에 낯선 주제 키 존재 | `sanitizeTopicMap` 이 파기하지 않고 보존 | ✅ |
 
+#### 3.4j 할 일 캐시 + 보드 뷰 — `frontend/test/{taskCache,taskBoard,taskStore}.test.mjs` (Phase P5, ADR-0028 / FR-TASK-09)
+
+순수 모듈 + zustand 스토어. 스토어 테스트는 `globalThis.window={appInfo:{apiBaseUrl}}` + `globalThis.fetch` 스텁 + `?t=n` 모듈 캐시 우회. `cd frontend && npm test`.
+
+| ID | 대상 | 전제 | 기대 결과 | 상태 |
+|---|---|---|---|:---:|
+| TC-P5-01 | `toCache`/`listFrom` 왕복 | 태스크 3건 | `order=[1,2,3]`, `listFrom` 이 원 목록 순서대로 복원 | ✅ |
+| TC-P5-02 | `toCache` 비배열 방어 | `null`/`undefined`/객체/문자열/`[]` | 전부 `{byId:{},order:[]}` | ✅ |
+| TC-P5-03 | `upsert` | 신규 / 기존 id | 신규는 order 끝 append, 기존은 byId 만 교체(순서 유지) | ✅ |
+| TC-P5-04 | `patchOne` | 존재 / 부재 | 존재 시 병합, 부재 시 원본 참조 그대로 | ✅ |
+| TC-P5-05 | `removeOne` + 롤백 | id 제거 / 없는 id / 스냅샷 복원 | order 에서 제거, 없는 id 는 동일 참조, 스냅샷 커밋 시 order 원상복구 | ✅ |
+| TC-P5-06 | `groupByPriority` | 혼합 우선순위 | high/medium/low 3열 배분, 열 내부 입력 순서 보존 | ✅ |
+| TC-P5-07 | 미지/누락 priority | `undefined`/`'weird'`/`null` | 전부 medium 열, 누락 0건 | ✅ |
+| TC-P5-08 | `BOARD_COLUMNS` 계약 | — | key 순서 `['high','medium','low']`, label 비어있지 않음, 빈 입력 → 빈 3열 | ✅ |
+| TC-P5-09 | 스토어 정본 불변식 | fetch 후 | `tasks === order.map(id=>byId[id])`, `tasks` 는 배열 | ✅ |
+| TC-P5-10 | 낙관적 토글 | PUT 매달아 둠 | 동기 낙관 반영, 무관 항목 객체 참조 유지 | ✅ |
+| TC-P5-11 | 실패 롤백 | `removeTask` 중 500 | `byId`/`order` 참조 복원 + `tasks` 파생 복원 + `error` 문자열, throw 없음 | ✅ |
+| TC-P5-12 | `resolveDisplay` view 폴백 | `'kanban'`/`null`/숫자/`undefined` | 전부 `'list'`, `'board'` 은 그대로 | ✅ |
+| TC-P5-13 | tasks 메타 규격 | — | `configSchema.view` enum `['list','board']`+default `'list'`, `minSize.w ≤` overview tasks w(4) | ✅ |
+
+수동(로컬 GUI): §3.9 TC-P5-M1~M4.
+
 수동(로컬 GUI): TC-SHELL-M1 사이드바 4그룹 11항목·마지막 주제 복원, TC-SHELL-M2 항목 클릭 시 본문만 교체(새로고침 없음), TC-SHELL-M3 주제 A 편집이 B 에 무영향, TC-SHELL-M4 v1 사용자가 overview 에서 기존 배치 유지, TC-SHELL-M5 미구현 주제에 "준비 중" 위젯 1개, TC-SHELL-M6 페이지 헤더 우측 health 표시 존치. ⏳ 로컬 대기.
 
 > `DotProgress`·`StatTile`·`Chip` 자체 렌더는 프론트 러너 없음 → §3.9 수동 체크.
@@ -464,6 +486,10 @@ fake service 주입, 네트워크 0회. 재시도 테스트는 `services.retry.s
 | TC-P4-M2 | `StatTile` | 스탯 타일 렌더 (배치처) | 숫자 700·40px, tone 별 숫자색(`--accent`/`--ok`/`--warn`/`--bad`), bg `--panel` · border `--border` · radius 14px | ⏳ 로컬 대기 |
 | TC-P4-M3 | `Chip` | 칩 렌더 (필터/상태) | `onClick` 있으면 클릭 가능한 버튼, 없으면 정적, radius `--chip-radius`, variant 별 색 | ⏳ 로컬 대기 |
 | TC-P4-M4 | 카드 토큰 v2 | 위젯 프레임 | `--card-radius` 16px 모서리, `--shadow-card` 옅은 그림자 1겹 | ⏳ 로컬 대기 |
+| TC-P5-M1 | 리스트/보드 전환 영속 | tasks 위젯 상단 `[보드]` 클릭 → 새로고침 | 우선순위 3열 렌더, 새로고침 후에도 보드 유지 (`config.display.view='board'`) | ⏳ 로컬 대기 |
+| TC-P5-M2 | 뷰 간 완료 동기 | 보드에서 완료 체크 → `[리스트]` 전환 | `toggleTask` 1회, 리스트에서도 동일 완료 상태 (같은 `byId`) | ⏳ 로컬 대기 |
+| TC-P5-M3 | 주제별 독립 view | overview 의 tasks 는 리스트, tasks 주제의 tasks 는 보드 | 서로 영향 없음 (ADR-0032 주제 스코프) | ⏳ 로컬 대기 |
+| TC-P5-M4 | 표시 옵션 공유 | `hideCompleted`/`sortBy` 변경 후 리스트↔보드 전환 | 두 뷰 모두 같은 파생 결과 적용 | ⏳ 로컬 대기 |
 
 ### 3.8 3강의 구조 문서 정합 수동 체크리스트 (COURSE_MAPPING)
 

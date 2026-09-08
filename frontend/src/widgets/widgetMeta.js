@@ -11,9 +11,12 @@ export const WIDGET_META = {
     icon: '✅',
     description: '할 일 목록 조회·추가·완료 토글',
     defaultSize: { w: 4, h: 6 },
-    minSize: { w: 3, h: 3 },
+    // minSize.w 는 overview 기본 레이아웃의 tasks w(=4)를 넘지 않는다 (registry.test / TC-SHELL-08).
+    minSize: { w: 4, h: 4 },
     maxSize: { w: 12, h: 20 },
     configSchema: {
+      // view: 리스트 / 보드(우선순위 칸반). 저장은 config.display.view (ADR-0028 §결정4 각주).
+      view: { type: 'enum', options: ['list', 'board'], default: 'list', label: '보기 방식' },
       sortBy: { type: 'enum', options: ['due', 'priority', 'created'], default: 'created', label: '정렬 기준' },
       hideCompleted: { type: 'bool', default: false, label: '완료한 항목 숨기기' },
       maxItems: { type: 'number', min: 5, max: 100, step: 5, default: 50, label: '최대 표시 개수' },

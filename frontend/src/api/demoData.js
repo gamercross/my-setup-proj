@@ -37,6 +37,7 @@ export function createDataset() {
     created_at: nowIso,
     updated_at: nowIso,
   });
+  // 우선순위 분포는 보드 뷰(FR-TASK-09)에서 3열이 모두 차도록 잡는다: high 3 / medium 3 / low 2.
   const tasks = [
     t(1, '위젯 셸 레이아웃 저장 버그 재현', 'high', 'in_progress', 0, 1),
     t(2, 'Notion 저장 실패 시 재시도 로그 확인', 'medium', 'todo', 1, 1),
@@ -45,7 +46,7 @@ export function createDataset() {
     t(5, '페이지 교체 알고리즘 정리 노트', 'medium', 'done', -1, 2),
     t(6, '릴스 썸네일 5개 시안', 'medium', 'todo', 3, 4),
     t(7, '치과 예약 잡기', 'low', 'todo', 2, null),
-    t(8, '주간 회고 작성', 'medium', 'todo', 4, null),
+    t(8, '주간 회고 작성', 'high', 'todo', 4, null),
   ];
 
   const ev = (id, title, start, end, location) => ({

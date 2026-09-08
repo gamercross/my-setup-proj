@@ -333,6 +333,7 @@ flowchart LR
   style P3 fill:#dcfce7,stroke:#16a34a
   style P4 fill:#dcfce7,stroke:#16a34a
   style P45 fill:#dcfce7,stroke:#16a34a
+  style P5 fill:#dcfce7,stroke:#16a34a
 ```
 
 | 단계 | 상태 | 산출물 |
@@ -343,7 +344,8 @@ flowchart LR
 | P3 라이트 테마 | ✅ 2026-09-07 | `styles.css` 토큰 v2 + `[data-theme=dark]` 블록(정의만), 하드코딩 hex → 토큰 1:1 치환 (ADR-0027 채택). 전역 다크 토글 UI 는 후속 |
 | P4 공통 컴포넌트 | ✅ 2026-09-07 | `frontend/src/components/` — `dotFill.js`(순수: `dotFill`/`normalizeTotal`/`clampPct`) + `DotProgress.jsx`(점그리드 진행바, `role=progressbar`) + `StatTile.jsx`(스탯 타일, tone별 숫자색) + `Chip.jsx`(칩, onClick 유무로 button/span). 카드 토큰 v2(`--card-radius` 16·`--shadow-card`) + `WidgetFrame` 그림자 + `ProjectCard` 진행바를 `DotProgress` 로 교체. `frontend/test/dotFill.test.mjs` TC-P4-01~05. 컴포넌트 시각 확인은 로컬 GUI 수동 검증 대기 |
 | P4.5 사이드바 셸 | ✅ 2026-09-08 | 단일 위젯 셸 → 왼쪽 사이드바(4그룹 11항목) + 페이지 헤더 + 주제별 위젯 셸로 재편 (ADR-0032 채택·구현). `frontend/src/components/` — `AppShell.jsx`(사이드바+헤더+본문 3열) · `Sidebar.jsx`(그룹형 네비, 활성 표시) · `TopicView.jsx`(주제별 위젯 그리드 셸) · `TopicIcons.jsx`. `store/useUiStore.js`(activeTopic 영속 + picker 세션 상태) · `widgets/topics.js`(주제 4그룹 11항목 정의 + 폴백) · `widgets/views/PlaceholderWidgetView.jsx`(미구현 주제 placeholder, hidden 메타). 레이아웃 마이그레이션 v1→v2: 기존 단일 배치는 `overview` 주제로 보존(`layoutStorage.js`·`defaultLayout.js`·`useLayoutStore.js`). `frontend/test/` — `topics.test.mjs`·`uiStore.test.mjs`·`layoutStorage.test.mjs` TC-SHELL-01~10 (42/42). 로컬 GUI 수동 검증(TC-SHELL-M1~6) 대기 |
-| P5~P9 빌드 | ⏳ | 위 다이어그램 순서대로 — **`/feature` 파이프라인으로 진행** (P9 진행 현황 뷰 = 이 문서를 대시보드에서 보기) |
+| P5 캐시 + 칸반 | ✅ 2026-09-08 | T1 단일 클라이언트 캐시(ADR-0028 채택). `useTaskStore` 를 `byId`/`order` 정본으로 전환 + `tasks` 파생 미러 유지. `TasksWidgetView` 리스트/보드 세그먼티드 토글(`config.display.view`). 순수 모듈 `store/taskCache.js`(정규화·머지·재정렬) · `widgets/taskBoard.js`(우선순위 열 그룹핑). props-only `components/TaskBoard.jsx`·`TaskCard.jsx`. `widgetMeta.js` display.view 옵션 · `TaskList.jsx`·`api/demoData.js` 연동. `frontend/test/` — `taskCache.test.mjs`·`taskBoard.test.mjs`·`taskStore.test.mjs` (총 56/56). 신규 요구사항 **FR-TASK-09**. 로컬 GUI 수동 검증(TC-P5-M1~4) 대기 |
+| P6~P9 빌드 | ⏳ | 위 다이어그램 순서대로 — **`/feature` 파이프라인으로 진행** (P9 진행 현황 뷰 = 이 문서를 대시보드에서 보기) |
 
 **열린 질문 PO-1~10** (착수 전 결정) 은 [PERSONAL_OS.md §8](../product/vision/PERSONAL_OS.md) 참조 — 특히 PO-1(라이트 기본 전환), PO-7(칸반이 할 일 위젯 대체 vs 추가), PO-10(Phase E 와의 순서).
 

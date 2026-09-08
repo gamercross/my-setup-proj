@@ -1,6 +1,6 @@
 # 🧭 다음 세션 인계 — 상태 확인 + 작업 방향
 
-> 작성: 2026-09-07 · **갱신: 2026-09-08 (P4.5 파이프라인 완주 + 디자인 v2 직후)**
+> 작성: 2026-09-07 · **갱신: 2026-09-08 (P5 파이프라인 완주 — 단일 캐시 + 칸반)**
 > 이 문서는 새 세션 시작 시 **가장 먼저 읽는다.** 이후 정식 문서
 > ([PROGRESS.md](PROGRESS.md) · [PERSONAL_OS.md](../product/vision/PERSONAL_OS.md) ·
 > [DEMO_FEEDBACK.md](DEMO_FEEDBACK.md))로 교차 확인.
@@ -9,17 +9,16 @@
 
 ## 0. 지금 어디까지 왔나 (한 문단)
 
-Phase A~D 완료·병합. "개인 생산성 OS" 방향으로 **P0~P4 완료**(전부 병합됨). **2026-09-08 세션**에서
-사용자가 "Confidency OS" 스타일 스크린샷을 제시 → 시각 방향을 **UI_STYLE v2**(라이트 + 왼쪽
-그룹형 사이드바)로 개정하고, 로드맵에 **P4.5(사이드바 셸)** 를 삽입한 뒤 **`/feature` 파이프라인으로
-P4.5 를 완주**했다(planner→developer→supervisor(PASS, 수정 1회)→finisher). **P2 디자인 캔버스도
-v2 로 재작성**해 같은 URL 로 재배포. 결정 종결: PO-7(리스트/보드 토글)·PO-8(인라인 SVG)·PO-13·PO-14.
+Phase A~D 완료·병합. "개인 생산성 OS" 방향으로 **P0~P4.5 완료**(전부 병합됨). **2026-09-08 세션**에서
+**`/feature` 파이프라인으로 P5(단일 클라이언트 캐시 + 칸반 뷰)를 완주**했다
+(planner→developer→supervisor(PASS)→finisher). ADR-0028 채택. `useTaskStore` 를 `byId`/`order`
+정본으로 전환 + `tasks` 파생 미러 유지, `TasksWidgetView` 리스트/보드 세그먼티드 토글
+(`config.display.view`), 순수 모듈 `taskCache.js`/`taskBoard.js` + props-only `TaskBoard.jsx`/`TaskCard.jsx`.
+신규 요구사항 **FR-TASK-09**.
 
-**PR 상태:** #43·#44·#45 **병합 완료** (main = `5217d77`). **#46 만 남음** — `docs/adr-0028-kanban-toggle`
-에 main 을 머지해 충돌 해소·푸시함(2026-09-08 세션 이어서). 병합 대기.
+**PR 상태:** #43·#44·#45·#46 **병합 완료**. **P5 PR 만 열림** — `feature/p5-task-cache-kanban`, 병합 대기.
 
-다음: **P5(단일 캐시 + 칸반)** — ADR-0028 은 이제 PO-7 결정에 맞게 개정됨(§결정4 = tasks 위젯
-내 리스트/보드 토글), 상태만 **제안** → 착수 시 사용자 채택 후 `/feature`.
+다음: **P6(T2 자동 분류)** — ADR-0029, 선행 ADR-0018. 둘 다 제안 상태 → 착수 전 사용자 채택 필요.
 
 ---
 
@@ -31,16 +30,18 @@ v2 로 재작성**해 같은 URL 로 재배포. 결정 종결: PO-7(리스트/�
 | #43 | UI_STYLE v2 + ADR-0032(제안) | ✅ 병합됨 (main `8a2d8a4`) |
 | #44 | P2 캔버스 v2 + **ADR-0032 채택** + PO-13/14 결정 (docs) | ✅ 병합됨 (main `2687f9d`) |
 | #45 | **P4.5 사이드바 셸 구현** (`feat`, 커밋 `1c5ee54`, 34파일) | ✅ 병합됨 (main `5217d77`) |
-| **#46** | ADR-0028 §결정4 를 PO-7(리스트/보드 토글)에 맞춤 + 이 문서 갱신 (docs) | **OPEN · main 머지로 충돌 해소 완료 · 병합 대기** |
+| #46 | ADR-0028 §결정4 를 PO-7(리스트/보드 토글)에 맞춤 + 이 문서 갱신 (docs) | ✅ 병합됨 |
+| **P5 PR** | **P5 단일 클라이언트 캐시(ADR-0028 채택) + 칸반 리스트/보드 토글** (`feat`, `feature/p5-task-cache-kanban`, 16파일) | **OPEN · 병합 대기 · 수동 검증 TC-P5-M1~4 대기** |
 
 로컬 잔여 브랜치(병합 후 삭제 가능): `docs/t6-file-tree`, `feature/p4-common-components`,
 `docs/ui-style-v2-sidebar`, `docs/p2-canvas-v2`, `feature/p4.5-sidebar-shell`, `docs/adr-0028-kanban-toggle`.
 
 **다음 세션 첫 작업:**
 1. `git checkout main && git pull`.
-2. #46 이 병합됐는지 확인 → 병합된 로컬 브랜치 삭제.
-3. 데모 재배포 확인(`main` 의 `frontend/**` 변경 → 자동). #45 로 데모에 사이드바 등장.
-4. **P5 착수**: ADR-0028 채택 여부 사용자에게 확인 → `/feature`.
+2. P5 PR 이 병합됐는지 확인 → 병합된 로컬 브랜치 삭제.
+3. 데모 재배포 확인(`main` 의 `frontend/**` 변경 → 자동). P5 로 데모 tasks 위젯에 리스트/보드 토글 등장.
+4. **P6 착수 전 결정**: ADR-0018(스키마 마이그레이션 전략)·ADR-0029(자동 분류) 채택 여부 사용자 확인,
+   PO-3/PO-4(자동 분류 taxonomy·시점) 종결 → `/feature` 로 P6.
 
 ### P4.5 구현 요약 (PR #45, 커밋 `1c5ee54`)
 - 신규: `components/{AppShell,Sidebar,TopicView,TopicIcons}.jsx`, `widgets/topics.js`(11주제/4그룹),
@@ -92,24 +93,23 @@ v2 로 재작성**해 같은 URL 로 재배포. 결정 종결: PO-7(리스트/�
 | P3 | T5 라이트 테마 1차 (ADR-0027 채택) | ✅ 병합됨 |
 | P4 | T5 공통 컴포넌트 | ✅ 병합됨 |
 | **P4.5** | 사이드바 셸 (UI_STYLE v2 / ADR-0032 채택) | ✅ **PR #45 병합됨** |
-| **P5** | **T1 단일 캐시 + 칸반 뷰** — `useTaskStore` `byId`, 칸반 = tasks 위젯 내 리스트/보드 토글(PO-7) | ⏳ **다음** (ADR-0028 개정됨·제안) |
-| P6 | T2 자동 분류 — 스키마 마이그레이션 + 에이전트 분류 + 칩 필터 | ⏳ (P5 뒤) |
+| **P5** | **T1 단일 캐시 + 칸반 뷰** — `useTaskStore` `byId`/`order`, 칸반 = tasks 위젯 내 리스트/보드 토글(PO-7) | ✅ **PR 병합 대기** (ADR-0028 채택) |
+| **P6** | T2 자동 분류 — 스키마 마이그레이션 + 에이전트 분류 + 칩 필터 | ⏳ **다음** (ADR-0018·0029 선행·제안) |
 | P7 | T4 에이전트 활동 위젯 — `sync_logs`/`health`/다음 실행 | ⏳ |
 | P8 | T3 OKR Phase — `objectives`/`key_results` + OKR 대시보드 + 주간 플래너 | ⏳ |
 | P9 | T6 진행 현황 · 파일 탐색 뷰 — `GET /api/docs/:name` + `GET /api/tree` + 위젯(좌 폴더 트리 / 우 본문) | ⏳ |
 
 ---
 
-## 4. P5 착수 전에 처리할 것
+## 4. P6 착수 전에 처리할 것
 
 ### 4-1. 종결된 결정 (2026-09-08)
-- **PO-7** = tasks 위젯 내 리스트/보드 뷰 전환(`config.view`). ADR-0028 §결정4 개정 완료(PR #46).
+- **PO-7** = tasks 위젯 내 리스트/보드 뷰 전환(`config.display.view`). ADR-0028 채택·P5 구현 완료.
 - **PO-8** = 인라인 SVG (Recharts 미도입).
 - **PO-13** = 사이드바 그룹 COMMAND/PLAN/AGENT/SYSTEM. **PO-14** = rail·⌘K 는 후속.
-- **ADR-0032** 채택 (P4.5 로 구현됨).
+- **ADR-0032** 채택 (P4.5 로 구현됨). **ADR-0028** 채택 (P5 로 구현됨).
 
 ### 4-2. 아직 열린 것
-- **ADR-0028** — 개정됐지만 상태는 **제안**. P5 착수 시 사용자 채택 확인 후 `/feature`.
 - **ADR-0018**(스키마 마이그레이션 전략) — 제안. **ADR-0029(자동 분류, P6)의 선행 강제.**
 - `requirements/OKR.md` 미작성 (P8 / ADR-0030 선행).
 - ADR-0013(에이전트 "지금 실행" 트리거) 재활성 — P7 착수 시.
@@ -119,7 +119,7 @@ v2 로 재작성**해 같은 URL 로 재배포. 결정 종결: PO-7(리스트/�
 PO-3·PO-4 (자동 분류 taxonomy/시점 — ADR-0029), PO-5·PO-6 (OKR 엔티티 모델·Weekly Brief — ADR-0030),
 PO-9 (에이전트 트리거 — ADR-0013), PO-10 (이 방향 ↔ Phase E 순서), PO-11·PO-12 (진행 현황 뷰 — ADR-0031).
 
-**→ P5 착수: PR #44~#46 병합 확인 → 사용자에게 ADR-0028 채택 확인 → `/feature` 로 P5.**
+**→ P6 착수: P5 PR 병합 확인 → 사용자에게 ADR-0018·ADR-0029 채택 확인 + PO-3/PO-4 종결 → `/feature` 로 P6.**
 
 ---
 
@@ -170,12 +170,12 @@ PO-9 (에이전트 트리거 — ADR-0013), PO-10 (이 방향 ↔ Phase E 순서
 
 ---
 
-## 8. 자동 검증 현황 (2026-09-07 기준 — 전부 초록)
+## 8. 자동 검증 현황 (2026-09-08 P5 기준 — 전부 초록)
 
 | 스위트 | 결과 |
 |---|---|
 | `verify.sh --code-only` | 27 / 0 / 0 |
 | `check-docs.sh` (문서 정합) | 11 / 0 / 0 |
 | backend `npm test` | 85 pass / 0 fail |
-| frontend `node --test test/` | 26 pass / 0 fail |
+| frontend `npm test` | 56 pass / 0 fail |
 | agent `pytest -m "not network"` | 64 passed / 4 deselected |
