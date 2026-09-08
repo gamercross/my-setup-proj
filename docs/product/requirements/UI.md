@@ -23,9 +23,11 @@
 - **AC-2** 각 영역은 독립적으로 로딩/에러를 표시한다 — 한 영역의 API 실패가 다른 영역을 가리지 않는다.
 - **AC-3** 창 최소 크기 800×600 에서 레이아웃이 깨지지 않는다.
 - **AC-4** 데이터 없음 상태에서도 각 영역의 제목과 "없음" 안내가 보인다.
+- **AC-a** (P4.5 · [ADR-0032](../architecture/adr/ADR-0032-sidebar-shell-per-topic-layouts.md)) 앱 실행 시 왼쪽 고정 사이드바가 4그룹(COMMAND/PLAN/AGENT/SYSTEM) 11항목을 표시하고, 마지막 선택 주제를 복원한다(없으면 `overview`).
+- **AC-b** 사이드바 항목 클릭 시 본문 그리드가 그 주제의 레이아웃으로 교체된다 — 라우팅·새로고침 없음. 한 주제의 편집이 다른 주제에 영향을 주지 않는다.
 
 ### 관련
-UI `App`→`Dashboard` · FR-TASK-02, FR-PROJ-02, FR-CAL-01, FR-AGENT-04
+UI `App`→`AppShell`→`Sidebar`/`TopicView`→`WidgetShell` · FR-TASK-02, FR-PROJ-02, FR-CAL-01, FR-AGENT-04 · [ADR-0032](../architecture/adr/ADR-0032-sidebar-shell-per-topic-layouts.md)
 
 ---
 

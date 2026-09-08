@@ -6,7 +6,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { WIDGET_META } from '../src/widgets/widgetMeta.js';
-import { DEFAULT_INSTANCES } from '../src/widgets/defaultLayout.js';
+import { DEFAULT_LAYOUTS } from '../src/widgets/defaultLayout.js';
+
+// P4.5(ADR-0032) 전 단일 기본 레이아웃 → overview 주제 레이아웃으로 이관.
+const DEFAULT_INSTANCES = DEFAULT_LAYOUTS.overview;
 
 test('TC-BRIEF-07: brief 위젯이 메타에 존재하고 showMeta 스키마를 가진다', () => {
   const brief = WIDGET_META.brief;

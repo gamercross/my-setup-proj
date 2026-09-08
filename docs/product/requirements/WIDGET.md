@@ -47,10 +47,12 @@
 
 - **AC-1** When 위젯을 이동/리사이즈/추가/제거/최소화, Then 변경이 300ms 디바운스 후 저장된다.
 - **AC-2** When 앱 재시작, Then 마지막 레이아웃(위치·크기·z·최소화·config)이 복원된다.
-- **AC-3** Given 저장된 레이아웃이 없음(첫 실행), Then 기본 레이아웃(할일·프로젝트·캘린더 위젯)이 적용된다.
+- **AC-3** Given 저장된 레이아웃이 없음(첫 실행), Then 주제별 기본 레이아웃이 적용된다(P4.5: `overview` 는 할일·프로젝트·캘린더·브리핑, 그 외 주제는 각자 세트, 전용 위젯이 없는 주제는 "준비 중" 플레이스홀더 1개).
 - **AC-4** Given 저장된 레이아웃이 손상됨/파싱 실패, Then 기본 레이아웃으로 폴백하고 경고를 남긴다(크래시 없음).
-- **AC-5** 저장 위치는 [ADR-0021](../architecture/adr/ADR-0021-widget-layout-persistence.md) 결정을 따른다(1차 localStorage).
-- **AC-6** "레이아웃 초기화" 액션으로 기본값으로 되돌릴 수 있다.
+- **AC-5** 저장 위치는 [ADR-0021](../architecture/adr/ADR-0021-widget-layout-persistence.md) 결정을 따른다(1차 localStorage). P4.5([ADR-0032](../architecture/adr/ADR-0032-sidebar-shell-per-topic-layouts.md))부터 `dashboard.layout.v2` = `{ version:2, topics:{ [topicId]: Instance[] } }`.
+- **AC-6** "레이아웃 초기화" 액션으로 (현재 주제의) 기본값으로 되돌릴 수 있다.
+- **AC-7** (P4.5) 한 주제의 위젯 편집(추가·이동·리사이즈·제거·config)이 다른 주제의 레이아웃에 영향을 주지 않는다.
+- **AC-8** (P4.5) 기존 `dashboard.layout.v1`(단일 그리드) 사용자는 최초 로드 시 그 레이아웃이 `overview` 주제로 1회 마이그레이션되고, v2 저장 성공 후 v1 키는 삭제된다. 미등록 topicId 키는 파기하지 않고 보존한다(FR-WIDGET-08 정신).
 
 ## FR-WIDGET-05 — 위젯별 테마 커스터마이즈
 

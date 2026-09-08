@@ -313,6 +313,7 @@ flowchart LR
   subgraph BUILD["③ 빌드 (/feature 파이프라인)"]
     P3["P3 · T5 라이트 테마 1차<br/>styles.css 토큰 v2 + data-theme<br/>→ 데모 반영"]
     P4["P4 · T5 공통 컴포넌트<br/>스탯 타일 · 점-그리드 진행바 · 칩"]
+    P45["P4.5 · T5 사이드바 셸<br/>왼쪽 사이드바 4그룹 11항목<br/>+ 페이지 헤더 + 주제별 위젯 셸 (ADR-0032)"]
     P5["P5 · T1 단일 캐시 + 칸반 뷰<br/>완료 체크 · 우선순위 열 · 태그"]
     P6["P6 · T2 자동 분류<br/>스키마 마이그레이션 + 에이전트 분류"]
     P7["P7 · T4 에이전트 활동 위젯<br/>sync_logs · health · 다음 실행"]
@@ -320,26 +321,28 @@ flowchart LR
     P9["P9 · T6 진행 현황 뷰<br/>GET /api/docs + 안전 토큰화<br/>+ 진행 현황 위젯"]
   end
 
-  P0 --> P1 --> P2 --> P3 --> P4
-  P4 --> P5 --> P6
-  P4 --> P7
-  P4 --> P8
-  P4 --> P9
+  P0 --> P1 --> P2 --> P3 --> P4 --> P45
+  P45 --> P5 --> P6
+  P45 --> P7
+  P45 --> P8
+  P45 --> P9
   P5 --> P8
 
   style P0 fill:#dcfce7,stroke:#16a34a
   style P2 fill:#dcfce7,stroke:#16a34a
   style P3 fill:#dcfce7,stroke:#16a34a
   style P4 fill:#dcfce7,stroke:#16a34a
+  style P45 fill:#dcfce7,stroke:#16a34a
 ```
 
 | 단계 | 상태 | 산출물 |
 |---|---|---|
 | P0 | ✅ 2026-09-07 | `PERSONAL_OS.md` · 이 다이어그램 |
 | P1 문서 | ⏳ | ADR 4건 초안 + 0013 재활성 + 0018 결정 + `OKR.md` + `UI_STYLE.md` 개정 |
-| P2 디자인 | ✅ 2026-09-07 | 목업 캔버스 6 아트보드(대시보드 전체·공통 컴포넌트·OKR·칸반·에이전트 활동·진행 현황) + 토큰 v2 확정 (ADR-0027 반영). 캔버스: https://claude.ai/code/artifact/a8e15d6b-2bfb-42d9-96c7-cdb0d964ebf3 |
+| P2 디자인 | ✅ 2026-09-07 · v2 2026-09-08 | 목업 캔버스 6 아트보드(개요·할일 리스트+칸반·OKR·에이전트 활동·진행 현황·공통 컴포넌트) + 토큰 v2 확정 (ADR-0027 반영). **v2: UI_STYLE v2(라이트 + 왼쪽 그룹형 사이드바) 반영해 재작성, 같은 URL.** 캔버스: https://claude.ai/code/artifact/a8e15d6b-2bfb-42d9-96c7-cdb0d964ebf3 |
 | P3 라이트 테마 | ✅ 2026-09-07 | `styles.css` 토큰 v2 + `[data-theme=dark]` 블록(정의만), 하드코딩 hex → 토큰 1:1 치환 (ADR-0027 채택). 전역 다크 토글 UI 는 후속 |
 | P4 공통 컴포넌트 | ✅ 2026-09-07 | `frontend/src/components/` — `dotFill.js`(순수: `dotFill`/`normalizeTotal`/`clampPct`) + `DotProgress.jsx`(점그리드 진행바, `role=progressbar`) + `StatTile.jsx`(스탯 타일, tone별 숫자색) + `Chip.jsx`(칩, onClick 유무로 button/span). 카드 토큰 v2(`--card-radius` 16·`--shadow-card`) + `WidgetFrame` 그림자 + `ProjectCard` 진행바를 `DotProgress` 로 교체. `frontend/test/dotFill.test.mjs` TC-P4-01~05. 컴포넌트 시각 확인은 로컬 GUI 수동 검증 대기 |
+| P4.5 사이드바 셸 | ✅ 2026-09-08 | 단일 위젯 셸 → 왼쪽 사이드바(4그룹 11항목) + 페이지 헤더 + 주제별 위젯 셸로 재편 (ADR-0032 채택·구현). `frontend/src/components/` — `AppShell.jsx`(사이드바+헤더+본문 3열) · `Sidebar.jsx`(그룹형 네비, 활성 표시) · `TopicView.jsx`(주제별 위젯 그리드 셸) · `TopicIcons.jsx`. `store/useUiStore.js`(activeTopic 영속 + picker 세션 상태) · `widgets/topics.js`(주제 4그룹 11항목 정의 + 폴백) · `widgets/views/PlaceholderWidgetView.jsx`(미구현 주제 placeholder, hidden 메타). 레이아웃 마이그레이션 v1→v2: 기존 단일 배치는 `overview` 주제로 보존(`layoutStorage.js`·`defaultLayout.js`·`useLayoutStore.js`). `frontend/test/` — `topics.test.mjs`·`uiStore.test.mjs`·`layoutStorage.test.mjs` TC-SHELL-01~10 (42/42). 로컬 GUI 수동 검증(TC-SHELL-M1~6) 대기 |
 | P5~P9 빌드 | ⏳ | 위 다이어그램 순서대로 — **`/feature` 파이프라인으로 진행** (P9 진행 현황 뷰 = 이 문서를 대시보드에서 보기) |
 
 **열린 질문 PO-1~10** (착수 전 결정) 은 [PERSONAL_OS.md §8](../product/vision/PERSONAL_OS.md) 참조 — 특히 PO-1(라이트 기본 전환), PO-7(칸반이 할 일 위젯 대체 vs 추가), PO-10(Phase E 와의 순서).

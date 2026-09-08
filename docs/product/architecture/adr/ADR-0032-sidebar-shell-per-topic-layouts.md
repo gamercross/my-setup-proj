@@ -1,6 +1,6 @@
 # ADR-0032: 사이드바 셸 + 주제별 위젯 레이아웃
 
-- 상태: **제안** (2026-09-08) — 개인 OS. 사용자 결정: US-5(사이드바 그룹 구성), US-6(rail 모드 범위).
+- 상태: **채택** (2026-09-08) — 개인 OS P4.5. 사용자 결정 완료: PO-13(사이드바 그룹·항목), PO-14(rail·⌘K 범위). P2 캔버스 v2 로 시각 확정.
 - 관련: [UI_STYLE.md](../../reference/UI_STYLE.md) v2, [UI_SPEC.md](../../reference/UI_SPEC.md) §1, [ADR-0020](ADR-0020-widget-shell-architecture.md)(위젯 셸), [ADR-0021](ADR-0021-widget-layout-persistence.md)(레이아웃 영속화), [ADR-0027](ADR-0027-light-theme-default.md)(라이트 테마), [DASHBOARD_OS.md](../../vision/DASHBOARD_OS.md) DO-1~3, FR-UI-01, FR-WIDGET-01~06
 
 ## 맥락
@@ -46,7 +46,24 @@ App.jsx
   Sidebar 클릭 → `setActiveTopic(id)`. Electron 단일 창·화면 1개 원칙과 충돌 최소.
 - 딥링크·뒤로가기 요구 없음(사용자 1명·데스크톱). 마지막 선택 주제는 `localStorage` 로 복원.
 - 주제 목록은 **정적 레지스트리**(`topics.js`): `{ id, label, icon, group }`.
-  그룹·항목 최종 구성은 [UI_STYLE.md](../../reference/UI_STYLE.md) v2 §4 초안 → **US-5 로 확정.**
+
+**PO-13 결정 — 사이드바 그룹·항목 (P2 캔버스 v2 확정):**
+
+| 그룹 | 항목 |
+|---|---|
+| COMMAND | 개요 · 할 일 · 브리핑 · 프로젝트 · 일정 |
+| PLAN | OKR · 주간 플래너 |
+| AGENT | 활동 · 진행 현황 · 다이어그램 |
+| SYSTEM | 설정 |
+
+- 아직 구현 안 된 항목(OKR·주간·활동·진행 현황)도 사이드바에 **표시하되**, 진입 시
+  "준비 중" 플레이스홀더 위젯 1개 + 피커 안내. 실제 위젯은 P5~P9 에서 채운다.
+- 활성 항목: 옅은 회색 알약(`--nav-active-bg`) + 좌측 3px 파랑 인디케이터. 강한 색 채움 금지.
+  (구현 시 3px 로 확정 — 4px 는 알약 배경과 겹쳐 과해 보임.)
+
+**PO-14 결정 — P4.5 범위:**
+- **검색 인풋(⌘K)**: 표시만. 실제 동작(명령 팔레트)은 후속.
+- **rail 접기 모드**: P4.5 범위 밖. 사이드바는 고정 폭(`--sidebar-w`).
 
 ### 3. 주제별 레이아웃 영속화 — [ADR-0021](ADR-0021-widget-layout-persistence.md) 확장
 
@@ -67,7 +84,7 @@ App.jsx
 
 ### 5. 시각 — [UI_STYLE.md](../../reference/UI_STYLE.md) v2
 
-- Sidebar: `--sidebar-w: 240px`, 활성 항목 `--nav-active-bg`(옅은 회색 알약) + 좌측 4px 파랑 인디케이터.
+- Sidebar: `--sidebar-w: 240px`, 활성 항목 `--nav-active-bg`(옅은 회색 알약) + 좌측 3px 파랑 인디케이터.
   강한 색 채움 금지.
 - 페이지 헤더: 아이콘 + H1 + 한 줄 부제, 우측 `● Live`/새로고침 캡션 + 편집 모드 토글.
 - **US-6 (rail 접기 모드)** 기본값 = **후속 범위** (v2 는 고정 폭).
@@ -86,6 +103,9 @@ App.jsx
 - `WidgetShell`/`useLayoutStore` 에 `topicId` 스코프가 들어가 스토어 구조가 한 겹 깊어진다.
   공개 셀렉터를 유지해 `WidgetFrame`·뷰 컴포넌트는 무수정 목표.
 - 레이아웃 저장 키 마이그레이션(v1→v2) 코드와 테스트 필요(TC-SHELL-*).
+  구현된 저장 스키마 실제 형태: `dashboard.layout.v2 = { version: 2, topics: { [topicId]: Instance[] } }`
+  (주제별 인스턴스 배열 맵). `useUiStore` 의 `activeTopic` 은 별도 키 `dashboard.ui.v1 = { version: 1, activeTopic }`.
+  `sanitizeTopicMap` 은 미등록 topicId 키를 파기하지 않고 보존한다(FR-WIDGET-08 정신).
 - 데모(`demoClient.js`/`demoData.js`)는 주제별 기본 레이아웃만 추가하면 자연히 맞음(서버 무관, UI 상태).
 - 네비게이션이 생기지만 **화면 수는 여전히 "논리적으로 1개"**(라우팅 없음) — [UI_SPEC.md](../../reference/UI_SPEC.md) §1 표현을
   "화면 1개(주제 전환 = 본문 그리드 교체)" 로 갱신.
