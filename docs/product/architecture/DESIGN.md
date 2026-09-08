@@ -42,7 +42,7 @@
 | [0015](adr/ADR-0015-local-first-architecture.md) | 아키텍처 스타일 — 로컬 우선 + 프로세스 분리 | **제안** |
 | [0016](adr/ADR-0016-desktop-process-topology.md) | 데스크톱 프로세스 토폴로지 (백엔드 실행 주체) | **제안** |
 | [0017](adr/ADR-0017-rest-error-contract.md) | REST 오류 응답 계약 (RFC 9457) | **제안** |
-| [0018](adr/ADR-0018-schema-migration-strategy.md) | 스키마 마이그레이션 전략 | **제안** |
+| [0018](adr/ADR-0018-schema-migration-strategy.md) | 스키마 마이그레이션 전략 (최소안: `PRAGMA user_version` + `db/index.js` 인라인) | 채택 (2026-09-08, P6) |
 | [0019](adr/ADR-0019-architecture-fitness-functions.md) | 아키텍처 피트니스 함수 | **제안** |
 | [0020](adr/ADR-0020-widget-shell-architecture.md) | 위젯 셸 아키텍처 (react-grid-layout + 위젯 계약) | 채택 |
 | [0021](adr/ADR-0021-widget-layout-persistence.md) | 위젯 레이아웃·설정 영속화 (localStorage → SQLite) | 채택 |
@@ -53,7 +53,7 @@
 | [0026](adr/ADR-0026-web-demo-mode.md) | 웹 데모 모드 — `VITE_DEMO` 목 어댑터 + GitHub Pages 배포 | 채택 — 2026-09-07 |
 | [0027](adr/ADR-0027-light-theme-default.md) | 라이트 테마 기본 전환 + 디자인 토큰 v2 (US-1 종결: 강조색 파랑) | 채택 — P3 구현 (2026-09-07) |
 | [0028](adr/ADR-0028-single-client-cache.md) | 단일 클라이언트 캐시 (`byId`) — 뷰는 파생만, 칸반은 tasks 위젯 내 리스트/보드 토글 | 채택 (2026-09-08, P5) |
-| [0029](adr/ADR-0029-task-auto-category.md) | 할 일 자동 분류 — 에이전트 배치, `tasks.category`, ADR-0018 선행 강제 | 제안 — 개인 OS P1 |
+| [0029](adr/ADR-0029-task-auto-category.md) | 할 일 자동 분류 — 자유 태그·다중(`task_tags`), 에이전트 배치 | 채택 (2026-09-08, P6) |
 | [0030](adr/ADR-0030-okr-data-model.md) | OKR 데이터 모델 (`objectives`/`key_results`/`kr_snapshots`) + 주간 플래너 | 제안 — 개인 OS P1 |
 | [0031](adr/ADR-0031-safe-markdown-render.md) | 안전 마크다운 렌더 + 파일 트리 API (`GET /api/tree`, 파서 없음) | 제안 — 개인 OS P1 |
 | [0032](adr/ADR-0032-sidebar-shell-per-topic-layouts.md) | 사이드바 셸 + 주제별 위젯 레이아웃 (`activeTopic` state, 라우터 없음, 레이아웃 v1→v2) | 채택 — 개인 OS P4.5 (2026-09-08) |
@@ -131,13 +131,14 @@ flowchart TB
 
 > **B2 완료 (2026-09-02):** better-sqlite3 로 `backend/src/db.js` 내부 교체 완료. `backend/db/index.js` 가 `schema.sql` 을 런타임에 멱등 적용(WAL). 라우트·검증 무수정.
 
-테이블: `tasks`, `projects`, `calendar_events`(Google 캐시), `emails`(Gmail 캐시), `briefs`(날짜별 1건), `sync_logs`(append-only).
+테이블: `tasks`, `task_tags`(자유 태그·다중, ADR-0029), `projects`, `calendar_events`(Google 캐시), `emails`(Gmail 캐시), `briefs`(날짜별 1건), `sync_logs`(append-only).
 
 ```
 projects (1) ──< (N) tasks     tasks.project_id FK, ON DELETE SET NULL (ADR-0012)
+tasks (1) ──< (N) task_tags     PK(task_id, tag), source∈{user,agent}, ON DELETE CASCADE (ADR-0029)
 calendar_events / emails        외부 API 캐시. event_id / email_id UNIQUE 로 upsert
 briefs                          date UNIQUE. 같은 날 재실행 시 갱신
-sync_logs                       매 동기화 시도 1행 추가
+sync_logs                       매 동기화 시도 1행 추가 (service 에 'classify' 포함 — ADR-0029)
 ```
 
 설계 의도:

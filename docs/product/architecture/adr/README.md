@@ -6,7 +6,7 @@
 **📂 이동:** [⬆ architecture/](../README.md) · [product/](../../README.md) · [docs/](../../../README.md) · [🚀 ONBOARDING](../../../ONBOARDING.md)
 **형제 뷰:** [DESIGN](../DESIGN.md) · [ARCHITECTURE_DRIVERS](../ARCHITECTURE_DRIVERS.md) · [RUNTIME_VIEW](../RUNTIME_VIEW.md) · [DATA_ARCHITECTURE](../DATA_ARCHITECTURE.md) · [CROSSCUTTING](../CROSSCUTTING.md) · [ARCHITECTURE_EVOLUTION](../ARCHITECTURE_EVOLUTION.md)
 
-> **상태 요약:** 0001~0012 채택 · 0013·0015~0019 제안(착수 전 결정) · 0014·0020~0026 채택 (0022 는 C6, 0024 는 D2-b, 0025 는 D3, 0026 은 웹 데모) · **0027 채택(P3)**, 0028~0031 제안 (개인 생산성 OS 방향 P1 — [PERSONAL_OS.md](../../vision/PERSONAL_OS.md) §8 PO-1~11). 제안 ADR 은 관련 Phase 착수 전에 사용자가 결정한다.
+> **상태 요약:** 0001~0012 채택 · 0013·0015~0017·0019 제안(착수 전 결정) · 0014·0020~0026 채택 (0022 는 C6, 0024 는 D2-b, 0025 는 D3, 0026 은 웹 데모) · **0027 채택(P3)** · **0028 채택(P5)** · **0018·0029 채택(P6 — 태그 자동 분류)** · 0030·0031 제안 (개인 생산성 OS 방향 P1 — [PERSONAL_OS.md](../../vision/PERSONAL_OS.md) §8 PO-1~11). 제안 ADR 은 관련 Phase 착수 전에 사용자가 결정한다.
 >
 > **강의 열:** 각 ADR 이 3개 강의([COURSE_MAPPING.md](../../../progress/COURSE_MAPPING.md)) 중 어느 주차의 렌즈로 읽히는지. 값의 단일 원천(SSOT) = COURSE_MAPPING §4. 대응 없으면 `—`.
 
@@ -55,7 +55,7 @@
 | [0015](ADR-0015-local-first-architecture.md) | 아키텍처 스타일 — 로컬 우선 + 프로세스 분리 | 제안 | ASR-1~3, NFR-REL | C-W3·C-W6 |
 | [0016](ADR-0016-desktop-process-topology.md) | 데스크톱 프로세스 토폴로지 (백엔드 실행 주체) | 제안 | RUNTIME_VIEW §5 | A-W6·A-W9 |
 | [0017](ADR-0017-rest-error-contract.md) | REST 오류 응답 계약 (RFC 9457 스타일) | 제안 | NFR-SEC-07 | C-W4 |
-| [0018](ADR-0018-schema-migration-strategy.md) | 스키마 마이그레이션 전략 (순방향 전용) | 제안 | ADR-0003, NFR-MAINT-03 | A-W5, C-W4 |
+| [0018](ADR-0018-schema-migration-strategy.md) | 스키마 마이그레이션 전략 (최소안: `PRAGMA user_version` + 인라인 러너) | 채택 (2026-09-08, P6) | ADR-0003, NFR-MAINT-03 | A-W5, C-W4 |
 | [0019](ADR-0019-architecture-fitness-functions.md) | 아키텍처 피트니스 함수 | 제안 | NFR-MAINT-02 | B-W6 |
 | [0020](ADR-0020-widget-shell-architecture.md) | 위젯 셸 아키텍처 (react-grid-layout + 위젯 계약) | 채택 | FR-WIDGET, DASHBOARD_OS | A-W6, C-W5·C-W6 |
 | [0021](ADR-0021-widget-layout-persistence.md) | 위젯 레이아웃·설정 영속화 (localStorage → SQLite) | 채택 | FR-WIDGET-04~06 | A-W6, C-W5·C-W6 |
@@ -66,7 +66,7 @@
 | [0026](ADR-0026-web-demo-mode.md) | 웹 데모 모드 — `VITE_DEMO` 목 어댑터 + GitHub Pages | 채택 — 2026-09-07 | FR-UI-*, FR-WIDGET-* | C-W7 |
 | [0027](ADR-0027-light-theme-default.md) | 라이트 테마 기본 전환 + 디자인 토큰 v2 | 채택 — P3 (2026-09-07) | FR-WIDGET-05/06 | — |
 | [0028](ADR-0028-single-client-cache.md) | 단일 클라이언트 캐시 — 뷰는 파생만, 칸반은 tasks 위젯 내 리스트/보드 토글 | 채택 (2026-09-08, 개인 OS P5) | FR-TASK-02/03/09, FR-UI-01 | — |
-| [0029](ADR-0029-task-auto-category.md) | 할 일 자동 분류 — 에이전트 배치, `tasks.category` | 제안 — 개인 OS P1 (PO-3/4) | FR-TASK-08 | — |
+| [0029](ADR-0029-task-auto-category.md) | 할 일 자동 분류 — 자유 태그·다중(`task_tags`), 에이전트 배치 | 채택 (2026-09-08, P6) | FR-TASK-08 | — |
 | [0030](ADR-0030-okr-data-model.md) | OKR 데이터 모델 + 주간 플래너 | 제안 — 개인 OS P1 (PO-5/6) | FR-OKR-* | — |
 | [0031](ADR-0031-safe-markdown-render.md) | 안전 마크다운 렌더 + 파일 트리 API (서버 토큰화·`GET /api/tree`) | 제안 — 개인 OS P1 (PO-11/12) | FR-UI-06 | — |
 | [0032](ADR-0032-sidebar-shell-per-topic-layouts.md) | 사이드바 셸 + 주제별 위젯 레이아웃 (`activeTopic` state·레이아웃 v1→v2) | 채택 — 개인 OS P4.5 (PO-13/14, UI_STYLE v2) | FR-UI-01, FR-WIDGET-04 | — |

@@ -184,4 +184,77 @@ describe('할일 API', () => {
       assert.equal(res.status, 400, `bad=${bad}`);
     }
   });
+
+  // ── 태그 (FR-TASK-08) ──────────────────────────────
+  async function makeTask(title = '태그용') {
+    return (await request(app).post('/api/tasks').send({ title })).body.task;
+  }
+
+  it('TC-TAG-01: POST /api/tasks/:id/tags 는 201 로 태그를 추가한다', async () => {
+    const t = await makeTask();
+    const res = await request(app).post(`/api/tasks/${t.id}/tags`).send({ tag: '공부' });
+    assert.equal(res.status, 201);
+    assert.deepEqual(res.body.task.tags, ['공부']);
+    // source 는 응답에 노출하지 않는다
+    assert.equal('source' in res.body.task, false);
+  });
+
+  it('TC-TAG-02: 태그는 정렬되어 반환되고 목록/단건 모두에 실린다', async () => {
+    const t = await makeTask();
+    await request(app).post(`/api/tasks/${t.id}/tags`).send({ tag: '나중' });
+    await request(app).post(`/api/tasks/${t.id}/tags`).send({ tag: '가장' });
+
+    const one = await request(app).get(`/api/tasks/${t.id}`);
+    assert.deepEqual(one.body.task.tags, ['가장', '나중']);
+    const list = await request(app).get('/api/tasks');
+    assert.deepEqual(list.body.tasks[0].tags, ['가장', '나중']);
+  });
+
+  it('TC-TAG-03: 같은 태그 재추가는 멱등 (중복 없음, 201)', async () => {
+    const t = await makeTask();
+    await request(app).post(`/api/tasks/${t.id}/tags`).send({ tag: '반복' });
+    const res = await request(app).post(`/api/tasks/${t.id}/tags`).send({ tag: '반복' });
+    assert.equal(res.status, 201);
+    assert.deepEqual(res.body.task.tags, ['반복']);
+  });
+
+  it('TC-TAG-04: 1~20자 아니면 400', async () => {
+    const t = await makeTask();
+    for (const bad of ['', '   ', 'a'.repeat(21), '콤마,있음', '개행\n있음']) {
+      const res = await request(app).post(`/api/tasks/${t.id}/tags`).send({ tag: bad });
+      assert.equal(res.status, 400, `bad=${JSON.stringify(bad)}`);
+      assert.equal(res.body.error, '태그는 1~20자여야 합니다.');
+    }
+  });
+
+  it('TC-TAG-05: 없는 할일에 태그 추가는 404', async () => {
+    const res = await request(app).post('/api/tasks/99999/tags').send({ tag: 'x' });
+    assert.equal(res.status, 404);
+    assert.equal(res.body.error, '할일을 찾을 수 없습니다.');
+  });
+
+  it('TC-TAG-06: DELETE /api/tasks/:id/tags/:tag 는 200 으로 태그를 지운다', async () => {
+    const t = await makeTask();
+    await request(app).post(`/api/tasks/${t.id}/tags`).send({ tag: '지울것' });
+    await request(app).post(`/api/tasks/${t.id}/tags`).send({ tag: '남길것' });
+    const res = await request(app).delete(`/api/tasks/${t.id}/tags/${encodeURIComponent('지울것')}`);
+    assert.equal(res.status, 200);
+    assert.deepEqual(res.body.task.tags, ['남길것']);
+  });
+
+  it('TC-TAG-07: 없던 태그 삭제도 200 (멱등)', async () => {
+    const t = await makeTask();
+    const res = await request(app).delete(`/api/tasks/${t.id}/tags/${encodeURIComponent('없음')}`);
+    assert.equal(res.status, 200);
+    assert.deepEqual(res.body.task.tags, []);
+  });
+
+  it('TC-TAG-08: 할일 삭제 시 태그도 함께 사라진다 (ON DELETE CASCADE)', async () => {
+    const t = await makeTask();
+    await request(app).post(`/api/tasks/${t.id}/tags`).send({ tag: 'cascade' });
+    await request(app).delete(`/api/tasks/${t.id}`);
+    const t2 = await makeTask('두번째');
+    // 새 할일은 이전 태그를 물려받지 않는다
+    assert.deepEqual(t2.tags, []);
+  });
 });

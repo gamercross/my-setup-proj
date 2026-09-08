@@ -171,4 +171,34 @@ ADR-02/03 · `backend/db/` · 데이터 `tasks` · NFR-MAINT-03, NFR-PERF-02
 
 ---
 
+## FR-TASK-08 — 자유 태그(다중) + 에이전트 자동 분류 (개인 OS P6)
+
+**사용자 스토리:** 사용자로서 나는 할 일에 태그를 자유롭게(여러 개) 달고 싶고,
+태그를 깜빡한 할 일은 에이전트가 알아서 분류해 주면 좋겠다.
+
+**우선순위** P1 · **상태** ✅ (2026-09-08) · **근거** [ADR-0029](../architecture/adr/ADR-0029-task-auto-category.md)(자유 태그·다중, 에이전트 배치), [ADR-0018](../architecture/adr/ADR-0018-schema-migration-strategy.md)(마이그레이션 최소안)
+
+> 초안의 "고정 6종 taxonomy + 단일 카테고리 + `tasks.category` 컬럼" 은 폐기. 별도 테이블 `task_tags`(`source∈{user,agent}`).
+
+### 수용 기준
+- **AC-1** 사용자는 할 일 위젯에서 태그를 추가/삭제할 수 있다(다중). 태그는 트림 후 1~20자, 개행·콤마 불가.
+- **AC-2** 태그는 `POST /api/tasks/:id/tags` · `DELETE /api/tasks/:id/tags/:tag` 로 저장되고, 목록·단건 응답의 `tags`(문자열 배열, 오름차순)에 실린다. `source` 는 노출 안 함.
+- **AC-3** 태그가 0개인 미완료 할 일은 다음 `daily_brief` 실행에서 에이전트가 태그를 붙인다(할 일당 1~3개, 짧은 한국어).
+- **AC-4** 에이전트는 이미 태그가 있는 할 일(수동 포함)을 건드리지 않는다. `tasks` 행 자체는 UPDATE 하지 않는다.
+- **AC-5** 자동 분류 실패 시 태그 없음 유지 + `sync_logs('classify','failed')` 기록. 브리핑은 계속 진행한다.
+- **AC-6** 자동 분류 성공 시 `sync_logs('classify','success')` 1행. 대상 0건이면 Claude 호출 0회.
+- **AC-7** 위젯에 태그 필터 바(칩). 칩을 눌러 그 태그의 할 일만 보고, 같은 칩 재클릭으로 해제. 필터 상태는 위젯 로컬(비영속).
+- **AC-8** 필터 결과 0건이면 "이 태그의 할 일이 없습니다" + [필터 해제].
+- **AC-9** 태그 검증 위반은 400 "태그는 1~20자여야 합니다.".
+- **AC-10** 없는 할 일에 태그 조작은 404. 중복 추가·없는 태그 삭제는 멱등(201/200).
+- **AC-11** 할 일 삭제 시 `task_tags` 도 함께 삭제(`ON DELETE CASCADE`).
+
+### 관련
+- API: [API_REFERENCE.md](../reference/API_REFERENCE.md) `POST/DELETE /api/tasks/:id/tags`
+- 데이터: [DATA_DICTIONARY.md](../reference/DATA_DICTIONARY.md) §1-a `task_tags`
+- 에이전트: [AGENT.md](AGENT.md) daily_brief 배치 분류
+- UI: [UI_SPEC.md](../reference/UI_SPEC.md) §3.2 태그 칩·필터
+
+---
+
 **작성:** 2026-09-02

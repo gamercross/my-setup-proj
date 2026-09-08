@@ -54,3 +54,28 @@ test('TC-DEMO-06: GET /calendar/events 정렬 + from/to 검증', async () => {
 test('TC-DEMO-07: 매핑 없는 경로는 404', async () => {
   await assert.rejects(() => demoRequest('GET', '/unknown'), (e) => e.status === 404);
 });
+
+test('TC-DEMO-08: 데모 태그 — 8건 중 5건 태그, 3건 빈 배열', async () => {
+  const { tasks } = await demoRequest('GET', '/tasks');
+  assert.equal(tasks.filter((t) => (t.tags || []).length > 0).length, 5);
+  assert.equal(tasks.filter((t) => (t.tags || []).length === 0).length, 3);
+});
+
+test('TC-DEMO-09: POST/DELETE /tasks/:id/tags — 태그 분기가 PUT 보다 먼저 매칭', async () => {
+  const add = await demoRequest('POST', '/tasks/3/tags', { tag: '새태그' });
+  assert.deepEqual(add.task.tags, ['새태그']);
+  // 멱등
+  const again = await demoRequest('POST', '/tasks/3/tags', { tag: '새태그' });
+  assert.deepEqual(again.task.tags, ['새태그']);
+  const del = await demoRequest('DELETE', '/tasks/3/tags/' + encodeURIComponent('새태그'));
+  assert.deepEqual(del.task.tags, []);
+  // 없던 태그 삭제도 200
+  const del2 = await demoRequest('DELETE', '/tasks/3/tags/' + encodeURIComponent('없음'));
+  assert.deepEqual(del2.task.tags, []);
+});
+
+test('TC-DEMO-10: 태그 검증 — 1~20자 아니면 400, 없는 id 404', async () => {
+  await assert.rejects(() => demoRequest('POST', '/tasks/3/tags', { tag: '  ' }), (e) => e.status === 400);
+  await assert.rejects(() => demoRequest('POST', '/tasks/3/tags', { tag: 'x'.repeat(21) }), (e) => e.status === 400);
+  await assert.rejects(() => demoRequest('POST', '/tasks/99999/tags', { tag: 'a' }), (e) => e.status === 404);
+});

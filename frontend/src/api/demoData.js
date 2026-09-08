@@ -26,7 +26,7 @@ export function createDataset() {
     { id: 4, name: '유튜브 채널 리브랜딩', progress: 15, status: 'on_hold', notion_id: null, created_at: nowIso, updated_at: nowIso },
   ];
 
-  const t = (id, title, priority, status, dueDays, project_id) => ({
+  const t = (id, title, priority, status, dueDays, project_id, tags = []) => ({
     id,
     title,
     description: '',
@@ -34,19 +34,21 @@ export function createDataset() {
     priority,
     status,
     project_id,
+    tags,
     created_at: nowIso,
     updated_at: nowIso,
   });
   // 우선순위 분포는 보드 뷰(FR-TASK-09)에서 3열이 모두 차도록 잡는다: high 3 / medium 3 / low 2.
+  // 태그(FR-TASK-08): 8건 중 5건에 태그, 3건은 [] (자동 분류 대상 시연용).
   const tasks = [
-    t(1, '위젯 셸 레이아웃 저장 버그 재현', 'high', 'in_progress', 0, 1),
-    t(2, 'Notion 저장 실패 시 재시도 로그 확인', 'medium', 'todo', 1, 1),
-    t(3, 'BriefCard 다크테마 대비 점검', 'low', 'todo', 2, 1),
-    t(4, '프로세스 스케줄링 과제 3번 풀이', 'high', 'todo', 1, 2),
-    t(5, '페이지 교체 알고리즘 정리 노트', 'medium', 'done', -1, 2),
-    t(6, '릴스 썸네일 5개 시안', 'medium', 'todo', 3, 4),
-    t(7, '치과 예약 잡기', 'low', 'todo', 2, null),
-    t(8, '주간 회고 작성', 'high', 'todo', 4, null),
+    t(1, '위젯 셸 레이아웃 저장 버그 재현', 'high', 'in_progress', 0, 1, ['개발', '버그']),
+    t(2, 'Notion 저장 실패 시 재시도 로그 확인', 'medium', 'todo', 1, 1, ['개발']),
+    t(3, 'BriefCard 다크테마 대비 점검', 'low', 'todo', 2, 1, []),
+    t(4, '프로세스 스케줄링 과제 3번 풀이', 'high', 'todo', 1, 2, ['공부']),
+    t(5, '페이지 교체 알고리즘 정리 노트', 'medium', 'done', -1, 2, ['공부']),
+    t(6, '릴스 썸네일 5개 시안', 'medium', 'todo', 3, 4, []),
+    t(7, '치과 예약 잡기', 'low', 'todo', 2, null, ['건강']),
+    t(8, '주간 회고 작성', 'high', 'todo', 4, null, []),
   ];
 
   const ev = (id, title, start, end, location) => ({

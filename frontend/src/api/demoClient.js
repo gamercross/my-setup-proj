@@ -50,6 +50,7 @@ function createTask(body) {
     priority: body.priority || 'medium',
     status: body.status || 'todo',
     project_id: body.project_id ?? null,
+    tags: [],
     created_at: now,
     updated_at: now,
   };
@@ -60,10 +61,36 @@ function createTask(body) {
 function updateTask(id, body) {
   const task = store.tasks.find((x) => x.id === Number(id));
   if (!task) throw err(404, '할일을 찾을 수 없습니다.');
+  // tags 는 전용 엔드포인트(/tasks/:id/tags)로만 바뀐다 — 병합 키에서 제외.
   for (const k of ['title', 'description', 'due_date', 'priority', 'status', 'project_id']) {
     if (body && body[k] !== undefined) task[k] = body[k];
   }
   task.updated_at = nowIso();
+  return { task };
+}
+
+// 태그 정규화 (backend/src/services/tasks.js:normalizeTag 최소 흉내)
+function normalizeTag(raw) {
+  const tag = String(raw ?? '').trim();
+  if (tag.length < 1 || tag.length > 20 || /[\n\r,]/.test(tag)) {
+    throw err(400, '태그는 1~20자여야 합니다.');
+  }
+  return tag;
+}
+
+function addTag(id, body) {
+  const task = store.tasks.find((x) => x.id === Number(id));
+  if (!task) throw err(404, '할일을 찾을 수 없습니다.');
+  const tag = normalizeTag((body || {}).tag);
+  if (!Array.isArray(task.tags)) task.tags = [];
+  if (!task.tags.includes(tag)) task.tags = [...task.tags, tag].sort();
+  return { task };
+}
+
+function removeTag(id, tag) {
+  const task = store.tasks.find((x) => x.id === Number(id));
+  if (!task) throw err(404, '할일을 찾을 수 없습니다.');
+  task.tags = (task.tags || []).filter((x) => x !== tag);
   return { task };
 }
 
@@ -126,6 +153,12 @@ export async function demoRequest(method, path, body) {
 
   if (p === '/tasks' && method === 'GET') return listTasks(q);
   if (p === '/tasks' && method === 'POST') return createTask(body);
+  // 태그 분기는 반드시 일반 /tasks/ PUT·DELETE 분기보다 먼저 (경로 매칭 순서).
+  if (method === 'POST' && /^\/tasks\/\d+\/tags$/.test(p)) return addTag(p.split('/')[2], body);
+  if (method === 'DELETE' && /^\/tasks\/\d+\/tags\/.+$/.test(p)) {
+    const parts = p.split('/');
+    return removeTag(parts[2], decodeURIComponent(parts.slice(4).join('/')));
+  }
   if (p.startsWith('/tasks/') && method === 'PUT') return updateTask(p.slice(7), body);
   if (p.startsWith('/tasks/') && method === 'DELETE') {
     store.tasks = store.tasks.filter((t) => t.id !== Number(p.slice(7)));

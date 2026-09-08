@@ -1,12 +1,22 @@
 # ADR-0018: 스키마 마이그레이션 전략
 
-- 상태: 제안 (2026-09-03) — 첫 `ALTER` 필요 시점(Week 10 `user_id`) 전 확정
+- 상태: 채택 (2026-09-08) — 최소안 채택. `PRAGMA user_version` + `db/index.js` 인라인 러너, `migrations/` 디렉터리·별도 러너 모듈 없음, forward-only, 실행 전 `app.db` → `.bak-<ts>`. 정식 순번 러너(아래 "결정")는 Supabase 도입(Week 10) 시 재검토.
 - 관련: [ADR-0003](ADR-0003-schema-single-file.md), [ADR-0008](ADR-0008-supabase-deferred.md), [DATA_ARCHITECTURE.md](../DATA_ARCHITECTURE.md) §3, NFR-MAINT-03
 
 ## 맥락
 [ADR-0003](ADR-0003-schema-single-file.md) 은 `schema.sql` 1파일 + `CREATE TABLE IF NOT EXISTS` 로 스키마를 멱등 적용한다. 이 방식은 **기존 테이블의 컬럼 추가·제약 변경을 할 수 없다.** Week 10 의 `user_id`/`synced_at`/`deleted_at` 추가에서 즉시 막힌다.
 
-## 결정 (제안)
+## 채택된 최소안 (2026-09-08, 개인 OS P6)
+FR-TASK-08(`task_tags` + `sync_logs` CHECK 확장)에서 첫 마이그레이션이 필요해졌다. 정식 순번 러너 대신 최소 구현을 채택한다.
+
+- `backend/db/index.js` 상단 `SCHEMA_VERSION` 상수 + `applyMigrations(db, dbPath)` 인라인 함수. 별도 파일·`migrations/` 디렉터리 없음.
+- `openDatabase()` 에서 `db.exec(schema)` 직후 `applyMigrations` 호출. `PRAGMA user_version` 으로 적용 버전 추적.
+- 파일 DB 가 실제 존재할 때만 마이그레이션 직전 `copyFileSync` → `${dbPath}.bak-<ts>`. `:memory:`·신규 파일은 스킵.
+- forward-only, down 스크립트 없음. 실패 시 기존 `openDatabase` try/catch 가 잡아 재던진다.
+- 에이전트(`agent/db.py:ensure_schema`)는 마이그레이션을 실행하지 않는다.
+- v1: `sync_logs` 를 테이블 재작성(new→copy→drop→rename) 패턴으로 CHECK 에 `'classify'` 추가.
+
+## 결정 (정식안 — Supabase 도입 시 재검토)
 순번 기반 순방향 전용(forward-only) 마이그레이션을 도입한다.
 
 - `backend/db/migrations/0001_init.sql`, `0002_add_user_id.sql` … — 순번 + 설명.

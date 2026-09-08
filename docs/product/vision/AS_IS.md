@@ -127,8 +127,12 @@ flowchart TB
     SGM --> ADB["agent/db.py"]
     SCA --> ADB
     DBF["daily_brief.py"] --> ADB
+    DBF --> CLF["classify.py<br/>(태그 자동 분류)"]
+    CLF --> ADB
+    CLF --> SCL
     DBF --> SNO["services/notion.py"]
     DBF --> SCL["services/claude.py"]
+    ADB -. "task_tags 쓰기만 (ADR-0029 예외)" .-> SCHEMA
     TCL["test_claude.py"] --> SCL
     SGM -. "읽기 전용" .-> GAPI["Google API<br/>(Gmail·Calendar)"]
     SCA -. "읽기 전용" .-> GAPI

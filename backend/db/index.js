@@ -16,6 +16,56 @@ const Database = require('better-sqlite3');
 // 커넥션 싱글턴
 let conn = null;
 
+// 스키마 마이그레이션 버전 (PRAGMA user_version 과 비교). forward-only, down 없음 — ADR-0018.
+const SCHEMA_VERSION = 1;
+
+// 마이그레이션 직전 1회 백업한다.
+// ':memory:' · 신규 파일(부팅 시 새로 만들어진 빈 DB, isNew)은 스킵.
+// WAL 모드에서는 아직 체크포인트 안 된 커밋이 -wal 사이드카에 있으므로,
+// copyFileSync 직전에 wal_checkpoint(TRUNCATE) 로 WAL 을 메인 파일로 밀어넣는다.
+function backupIfNeeded(db, dbPath, isNew) {
+  try {
+    if (dbPath === ':memory:') return;
+    if (isNew) return;
+    if (!fs.existsSync(dbPath)) return;
+    // WAL → 메인 파일 반영 (백업본 누락 방지)
+    db.pragma('wal_checkpoint(TRUNCATE)');
+    const dest = `${dbPath}.bak-${Date.now()}`;
+    fs.copyFileSync(dbPath, dest);
+  } catch (err) {
+    // 백업 실패는 마이그레이션을 막지 않는다 (로그만).
+    console.error('마이그레이션 백업 실패:', err.message);
+  }
+}
+
+// PRAGMA user_version 기반 최소 마이그레이션 러너 (ADR-0018).
+// 별도 러너 모듈·migrations/ 디렉터리 없이 여기 인라인으로 둔다. forward-only.
+function applyMigrations(db, dbPath, isNew) {
+  const cur = db.pragma('user_version', { simple: true });
+  if (cur >= SCHEMA_VERSION) return;
+
+  backupIfNeeded(db, dbPath, isNew);
+
+  // v1: sync_logs CHECK 에 'classify' 추가 (기존 파일 DB 용). 신규 DB 는 schema.sql 이 이미 반영.
+  db.exec(`
+    BEGIN;
+    CREATE TABLE sync_logs_v1 (
+      id            INTEGER PRIMARY KEY AUTOINCREMENT,
+      service       TEXT NOT NULL CHECK (service IN ('gmail','calendar','notion','supabase','classify')),
+      status        TEXT NOT NULL CHECK (status IN ('success','failed')),
+      last_sync     TEXT NOT NULL,
+      error_message TEXT
+    );
+    INSERT INTO sync_logs_v1 (id, service, status, last_sync, error_message)
+      SELECT id, service, status, last_sync, error_message FROM sync_logs;
+    DROP TABLE sync_logs;
+    ALTER TABLE sync_logs_v1 RENAME TO sync_logs;
+    CREATE INDEX IF NOT EXISTS idx_sync_service ON sync_logs(service, last_sync);
+    COMMIT;
+  `);
+  db.pragma(`user_version = ${SCHEMA_VERSION}`);
+}
+
 // DATABASE_PATH 해석. 트림 후 비어있지 않으면 그 값을 그대로 사용(':memory:' 도 통과).
 function resolveDbPath() {
   const raw = (process.env.DATABASE_PATH || '').trim();
@@ -32,6 +82,9 @@ function openDatabase() {
     fs.mkdirSync(path.dirname(dbPath), { recursive: true });
   }
 
+  // new Database() 가 파일을 만들기 전에 신규 여부를 판정한다 (사후 판정 금지).
+  const isNew = dbPath !== ':memory:' && !fs.existsSync(dbPath);
+
   const db = new Database(dbPath);
 
   try {
@@ -43,6 +96,9 @@ function openDatabase() {
     // 스키마 적용 (단일 원천: backend/db/schema.sql, 복사 금지)
     const schema = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8');
     db.exec(schema);
+
+    // 스키마 적용 직후 마이그레이션 (forward-only, ADR-0018).
+    applyMigrations(db, dbPath, isNew);
   } catch (err) {
     console.error('DB 초기화 실패:', err);
     try {

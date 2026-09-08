@@ -87,10 +87,10 @@ flowchart TB
 
 | | |
 |---|---|
-| 무엇 | 할 일 생성·동기화 시 에이전트(Claude)가 카테고리를 붙인다 |
-| 지금 | `tasks` 에 category 컬럼 없음. `project_id`(수동)만. 에이전트는 `tasks` 읽기 전용 |
-| 목표 | `tasks.category`(또는 `task_labels` 테이블). 분류 주체·시점 결정 필요(백엔드 POST 시 vs 에이전트 배치). 칩 UI 로 표시·필터 |
-| 관련 | 새 FR-TASK-08 · ADR-0029 (예정, 자동 분류) · **ADR-0018 (스키마 마이그레이션 전략, 제안 상태) 결정 강제** · Claude 비용(항목당 1회) |
+| 무엇 | 할 일에 자유 태그(다중)를 달고, 태그 없는 할 일은 에이전트(Claude)가 일일 브리핑 배치에서 자동 분류한다 |
+| 지금 | ✅ P6 (2026-09-08): `task_tags` 테이블(`source∈{user,agent}`), 수동 태그 API(`POST/DELETE /api/tasks/:id/tags`), `agent/classify.py` 배치 분류, 위젯 태그 칩 + 필터 바 |
+| 목표 | (달성) 자유 태그·다중, 에이전트가 사용자 태그 침범 안 함, 칩 필터. 향후: 태그 자동완성·태그별 통계 |
+| 관련 | FR-TASK-08 · ADR-0029 (채택, 자유 태그·다중) · ADR-0018 (채택, 마이그레이션 최소안) · Claude 비용(배치라 하루 1회) |
 | 크기 | 중 |
 
 ### T3 — OKR + 주간 플래너 (지난주·이번주·다음주 요약)
@@ -190,7 +190,7 @@ flowchart TB
 | ~~P4 (빌드)~~ ✅ | T5 공통 컴포넌트 (2026-09-07) | `frontend/src/components/` — `StatTile.jsx` · `DotProgress.jsx`(+ 순수 `dotFill.js`) · `Chip.jsx` (OKR·에이전트 공용). 카드 토큰 v2(`--card-radius` 16·`--shadow-card`) + `WidgetFrame` 그림자 + `ProjectCard` 진행바 → `DotProgress`. `frontend/test/dotFill.test.mjs` TC-P4-01~05. 시각 확인 로컬 GUI 대기 | P3 |
 | ~~P4.5~~ ✅ | 사이드바 셸 (UI_STYLE v2) | `AppShell`·`Sidebar`(브랜드+검색 표시+그룹 네비 4개+사용자)·`TopicView`(페이지 헤더) + `WidgetShell` `topicId` 스코프 + `useUiStore.activeTopic` + 레이아웃 저장 v1→v2 마이그레이션 + 주제별 기본/플레이스홀더 위젯. [ADR-0032](../architecture/adr/ADR-0032-sidebar-shell-per-topic-layouts.md) 채택. 데모 반영 — 구현 완료 (2026-09-08, feature/p4.5-sidebar-shell) | P4 · ✅ ADR-0032 |
 | ~~P5~~ ✅ | T1 단일 캐시 + 칸반 뷰 (2026-09-08, ADR-0028 채택) | `frontend/src/store/taskCache.js`(순수 캐시 헬퍼) + `useTaskStore` `byId`/`order` 정본·`tasks` 파생 미러, `frontend/src/widgets/taskBoard.js`(`groupByPriority`), `components/TaskBoard.jsx`·`TaskCard.jsx`, `TasksWidgetView` 리스트/보드 전환(`config.display.view`), `widgetMeta.tasks.configSchema.view`. 테스트 `frontend/test/{taskCache,taskBoard,taskStore}.test.mjs` TC-P5-01~13. **태그·자동분류는 P6 이월** (스키마 무변경) | P3 |
-| **P6** | T2 자동 분류 | 스키마 마이그레이션 + 에이전트 분류 + 칩 필터 | P4·P5 |
+| ~~P6~~ ✅ | T2 자동 분류 (2026-09-08, ADR-0018·0029 채택) | `backend/db/schema.sql`(`task_tags` + `sync_logs` CHECK), `backend/db/index.js`(마이그레이션 러너 `PRAGMA user_version`), `backend/src/{db,services/tasks,routes/tasks}.js`(태그 API), `agent/classify.py`(신규)·`agent/db.py`·`agent/daily_brief.py`(배치 배선), `frontend/src/store/taskTags.js`(신규)·`useTaskStore.js`·`components/{TaskTags,TaskCard,TaskList,TaskBoard}.jsx`·`TasksWidgetView.jsx`. 테스트 TC-TAG-01~08·TC-DB-05·TC-SYNC-11·TC-P6-01~08·TC-AGENT-31~40 | P4·P5 |
 | **P7** | T4 에이전트 활동 위젯 | `sync_logs`/`health`/다음 실행 → 위젯 | P4 |
 | **P8** | T3 OKR Phase | `objectives`/`key_results` + OKR 대시보드 + 주간 플래너 + (선택) Weekly Brief | P4·P5 |
 | **P9** | T6 진행 현황 · 파일 탐색 | `GET /api/tree`(허용 루트·상한) + `GET /api/docs/:path`(안전 토큰화) + "진행 현황" 위젯(왼쪽 트리 + 오른쪽 내용, mermaid 은 `DiagramPanel` 재사용). 데모용 `demoClient.js` 목 트리 | P4 |
@@ -203,8 +203,8 @@ flowchart TB
 |---|---|---|
 | PO-1 | 라이트를 **기본**으로, 다크는 프리셋 옵션? (권장) vs 다크 유지 + 라이트 프리셋 | ADR-0027 |
 | PO-2 | `--accent` 를 파랑(`#2f6feb`)으로? US-1(앰버→보라)은 어떻게 되나 | ADR-0027 |
-| PO-3 | 자동 분류 taxonomy: 고정 집합 vs 자유 태그 / 단일 vs 다중 | ADR-0029 |
-| PO-4 | 분류 시점·주체: 백엔드 POST 시 Claude 호출 vs 에이전트 배치 vs 별도 테이블 | ADR-0029 |
+| ~~PO-3~~ | 자동 분류 taxonomy: 고정 집합 vs 자유 태그 / 단일 vs 다중 | **종결 (2026-09-08, ADR-0029): 자유 문자열 태그·다중. 별도 테이블 `task_tags`. `tasks.category` 폐기** |
+| ~~PO-4~~ | 분류 시점·주체: 백엔드 POST 시 Claude 호출 vs 에이전트 배치 vs 별도 테이블 | **종결 (2026-09-08, ADR-0029): 에이전트 배치(`daily_brief` 실행 시). 수동 태그는 백엔드 태그 API. `task_tags` 별도 테이블** |
 | PO-5 | OKR = 1급 엔티티(`objectives`/`key_results`) vs `projects` 재해석 | ADR-0030 |
 | PO-6 | 주간 요약: 순수 집계 vs Claude "Weekly Brief" | OKR.md |
 | ~~PO-7~~ | 칸반이 할 일 위젯을 대체하나, 추가 뷰인가 | **종결 (2026-09-08): `tasks` 위젯 안의 리스트/보드 뷰 전환(`config.display.view` — configSchema 규약). 별 위젯 타입 아님. 위젯 개수 불변 → DO-2 유지. ADR-0028 §결정4 반영. P5 구현 완료 (2026-09-08)** |

@@ -105,6 +105,14 @@ CI(`.github/workflows/test.yml`)에 `npm test`(backend), `pytest -m "not network
 | TC-TASK-12 | FR-TASK-06 | 프로젝트 2개 + 각 할일 | `GET /api/tasks?project_id=<p1>` | p1 의 할일만 (생성 순) | P1 · ✅ |
 | TC-TASK-12b | FR-TASK-06 | 연결/단독 혼재 | `GET /api/tasks?project_id=none` | `project_id` NULL 인 할일만 | P1 · ✅ |
 | TC-TASK-12c | FR-TASK-06 | — | `?project_id=99999` / `?project_id=abc\|0\|-3\|1.5` | 전자 200 + `[]`, 후자 400 | P1 · ✅ |
+| TC-TAG-01 | FR-TASK-08 AC-2 | 할일 1건 | `POST /api/tasks/:id/tags {tag:"공부"}` | 201, `task.tags==["공부"]`, `source` 미노출 | P1 · ✅ |
+| TC-TAG-02 | FR-TASK-08 AC-2 | 태그 2건 추가 | `GET /api/tasks` · `GET /api/tasks/:id` | 두 응답 모두 `tags` 오름차순 | P1 · ✅ |
+| TC-TAG-03 | FR-TASK-08 AC-10 | 같은 태그 재추가 | `POST .../tags` ×2 | 201, 중복 없음(멱등) | P1 · ✅ |
+| TC-TAG-04 | FR-TASK-08 AC-9 | — | `tag` = `""`/공백/21자/콤마/개행 | 400 `태그는 1~20자여야 합니다.` | P1 · ✅ |
+| TC-TAG-05 | FR-TASK-08 AC-10 | — | `POST /api/tasks/99999/tags` | 404 `할일을 찾을 수 없습니다.` | P1 · ✅ |
+| TC-TAG-06 | FR-TASK-08 AC-2 | 태그 2건 | `DELETE /api/tasks/:id/tags/<enc>` | 200, 해당 태그만 제거 | P1 · ✅ |
+| TC-TAG-07 | FR-TASK-08 AC-10 | 태그 없음 | `DELETE .../tags/없음` | 200 (멱등) | P1 · ✅ |
+| TC-TAG-08 | FR-TASK-08 AC-11 | 태그 있는 할일 | `DELETE /api/tasks/:id` | `task_tags` CASCADE 삭제 | P1 · ✅ |
 
 ### 3.2 프로젝트 API — `backend/test/projects.test.js`
 
@@ -131,7 +139,8 @@ CI(`.github/workflows/test.yml`)에 `npm test`(backend), `pytest -m "not network
 |---|---|---|---|:---:|
 | TC-DB-01 | FR-TASK-05 | SQLite 백엔드, 할일 2건 생성 | 프로세스/커넥션 재시작 후 `GET /api/tasks` 에 2건 유지 | ✅ P0(B2) |
 | TC-DB-02 | NFR-MAINT-03 | `db.js` 시그니처 | `getTasks/getTask/addTask/updateTask/deleteTask` 반환 형태가 인메모리 때와 동일 | ✅ P0(B2) |
-| TC-DB-03 | ADR-0003 | 빈 DB 파일 | 부팅 시 `schema.sql` 적용, 재부팅 시 데이터 보존 (`IF NOT EXISTS`) + WAL | ✅ P0(B2) |
+| TC-DB-03 | ADR-0003 | 빈 DB 파일 | 부팅 시 `schema.sql` 적용, 재부팅 시 데이터 보존 (`IF NOT EXISTS`) + WAL. **P6 수정:** 테이블 목록에 `task_tags` 포함 | ✅ P0(B2) |
+| TC-DB-05 | ADR-0018 / FR-TASK-08 | 옛 `sync_logs` CHECK(`classify` 없음) + `user_version=0` 인 **파일 DB** | 재오픈 시 `applyMigrations` 가 테이블 재작성으로 CHECK 확장, `user_version=1`, 기존 행 보존, `classify` INSERT 가능 | ✅ P1(P6, `db.test.js`) |
 | TC-DB-04a | schema CHECK | `POST /api/tasks {priority:"x"}` | 500 아니라 400 (라우트가 CHECK 위반 매핑, `errors.js`) | ✅ P0(C2, `tasks.test.js`) |
 | TC-DB-04b | schema CHECK | `PUT /api/projects/:id {status:"hold"}` | 400 (허용값 밖) | ✅ P0(C2, `projects.test.js`) |
 | TC-DB-04c | schema CHECK | `db.addTask` 직접 호출, 잘못된 값 | `SqliteError(code=SQLITE_CONSTRAINT_CHECK)` 던짐 | ✅ P1(C2, `db.test.js`) |
@@ -163,6 +172,25 @@ CI(`.github/workflows/test.yml`)에 `npm test`(backend), `pytest -m "not network
 
 | TC-AGENT-20 | FR-AGENT-01 AC-3 | `get_unread_emails` 예외 (캐시 조회 실패) | 컨텍스트에 `"(이메일을 불러오지 못함)"`, 할일 블록 정상 | P1 · ✅ 작성됨 (`test_daily_brief.py`) |
 | TC-AGENT-21 | AGENT.md (네트워크 격리) | `daily_brief` 소스 검사 | `services.gmail`·`services.calendar` 를 import 하지 않음 | P1 · ✅ 작성됨 (`test_daily_brief.py`) |
+
+#### 3.4d 할 일 자동 분류 — `agent/tests/test_classify.py` (P6, FR-TASK-08)
+
+Claude(`classify.ask`)는 전부 monkeypatch — `network` 마커 없음. DB 는 `temp_db` fixture(파일 SQLite).
+
+| ID | 대상 | 전제 | 기대 결과 | 상태 |
+|---|---|---|---|:---:|
+| TC-AGENT-31 | `parse_tags` | 정상 JSON | `{id:[tags]}` (id 정수화) | ✅ |
+| TC-AGENT-32 | `parse_tags` | ```` ```json ```` 코드펜스 래핑 | 펜스 제거 후 파싱 | ✅ |
+| TC-AGENT-33 | `parse_tags` | 중복·4개 초과·21자 태그 | 중복 제거, 최대 3개, 1~20자 밖 제외 | ✅ |
+| TC-AGENT-34 | `parse_tags` | `"not json"`/`{}`/`{"tags":[]}`/비정수 id | `ValueError` | ✅ |
+| TC-AGENT-35 | `build_prompt` | 할일 목록 | 각 `id=<n>` + 제목 포함 | ✅ |
+| TC-AGENT-36 | `classify_untagged` | 대상 0건 | `ask` 호출 0회, 반환 0 | ✅ |
+| TC-AGENT-37 | `classify_untagged` | 태그 없는 할일 1건 + mock 응답 | `task_tags` 에 `source='agent'` 저장, `sync_logs('classify','success')` | ✅ |
+| TC-AGENT-38 | `classify_untagged` | `ask` 예외 | 반환 0(전파 없음), `sync_logs('classify','failed')` | ✅ |
+| TC-AGENT-39 | `db.add_agent_tags` | 이미 `source='user'` 태그 있는 할일 | 저장 0건 (건드리지 않음) | ✅ |
+| TC-AGENT-40 | `db.get_untagged_tasks` | done·태그 있는 할일 혼재 | 미완료·태그 0개만 반환 | ✅ |
+
+`test_daily_brief.py`: `_run()` 이 `build_context` 전에 `classify_untagged()` 를 호출하고 그 예외를 삼킨다(순서 검증).
 
 #### 3.4e Notion 저장 — `agent/tests/test_notion.py` (Phase D3)
 
@@ -245,6 +273,25 @@ CI(`.github/workflows/test.yml`)에 `npm test`(backend), `pytest -m "not network
 | TC-P5-14 | AC-7 참조 안정성 | fetch 후 no-op 액션(`toggleTask`/`removeTask` 없는 id, `clearError` 무에러) | `tasks` 배열이 **같은 참조**로 유지(`set` 미호출) | ✅ |
 
 수동(로컬 GUI): §3.9 TC-P5-M1~M4.
+
+#### 3.4h 할 일 태그·자동 분류 (P6, FR-TASK-08)
+
+프론트 순수 로직 — `frontend/test/taskTags.test.mjs` · `frontend/test/taskStore.test.mjs` · `frontend/test/demoClient.test.mjs`
+
+| ID | 대상 | 전제 | 기대 결과 | 상태 |
+|---|---|---|---|:---:|
+| TC-P6-01 | `normalizeTags` | 비배열/null/문자열/중복/공백 | `[]` 또는 트림·중복 제거·정렬된 배열 | ✅ |
+| TC-P6-02 | `addTagTo` | 기존 태그 배열 + 새 태그 | 멱등, 정렬 유지, 공백은 무시 | ✅ |
+| TC-P6-03 | `removeTagFrom` | 태그 배열 | 대상 제거, 없던 태그·`tags` 없음도 무해 | ✅ |
+| TC-P6-04 | `collectTags` | 여러 할일 | 유니크·정렬, 빈 입력 → `[]` | ✅ |
+| TC-P6-05 | `filterByTag` | 태그 지정 | 그 태그를 가진 할일만 | ✅ |
+| TC-P6-06 | `filterByTag` | `tag` = `null`/`""` | 원본 배열 **참조 그대로** 반환 | ✅ |
+| TC-P6-07 | `useTaskStore.addTag` | fetch 후 | 낙관적 반영 → 서버 `task` 로 치환, throw 없음 | ✅ |
+| TC-P6-08 | `useTaskStore.removeTag` | DELETE 500 | 스냅샷 복원 + `error` 문자열, 경로 `.../tags/%EA%B0%80` (인코딩) | ✅ |
+
+데모(`demoClient`): TC-DEMO-08(8건 중 5건 태그), TC-DEMO-09(태그 분기가 PUT 보다 먼저 매칭·멱등), TC-DEMO-10(검증 400/404).
+
+수동(로컬 GUI): §3.9 TC-P6-M1~M4.
 
 수동(로컬 GUI): TC-SHELL-M1 사이드바 4그룹 11항목·마지막 주제 복원, TC-SHELL-M2 항목 클릭 시 본문만 교체(새로고침 없음), TC-SHELL-M3 주제 A 편집이 B 에 무영향, TC-SHELL-M4 v1 사용자가 overview 에서 기존 배치 유지, TC-SHELL-M5 미구현 주제에 "준비 중" 위젯 1개, TC-SHELL-M6 페이지 헤더 우측 health 표시 존치. ⏳ 로컬 대기.
 
@@ -353,8 +400,9 @@ fake service 주입, 네트워크 0회. 재시도 테스트는 `services.retry.s
 | TC-SYNC-08 | FR-SYNC-03 | `sync_logs` 몇 행 | `GET /api/sync/logs` | 200, `logs` 배열, 각 항목 필드 5개(`id/service/status/last_sync/error_message`) | P1 |
 | TC-SYNC-09 | FR-SYNC-03 | 여러 서비스 로그 | `?service=gmail` / `?service=bogus` | `gmail` 만 반환 / `?service=bogus` → 400 한국어 메시지 | P1 |
 | TC-SYNC-10 | FR-SYNC-03 | 로그 여러 행 | `?limit=1` / `?limit=abc`·`?limit=0` / 미지정 | 1건 준수 / 400 / 기본 50건 | P1 |
+| TC-SYNC-11 | FR-SYNC-03 / ADR-0029 | `classify` 로그 2행 + 다른 서비스 1행 | `?service=classify` | `classify` 만 2건 반환 (`SYNC_SERVICES` 에 포함, 400 아님) | P1 · ✅ |
 
-> TC-SYNC-06/07 은 `agent/tests/test_db.py`(pytest), TC-SYNC-08~10 은 `backend/test/sync.test.js`(`supertest` + `node --test`, `:memory:` DB). `/api/sync/logs` 는 읽기 전용 조회 — 쓰기 주체는 에이전트(`db.log_sync`).
+> TC-SYNC-06/07 은 `agent/tests/test_db.py`(pytest), TC-SYNC-08~11 은 `backend/test/sync.test.js`(`supertest` + `node --test`, `:memory:` DB). `/api/sync/logs` 는 읽기 전용 조회 — 쓰기 주체는 에이전트(`db.log_sync`).
 
 ### 3.5e 서비스 계층 — `backend/test/services.test.js` (fix/ai-results-cleanup)
 
@@ -491,6 +539,10 @@ fake service 주입, 네트워크 0회. 재시도 테스트는 `services.retry.s
 | TC-P5-M2 | 뷰 간 완료 동기 | 보드에서 완료 체크 → `[리스트]` 전환 | `toggleTask` 1회, 리스트에서도 동일 완료 상태 (같은 `byId`) | ⏳ 로컬 대기 |
 | TC-P5-M3 | 주제별 독립 view | overview 의 tasks 는 리스트, tasks 주제의 tasks 는 보드 | 서로 영향 없음 (ADR-0032 주제 스코프) | ⏳ 로컬 대기 |
 | TC-P5-M4 | 표시 옵션 공유 | `hideCompleted`/`sortBy` 변경 후 리스트↔보드 전환 | 두 뷰 모두 같은 파생 결과 적용 | ⏳ 로컬 대기 |
+| TC-P6-M1 | 태그 추가/삭제 | 카드 2행의 `＋` → 인라인 input 에 태그 입력 → Enter / 칩 옆 `×` | 태그가 즉시 칩으로 붙고/사라짐, 새로고침 후 유지. `window.prompt` 안 뜸 | ⏳ 로컬 대기 |
+| TC-P6-M2 | 태그 필터 바 | 보기 전환 버튼 아래 태그 칩 클릭 → 재클릭 | 그 태그 할일만 표시 → 재클릭 시 해제. 필터 결과 0건이면 "이 태그의 할 일이 없습니다" + [필터 해제] | ⏳ 로컬 대기 |
+| TC-P6-M3 | 자동 분류 | 태그 없는 할일 몇 개 + `python agent/daily_brief.py` 실행 | 실행 후 위젯에 에이전트 태그가 붙음. `GET /api/sync/logs?service=classify` 에 success 1행 | ⏳ 로컬 대기 |
+| TC-P6-M4 | 필터 상태 비영속 | 태그 필터 적용 후 새로고침 | 필터 해제됨(위젯 로컬 상태 — `config.display` 에 안 남음) | ⏳ 로컬 대기 |
 
 ### 3.8 3강의 구조 문서 정합 수동 체크리스트 (COURSE_MAPPING)
 

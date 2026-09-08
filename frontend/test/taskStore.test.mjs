@@ -105,3 +105,39 @@ test('TC-P5-11b: fetch 실패해도 기존 tasks 는 보존 + error 문자열', 
   assert.equal(typeof s.error, 'string');
   assert.equal(s.loading, false);
 });
+
+test('TC-P6-07: addTag — 낙관적 반영 후 서버 task 로 치환, throw 없음', async () => {
+  fetchImpl = () => jsonRes({ tasks: SAMPLE });
+  const store = await freshStore();
+  await store.getState().fetchTasks();
+
+  fetchImpl = (url, opt) => {
+    assert.equal(opt.method, 'POST');
+    assert.match(url, /\/tasks\/1\/tags$/);
+    return jsonRes({ task: { id: 1, title: 'a', status: 'todo', priority: 'high', tags: ['긴급'] } });
+  };
+  await store.getState().addTag(1, '긴급');
+  assert.deepEqual(store.getState().byId[1].tags, ['긴급']);
+  assert.equal(store.getState().error, null);
+});
+
+test('TC-P6-08: removeTag 실패 시 스냅샷 복원 + error, DELETE 경로 인코딩', async () => {
+  const withTags = [{ id: 1, title: 'a', status: 'todo', priority: 'high', tags: ['가', '나'] }];
+  fetchImpl = () => jsonRes({ tasks: withTags });
+  const store = await freshStore();
+  await store.getState().fetchTasks();
+  const prevById = store.getState().byId;
+  const prevOrder = store.getState().order;
+  const prevTasks = store.getState().tasks;
+
+  let calledUrl;
+  fetchImpl = (url) => { calledUrl = url; return jsonRes({ error: '서버 오류' }, false, 500); };
+  await store.getState().removeTag(1, '가');
+
+  assert.match(calledUrl, /\/tasks\/1\/tags\/%EA%B0%80$/);
+  // AC-10: byId·order·tasks 3필드 모두 스냅샷으로 롤백
+  assert.equal(store.getState().byId, prevById, 'byId 스냅샷 복원');
+  assert.equal(store.getState().order, prevOrder, 'order 스냅샷 복원');
+  assert.deepEqual(store.getState().tasks, prevTasks, 'tasks 파생 결과 복원');
+  assert.equal(typeof store.getState().error, 'string');
+});

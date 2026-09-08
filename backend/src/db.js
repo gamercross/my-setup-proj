@@ -33,6 +33,17 @@ const stmts = {
     `SELECT ${TASK_COLS} FROM tasks WHERE project_id IS NULL ORDER BY id`
   ),
   getTask: db.prepare(`SELECT ${TASK_COLS} FROM tasks WHERE id = ?`),
+
+  // task_tags — 응답에 source 는 싣지 않는다 (tag 만 노출). JOIN/GROUP_CONCAT 대신 JS 조인.
+  listAllTags: db.prepare('SELECT task_id, tag FROM task_tags ORDER BY task_id, tag'),
+  listTagsForTask: db.prepare(
+    'SELECT tag FROM task_tags WHERE task_id = ? ORDER BY tag'
+  ),
+  insertUserTag: db.prepare(
+    `INSERT OR IGNORE INTO task_tags (task_id, tag, source, created_at)
+     VALUES (@task_id, @tag, 'user', @created_at)`
+  ),
+  deleteTag: db.prepare('DELETE FROM task_tags WHERE task_id = ? AND tag = ?'),
   insertTask: db.prepare(
     `INSERT INTO tasks (title, description, due_date, priority, status, project_id, created_at, updated_at)
      VALUES (@title, @description, @due_date, @priority, @status, @project_id, @created_at, @updated_at)`
@@ -89,7 +100,29 @@ const stmts = {
 };
 
 // 동기화 서비스 화이트리스트 (schema.sql 의 CHECK 와 일치)
-const SYNC_SERVICES = ['gmail', 'calendar', 'notion', 'supabase'];
+const SYNC_SERVICES = ['gmail', 'calendar', 'notion', 'supabase', 'classify'];
+
+// ── 태그 부착 헬퍼 ─────────────────────────────
+// task 행에 tags 배열(tag ASC)을 붙인다. getTasks/getTask/addTask/updateTask
+// 4개 반환 경로 모두 이 헬퍼를 통과시킨다.
+function attachTags(rows) {
+  if (!Array.isArray(rows) || rows.length === 0) return rows;
+  const map = new Map();
+  for (const { task_id, tag } of stmts.listAllTags.all()) {
+    if (!map.has(task_id)) map.set(task_id, []);
+    map.get(task_id).push(tag);
+  }
+  for (const row of rows) {
+    row.tags = map.get(row.id) || [];
+  }
+  return rows;
+}
+
+function attachTagsOne(row) {
+  if (!row) return row;
+  row.tags = stmts.listTagsForTask.all(row.id).map((r) => r.tag);
+  return row;
+}
 
 // id 를 정수로 정규화한다. 정수가 아니면 null (NaN 바인딩 시 500 방지).
 function toId(id) {
@@ -104,21 +137,21 @@ function toId(id) {
 // undefined 면 전체 (FR-TASK-06).
 function getTasks(filter = {}) {
   if (filter.projectId === null) {
-    return stmts.listTasksNoProject.all();
+    return attachTags(stmts.listTasksNoProject.all());
   }
   if (filter.projectId !== undefined) {
     const nid = toId(filter.projectId);
     if (nid === null) return [];
-    return stmts.listTasksByProject.all(nid);
+    return attachTags(stmts.listTasksByProject.all(nid));
   }
-  return stmts.listTasks.all();
+  return attachTags(stmts.listTasks.all());
 }
 
 // 할일 단건 조회 (없으면 undefined)
 function getTask(id) {
   const nid = toId(id);
   if (nid === null) return undefined;
-  return stmts.getTask.get(nid);
+  return attachTagsOne(stmts.getTask.get(nid));
 }
 
 // 할일 추가
@@ -160,6 +193,25 @@ function deleteTask(id) {
   const nid = toId(id);
   if (nid === null) return false;
   return stmts.deleteTask.run(nid).changes > 0;
+}
+
+// ── 할일 태그(task_tags) ─────────────────────────────
+
+// 수동 태그 추가 (source='user'). 멱등: 이미 있으면 INSERT OR IGNORE.
+// 갱신된 task 행(tags 포함)을 반환한다 (없는 id 면 undefined).
+function addTaskTag(id, tag) {
+  const nid = toId(id);
+  if (nid === null) return undefined;
+  stmts.insertUserTag.run({ task_id: nid, tag, created_at: new Date().toISOString() });
+  return getTask(nid);
+}
+
+// 태그 삭제. source 무관하게 (task_id, tag) 로 지운다.
+// 삭제 성공 여부 boolean 반환 (없던 태그면 false — 라우트에서 멱등 처리).
+function removeTaskTag(id, tag) {
+  const nid = toId(id);
+  if (nid === null) return false;
+  return stmts.deleteTag.run(nid, tag).changes > 0;
 }
 
 // ── 프로젝트(projects) ─────────────────────────────
@@ -271,6 +323,8 @@ module.exports = {
   addTask,
   updateTask,
   deleteTask,
+  addTaskTag,
+  removeTaskTag,
   getProjects,
   getProject,
   addProject,

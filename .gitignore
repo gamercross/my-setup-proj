@@ -35,6 +35,9 @@ making-os/
 # 디자인 캔버스 seed (2.5MB, 편집기 코드 포함) — 소스 아트보드(.dc.html)·canvas.json 만 커밋
 design-p2/*-canvas.html
 
+# DB 마이그레이션 백업 (ADR-0018)
+*.bak-*
+
 # IDE / OS
 .vscode/
 .idea/

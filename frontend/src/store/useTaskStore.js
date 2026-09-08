@@ -9,6 +9,7 @@
 import { create } from 'zustand';
 import { apiGet, apiPost, apiPut, apiDelete } from '../api/client.js';
 import { toCache, listFrom, upsert, patchOne, removeOne } from './taskCache.js';
+import { addTagTo, removeTagFrom } from './taskTags.js';
 
 // 완료 여부 토글용 상태 반전
 function flipStatus(status) {
@@ -89,6 +90,34 @@ export const useTaskStore = create((set, get) => {
       commit(removeOne(prev, id), { error: null });
       try {
         await apiDelete(`/tasks/${id}`);
+      } catch (err) {
+        commit(prev, { error: err.message });
+      }
+    },
+
+    // 태그 추가 — 낙관적. 성공 시 서버 반환 task 로 최종 치환. throw 안 함.
+    addTag: async (id, tag) => {
+      const prev = snapshot();
+      const target = prev.byId[id];
+      if (!target) return;
+      commit(patchOne(prev, id, { tags: addTagTo(target, tag) }), { error: null });
+      try {
+        const data = await apiPost(`/tasks/${id}/tags`, { tag });
+        commit(upsert(snapshot(), data.task));
+      } catch (err) {
+        commit(prev, { error: err.message });
+      }
+    },
+
+    // 태그 삭제 — 낙관적. 실패 시 스냅샷 복원. throw 안 함.
+    removeTag: async (id, tag) => {
+      const prev = snapshot();
+      const target = prev.byId[id];
+      if (!target) return;
+      commit(patchOne(prev, id, { tags: removeTagFrom(target, tag) }), { error: null });
+      try {
+        const data = await apiDelete(`/tasks/${id}/tags/${encodeURIComponent(tag)}`);
+        commit(upsert(snapshot(), data.task));
       } catch (err) {
         commit(prev, { error: err.message });
       }

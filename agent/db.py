@@ -4,6 +4,8 @@
 
 쓰기 주체 분리:
   - tasks / projects 는 **읽기 전용**으로만 사용한다 (백엔드가 소유).
+    예외: task_tags 는 쓰기만 한다 (daily_brief 컨텍스트에서만, source='agent' — ADR-0029).
+          tasks 행 자체는 여전히 UPDATE 하지 않는다.
   - briefs 는 에이전트가 date 기준으로 upsert 한다.
   - emails / calendar_events 는 **에이전트 소유**다 (백엔드는 읽기 전용 — ADR-0011).
 
@@ -108,6 +110,53 @@ def get_today_tasks(date: str | None = None) -> list[dict]:
     return [dict(row) for row in rows]
 
 
+def get_untagged_tasks(limit: int = 30) -> list[dict]:
+    """태그가 하나도 없고 완료되지 않은 할일을 반환한다 (읽기 전용, FR-TASK-08).
+
+    자동 분류 대상 선정용. id 오름차순, 최대 limit 건.
+    """
+    with connect() as conn:
+        rows = conn.execute(
+            "SELECT id, title, description, priority, due_date FROM tasks t "
+            "WHERE t.status != 'done' "
+            "  AND NOT EXISTS (SELECT 1 FROM task_tags tt WHERE tt.task_id = t.id) "
+            "ORDER BY t.id LIMIT ?",
+            (limit,),
+        ).fetchall()
+    return [dict(row) for row in rows]
+
+
+def add_agent_tags(mapping: dict[int, list[str]]) -> int:
+    """에이전트 분류 결과를 task_tags 에 저장한다 (source='agent', FR-TASK-08).
+
+    안전장치: 저장 시점에도 태그가 0개이고 source='user' 가 없는 할일에만 넣는다
+    (그 사이 사용자가 태그를 달았으면 건드리지 않는다). 단일 트랜잭션.
+    저장한 (task, tag) 쌍 수를 반환한다.
+    """
+    if not mapping:
+        return 0
+    now = datetime.now().isoformat()
+    written = 0
+    with connect() as conn:
+        with conn:
+            for task_id, tags in mapping.items():
+                if not tags:
+                    continue
+                existing = conn.execute(
+                    "SELECT COUNT(*) FROM task_tags WHERE task_id = ?", (task_id,)
+                ).fetchone()[0]
+                if existing:
+                    continue
+                for tag in tags:
+                    cur = conn.execute(
+                        "INSERT OR IGNORE INTO task_tags (task_id, tag, source, created_at) "
+                        "VALUES (?, ?, 'agent', ?)",
+                        (task_id, tag, now),
+                    )
+                    written += cur.rowcount
+    return written
+
+
 def upsert_brief(date: str, content: str, notion_url: str | None = None) -> None:
     """date 기준으로 브리핑을 저장/갱신한다. created_at 은 최초 생성값을 유지한다."""
     now = datetime.now().isoformat()
@@ -126,8 +175,9 @@ def upsert_brief(date: str, content: str, notion_url: str | None = None) -> None
 def log_sync(service: str, status: str, error_message: str | None = None) -> None:
     """동기화 시도 결과를 sync_logs 에 1행 기록한다 (FR-SYNC-03).
 
-    service 는 schema.sql 의 CHECK(gmail·calendar·notion·supabase) 를 따른다.
-    Claude 실패는 CHECK 밖이므로 여기 넣지 않는다(로그 파일에만 — AGENT.md AC-4).
+    service 는 schema.sql 의 CHECK(gmail·calendar·notion·supabase·classify) 를 따른다.
+    Claude 브리핑 실패는 CHECK 밖이므로 여기 넣지 않는다(로그 파일에만 — AGENT.md AC-4).
+    자동 분류(classify)는 CHECK 에 포함되므로 성공/실패를 기록한다 (ADR-0029).
 
     로깅 실패가 브리핑을 죽이면 안 되므로 예외를 올리지 않고 경고만 남긴다.
     """
