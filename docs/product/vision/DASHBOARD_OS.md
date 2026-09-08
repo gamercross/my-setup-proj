@@ -149,6 +149,12 @@ flowchart TB
 - 위젯 간 드래그&드롭 데이터 전달
 - 멀티 워크스페이스(가상 데스크톱) — 확장 후보
 - 모바일 레이아웃
+- **독립 위젯 창** (개별 위젯을 대시보드에서 떼어내 바탕화면에 frameless·always-on-top
+  창으로 — §3 의 macOS/iOS 위젯 참조가 원래 이 형태). **방향은 유지한다** —
+  [ADR-0033](../architecture/adr/ADR-0033-standalone-widget-windows.md): 위젯 뷰
+  (`widgets/views/*WidgetView.jsx`)는 셸(`WidgetShell`·`react-grid-layout`·`useLayoutStore`)에
+  독립적으로 유지해, 나중에 같은 뷰를 독립 창 루트에 마운트할 수 있게 한다. 실제 다중 창
+  구현은 웹 데모 불가·Electron 앱 전용이며 [ADR-0016](../architecture/adr/ADR-0016-desktop-process-topology.md) 결정에 포함.
 
 **전제:** 위젯 뷰는 **신뢰된 1st-party 코드만**. 외부 코드 실행 없음(NFR-SEC-04 유지).
 

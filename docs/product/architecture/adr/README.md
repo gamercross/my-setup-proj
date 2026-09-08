@@ -6,7 +6,7 @@
 **📂 이동:** [⬆ architecture/](../README.md) · [product/](../../README.md) · [docs/](../../../README.md) · [🚀 ONBOARDING](../../../ONBOARDING.md)
 **형제 뷰:** [DESIGN](../DESIGN.md) · [ARCHITECTURE_DRIVERS](../ARCHITECTURE_DRIVERS.md) · [RUNTIME_VIEW](../RUNTIME_VIEW.md) · [DATA_ARCHITECTURE](../DATA_ARCHITECTURE.md) · [CROSSCUTTING](../CROSSCUTTING.md) · [ARCHITECTURE_EVOLUTION](../ARCHITECTURE_EVOLUTION.md)
 
-> **상태 요약:** 0001~0012 채택 · **0013·0015·0016·0017·0019 제안**(착수 전 결정 — 0013 은 전체 작업 큐(FR-AGENT-09) 부분만 미결, P7 "지금 실행" 트리거(FR-AGENT-08)=전용 디렉터리 파일 플래그 + launchd WatchPaths 로 채택됨 (2026-09-08)) · 0014·0020~0026 채택 (0022 는 C6, 0024 는 D2-b, 0025 는 D3, 0026 은 웹 데모) · **0027 채택(P3)** · **0032 채택(P4.5 — 사이드바 셸)** · **0028 채택(P5 — 단일 캐시·칸반)** · **0018·0029 채택(P6 — 최소 마이그레이션·태그 자동 분류)** · **0030 채택(P8 — OKR 모델)** · **0031 채택(P9 — 안전 마크다운·파일 트리)** (개인 생산성 OS 방향 — [PERSONAL_OS.md](../../vision/PERSONAL_OS.md) §7~8). 제안 ADR 은 관련 Phase 착수 전에 사용자가 결정한다.
+> **상태 요약:** 0001~0012 채택 · **0013·0015·0016·0017·0019 제안**(착수 전 결정 — 0013 은 전체 작업 큐(FR-AGENT-09) 부분만 미결, P7 "지금 실행" 트리거(FR-AGENT-08)=전용 디렉터리 파일 플래그 + launchd WatchPaths 로 채택됨 (2026-09-08)) · 0014·0020~0026 채택 (0022 는 C6, 0024 는 D2-b, 0025 는 D3, 0026 은 웹 데모) · **0027 채택(P3)** · **0032 채택(P4.5 — 사이드바 셸)** · **0028 채택(P5 — 단일 캐시·칸반)** · **0018·0029 채택(P6 — 최소 마이그레이션·태그 자동 분류)** · **0030 채택(P8 — OKR 모델)** · **0031 채택(P9 — 안전 마크다운·파일 트리)** · **0033 제안·보류(독립 위젯 창 — 방향만 유지)** (개인 생산성 OS 방향 — [PERSONAL_OS.md](../../vision/PERSONAL_OS.md) §7~8). 제안 ADR 은 관련 Phase 착수 전에 사용자가 결정한다.
 >
 > **강의 열:** 각 ADR 이 3개 강의([COURSE_MAPPING.md](../../../progress/COURSE_MAPPING.md)) 중 어느 주차의 렌즈로 읽히는지. 값의 단일 원천(SSOT) = COURSE_MAPPING §4. 대응 없으면 `—`.
 
@@ -70,3 +70,4 @@
 | [0030](ADR-0030-okr-data-model.md) | OKR 데이터 모델 + 주간 플래너 | 채택 — 개인 OS P8 (2026-09-08, PO-5/6 초안대로) | FR-OKR-* | — |
 | [0031](ADR-0031-safe-markdown-render.md) | 안전 마크다운 렌더 + 파일 트리 API (서버 토큰화·`GET /api/tree`) | 채택 — 개인 OS P9 (2026-09-08, PO-11/12: `docs/`+루트 `.md` 만·소스 제외·패널 리사이즈) | FR-UI-06 | — |
 | [0032](ADR-0032-sidebar-shell-per-topic-layouts.md) | 사이드바 셸 + 주제별 위젯 레이아웃 (`activeTopic` state·레이아웃 v1→v2) | 채택 — 개인 OS P4.5 (PO-13/14, UI_STYLE v2) | FR-UI-01, FR-WIDGET-04 | — |
+| [0033](ADR-0033-standalone-widget-windows.md) | 독립 위젯 창 (바탕화면 위젯) — 방향 유지, 뷰는 셸 독립 | 제안 — 보류 (2026-09-08, 규범만) | FR-WIDGET-*, NFR-SEC-04 | A-W6 |

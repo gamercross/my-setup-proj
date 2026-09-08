@@ -80,7 +80,7 @@ flowchart TB
 | [product/vision/](docs/product/vision/README.md) | 왜·완료의 정의 | VISION · DASHBOARD_OS · **PERSONAL_OS** · AS_IS · RISKS | 방향·범위 판단 |
 | [product/requirements/](docs/product/requirements/README.md) | 무엇을 만족해야 | FR · NFR · TRACEABILITY · TASK/UI/AGENT/PROJ/WIDGET | "이거 어느 FR인가" |
 | [product/architecture/](docs/product/architecture/README.md) | 어떻게 만드나 (구조·결정) | ARCHITECTURE §0 뷰 지도 · DESIGN · DRIVERS · RUNTIME/DATA/CROSSCUTTING/EVOLUTION | 구현 착수 전 |
-| [product/architecture/adr/](docs/product/architecture/adr/README.md) | 결정 이력 | ADR-0001~0032 (채택 27 / 제안 5) | "왜 이렇게 정했나" |
+| [product/architecture/adr/](docs/product/architecture/adr/README.md) | 결정 이력 | ADR-0001~0033 (채택 27 / 제안·보류 6) | "왜 이렇게 정했나" |
 | [product/reference/](docs/product/reference/README.md) | 정확한 계약 | API_REFERENCE · UI_SPEC · DATA_DICTIONARY · GLOSSARY | 코드 작성 중 |
 | [product/testing/](docs/product/testing/README.md) | 어떻게 검증 | TEST_PLAN (피라미드·TC-·머지 게이트) | PR 전 자기 점검 |
 | [setup/](docs/setup/README.md) | 환경·도구·규칙 | SETUP · CONVENTIONS · GIT_WORKFLOW · ORCHESTRATION · AUTOMATION · DIAGRAMS · CLAUDE_INTEGRATION | 세팅·커밋·파이프라인 |
@@ -239,7 +239,7 @@ flowchart TB
 
 | 영역 | 상태 |
 |---|---|
-| 개념 설계 · 요구사항 · 아키텍처 문서 (뷰별 심화 + ADR-0001~0032, 채택 27 / 제안 5) | ✅ (`docs/product/`) |
+| 개념 설계 · 요구사항 · 아키텍처 문서 (뷰별 심화 + ADR-0001~0033, 채택 27 / 제안·보류 6) | ✅ (`docs/product/`) |
 | 자동화 인프라 (에이전트 팀 · 작업로그 · CI · GIT_WORKFLOW · DOC_HEALTH · 병합 브랜치 자동 정리) | ✅ 동작 |
 | 로컬 개발 환경 (node 26 · python 3.14 · venv) | ✅ Phase A2 |
 | 자동화 테스트 | ✅ backend 97 · frontend 68 · agent 75, `verify.sh` 35/0/0 (서비스 스모크 포함), DOC_HEALTH 11/0/0, CI 초록 |

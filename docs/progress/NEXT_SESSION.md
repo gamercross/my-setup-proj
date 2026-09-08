@@ -1,6 +1,6 @@
 # 🧭 다음 세션 인계 — 상태 확인 + 작업 방향
 
-> 작성: 2026-09-07 · **갱신: 2026-09-08 (P7 파이프라인 완주 — 에이전트 활동 위젯 + '지금 실행' 파일 플래그)**
+> 작성: 2026-09-07 · **갱신: 2026-09-08 (P7 병합 + ADR-0033 독립 위젯 창 방향)**
 > 이 문서는 새 세션 시작 시 **가장 먼저 읽는다.** 이후 정식 문서
 > ([PROGRESS.md](PROGRESS.md) · [PERSONAL_OS.md](../product/vision/PERSONAL_OS.md) ·
 > [DEMO_FEEDBACK.md](DEMO_FEEDBACK.md))로 교차 확인.
@@ -9,38 +9,42 @@
 
 ## 0. 지금 어디까지 왔나 (한 문단)
 
-Phase A~D 완료·병합. "개인 생산성 OS" 방향으로 **P0~P6 완료**(P6 병합 대기). **2026-09-08 세션**에서
-**`/feature` 파이프라인으로 P7(T4 에이전트 활동 위젯)을 완주**했다
-(planner→developer→supervisor(수정 1회 + 비차단 4건 정리 후 PASS)→finisher). **ADR-0013 부분 채택**
-(트리거만 = "지금 실행" 파일 플래그, 전체 작업 큐는 제안 유지. ADR-0030 은 2026-09-08 이미 채택,
-ADR-0031 은 P9 선행으로 제안).
-대시보드 "활동" 주제: 최근 sync 로그 10건 + Supabase health + 다음 실행 시각(고정 07:30 계산) +
-"지금 실행" 버튼. "지금 실행" = 백엔드가 `agent/.triggers/run-now` 플래그 파일 write →
-launchd `WatchPaths` 잡이 `agent/trigger.py` 실행 (subprocess 없음, ADR-0011 유지).
-신규 요구사항 **FR-AGENT-08**, 기존 "작업 큐" 자리표시는 **FR-AGENT-09** 로 재번호.
+Phase A~D 완료·병합. "개인 생산성 OS" 방향으로 **P0~P7 완료·병합**. P3(라이트 테마)·P4(공통
+컴포넌트)·P4.5(사이드바 셸)·P5(단일 캐시+칸반)·P6(자유 태그+자동 분류)·P7(에이전트 활동 위젯)
+전부 `main` 에 있다. **채택 ADR:** 0027·0032·0028·0018·0029·0030 + 0013(부분 — P7 "지금 실행"
+트리거만). **제안·보류:** 0013 전체 작업 큐, **0031**(P9 선행), **0033**(독립 위젯 창 — 방향만
+유지, 아래 §4-3).
 
-**PR 상태:** P7 PR 를 이 세션에서 염(아래 §1). P6 PR 는 아직 병합 대기. 그 외 열린 PR 없음.
+**2026-09-08 세션 후반:** 사용자가 "웹 데모 ≠ 앱" 을 강조 — 산출물은 Electron 앱(백엔드+에이전트
+포함)이고 웹 데모는 미리보기다. 그리고 개별 위젯을 바탕화면 독립 창으로 띄우는 방향을 열어두려고
+**ADR-0033**(제안·보류)을 신설했다: 위젯 뷰는 셸(`WidgetShell`·`react-grid-layout`·`useLayoutStore`)에
+독립적으로 유지 → 나중에 같은 뷰를 독립 창 루트에 마운트 가능. 구현은 안 함.
+
+**PR 상태:** #52~#55(P6·P7 + 문서 스윕) 전부 병합됨. **#56(ADR-0033) 만 열림 — CI green, 병합 대기.**
 
 **다음 세션은 P8 (T3 OKR + 주간 플래너)** — `objectives`/`key_results` + OKR 대시보드 + 주간 플래너.
-ADR-0030 은 이미 채택(2026-09-08)이므로 착수 전 선행은 **`requirements/OKR.md` 작성 + FR-OKR-\* 정의**.
+ADR-0030 은 이미 채택이므로 착수 전 선행은 **`requirements/OKR.md` 작성 + FR-OKR-\* 정의**.
 그 뒤 `/feature`. 상세는 §4.
 
 ---
 
-## 1. Git / PR 상태 (2026-09-08 P7 세션 종료 시점)
+## 1. Git / PR 상태 (2026-09-08 세션 종료 시점)
 
 | PR | 내용 | 상태 |
 |---|---|---|
-| #47 | P5 단일 클라이언트 캐시(ADR-0028 채택) + 칸반 리스트/보드 토글 | ✅ 병합됨 (main `242d853`) |
-| #50 | ADR 결정 세션 준비 + #49 유실분 복구 (docs) | ✅ 병합됨 (main `f0dd7bf`) |
-| **P6** | **T2 자동 분류 — 자유 태그(다중) + 에이전트 배치 자동 태깅 + 칩 필터** (ADR-0018·0029 채택, `feat`) | 🔀 PR 열림 (`feature/p6-task-tags-classify` → main), 병합 대기 |
-| **P7** | **T4 에이전트 활동 위젯 + '지금 실행' 파일 플래그** (ADR-0013 부분 채택, FR-AGENT-08, `feat`) | 🔀 **이 세션에서 PR 염** (`feature/p7-agent-activity-widget` → main), 병합 대기 |
+| #52 | **P6** T2 자동 분류 — 자유 태그(다중) + 에이전트 배치 태깅 + 칩 필터 (ADR-0018·0029 채택, FR-TASK-08) | ✅ 병합됨 |
+| #53 | docs: README·상태 문서에 P3~P6 반영 | ✅ 병합됨 |
+| #54 | docs: 취소선(`~~`) 전체 제거 | ✅ 병합됨 |
+| #55 | **P7** T4 에이전트 활동 위젯 + '지금 실행' 파일 플래그 (ADR-0013 부분 채택, FR-AGENT-08/09) | ✅ 병합됨 (main `82586ab`) |
+| **#56** | docs: ADR-0033 독립 위젯 창 방향 유지 (제안·보류) | **OPEN · main 머지로 충돌 해소 완료 · CI green · 병합 대기** |
 
 **다음 세션 첫 작업:**
 1. `git checkout main && git pull` (SessionStart 훅이 병합된 로컬 브랜치를 자동 정리).
-2. P6·P7 PR 병합 확인. 데모 확인: "활동" 주제에 sync 로그 + health + 다음 실행 + "지금 실행" 버튼.
-3. P6 수동 검증 TC-P6-M1~4 + P7 수동 검증(launchd WatchPaths 설치·감지, TC-ACT-M / TC-AGENT-M) 결과를
-   `PROGRESS.md`·`TEST_PLAN.md` 에 반영.
+2. #56 병합 확인.
+3. **로컬 수동 검증 백로그** — 아래를 실제 Electron 앱(`cd backend && npm start` + `cd frontend && npm run dev`)에서 확인하고 `PROGRESS.md`·`TEST_PLAN.md` 에 반영:
+   - TC-P3-M(라이트 테마) · TC-P4-M(공통 컴포넌트) · TC-SHELL-M1~6(사이드바 셸)
+   - TC-P5-M1~4(칸반 리스트/보드) · TC-P6-M1~4(태그 칩·필터)
+   - TC-ACT-M / TC-AGENT-M(P7 — `bash scripts/install-runnow-launchd.sh` 후 "지금 실행" → 플래그 감지)
 4. **P8 착수 전 선행:** `requirements/OKR.md` 작성 + FR-OKR-\* 정의 (ADR-0030 은 이미 채택).
 5. **→ `/feature` 로 P8 (T3 OKR + 주간 플래너).**
 
@@ -89,16 +93,17 @@ ADR-0030 은 이미 채택(2026-09-08)이므로 착수 전 선행은 **`requirem
 | 단계 | 내용 | 상태 |
 |---|---|---|
 | P0 | 문서 + PROGRESS 다이어그램 | ✅ |
-| P1 | ADR 초안 + 요구사항 | 🚧 ADR-0018·0029 채택 (P6). ADR-0013 부분 채택 (P7 — 트리거만, 전체 큐는 제안 유지). ADR-0030 채택 (2026-09-08). ADR-0031 은 아직 **제안** — P9 착수 전 결정 필요. `OKR.md` + FR-OKR-\* 는 P8 선행 |
+| P1 | ADR 초안 + 요구사항 | 🚧 ADR-0018·0027·0028·0029·0030·0031·0032 채택. ADR-0013 부분 채택 (P7 — 트리거만, 전체 큐는 제안 유지). ADR-0033 제안·보류(독립 위젯 창). `OKR.md` + FR-OKR-\* 는 P8 선행 (문서만) |
 | P2 | 디자인 캔버스 6 아트보드 + 토큰 v2 | ✅ · **v2 재작성 2026-09-08** (UI_STYLE v2 사이드바, 같은 URL: https://claude.ai/code/artifact/a8e15d6b-2bfb-42d9-96c7-cdb0d964ebf3) |
 | P3 | T5 라이트 테마 1차 (ADR-0027 채택) | ✅ 병합됨 |
 | P4 | T5 공통 컴포넌트 | ✅ 병합됨 |
 | **P4.5** | 사이드바 셸 (UI_STYLE v2 / ADR-0032 채택) | ✅ **PR #45 병합됨** |
 | **P5** | **T1 단일 캐시 + 칸반 뷰** — `useTaskStore` `byId`/`order`, 칸반 = tasks 위젯 내 리스트/보드 토글(PO-7) | ✅ **#47 병합됨** (ADR-0028 채택), 수동 검증 TC-P5-M1~4 대기 |
-| **P6** | T2 자동 분류 — 최소 마이그레이션 + 에이전트 배치 분류 + 태그 칩 필터 | ✅ **PR 열림** (ADR-0018·0029 채택, FR-TASK-08), 수동 검증 TC-P6-M1~4 대기 |
-| **P7** | T4 에이전트 활동 위젯 — `sync_logs`/`health`/다음 실행 + "지금 실행" 파일 플래그 | ✅ **PR 열림** (ADR-0013 부분 채택, FR-AGENT-08/09), launchd WatchPaths 수동 검증 대기 |
+| **P6** | T2 자동 분류 — 최소 마이그레이션 + 에이전트 배치 분류 + 태그 칩 필터 | ✅ **#52 병합됨** (ADR-0018·0029 채택, FR-TASK-08), 수동 검증 TC-P6-M1~4 대기 |
+| **P7** | T4 에이전트 활동 위젯 — `sync_logs`/`health`/다음 실행 + "지금 실행" 파일 플래그 | ✅ **#55 병합됨** (ADR-0013 부분 채택, FR-AGENT-08/09), launchd WatchPaths 수동 검증 대기 |
 | **P8** | T3 OKR Phase — `objectives`/`key_results` + OKR 대시보드 + 주간 플래너 | ⏳ **다음** (`OKR.md` + FR-OKR-\* 선행. ADR-0030 은 채택됨) |
-| P9 | T6 진행 현황 · 파일 탐색 뷰 — `GET /api/docs/:name` + `GET /api/tree` + 위젯(좌 폴더 트리 / 우 본문) | ⏳ |
+| P9 | T6 진행 현황 · 파일 탐색 뷰 — `GET /api/docs/:name` + `GET /api/tree` + 위젯(좌 폴더 트리 / 우 본문) | ⏳ (ADR-0031 채택됨, 착수만 하면 됨) |
+| (별도) | **앱 통합** — 통합 실행 스크립트 + Electron↔백엔드 프로세스 토폴로지([ADR-0016](../product/architecture/adr/ADR-0016-desktop-process-topology.md) 결정) + 독립 위젯 창([ADR-0033](../product/architecture/adr/ADR-0033-standalone-widget-windows.md)) | ⏳ P9 전후 / 패키징 전. §4-3 |
 
 ---
 
@@ -120,13 +125,28 @@ ADR-0030 은 이미 채택(2026-09-08)이므로 착수 전 선행은 **`requirem
 - 위젯 "지금 실행" 클릭 → `agent/.triggers/run-now` 생성 → launchd 가 `agent/trigger.py` 실행하는지 확인 (TC-ACT-M / TC-AGENT-M).
 - 결과를 `PROGRESS.md`·`TEST_PLAN.md` 에 반영.
 
-### 4-3. 이후 로드맵 파생 작업 (P9 전)
-- **ADR-0031 채택** (PO-11·12) — P9 선행.
-- **PO-10** — 개인 OS 방향(P8~P9)과 Phase E(다중 사용자·Supabase 동기화)의 순서: 미결. `PROGRESS.md` 에 기록.
+### 4-3. 앱 통합 — "웹 데모 ≠ 앱" (사용자 강조, 2026-09-08)
 
-### 4-4. 이미 종결된 결정 (참고)
-ADR-0013 부분 채택(P7 — 트리거만), ADR-0030(P8 근거), ADR-0018·0029(P6), ADR-0028/PO-7(P5), ADR-0032/PO-13·14(P4.5), ADR-0027/PO-1·2(P3) — 채택.
-**아직 제안 상태:** ADR-0013 전체 작업 큐 부분, ADR-0031(P9 선행).
+산출물은 **Electron 앱**(창 + `backend` Express+SQLite + `agent` Python)이다. 웹 데모(`VITE_DEMO`,
+GitHub Pages)는 `demoClient.js` 인메모리 목으로 도는 **미리보기 전용**이다. P3~P7 매 단계가 "TC-*-M
+로컬 GUI 대기" 로 남으면서 실제 창에서의 통합 실행이 오래 밀렸다. P9 전후 또는 패키징 전에 정리:
+
+- **통합 실행 스크립트** — 지금은 백엔드·프론트를 각각 띄운다(README "앱 실행"). `npm run app`
+  또는 `scripts/dev.sh` 하나로 backend + frontend 동시 기동.
+- **[ADR-0016](../product/architecture/adr/ADR-0016-desktop-process-topology.md) 결정** (제안) — Electron 이 백엔드를 자동 기동할지, 패키징된 앱의 백엔드 실행 주체,
+  백엔드 비정상 종료 시 재연결. 여기에 **다중 `BrowserWindow`**(ADR-0033 독립 위젯 창)도 함께.
+- **[ADR-0033](../product/architecture/adr/ADR-0033-standalone-widget-windows.md) 규범 유지** — 새 위젯 뷰(`widgets/views/*WidgetView.jsx`)가 `WidgetShell`·
+  `react-grid-layout`·`useLayoutStore` 를 import 하지 않는지 리뷰에서 확인. 독립 창 구현 전제.
+- **데모↔실서버 패리티** — `demoClient.js` 가 목으로 두는 엔드포인트가 전부 `backend/` 에 실재하는지
+  (`/api/tasks/:id/tags`, `/api/agent/activity` 등). 데모만 green 인 건 "완료" 아님.
+
+### 4-4. 이후 로드맵 파생 작업
+- **PO-10** — 개인 OS 방향(P8~P9)과 Phase E(다중 사용자·Supabase 동기화)의 순서: 미결. `PROGRESS.md` 에 기록.
+- **`requirements/OKR.md`** — P8 선행 (§4-1).
+
+### 4-5. 이미 종결된 결정 (참고)
+ADR-0013 부분 채택(P7 — 트리거만), ADR-0030(P8), ADR-0031(P9), ADR-0018·0029(P6), ADR-0028/PO-7(P5), ADR-0032/PO-13·14(P4.5), ADR-0027/PO-1·2(P3) — 채택.
+**아직 제안 상태:** ADR-0013 전체 작업 큐, **ADR-0033**(독립 위젯 창 — 방향만, 구현 보류), ADR-0015·0016·0017·0019.
 
 ---
 

@@ -57,6 +57,7 @@
 | [0030](adr/ADR-0030-okr-data-model.md) | OKR 데이터 모델 (`objectives`/`key_results`/`kr_snapshots`) + 주간 플래너 | 채택 — 개인 OS P8 (2026-09-08, 초안대로) |
 | [0031](adr/ADR-0031-safe-markdown-render.md) | 안전 마크다운 렌더 + 파일 트리 API (`GET /api/tree`, 파서 없음) | 채택 — 개인 OS P9 (2026-09-08, `docs/`+루트 `.md` 만·소스 제외·리사이즈) |
 | [0032](adr/ADR-0032-sidebar-shell-per-topic-layouts.md) | 사이드바 셸 + 주제별 위젯 레이아웃 (`activeTopic` state, 라우터 없음, 레이아웃 v1→v2) | 채택 — 개인 OS P4.5 (2026-09-08) |
+| [0033](adr/ADR-0033-standalone-widget-windows.md) | 독립 위젯 창 (바탕화면 위젯) — 방향 유지, 위젯 뷰는 셸 독립 유지 | 제안 — 보류 (2026-09-08) |
 
 > 🆕 **대시보드 OS 전환 (2026-09-03)** — 고정 패널 → 위젯 셸. 개념: [../vision/DASHBOARD_OS.md](../vision/DASHBOARD_OS.md),
 > 요구사항: [../requirements/WIDGET.md](../requirements/WIDGET.md), 화면: [../reference/UI_SPEC.md](../reference/UI_SPEC.md) §3.8~.
