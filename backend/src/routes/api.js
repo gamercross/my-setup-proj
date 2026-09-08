@@ -15,6 +15,8 @@ router.use('/calendar', require('./calendar'));
 router.use('/mail', require('./mail'));
 router.use('/brief', require('./brief'));
 router.use('/diagrams', require('./diagrams'));
+router.use('/tree', require('./tree'));
+router.use('/docs', require('./docs'));
 router.use('/sync', require('./sync'));
 router.use('/agent', require('./agent'));
 router.use('/okr', require('./okr'));

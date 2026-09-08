@@ -378,6 +378,39 @@ fake service 주입, 네트워크 0회. 재시도 테스트는 `services.retry.s
 > 픽스처: 임시 디렉터리에 mermaid 블록 md 를 만들고 `services/diagrams.js` 의 docs 루트를 주입.
 > 파싱 로직(펜스 추출·heading 매칭)은 순수 함수로 분리해 단위 테스트 가능하게 한다.
 
+### 3.5h 문서 본문·파일 트리 API — `backend/test/{docs,tree}.test.js` (개인 OS P9, FR-UI-06, ADR-0031)
+
+| ID | 대상 | 전제 | 입력 | 기대 결과 | 우선 |
+|---|---|---|---|---|:---:|
+| TC-DOCS-01 | FR-UI-06 AC-2/3 | 각 블록 타입 든 픽스처 md | `GET /api/docs/docs/x.md` | 200 `{ path, tokens }`, heading·paragraph·list·table·code·blockquote 토큰 존재 | P1 |
+| TC-DOCS-02 | FR-UI-06 AC-3 | ` ```mermaid ` 펜스 | `GET /api/docs/:path` | `{ type:'code', lang:'mermaid' }` 토큰 | P1 |
+| TC-DOCS-03 | FR-UI-06 AC-2 | `..`·절대경로 주입 | `GET /api/docs/:path` | 400 | P1 |
+| TC-DOCS-04 | FR-UI-06 AC-2 | 비-`.md`·허용 밖 루트 | `GET /api/docs/:path` | 400 | P1 |
+| TC-DOCS-05 | FR-UI-06 AC-2 | 존재하지 않는 `docs/none.md` | `GET /api/docs/:path` | 404 | P1 |
+| TC-DOCS-06 | FR-UI-06 AC-2 | 루트 밖을 가리키는 심링크 파일 | `GET /api/docs/:path` | 400/404, 내용 미노출 | P1 |
+| TC-DOCS-07 | FR-UI-06 AC-2 | 이중 인코딩 `%252e%252e%252f` | `GET /api/docs/:path` | traversal 로 통과 안 함 (400/404) | P2 |
+| TC-DOCS-08 | FR-UI-06 AC-4 | 파일 수정 후 재요청 | `GET /api/docs/:path` | 새 토큰 반영 (캐시 없음) | P1 |
+| TC-DOCS-09 | FR-UI-06 AC-5 | 미지원 문법 든 소스 | `tokenize()` 순수 함수 | 미지원 문법은 원문 `text` 로 보존 | P2 |
+| TC-DOCS-10 | FR-UI-06 AC-3 | 5000 토큰 초과 / 빈 파일 | `GET /api/docs/:path` | 잘림 + 안내 문단 / `tokens: []` | P2 |
+| TC-TREE-01 | FR-UI-06 AC-1 | `docs/` + 루트 `README.md` | `GET /api/tree` | 트리 JSON, 각 노드 `name/path/type` | P1 |
+| TC-TREE-02 | FR-UI-06 AC-1 | `REPO_PATH` 가 없는 경로 | `GET /api/tree` | 200 `{ tree: [], truncated: false }` | P1 |
+| TC-TREE-03 | FR-UI-06 AC-1 | 제외 목록(`.env`·`node_modules`·`.git`·`venv`·`dist`·`*.log`·`__pycache__`·숨김) | `GET /api/tree` | 미노출 | P1 |
+| TC-TREE-04 | FR-UI-06 AC-1 (PO-12) | 소스 파일(`.js`/`.py`/`.sh`) | `GET /api/tree` | `.md` 만 노출, 소스 미노출 | P1 |
+| TC-TREE-05 | FR-UI-06 AC-1 | 깊이 9 중첩 / `.md` 없는 디렉터리 | `GET /api/tree` | 8단까지만, 빈 디렉터리 노드 없음 | P2 |
+| TC-TREE-06 | FR-UI-06 AC-1 | 심링크 디렉터리·파일 | `GET /api/tree` | 스킵 | P1 |
+
+> 픽스처: 임시 디렉터리에 md 트리를 만들고 `resolveRepoRoot` 를 `REPO_PATH` 로 주입. 토크나이저는 순수 함수로 분리.
+
+### 3.5i P9 프론트·회귀·데모 — `frontend/test/{docSections,demoClient,registry}.test.mjs`
+
+| ID | 대상 | 기대 결과 |
+|---|---|---|
+| TC-P9-DOC-01 | `groupSections` (`widgets/docSections.js`) | preamble 분리 + depth≤2 섹션 분할 + `matchDefaultOpen` 큐레이션 |
+| TC-P9-DOC-02 | `clampSplitPct` | NaN·0·999 → 30/15/85 범위로 클램프 |
+| TC-P9-REG-01 | `progress` 위젯 등록 | `widgetMeta`·`treePct`(step 1) 스키마·`defaultLayout` 에 progress 인스턴스 |
+| TC-P9-DEMO-01 | `demoClient` `/tree`·`/docs` 분기 | `GET /tree` 노드 배열, `GET /docs/<존재>` tokens, `<없음>` 404 |
+| TC-P9-REG-01 | 회귀 — `DiagramPanel` `loadMermaid` export 변경 | FR-UI-05 다이어그램 경로 무회귀 (TC-DIAG-01~05 통과, `MermaidBlock` 이 동일 로더 재사용) |
+
 ### 3.5c Supabase 부트스트랩 — `backend/test/supabase.test.js` (Phase E 선행, 2026-09-06)
 
 | ID | 대상 | 전제 | 입력 | 기대 결과 | 우선 |
@@ -590,6 +623,7 @@ fake service 주입, 네트워크 0회. 재시도 테스트는 `services.retry.s
 | TC-UI-17 | FR-CAL-01 AC-5 | 앱 실행 → 일정 패널 관찰 | 로딩 → 정상 전이, 위젯 렌더. 0건이면 "일정이 없습니다". 상태: C3 완료, 로컬 수동 확인 대기 |
 | TC-UI-18 | FR-CAL-02 AC-6/7/8 | 일정 패널의 항목 배지 확인 | 오늘/내일 배지 + 좌측 accent 보더, 그 외 `M/D`, 시간 미정 항목은 맨 뒤 "시간 미정". 상태: C3 완료, 로컬 수동 확인 대기 |
 | TC-UI-19 | FR-CAL-01 AC-5 / FR-UI-01 AC-2 | 캘린더 API 중단 후 앱 실행 | 일정 패널만 `ErrorBanner` + 재시도, "일정이 없습니다" 문구 미표시, 할일·프로젝트 패널 정상 렌더. 상태: C3 완료, 로컬 수동 확인 대기 |
+| TC-P9-M | FR-UI-06 AC-1~6 | `progress` 주제 진입 (기존 저장 레이아웃 사용자는 "레이아웃 초기화" 필요 — R7) → 왼쪽 트리 탐색 → `PROGRESS.md` 클릭 | 본문 렌더 + heading 섹션 접기 동작, 분할선 드래그 후 새로고침 시 비율 유지, 각 패널 접기/펼치기, mermaid 블록 SVG 렌더, 인라인 링크는 복사 버튼(외부 브라우저로 안 튐), 상단 브레드크럼에 파일 경로. 상태: P9 완료, 로컬 수동 확인 대기 |
 
 ### 3.7 위젯 셸 수동 체크리스트 (Phase C5, FR-WIDGET)
 

@@ -139,4 +139,54 @@ Google/Notion/Gmail 의 응답 모델을 **그대로 저장하지 않는다.** `
 
 ---
 
-**작성:** 2026-09-03
+## 8. 문서(md) 계층과 도메인 데이터의 분리
+
+이 제품에는 **저장·수정 표면이 두 개**다. 둘은 서로 넘나들지 않는다.
+
+| 표면 | 담는 것 | 쓰기 주체 | 앱(Electron/웹)에서 |
+|---|---|---|---|
+| **SQLite** (`backend/db/app.db`) | 도메인 데이터 — `tasks`·`projects`·`objectives`·`key_results`·`kr_snapshots`·`briefs`·`emails`·`calendar_events`·`sync_logs` | 백엔드 서비스(사용자 입력) / 에이전트(외부 캐시) — §2 소유권 표 | 앱 UI 에서 CRUD (읽기·쓰기) |
+| **저장소 문서** (`docs/**/*.md` + 저장소 루트 `*.md`) | 요구사항·ADR·진행 현황(`PROGRESS.md`·`NEXT_SESSION.md`)·추적표·참조 문서 | 사람 + 파이프라인 에이전트(`finisher`)가 **git 커밋**으로만 | **읽기 전용** — 렌더만, 수정·생성·삭제 없음 |
+
+### 8.1 도메인 데이터를 저장·수정하는 경로
+
+1. 프런트가 `POST`/`PUT`/`DELETE /api/*` 호출 → 2. `backend/src/routes/*` 가 입력 검증(NFR-SEC-07) →
+3. `backend/src/services/*` 가 비즈니스 규칙 적용 후 `backend/src/db.js` 의 prepared statement 실행 →
+4. `created_at`/`updated_at` 은 서버가 ISO8601 로 채운다(클라이언트 값 무시) →
+5. 스키마 자체를 바꿔야 하면 **마이그레이션으로만**(§3, [ADR-0018](adr/ADR-0018-schema-migration-strategy.md)) — 신규 테이블은
+   `schema.sql` 의 `CREATE TABLE IF NOT EXISTS`, 기존 테이블 변경은 버전 러너.
+
+에이전트는 자기 소유 캐시 테이블(`emails`·`calendar_events`·`briefs`·`sync_logs`)만 쓴다. `tasks`·`projects`·`objectives`·
+`key_results` 는 **읽기만** 한다([ADR-0011](adr/ADR-0011-agent-backend-db-access.md)). 예: 자동 분류(FR-TASK-08)는 `task_tags` 만 갱신하고 할 일 본문은
+건드리지 않는다. OKR 스냅샷(FR-OKR-04)은 `kr_snapshots` 월별 적재만 한다.
+
+### 8.2 진행 현황·설계 문서를 저장·수정하는 경로
+
+`PROGRESS.md`·`NEXT_SESSION.md`·`requirements/*`·`architecture/adr/*` 같은 md 파일은 **제품 데이터가 아니라
+저장소 산출물**이다. 갱신은 오직 git 워크플로로 이뤄진다:
+
+- 기능 작업은 `/feature` 파이프라인(planner→developer→supervisor→finisher). `finisher` 가
+  `PROGRESS.md`·`TRACEABILITY.md`·요구사항·참조 문서를 코드와 **같은 커밋**에 갱신하고
+  `check-docs.sh` 로 정합을 검증한다([GIT_WORKFLOW.md](../../setup/GIT_WORKFLOW.md)).
+- 결정이 필요한 변경은 먼저 ADR(`architecture/adr/ADR-NNNN-*.md`)을 신설·개정해 상태를
+  `제안`→`채택`으로 옮긴다. 채택 전에는 착수하지 않는다.
+- 앱은 이 흐름에 참여하지 않는다. 앱에서 OKR·할 일을 고쳐도 md 파일은 바뀌지 않고,
+  그 반대도 없다.
+
+### 8.3 앱은 왜 md 를 쓰지 않는가
+
+P9 "진행 현황 · 파일 탐색 뷰"([ADR-0031](adr/ADR-0031-safe-markdown-render.md), FR-UI-06)는 위 문서들을 앱 위젯에서 **보기만** 한다:
+
+- `GET /api/tree`(문서 트리) · `GET /api/docs/:path`(제한 토큰 배열) — **`GET` 만 존재**. `PUT`/`POST`/`DELETE` 라우트 없음.
+- 허용 루트는 `docs/` + 저장소 루트 `*.md` 로 한정하고 `.md` 만 연다(소스 파일 비노출, PO-12).
+- 렌더러는 마크다운 파서·`dangerouslySetInnerHTML` 를 쓰지 않는다(Electron RCE 표면 최소화, NFR-SEC-04).
+- 근거: [ADR-0013](adr/ADR-0013-dashboard-agent-queue.md) "파일 조작 없음" — 에이전트·대시보드 어느 쪽도 파일을 만들거나
+  고치지 않는다. 문서 편집이 필요하면 저장소를 IDE 로 열어 커밋한다.
+
+> 향후 앱에서 데이터를 md/파일로 **내보내기**(예: 주간 요약을 Markdown 으로 저장)를 하더라도, 그것은
+> 사용자가 지정한 위치로의 단방향 export 이며 `docs/` 트리(저장소 산출물)를 갱신하는 것이 아니다.
+> 저장소 문서를 앱이 편집하는 방향은 ADR-0031·ADR-0013 개정 없이는 열지 않는다.
+
+---
+
+**작성:** 2026-09-03 · **개정:** 2026-09-08 (§8 문서 계층 분리 — P9/ADR-0031 읽기 전용 확정)

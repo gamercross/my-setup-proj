@@ -108,6 +108,20 @@ export const WIDGET_META = {
       hideCompleted: { type: 'bool', default: false, label: '완료한 항목 숨기기' },
     },
   },
+  progress: {
+    type: 'progress',
+    name: '진행 현황',
+    icon: '📄',
+    description: '문서 트리와 내용 보기',
+    defaultSize: { w: 10, h: 12 },
+    minSize: { w: 5, h: 6 },
+    maxSize: { w: 12, h: 24 },
+    configSchema: {
+      // step:1 — 드래그로 놓은 위치가 resolveDisplay 스냅으로 튀지 않게 (AC-6 UX).
+      treePct: { type: 'number', min: 15, max: 85, step: 1, default: 30, label: '트리 패널 비율(%)' },
+      autoExpandSections: { type: 'bool', default: true, label: '주요 섹션 자동 펼침' },
+    },
+  },
   // "준비 중" 자리표시자 — 전용 위젯이 아직 없는 주제의 기본 인스턴스 (ADR-0032).
   // hidden: true 는 옵셔널 신규 필드. 피커 목록에서 제외한다 (다른 메타엔 넣지 않는다).
   placeholder: {

@@ -400,6 +400,15 @@ export async function demoRequest(method, path, body) {
   if (p === '/mail/unread' && method === 'GET') return { emails: [] };
   if (p === '/brief/today' && method === 'GET') return { brief: store.brief };
   if (p === '/diagrams' && method === 'GET') return { diagrams: store.diagrams ?? [] };
+
+  // 진행 현황 위젯(P9, FR-UI-06) — 목 트리·목 토큰. GET 만.
+  if (p === '/tree' && method === 'GET') return { tree: store.docTree, truncated: false };
+  if (p.startsWith('/docs/') && method === 'GET') {
+    const rel = decodeURIComponent(p.slice('/docs/'.length));
+    const tokens = store.docTokens[rel];
+    if (!tokens) throw err(404, '문서를 찾을 수 없습니다.');
+    return { path: rel, tokens };
+  }
   if (p === '/sync/logs' && method === 'GET') {
     const lim = Number(q.limit) > 0 ? Number(q.limit) : 50;
     return { logs: store.sync_logs.slice().reverse().slice(0, lim) };

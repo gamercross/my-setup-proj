@@ -509,6 +509,60 @@ FR-UI-05 · [ADR-0014](../architecture/adr/ADR-0014-dashboard-diagram-viewer.md)
 
 ---
 
+## 문서 트리·본문 (tree·docs) ✅ 구현 — 개인 OS P9 (2026-09-08)
+
+FR-UI-06 · [ADR-0031](../architecture/adr/ADR-0031-safe-markdown-render.md) · [ADR-0013](../architecture/adr/ADR-0013-dashboard-agent-queue.md)(파일 조작 없음)
+
+두 엔드포인트 모두 **GET 전용·읽기 전용**. 파일 생성·수정·삭제 없음. DB·에이전트 관여 없음.
+캐시 없음 — 파일을 고치면 다음 요청에 반영된다.
+
+**허용 루트**: 저장소의 `docs/` 디렉터리 + 저장소 루트의 `*.md` 파일. `.md` 파일만 노출·열람.
+소스 파일(`.js`/`.py`/`.sh` 등)·소스 디렉터리(`frontend/src/`·`backend/src/`·`agent/`·`scripts/`)는 제외.
+원천 경로 우선순위: `REPO_PATH` → 저장소 루트 → `process.resourcesPath`(패키지).
+제외: `.env*`·`node_modules`·`.git`·`venv`/`.venv`·`.secrets`·`dist`·`*.log`·`__pycache__`·숨김 디렉터리.
+심링크는 스킵. 상한: 깊이 8 · 항목 2000 · 파일당 1MB.
+
+### `GET /api/tree` — 문서 파일 트리
+
+**응답 200**
+```json
+{
+  "tree": [
+    { "name": "docs", "path": "docs", "type": "dir", "children": [
+      { "name": "progress", "path": "docs/progress", "type": "dir", "children": [
+        { "name": "PROGRESS.md", "path": "docs/progress/PROGRESS.md", "type": "file" }
+      ] }
+    ] },
+    { "name": "README.md", "path": "README.md", "type": "file" }
+  ],
+  "truncated": false
+}
+```
+- `.md` 없는 디렉터리는 가지치기(노드 자체 없음).
+- 허용 루트를 못 찾으면 `{ "tree": [], "truncated": false }` (200, 에러 아님).
+- 상한 초과 시 `truncated: true`.
+
+### `GET /api/docs/:path` — 문서 본문 토큰
+
+`:path` 는 허용 루트 안의 정규화된 상대경로(예: `docs/progress/PROGRESS.md`). Express 4 와일드카드 재디코드 금지.
+
+**응답 200**
+```json
+{ "path": "docs/progress/PROGRESS.md", "tokens": [
+  { "type": "heading", "depth": 1, "text": "..." },
+  { "type": "paragraph", "text": "..." },
+  { "type": "code", "lang": "mermaid", "code": "flowchart TB\n ..." }
+] }
+```
+- 토큰 종류: `heading`(h1~4) · `paragraph` · `list` · `table` · `code`(lang 포함, mermaid 는 `lang:'mermaid'`) · `blockquote` · `hr` · 인라인 `link`·`code`·`strong`·`em`.
+- 지원 안 하는 문법(이미지·HTML 블록·각주 등)은 원문 텍스트로 담는다.
+- 클라이언트(`DocView.jsx`)가 토큰을 React 요소로 매핑 — 마크다운 파서·`dangerouslySetInnerHTML` 없음. 인라인 링크는 복사 버튼(외부 내비 차단).
+
+**응답 400** — 경로 형태 위반(`..`·절대경로·허용 밖·비-`.md`·심링크 탈출) `{ "error": "..." }`
+**응답 404** — 파일 없음 `{ "error": "..." }`
+
+---
+
 ## OKR (okr) ✅ 구현 — P8 (2026-09-08)
 
 FR-OKR-01~04 · [ADR-0030](../architecture/adr/ADR-0030-okr-data-model.md) · 서비스 `backend/src/services/okr.js`
@@ -632,6 +686,7 @@ curl -s $BASE/tasks/99999
 | D7 ✅ | 요청 로깅 미들웨어 | ✅ 해소 — `middleware/requestLogger.js` (C1, 2026-09-03) | — |
 | D8 | `mail`/`brief`/`sync` 라우트 | `brief`·`sync` ✅ (D3·D2-a), `mail` 미구현 | `mail` 은 Week 5 이월 |
 | D9 | `diagrams` 라우트 + `services/diagrams.js` | ✅ 구현 (C4, 2026-09-06) — prod `docs/` 동봉 설정은 E3 이월 | — |
+| D10 | `tree`·`docs` 라우트 + `services/{tree,docs}.js` | ✅ 구현 (P9, 2026-09-08) — prod `docs/` 동봉 설정은 E3 이월 | — |
 
 ---
 

@@ -188,6 +188,106 @@ export function createDataset() {
     { id: 6, key_result_id: 3, month: ym(1), pct: 0.85 },
   ];
 
+  // 문서 트리·본문 — 진행 현황 위젯(P9, FR-UI-06) 시연용. 실제 파일이 없으므로 목 토큰을 쓴다.
+  const docTree = [
+    {
+      name: 'docs',
+      path: 'docs',
+      type: 'dir',
+      children: [
+        {
+          name: 'product',
+          path: 'docs/product',
+          type: 'dir',
+          children: [
+            {
+              name: 'architecture',
+              path: 'docs/product/architecture',
+              type: 'dir',
+              children: [
+                {
+                  name: 'adr',
+                  path: 'docs/product/architecture/adr',
+                  type: 'dir',
+                  children: [
+                    {
+                      name: 'ADR-0031-safe-markdown-render.md',
+                      path: 'docs/product/architecture/adr/ADR-0031-safe-markdown-render.md',
+                      type: 'file',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+        {
+          name: 'progress',
+          path: 'docs/progress',
+          type: 'dir',
+          children: [{ name: 'PROGRESS.md', path: 'docs/progress/PROGRESS.md', type: 'file' }],
+        },
+      ],
+    },
+    { name: 'README.md', path: 'README.md', type: 'file' },
+  ];
+
+  const txt = (text) => ({ type: 'text', text });
+  const docTokens = {
+    'docs/progress/PROGRESS.md': [
+      { type: 'heading', depth: 1, inline: [txt('진행 상황')] },
+      {
+        type: 'paragraph',
+        inline: [
+          txt('개인 생산성 OS 방향으로 '),
+          { type: 'strong', text: '위젯 대시보드' },
+          txt(' 를 확장 중. 자세히는 '),
+          { type: 'link', text: 'ADR-0031', href: 'https://example.com/adr-0031' },
+          txt(' 참고.'),
+        ],
+      },
+      { type: 'heading', depth: 2, inline: [txt('진행 상황 요약')] },
+      {
+        type: 'list',
+        ordered: false,
+        items: [
+          { inline: [txt('P8 OKR 위젯 완료')], children: [] },
+          {
+            inline: [txt('P9 진행 현황·파일 탐색 뷰 구현 중')],
+            children: [
+              { inline: [txt('트리 API')], children: [] },
+              { inline: [{ type: 'code', text: 'GET /api/docs/:path' }], children: [] },
+            ],
+          },
+        ],
+      },
+      { type: 'blockquote', tokens: [{ type: 'paragraph', inline: [txt('참고: 마크다운 파서를 쓰지 않는다.')] }] },
+      { type: 'hr' },
+      { type: 'heading', depth: 2, inline: [txt('지표')] },
+      {
+        type: 'table',
+        header: [[txt('Phase')], [txt('상태')]],
+        align: ['left', 'center'],
+        rows: [
+          [[txt('P8')], [txt('완료')]],
+          [[txt('P9')], [txt('진행')]],
+        ],
+      },
+      { type: 'heading', depth: 2, inline: [txt('예시 코드')] },
+      { type: 'code', lang: 'js', code: 'const x = 1;\nconsole.log(x);' },
+      { type: 'code', lang: 'mermaid', code: 'flowchart TD\n  A[트리] --> B[문서]' },
+    ],
+    'docs/product/architecture/adr/ADR-0031-safe-markdown-render.md': [
+      { type: 'heading', depth: 1, inline: [txt('ADR-0031: 안전 마크다운 렌더')] },
+      { type: 'paragraph', inline: [txt('서버에서 제한된 토큰 배열로 파싱하고 클라이언트가 React 요소로 매핑한다.')] },
+      { type: 'code', lang: 'mermaid', code: 'flowchart LR\n  MD[마크다운] --> TOK[토큰] --> UI[React]' },
+    ],
+    'README.md': [
+      { type: 'heading', depth: 1, inline: [txt('my-setup-proj')] },
+      { type: 'paragraph', inline: [txt('개인 생산성 OS. 이 데모는 인메모리 샘플 데이터로 동작합니다.')] },
+    ],
+  };
+
   return {
     projects,
     tasks,
@@ -198,6 +298,8 @@ export function createDataset() {
     objectives,
     key_results,
     kr_snapshots,
+    docTree,
+    docTokens,
     _runNowPending: false,
     _seq: 100,
   };
