@@ -151,4 +151,24 @@ ADR-02/03 · `backend/db/` · 데이터 `tasks` · NFR-MAINT-03, NFR-PERF-02
 
 ---
 
+## FR-TASK-09 — 할 일 위젯 리스트/보드(칸반) 뷰 전환 (개인 OS P5)
+
+**사용자 스토리:** 사용자로서 나는 할 일을 목록으로도, 우선순위별 칸반 보드로도 보고 싶다 —
+어느 뷰에서 완료를 눌러도 같은 상태여야 한다.
+
+**우선순위** P5 · **상태** ✅ (2026-09-08) · **근거** [ADR-0028](../architecture/adr/ADR-0028-single-client-cache.md) (PO-7)
+
+> 태그/분류는 이 요구사항 범위 밖 — P6([ADR-0029](../architecture/adr/ADR-0029-task-auto-category.md)) 이월. P5 는 백엔드/스키마 무변경.
+
+### 수용 기준
+- **AC-1** 보드 선택 시 우선순위 3열(높음/보통/낮음) 렌더 + `config.display.view='board'` 가 영속(새로고침 유지).
+- **AC-2** 보드에서 완료 체크 → `toggleTask` 1회 호출, 리스트로 전환해도 같은 완료 상태.
+- **AC-3** 리스트의 `hideCompleted`/`sortBy`/`maxItems` 가 보드에도 같은 파생 결과로 적용(두 뷰가 같은 `visible` 공유).
+- **AC-4** `priority` 누락/미지값 → 보통(medium) 열로 (누락 0건).
+- **AC-5** `overview` 주제와 `tasks` 주제의 tasks 위젯은 각각 독립 view (ADR-0032 주제 스코프).
+- **AC-6** `config.display.view` 손상값('kanban'/null/숫자) → `resolveDisplay` 가 'list' 폴백, 크래시 없음.
+- **AC-7** `useTaskStore(s=>s.tasks)` 는 항상 배열 반환, 데이터 무변경 시 참조 안정.
+
+---
+
 **작성:** 2026-09-02

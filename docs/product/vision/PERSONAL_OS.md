@@ -79,8 +79,9 @@ flowchart TB
 | 무엇 | 할 일을 어느 뷰에서 완료·수정해도 그 항목이 보이는 모든 뷰가 즉시 같은 상태 |
 | 지금 | `tasks` 한 행 + `useTaskStore` 한 개는 이미 있음. 뷰가 하나뿐이라 문제 미노출 |
 | 목표 | `id` 로 키잉된 단일 캐시. 할일 위젯·칸반·브리핑·OKR·프로젝트 하위목록이 전부 이 스토어에서 파생. 낙관적 갱신+롤백은 기존 것 재사용 |
-| 관련 | FR-TASK-02/03, FR-UI-01 · ADR-0028 (예정) · 스키마 무변경 |
+| 관련 | FR-TASK-02/03/09, FR-UI-01 · ADR-0028 (**채택 2026-09-08, P5**) · 스키마 무변경 |
 | 크기 | 낮음 |
+| 진척 | ✅ P5 (2026-09-08): `useTaskStore` `byId`/`order` 정본 + `tasks` 파생 미러(`taskCache.js`), tasks 위젯 리스트/보드 뷰 전환(`config.display.view`). 태그·자동분류는 T2/P6 이월 |
 
 ### T2 — 자동 분류 (일에 카테고리가 자동으로)
 
@@ -188,7 +189,7 @@ flowchart TB
 | ~~P3 (빌드)~~ ✅ | T5 라이트 테마 1차 (2026-09-07, ADR-0027 채택) | `styles.css` `:root` 팔레트 전환(다크→라이트) + `[data-theme=dark]` 블록(정의만) + 하드코딩 hex→`var(--*)` 치환 (10개 파일) → 데모 반영. 카드 여백·라운드·점그리드·전역 다크 토글은 P4 | P2 는 P3 이후 소급 확정(2026-09-07) — PO-1/2 결정 |
 | ~~P4 (빌드)~~ ✅ | T5 공통 컴포넌트 (2026-09-07) | `frontend/src/components/` — `StatTile.jsx` · `DotProgress.jsx`(+ 순수 `dotFill.js`) · `Chip.jsx` (OKR·에이전트 공용). 카드 토큰 v2(`--card-radius` 16·`--shadow-card`) + `WidgetFrame` 그림자 + `ProjectCard` 진행바 → `DotProgress`. `frontend/test/dotFill.test.mjs` TC-P4-01~05. 시각 확인 로컬 GUI 대기 | P3 |
 | ~~P4.5~~ ✅ | 사이드바 셸 (UI_STYLE v2) | `AppShell`·`Sidebar`(브랜드+검색 표시+그룹 네비 4개+사용자)·`TopicView`(페이지 헤더) + `WidgetShell` `topicId` 스코프 + `useUiStore.activeTopic` + 레이아웃 저장 v1→v2 마이그레이션 + 주제별 기본/플레이스홀더 위젯. [ADR-0032](../architecture/adr/ADR-0032-sidebar-shell-per-topic-layouts.md) 채택. 데모 반영 — 구현 완료 (2026-09-08, feature/p4.5-sidebar-shell) | P4 · ✅ ADR-0032 |
-| **P5** | T1 단일 캐시 + 칸반 뷰 | `useTaskStore` id 키잉, 칸반(완료 체크·우선순위 열·태그) | P3 |
+| ~~P5~~ ✅ | T1 단일 캐시 + 칸반 뷰 (2026-09-08, ADR-0028 채택) | `frontend/src/store/taskCache.js`(순수 캐시 헬퍼) + `useTaskStore` `byId`/`order` 정본·`tasks` 파생 미러, `frontend/src/widgets/taskBoard.js`(`groupByPriority`), `components/TaskBoard.jsx`·`TaskCard.jsx`, `TasksWidgetView` 리스트/보드 전환(`config.display.view`), `widgetMeta.tasks.configSchema.view`. 테스트 `frontend/test/{taskCache,taskBoard,taskStore}.test.mjs` TC-P5-01~13. **태그·자동분류는 P6 이월** (스키마 무변경) | P3 |
 | **P6** | T2 자동 분류 | 스키마 마이그레이션 + 에이전트 분류 + 칩 필터 | P4·P5 |
 | **P7** | T4 에이전트 활동 위젯 | `sync_logs`/`health`/다음 실행 → 위젯 | P4 |
 | **P8** | T3 OKR Phase | `objectives`/`key_results` + OKR 대시보드 + 주간 플래너 + (선택) Weekly Brief | P4·P5 |
@@ -206,7 +207,7 @@ flowchart TB
 | PO-4 | 분류 시점·주체: 백엔드 POST 시 Claude 호출 vs 에이전트 배치 vs 별도 테이블 | ADR-0029 |
 | PO-5 | OKR = 1급 엔티티(`objectives`/`key_results`) vs `projects` 재해석 | ADR-0030 |
 | PO-6 | 주간 요약: 순수 집계 vs Claude "Weekly Brief" | OKR.md |
-| ~~PO-7~~ | 칸반이 할 일 위젯을 대체하나, 추가 뷰인가 | **종결 (2026-09-08): `tasks` 위젯 안의 리스트/보드 뷰 전환(`config.view`). 별 위젯 타입 아님. 위젯 개수 불변 → DO-2 유지. ADR-0028 §결정4 반영** |
+| ~~PO-7~~ | 칸반이 할 일 위젯을 대체하나, 추가 뷰인가 | **종결 (2026-09-08): `tasks` 위젯 안의 리스트/보드 뷰 전환(`config.display.view` — configSchema 규약). 별 위젯 타입 아님. 위젯 개수 불변 → DO-2 유지. ADR-0028 §결정4 반영. P5 구현 완료 (2026-09-08)** |
 | PO-8 | 차트 라이브러리: Recharts vs 인라인 SVG (`dataviz` 스킬 참조) | P2 → **인라인 SVG 결정 (2026-09-08)** |
 | ~~PO-13~~ | 사이드바 그룹·항목 최종 구성 | **종결 (2026-09-08, ADR-0032): COMMAND(개요·할일·브리핑·프로젝트·일정) / PLAN(OKR·주간) / AGENT(활동·진행현황·다이어그램) / SYSTEM(설정). 미구현 항목은 표시 + "준비 중" 플레이스홀더** |
 | ~~PO-14~~ | rail 접기·⌘K 검색을 P4.5 범위에 | **종결 (2026-09-08, ADR-0032): 둘 다 P4.5 범위 밖. 검색 인풋은 표시만, 사이드바 고정 폭** |

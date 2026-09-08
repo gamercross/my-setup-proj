@@ -191,9 +191,10 @@ stateDiagram-v2
 | 항목 | 내용 |
 |---|---|
 | 목적 | 할일 목록 조회·완료 토글·삭제·추가 |
-| 요소 | `TaskList`, `TaskForm`("+ 할일 추가") — 위젯 타이틀바가 제목을 대신하므로 `<h2>` 없음. 뷰: `frontend/src/widgets/views/TasksWidgetView.jsx` (스토어 구독·effect 를 뷰가 소유) — ✅ C5 |
-| 데이터 출처 | `GET /api/tasks` → `useTaskStore.tasks` (`frontend/src/store/useTaskStore.js`, `api/client.js` 경유) |
-| 관련 FR | FR-TASK-01/02/03/04, FR-UI-01 |
+| 요소 | 상단 `[리스트][보드]` 세그먼티드 컨트롤(`role="group"`, `aria-pressed`) + `TaskList` **또는** `TaskBoard`, 하단 공통 `TaskForm`("+ 할일 추가"). 위젯 타이틀바가 제목을 대신하므로 `<h2>` 없음. 뷰: `frontend/src/widgets/views/TasksWidgetView.jsx` (스토어 구독·effect 를 뷰가 소유) — ✅ C5 / 뷰 전환 ✅ P5 |
+| 데이터 출처 | `GET /api/tasks` → `useTaskStore.tasks`(파생 미러, 정본은 `byId`/`order`) (`frontend/src/store/useTaskStore.js`, `api/client.js` 경유) |
+| 보드 뷰 (§FR-TASK-09) | `config.display.view='board'` 이면 우선순위 3열(높음/보통/낮음) 칸반. 열 데이터는 `groupByPriority(visible)` (`frontend/src/widgets/taskBoard.js`), 각 열은 `TaskBoard` → `TaskCard`. `priority` 누락/미지값은 보통 열. 리스트와 **같은 `visible`**(hideCompleted/sortBy/maxItems 적용 결과)을 공유. `view` 저장은 `config.display.view`, 읽기는 `resolveDisplay(configSchema, config.display).view` (enum `['list','board']`, default `'list'`, 손상값은 `'list'` 폴백). `overview`·`tasks` 주제의 위젯이 각각 독립 view (ADR-0032). 태그/카드 라벨은 P6 이월 — 카드는 제목/기한/우선순위 배지만. |
+| 관련 FR | FR-TASK-01/02/03/04/09, FR-UI-01 |
 | 상태 | ✅ 코드 배선 완료. 정상(200) 경로 브라우저 검증은 CORS/C1 이후 로컬 대기 |
 
 **렌더 상태 4종:**
@@ -359,6 +360,9 @@ stateDiagram-v2
 | `WidgetFrame` | `instance` | — (스토어 액션 구독: bringToFront/toggleMinimize/removeWidget/focusedId) | — | ✅ C5~C6 (C6: `updateConfig`/`editMode` 구독, `WidgetSettings` 오픈, titlebar 인라인 · per-widget `ErrorBoundary fallback` + `themeToVars` 호출 지점) |
 | `WidgetPicker` | `activeTypes`, `onAdd(type)`, `onClose()` | — | `onAdd`, `onClose` | ✅ C5 (이미 추가된 타입 비활성) |
 | `*WidgetView` (tasks/projects/calendar/diagrams/brief) | `instanceId`, `config`, `configSchema` | 도메인 스토어 필드별 구독 + `useEffect(fetch)` | — | ✅ C5 · C6 · D3(brief) (`config.display` 클라이언트 필터, `configSchema` prop) |
+| `TasksWidgetView` | `instanceId`, `config`, `configSchema` | `useTaskStore` 필드별 구독 + `useLayoutStore.updateConfig` + `useEffect(fetchTasks)` | — | ✅ P5 (`config.display.view` 리스트/보드 전환 — `updateConfig(instanceId, { display: {...d, view} })`, 두 뷰가 같은 `visible` 공유) |
+| `TaskBoard` | `columns: {high:Task[],medium:Task[],low:Task[]}`, `onToggle(id)`, `onDelete(id)` | — | `onToggle`, `onDelete` | ✅ P5 (props-only, 3열 flex, `BOARD_COLUMNS` 순서, 빈 열 안내) |
+| `TaskCard` | `task: Task`, `onToggle(id)`, `onDelete(id)` | — | `onToggle`, `onDelete` | ✅ P5 (체크박스 + 제목(완료 취소선) + 기한 + 우선순위 배지 + 삭제. `priorityColor` export — `TaskList` 가 재사용) |
 | `PlaceholderWidgetView` | — | `useUiStore.activeTopic` 구독 | — | ✅ P4.5 ("준비 중" 안내 — 전용 위젯 없는 주제 기본 인스턴스, fetch 없음·항상 ready) |
 | `WidgetSettings` | `instance`, `configSchema`, `onChange(patch)`, `onClose()` | `tab` (theme/display) | `onChange`, `onClose` | ✅ C6 (portal 중앙 모달, 테마 탭 + 표시 탭, 화이트리스트 입력만) |
 | `TaskList` | `tasks: Task[]`, `onToggle(id)`, `onDelete(id)` | — | `onToggle`, `onDelete` | ✅ |
@@ -402,16 +406,19 @@ stateDiagram-v2
 
 ## 6. zustand 스토어 계약
 
-### `useTaskStore` ✅ B3 (2026-09-03, `frontend/src/store/useTaskStore.js`)
+### `useTaskStore` ✅ B3 (2026-09-03) · 정본 `byId`/`order` 로 전환 ✅ P5 (ADR-0028, `frontend/src/store/useTaskStore.js`)
 ```
-상태:   tasks: Task[]        loading: boolean    error: string | null
+상태:   byId: Record<id,Task>   order: id[]   tasks: Task[]        loading: boolean    error: string | null
+        └ 정본은 byId+order. tasks 는 listFrom(cache) 파생 미러 — commit() 이 세 필드를 항상 함께 set.
 액션:   fetchTasks()                     → GET /api/tasks     (실패해도 기존 tasks 보존)
         addTask(payload)                 → POST /api/tasks    (비낙관적, boolean 반환)
         toggleTask(id)                   → PUT /api/tasks/:id  (낙관적 + 실패 롤백)
         updateTask(id, patch)            → PUT /api/tasks/:id  (낙관적, 성공 시 서버 task 로 치환)
-        removeTask(id)                   → DELETE /api/tasks/:id (낙관적, 실패 시 원래 인덱스 복원)
+        removeTask(id)                   → DELETE /api/tasks/:id (낙관적, 실패 시 order 스냅샷 복원)
         clearError()
 ```
+- 캐시 헬퍼는 `frontend/src/store/taskCache.js` (순수: `toCache`/`listFrom`/`upsert`/`patchOne`/`removeOne`, 전부 불변·대상 없으면 원본 참조).
+- 공개 셀렉터·액션 시그니처·에러 정규화·`error=null` 규약·boolean 반환은 B3 그대로 (기존 뷰 무수정).
 - 액션은 throw 하지 않고 `error` 에 문자열 저장. 성공하는 액션은 `error=null` (FR-UI-04 AC-4).
 - 위젯 뷰·`WidgetShell` 은 객체 리터럴 셀렉터 금지 — 필드별 개별 셀렉터로 구독 (zustand v4 리렌더 함정).
 

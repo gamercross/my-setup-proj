@@ -58,6 +58,7 @@ C 세부: C1 미들웨어(CORS·로깅·에러) ✅(2026-09-03) → C2 프로젝
 | FR-TASK-05 | G2 | [ADR-0002](../architecture/adr/ADR-0002-local-db-better-sqlite3.md), [ADR-0003](../architecture/adr/ADR-0003-schema-single-file.md), [ADR-0009](../architecture/adr/ADR-0009-sqlite-file-location.md) | B2 | TC-DB-01~03 | `backend/db/index.js`, `backend/src/db.js` | ✅ (2026-09-02) |
 | FR-TASK-06 | — | API_REFERENCE 쿼리 파라미터 | D-마무리 | TC-TASK-12,12b,12c | `routes/tasks.js`, `services/tasks.js`, `db.js` (`getTasks({projectId})`) | ✅ (2026-09-07) — `?project_id=<int\|none>` 필터. status·priority·sort 필터는 이월 |
 | FR-TASK-07 | — | requirements/TASK.md | C (W5) | — | `routes/tasks.js` | ⏳ |
+| FR-TASK-09 | — | [ADR-0028](../architecture/adr/ADR-0028-single-client-cache.md), UI_SPEC §3.2/§4/§6, requirements/TASK.md | 개인 OS P5 | TC-P5-01~13, TC-P5-M1~M4 | `frontend/src/store/taskCache.js`, `frontend/src/store/useTaskStore.js`, `frontend/src/widgets/taskBoard.js`, `frontend/src/widgets/widgetMeta.js`, `frontend/src/widgets/views/TasksWidgetView.jsx`, `frontend/src/components/TaskBoard.jsx`, `frontend/src/components/TaskCard.jsx` | ✅ (2026-09-08) — 리스트/보드 토글, `config.display.view` 영속. 태그는 P6 이월 |
 | FR-PROJ-01 | G3 | [requirements/PROJ.md](PROJ.md), API_REFERENCE `/projects` | C2 | TC-PROJ-01~03,06,07,10,11, TC-DB-04b, TC-UI-14 | `backend/src/routes/projects.js`, `backend/src/errors.js`, `frontend/src/store/useProjectStore.js`, `frontend/src/components/ProjectForm.jsx`, `frontend/src/widgets/views/ProjectsWidgetView.jsx` | ✅ C2 (2026-09-03) — 이름 인라인 수정 UI 는 이월. 브라우저 E2E(TC-UI-14) 로컬 대기 |
 | FR-PROJ-02 | G3 | [requirements/PROJ.md](PROJ.md), UI_SPEC §3.3, [ADR-0012](../architecture/adr/ADR-0012-task-project-link.md) | C2 | TC-PROJ-04,05,08,09,09b~d, TC-UI-15,16 | `routes/projects.js`, `frontend/src/store/useProjectStore.js`, `components/ProjectCard.jsx`, `frontend/src/widgets/views/ProjectsWidgetView.jsx` | ✅ C2 (2026-09-03) — 브라우저 E2E(TC-UI-15/16) 로컬 대기 |
 | FR-PROJ-03 | G7 | [ADR-0006](../architecture/adr/ADR-0006-agent-owns-external-apis.md) | D2 | — | `agent/services/notion.py` | ⏳ |
@@ -145,7 +146,7 @@ Phase A~D 를 막던 제안 ADR 4건은 **2026-09-02 채택** → `/build-next` 
 | [ADR-0021](../architecture/adr/ADR-0021-widget-layout-persistence.md) 위젯 레이아웃 영속화 (localStorage→SQLite) | FR-WIDGET-04~06 | ✅ 채택 (2026-09-06) + C5 구현 — 단계 1 `localStorage` `dashboard.layout.v1`, 300ms 디바운스, 손상 시 기본값 폴백. SQLite(단계 2) 이월 |
 | [ADR-0022](../architecture/adr/ADR-0022-per-widget-theming.md) 위젯별 테마 (스코프 CSS 변수) | FR-WIDGET-05 | ✅ 채택 — C6 구현 완료 (2026-09-06) |
 | [ADR-0027](../architecture/adr/ADR-0027-light-theme-default.md) 라이트 테마 기본 + 토큰 v2 | FR-WIDGET-05/06 | ✅ 채택 — 개인 OS P3 구현 (2026-09-07). PO-1/2 결정. US-1 종결 |
-| [ADR-0028](../architecture/adr/ADR-0028-single-client-cache.md) 단일 클라이언트 캐시 | FR-TASK-02/03 | 제안 — 개인 OS P1 (PO-7) |
+| [ADR-0028](../architecture/adr/ADR-0028-single-client-cache.md) 단일 클라이언트 캐시 | FR-TASK-02/03/09 | 채택 (2026-09-08, 개인 OS P5, PO-7) |
 | [ADR-0029](../architecture/adr/ADR-0029-task-auto-category.md) 할 일 자동 분류 | FR-TASK-08 | 제안 — 개인 OS P1 (PO-3/4), ADR-0018 선행 |
 | [ADR-0030](../architecture/adr/ADR-0030-okr-data-model.md) OKR 데이터 모델 | FR-OKR-* | 제안 — 개인 OS P1 (PO-5/6) |
 | [ADR-0031](../architecture/adr/ADR-0031-safe-markdown-render.md) 안전 마크다운 렌더 | FR-UI-06 | 제안 — 개인 OS P1 (PO-11) |

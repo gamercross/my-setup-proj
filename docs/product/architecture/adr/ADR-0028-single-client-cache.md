@@ -1,6 +1,6 @@
 # ADR-0028: 단일 클라이언트 캐시 — 뷰는 스토어에서 파생만
 
-- 상태: **제안** (2026-09-07, PO-7 반영 개정 2026-09-08) — P1 / 개인 OS P5. 사용자 결정: PO-7 = **할 일 위젯 내 리스트/보드 토글**.
+- 상태: **채택** (2026-09-08, 개인 OS P5) — 최초 제안 2026-09-07, PO-7 반영 개정 2026-09-08. 사용자 결정: PO-7 = **할 일 위젯 내 리스트/보드 토글**.
 - 관련: [PERSONAL_OS.md](../../vision/PERSONAL_OS.md) T1, [ADR-0005](ADR-0005-state-zustand.md)(zustand), [ADR-0011](ADR-0011-agent-backend-db-access.md), FR-TASK-02/03, FR-UI-01, [DASHBOARD_OS.md](../../vision/DASHBOARD_OS.md) DO-2
 
 ## 맥락
@@ -28,6 +28,9 @@
    - 크기·상호작용 차이는 위젯을 리사이즈해 흡수한다(보드 모드는 최소 폭을 넉넉히 — `widgetMeta`
      의 `minSize` 를 보드에 맞춰 상향). `config.view` 는 `WidgetSettings` 표시 탭 또는 위젯 내
      토글로 바꾼다.
+   - <sup>각주(P5 구현)</sup> `config.view` 는 configSchema 규약(표시 옵션은 `config.display` 하위)에 맞춰
+     **`config.display.view` 로 구현**한다. `widgetMeta.tasks.configSchema.view`(enum `['list','board']`, default `'list'`),
+     읽기는 `resolveDisplay(configSchema, config.display).view`.
    - 기각한 대안: 칸반을 별도 `taskboard` 위젯 타입으로 → 같은 데이터의 두 표현이 두 위젯으로
      쪼개지고 DO-2 예외가 필요. 사용자가 "위젯 개수 안 늘리는 쪽"을 택함.
 
@@ -42,7 +45,8 @@
 `widgets/views/TasksWidgetView.jsx`(셀렉터로 파생 + `config.view` 리스트/보드 전환 + 보드 그룹핑),
 `widgets/widgetMeta.js`(`tasks` 메타에 `view` configSchema + 보드용 `minSize` 상향),
 `frontend/src/components/`(칸반 열/카드 프레젠테이션 컴포넌트 — `TaskList` 선례),
-`frontend/src/api/demoClient.js`/`demoData.js`(할 일 목 데이터에 우선순위·태그),
+`frontend/src/api/demoData.js`(할 일 목 데이터 우선순위 분포 보강 — 건수 불변).
+태그·category 는 스키마 변경을 동반하므로 **P6([ADR-0029](ADR-0029-task-auto-category.md))로 이월**한다 — P5 는 백엔드/스키마 무변경,
 `requirements/WIDGET.md`(FR-TASK-* 리스트/보드), `UI_SPEC.md` §4(`TasksWidgetView` config),
 `TEST_PLAN.md`(리스트↔보드 전환·같은 데이터 동기). `DASHBOARD_OS.md` DO-2 는 **무변경**(위젯 개수 불변).
 

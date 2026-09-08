@@ -1,13 +1,7 @@
 // props-only 프레젠테이션 컴포넌트. 데이터·로딩·에러 상태는 상위 뷰(TasksWidgetView → useTaskStore)가 주입한다.
 
 import React from 'react';
-
-// 우선순위별 배지 색상
-function priorityColor(p) {
-  if (p === 'high') return 'var(--priority-high)';
-  if (p === 'low') return 'var(--priority-low)';
-  return 'var(--priority-medium)'; // medium 기본
-}
+import { priorityColor } from './TaskCard';
 
 // 할일 목록 컴포넌트
 export default function TaskList({ tasks = [], onToggle, onDelete }) {
