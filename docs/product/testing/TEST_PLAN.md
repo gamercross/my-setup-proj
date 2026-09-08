@@ -242,6 +242,7 @@ CI(`.github/workflows/test.yml`)에 `npm test`(backend), `pytest -m "not network
 | TC-P5-11 | 실패 롤백 | `removeTask` 중 500 | `byId`/`order` 참조 복원 + `tasks` 파생 복원 + `error` 문자열, throw 없음 | ✅ |
 | TC-P5-12 | `resolveDisplay` view 폴백 | `'kanban'`/`null`/숫자/`undefined` | 전부 `'list'`, `'board'` 은 그대로 | ✅ |
 | TC-P5-13 | tasks 메타 규격 | — | `configSchema.view` enum `['list','board']`+default `'list'`, `minSize.w ≤` overview tasks w(4) | ✅ |
+| TC-P5-14 | AC-7 참조 안정성 | fetch 후 no-op 액션(`toggleTask`/`removeTask` 없는 id, `clearError` 무에러) | `tasks` 배열이 **같은 참조**로 유지(`set` 미호출) | ✅ |
 
 수동(로컬 GUI): §3.9 TC-P5-M1~M4.
 
