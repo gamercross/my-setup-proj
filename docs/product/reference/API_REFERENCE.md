@@ -495,13 +495,13 @@ curl -s $BASE/tasks/99999
 
 | # | 명세 | 현재 코드 | 해소 |
 |---|---|---|---|
-| ~~D1~~ | `priority`/`status`/`progress` enum·범위 위반 시 400 | ✅ 해소 — `backend/src/errors.js` 가 SQLite CHECK/NOTNULL/FK → 400 + 한국어로 매핑 (C2, 2026-09-03, TC-DB-04a~d) | — |
+| D1 ✅ | `priority`/`status`/`progress` enum·범위 위반 시 400 | ✅ 해소 — `backend/src/errors.js` 가 SQLite CHECK/NOTNULL/FK → 400 + 한국어로 매핑 (C2, 2026-09-03, TC-DB-04a~d) | — |
 | D2 | `due_date` 형식 검증 | 없음 | 이월 (FR-TASK-06 즈음) |
 | D3 | `PUT /tasks/:id` 빈 `title` 로 덮어쓰기 금지 | `updateTask` 가 허용 | 이월 (FR-TASK-04 AC-3) |
-| ~~D4~~ | 데이터 영속 (재시작 후 유지) | ✅ 해소 — better-sqlite3 (B2, 2026-09-02, FR-TASK-05) | — |
+| D4 ✅ | 데이터 영속 (재시작 후 유지) | ✅ 해소 — better-sqlite3 (B2, 2026-09-02, FR-TASK-05) | — |
 | D5 | 쿼리 필터/정렬 | 미구현 | Week 4 (FR-TASK-06) |
-| ~~D6~~ | CORS 화이트리스트 | ✅ 해소 — `middleware/cors.js` (C1, 2026-09-03) | — |
-| ~~D7~~ | 요청 로깅 미들웨어 | ✅ 해소 — `middleware/requestLogger.js` (C1, 2026-09-03) | — |
+| D6 ✅ | CORS 화이트리스트 | ✅ 해소 — `middleware/cors.js` (C1, 2026-09-03) | — |
+| D7 ✅ | 요청 로깅 미들웨어 | ✅ 해소 — `middleware/requestLogger.js` (C1, 2026-09-03) | — |
 | D8 | `mail`/`brief`/`sync` 라우트 | `brief`·`sync` ✅ (D3·D2-a), `mail` 미구현 | `mail` 은 Week 5 이월 |
 | D9 | `diagrams` 라우트 + `services/diagrams.js` | ✅ 구현 (C4, 2026-09-06) — prod `docs/` 동봉 설정은 E3 이월 | — |
 

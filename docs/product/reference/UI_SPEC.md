@@ -355,7 +355,7 @@ stateDiagram-v2
 | `Sidebar` | `demo`, `version` | `useUiStore`(activeTopic, setActiveTopic) 구독 | (스토어 액션 직접 호출) | ✅ P4.5 (4그룹 11항목 `<button>` 네비) |
 | `TopicView` | `topic`, `demo`, `info`, `health`, `statusColor` | `useLayoutStore`(editMode)·`useUiStore` 구독 | (스토어 액션 직접 호출) | ✅ P4.5 (페이지 헤더 + `<WidgetShell topicId>`) |
 | `TopicIcon` | `name`, `size?` (기본 16) | — | — | ✅ P4.5 (`components/TopicIcons.jsx` 인라인 SVG, 미등록 키 폴백) |
-| ~~`Dashboard`~~ | — | — | — | ❌ C5 에서 삭제 — 섹션 로직은 `widgets/views/*WidgetView.jsx` 로 이관 |
+| `Dashboard` (삭제됨) | — | — | — | ❌ C5 에서 삭제 — 섹션 로직은 `widgets/views/*WidgetView.jsx` 로 이관 |
 | `WidgetShell` | `topicId` | `useLayoutStore`(instances, editMode, topicId) 구독 · `useUiStore.pickerOpen` · `hydrated` 로컬 state | (스토어 액션 직접 호출) | ✅ C5 · P4.5 (`topicId` 변화 시 `setTopic` + 하이드레이션, 셸 바 제거) |
 | `WidgetHost` | `instances`, `editMode`, `onLayoutChange(layout)` | — | `onLayoutChange` | ✅ C5 (`react-grid-layout/legacy` `WidthProvider(Responsive)` 모듈 스코프) |
 | `WidgetFrame` | `instance` | — (스토어 액션 구독: bringToFront/toggleMinimize/removeWidget/focusedId) | — | ✅ C5~C6 (C6: `updateConfig`/`editMode` 구독, `WidgetSettings` 오픈, titlebar 인라인 · per-widget `ErrorBoundary fallback` + `themeToVars` 호출 지점) |
@@ -513,7 +513,7 @@ stateDiagram-v2
 | U1 | React 트리 렌더 | ✅ B1 — `renderer.jsx` → `createRoot().render(<App/>)` (`renderer.js` 삭제) |
 | U2 | `Dashboard` 가 store+API 사용 | ✅ B3(할일)·C2(프로젝트) — `useTaskStore`+`useProjectStore` |
 | U3 | `apiBaseUrl` 브리지 | ✅ B1 — `preload.js` `apiBaseUrl: 'http://localhost:3000/api'` (3000 고정) |
-| ~~U4~~ | `ProjectCard` status `on_hold` | ✅ 해소 — C2 (2026-09-03), `'hold'`→`'on_hold'` 통일 |
+| U4 ✅ | `ProjectCard` status `on_hold` | ✅ 해소 — C2 (2026-09-03), `'hold'`→`'on_hold'` 통일 |
 | U5 | 일정·브리핑·에러 영역 | 없음 | Week 5·7, FR-UI-04 |
 | U6 | CSP `connect-src` 허용 | ✅ B1 — prod `connect-src 'self' http://localhost:3000`, dev 는 `devCspPlugin` 완화 |
 | U7 | 로딩/에러 상태 렌더 | `App.jsx` 는 `/api/health` 3상태 렌더. Dashboard 영역 로딩/에러는 B3 | B3, FR-UI-04 |

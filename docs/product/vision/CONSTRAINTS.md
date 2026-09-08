@@ -20,7 +20,7 @@
 
 | # | 제약 | 함의 |
 |---|---|---|
-| T-1 | ~~개발 머신에 `node`/`npm` 미설치~~ → **Phase A2에서 해소** (2026-09-02) | `node v26.8.1` / `npm 11.19.0` / `python3 3.14.4` 설치, `verify.sh` 12/0/0 통과 |
+| T-1 ✅ | 개발 머신에 `node`/`npm` 미설치 → **Phase A2에서 해소** (2026-09-02) | `node v26.8.1` / `npm 11.19.0` / `python3 3.14.4` 설치, `verify.sh` 12/0/0 통과 |
 | T-2 | 개발 OS = macOS (Darwin, Apple Silicon) | 스케줄러는 launchd 우선, Linux 는 cron ([ADR-0007](../architecture/adr/ADR-0007-schedule-launchd-cron.md)). plist 경로 하드코딩 |
 | T-3 | 배포 목표 = Windows / macOS / Linux 3-OS | Electron 단일 코드베이스. 네이티브 모듈(`better-sqlite3`)은 OS별 빌드 확인 필요 ([RISKS.md](RISKS.md) R-4) |
 | T-4 | **CI: Node 22 · Python 3.12** 고정. 로컬은 상위 버전 허용 (현재 Node 26 / Python 3.14) | CI가 재현성 기준. 로컬-CI 버전차로 인한 이슈는 CI에서 잡는다 (NFR-PORT-02) |
