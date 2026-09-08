@@ -84,5 +84,23 @@ export function createDataset() {
     created_at: iso(at(0, 7, 30)),
   };
 
-  return { projects, tasks, calendar_events, brief, _seq: 100 };
+  // 다이어그램 — 데모에서 빈 화면을 피하기 위한 mermaid 샘플 1건 (ADR-0026).
+  const diagrams = [
+    {
+      doc: 'ARCHITECTURE.md',
+      path: 'docs/product/architecture/ARCHITECTURE.md',
+      index: 0,
+      title: '앱 셸 구조',
+      code: [
+        'flowchart TD',
+        '  App[App.jsx] --> Shell[AppShell]',
+        '  Shell --> Sidebar',
+        '  Shell --> TopicView',
+        '  TopicView --> WidgetShell',
+        '  WidgetShell --> Grid[위젯 그리드]',
+      ].join('\n'),
+    },
+  ];
+
+  return { projects, tasks, calendar_events, brief, diagrams, _seq: 100 };
 }

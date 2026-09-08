@@ -6,7 +6,7 @@ import { WIDGET_TYPES } from '../widgets/registry.js';
 
 const PANEL_STYLE = {
   position: 'absolute',
-  top: '44px',
+  top: '8px',
   left: '12px',
   zIndex: 1000,
   background: 'var(--panel)',
@@ -14,7 +14,7 @@ const PANEL_STYLE = {
   borderRadius: '8px',
   padding: '8px',
   width: '300px',
-  boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+  boxShadow: 'var(--shadow-card)',
 };
 
 export default function WidgetPicker({ activeTypes, onAdd, onClose }) {
@@ -32,7 +32,7 @@ export default function WidgetPicker({ activeTypes, onAdd, onClose }) {
         </button>
       </div>
 
-      {WIDGET_TYPES.map((meta) => {
+      {WIDGET_TYPES.filter((m) => !m.hidden).map((meta) => {
         const added = active.has(meta.type);
         return (
           <button

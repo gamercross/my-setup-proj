@@ -147,7 +147,7 @@ export async function demoRequest(method, path, body) {
   if (p === '/calendar/events' && method === 'GET') return listEvents(q);
   if (p === '/mail/unread' && method === 'GET') return { emails: [] };
   if (p === '/brief/today' && method === 'GET') return { brief: store.brief };
-  if (p === '/diagrams' && method === 'GET') return { diagrams: [] };
+  if (p === '/diagrams' && method === 'GET') return { diagrams: store.diagrams ?? [] };
   if (p === '/sync/logs' && method === 'GET') return { logs: [] };
 
   throw err(404, '요청을 처리하지 못했습니다.');

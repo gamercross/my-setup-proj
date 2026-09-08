@@ -13,23 +13,31 @@
 
 ```mermaid
 flowchart TB
-  APP["App.jsx"] --> ERRB["ErrorBoundary (셸 전역)"]
-  ERRB --> SHELL["WidgetShell.jsx<br/>편집모드 토글 · 위젯 피커 · useLayoutStore"]
+  APP["App.jsx"] --> ERRB["ErrorBoundary (전역)"]
+  ERRB --> ASHELL["AppShell.jsx<br/>health 폴링 · 좌 Sidebar + 우 TopicView"]
+  ASHELL --> SB["Sidebar.jsx<br/>4그룹 11항목 · useUiStore.setActiveTopic"]
+  ASHELL --> TV["TopicView.jsx<br/>페이지 헤더(편집·+위젯·초기화·health)"]
+  TV --> SHELL["WidgetShell.jsx topicId 별<br/>위젯 피커 · useLayoutStore.setTopic"]
   SHELL --> HOST["WidgetHost.jsx<br/>react-grid-layout · onLayoutChange"]
   HOST --> WF["WidgetFrame ×N<br/>타이틀바(⚙️ ─ ✕) · 위젯별 ErrorBoundary · 테마 CSS 변수 주입"]
-  WF --> VIEW["레지스트리 뷰<br/>TaskList/Form · ProjectCard/Form · CalendarWidget · BriefCard · DiagramPanel"]
+  WF --> VIEW["레지스트리 뷰<br/>TaskList/Form · ProjectCard/Form · CalendarWidget · BriefCard · DiagramPanel · PlaceholderWidgetView"]
   WF -. ⚙️ .-> SET["WidgetSettings.jsx<br/>테마 탭 + 표시 탭"]
 
   subgraph STORES["zustand"]
-    LS["useLayoutStore<br/>(레이아웃·config — UI 상태)"]
+    UI["useUiStore<br/>(activeTopic 영속 · pickerOpen 세션)"]
+    LS["useLayoutStore<br/>(현재 주제 instances·config — UI 상태)"]
     TS["useTaskStore · useProjectStore · useCalendarStore<br/>(server 상태)"]
   end
+  SB <--> UI
   SHELL <--> LS
   VIEW <--> TS
-  LS -. 디바운스 저장/복원 .-> P[("localStorage 'dashboard.layout.v1'<br/>→ /api/widgets (단계 2)")]
+  LS -. 디바운스 저장/복원 .-> P[("localStorage 'dashboard.layout.v2'<br/>{ version:2, topics:{ [topicId]: Instance[] } }")]
+  UI -. 저장/복원 .-> PUI[("localStorage 'dashboard.ui.v1'")]
   TS -->|"api/client.js"| BE["Express :3000/api"]
   REG["widgets/registry.js"] --> HOST
 ```
+
+> 🆕 **P4.5 사이드바 셸** (2026-09-08, [ADR-0032](../architecture/adr/ADR-0032-sidebar-shell-per-topic-layouts.md)): `App.jsx` 가 `ErrorBoundary > AppShell` 을 렌더. `AppShell` 이 좌측 고정 `Sidebar`(4그룹 11항목) + 우측 `TopicView`(페이지 헤더 + 주제별 `WidgetShell`) 를 배치한다. 주제 전환 = 본문 그리드 교체(라우팅·새로고침 없음). 레이아웃은 **주제별로** `dashboard.layout.v2` 에 저장. 기존 v1 은 최초 로드 시 `overview` 주제로 1회 마이그레이션 후 v1 키 삭제.
 
 **모든 위젯의 4상태** (FR-UI-01·04 → FR-WIDGET-07): 각 위젯은 독립적으로 렌더하며 한 위젯 실패가 셸·다른 위젯을 막지 않는다.
 
@@ -53,14 +61,14 @@ stateDiagram-v2
 
 | 항목 | 값 (전환 후) |
 |---|---|
-| 화면 수 | **1개 (위젯 셸 데스크톱).** 라우팅 없음 |
-| 화면 구성 | `WidgetShell` 위에 위젯 인스턴스 N개 (그리드 배치, 이동·리사이즈·최소화) |
+| 화면 수 | **1개 (사이드바 셸 데스크톱).** 라우팅 없음 — 사이드바 주제 전환 = 본문 그리드 교체 |
+| 화면 구성 | 좌측 고정 `Sidebar`(4그룹 11항목) + `TopicView`(페이지 헤더 + 주제별 `WidgetShell` 위에 위젯 인스턴스 N개, 그리드 배치·이동·리사이즈·최소화) |
 | 창 크기 | 기본 800×600, 최소 800×600 (`main.js`) — 셸은 반응형 그리드(lg/md/sm) |
 | 렌더 방식 | ✅ React + Vite (FR-UI-02 / B1). `renderer.jsx` → `createRoot(#root).render(<App/>)` |
 | 마운트 지점 | `index.html` 의 `<div id="root">` |
 | 브리지 | `preload.js` → `window.appInfo` (아래 §5) |
 | 위젯 배치 엔진 | `react-grid-layout` ([ADR-0020](../architecture/adr/ADR-0020-widget-shell-architecture.md)) |
-| 레이아웃 영속 | localStorage → SQLite ([ADR-0021](../architecture/adr/ADR-0021-widget-layout-persistence.md)) |
+| 레이아웃 영속 | localStorage 주제별 `dashboard.layout.v2` ([ADR-0021](../architecture/adr/ADR-0021-widget-layout-persistence.md) · [ADR-0032](../architecture/adr/ADR-0032-sidebar-shell-per-topic-layouts.md)) |
 
 > 🎨 **시각 방향:** 화면 골격·컴포넌트 패턴·톤의 목표 틀은 [UI_STYLE.md](UI_STYLE.md) (노션 위젯 라이트 스타일 참조 — [PERSONAL_OS.md](../vision/PERSONAL_OS.md) §4). 이 문서는 계약, `UI_STYLE.md` 는 방향.
 
@@ -133,6 +141,36 @@ stateDiagram-v2
 - **기본 레이아웃 (첫 실행):** 할일·오늘 브리핑·프로젝트·캘린더 4개. 다이어그램은 피커로만 추가.
 - 레지스트리 등록 위젯(D3): tasks/projects/calendar/diagrams/brief. 메타는 `widgets/widgetMeta.js`(순수), view 배선은 `widgets/registry.js`.
 - 기존 사용자는 레이아웃 마이그레이션이 없으므로(SCHEMA_VERSION 불변) brief 위젯이 자동으로 나타나지 않는다 — 피커로 추가하거나 "초기화" 한다.
+
+### 2.3 현재 (사이드바 셸 — P4.5, 2026-09-08, ADR-0032)
+
+```
+┌───────────────┬──────────────────────────────────────────────────┐
+│ ▣ AI Computer  │  ▤ 할 일        데모 · ● 연결됨  [✎ 편집][+ 위젯][초기화] │ ← 페이지 헤더
+│   OS           │     우선순위와 마감                                 │
+│ [ 검색   ⌘K ]  ├──────────────────────────────────────────────────┤
+│               │  ┌── 🗒️ 할 일 ──── ⚙ ─ ✕┐                          │
+│ COMMAND       │  │ ☐ 회의 자료 준비  [high] │                        │
+│  ▤ 개요        │  │ [+ 할일 추가]           │                        │
+│  ▤ 할 일  ◀활성 │  └────────────────────┘◢                        │
+│  ▤ 브리핑       │                                                  │
+│  ▤ 프로젝트     │       (주제 항목 클릭 → 본문 그리드가 그 주제로 교체)     │
+│  ▤ 일정        │                                                  │
+│ PLAN          │                                                  │
+│  ▤ OKR         │                                                  │
+│  ▤ 주간 플래너  │                                                  │
+│ AGENT         │                                                  │
+│  ▤ 활동 / 진행 현황 / 다이어그램                                       │
+│ SYSTEM        │                                                  │
+│  ▤ 설정        │                                                  │
+│ ───────────   │                                                  │
+│ (로) 로컬 사용자 │                                                  │
+└───────────────┴──────────────────────────────────────────────────┘
+```
+
+- **사이드바(§3.11):** 브랜드 블록 + 검색(자리표시) + 4그룹 11항목 네비 + 하단 사용자 블록. 항목 클릭 → `useUiStore.setActiveTopic` → 본문만 교체.
+- **페이지 헤더(§3.12):** 주제 아이콘·제목·부제(좌) / 데모·버전 · health(`● {message}`) · `✎ 편집` · `+ 위젯` · `초기화`(우). 셸 바는 폐지되고 여기로 통합.
+- **주제별 레이아웃:** 각 주제가 자기 위젯 세트를 가진다. 주제 A 편집이 B 에 영향 없음. 전용 위젯이 없는 주제(OKR·주간·활동·진행·설정)는 "준비 중" 플레이스홀더 1개.
 
 ---
 
@@ -244,7 +282,10 @@ stateDiagram-v2
 | 폴백 | 개별 블록 렌더 실패 시 그 항목만 "⚠️ 이 다이어그램을 그릴 수 없습니다" + 원문 코드 (`<pre>`); 미완료는 "그리는 중…" |
 | 범위 밖 | 줌·패닝·복사 (후속) |
 
-### 3.8 위젯 셸 (`WidgetShell`) ✅ C5 (2026-09-06, FR-WIDGET-01~04·07·08)
+### 3.8 위젯 셸 (`WidgetShell`) ✅ C5 (2026-09-06) · P4.5 개편 (2026-09-08)
+
+> 🆕 **P4.5:** 셸 바(브랜드·편집·+위젯·초기화)는 §3.12 페이지 헤더로 이동. `WidgetShell` 은 `topicId` prop 을 받아 그 주제의 그리드만 렌더한다. 피커 열림은 `useUiStore.pickerOpen`. 영속 키 `dashboard.layout.v2`(주제별). 아래 표의 "셸 바"·"v1" 서술은 P4.5 이전 기준.
+
 
 | 항목 | 내용 |
 |---|---|
@@ -280,19 +321,45 @@ stateDiagram-v2
 | 저장 | 변경 즉시 해당 위젯에만 반영 → `onChange(patch)` → `useLayoutStore.updateConfig(id, patch)` → 디바운스 영속화. 테마 부분 수정은 `WidgetSettings` 가 `instance.config.theme` 와 병합한 완성 객체를 patch 로 보낸다(`updateConfig` 는 1단 얕은 병합) |
 | 검증 | 자유 텍스트/CSS 입력 없음(AC-6). 색은 `themeToVars` 의 `isSafeColor` 게이트, 나머지는 enum/범위 (`resolveDisplay`) (NFR-SEC-04). 스타일은 인라인 + 전역 var 만(`--w-*` 안 씀) |
 
+### 3.11 사이드바 (`Sidebar`) ✅ P4.5 (2026-09-08, ADR-0032, FR-UI-01)
+
+| 항목 | 내용 |
+|---|---|
+| 목적 | 주제(화면) 탐색 — 왼쪽 고정, `position:sticky; top:0; height:100vh`. 폭 `--sidebar-w`(240px) |
+| 요소 | ① 브랜드 블록(라운드 로고 박스 + "AI Computer OS" + "개인 생산성 OS") ② 검색 인풋(`readOnly`, placeholder "검색", 우측 `⌘K` 힌트 칩, `title="후속 지원 예정"` — 동작 없음) ③ 그룹 네비(COMMAND/PLAN/AGENT/SYSTEM 대문자 11px `letter-spacing:.06em` `--muted`) ④ 하단 사용자 블록(원형 이니셜 아바타 + "로컬 사용자" + 데모/버전 캡션) |
+| 항목 | `<button>` (a 태그·라우팅 금지). `<TopicIcon name={t.icon}/>` + 라벨. 클릭 → `useUiStore.setActiveTopic(id)`. 활성: `aria-current="page"` + `--nav-active-bg` 알약 + 좌측 3px `--accent` 바(inset box-shadow). 강한 색 채움 금지 |
+| 데이터 출처 | `widgets/topics.js`(`TOPIC_GROUPS`·`TOPICS`·`getTopicsByGroup`) + `useUiStore.activeTopic` |
+| 스크롤 | 네비 영역만 `overflow-y:auto`. 브랜드·검색·사용자 블록은 고정 |
+| 주제 목록 | overview(개요)·tasks(할 일)·brief(브리핑)·projects(프로젝트)·calendar(일정) [COMMAND] / okr(OKR)·weekly(주간 플래너) [PLAN] / activity(활동)·progress(진행 현황)·diagrams(다이어그램) [AGENT] / settings(설정) [SYSTEM] |
+
+### 3.12 페이지 헤더 (`TopicView` 헤더) ✅ P4.5 (2026-09-08, ADR-0032)
+
+| 항목 | 내용 |
+|---|---|
+| 목적 | 현재 주제 식별 + 레이아웃 편집 액션 + 백엔드 연결 상태 (기존 셸 바 대체) |
+| 좌측 | `<TopicIcon>` + `<h1>`(18px) 주제 label + 그 아래 subtitle(`--muted` 12px) |
+| 우측 | 데모 배지 또는 버전 캡션 · `● {health.message}`(색 = ok→`--ok` / error→`--bad` / loading→`--muted`) · `✎ 편집` 토글(`useLayoutStore.toggleEditMode`) · `+ 위젯`(`useUiStore.togglePicker`) · `초기화`(`window.confirm` 후 `useLayoutStore.resetLayout` — 현재 주제 기본값) |
+| health | `AppShell` 이 `/health` 를 1회 폴링해 `TopicView` 에 내려줌 (기존 `App.jsx` 로직 이동 — FR-UI-02 AC-5 회귀 방지) |
+| 본문 | `<WidgetShell topicId={topic.id}/>`, 헤더-그리드 사이 `--section-gap`(16px) |
+
 ---
 
 ## 4. 컴포넌트 계약
 
 | 컴포넌트 | props | 내부 state | 방출 이벤트 | 상태 |
 |---|---|---|---|:---:|
-| `App` | — | `health` (loading/ok/error) | — | ✅ 본문 `<ErrorBoundary><WidgetShell/></ErrorBoundary>` (C5) |
+| `App` | — | — | — | ✅ `<ErrorBoundary><AppShell/></ErrorBoundary>` (P4.5 — health 로직은 `AppShell` 로 이동) |
+| `AppShell` | — | `health` (loading/ok/error) · `useUiStore.activeTopic` 구독 | — | ✅ P4.5 (좌 `Sidebar` + 우 `TopicView`, `/health` 폴링 소유, `getTopic(activeTopic) ?? getTopic(DEFAULT_TOPIC_ID)`) |
+| `Sidebar` | `demo`, `version` | `useUiStore`(activeTopic, setActiveTopic) 구독 | (스토어 액션 직접 호출) | ✅ P4.5 (4그룹 11항목 `<button>` 네비) |
+| `TopicView` | `topic`, `demo`, `info`, `health`, `statusColor` | `useLayoutStore`(editMode)·`useUiStore` 구독 | (스토어 액션 직접 호출) | ✅ P4.5 (페이지 헤더 + `<WidgetShell topicId>`) |
+| `TopicIcon` | `name`, `size?` (기본 16) | — | — | ✅ P4.5 (`components/TopicIcons.jsx` 인라인 SVG, 미등록 키 폴백) |
 | ~~`Dashboard`~~ | — | — | — | ❌ C5 에서 삭제 — 섹션 로직은 `widgets/views/*WidgetView.jsx` 로 이관 |
-| `WidgetShell` | — | `useLayoutStore`(instances, editMode) 구독 · `hydrated`·`pickerOpen` 로컬 state | (스토어 액션 직접 호출) | ✅ C5 (FR-WIDGET-01~04) |
+| `WidgetShell` | `topicId` | `useLayoutStore`(instances, editMode, topicId) 구독 · `useUiStore.pickerOpen` · `hydrated` 로컬 state | (스토어 액션 직접 호출) | ✅ C5 · P4.5 (`topicId` 변화 시 `setTopic` + 하이드레이션, 셸 바 제거) |
 | `WidgetHost` | `instances`, `editMode`, `onLayoutChange(layout)` | — | `onLayoutChange` | ✅ C5 (`react-grid-layout/legacy` `WidthProvider(Responsive)` 모듈 스코프) |
 | `WidgetFrame` | `instance` | — (스토어 액션 구독: bringToFront/toggleMinimize/removeWidget/focusedId) | — | ✅ C5~C6 (C6: `updateConfig`/`editMode` 구독, `WidgetSettings` 오픈, titlebar 인라인 · per-widget `ErrorBoundary fallback` + `themeToVars` 호출 지점) |
 | `WidgetPicker` | `activeTypes`, `onAdd(type)`, `onClose()` | — | `onAdd`, `onClose` | ✅ C5 (이미 추가된 타입 비활성) |
 | `*WidgetView` (tasks/projects/calendar/diagrams/brief) | `instanceId`, `config`, `configSchema` | 도메인 스토어 필드별 구독 + `useEffect(fetch)` | — | ✅ C5 · C6 · D3(brief) (`config.display` 클라이언트 필터, `configSchema` prop) |
+| `PlaceholderWidgetView` | — | `useUiStore.activeTopic` 구독 | — | ✅ P4.5 ("준비 중" 안내 — 전용 위젯 없는 주제 기본 인스턴스, fetch 없음·항상 ready) |
 | `WidgetSettings` | `instance`, `configSchema`, `onChange(patch)`, `onClose()` | `tab` (theme/display) | `onChange`, `onClose` | ✅ C6 (portal 중앙 모달, 테마 탭 + 표시 탭, 화이트리스트 입력만) |
 | `TaskList` | `tasks: Task[]`, `onToggle(id)`, `onDelete(id)` | — | `onToggle`, `onDelete` | ✅ |
 | `TaskForm` | `onSubmit(payload)`, `disabled` | `title, priority, dueDate` | `onSubmit` | ✅ B3 |
@@ -374,25 +441,43 @@ stateDiagram-v2
 
 > 방향: `useAppStore` 단일 스토어 대신 도메인별 스토어(`useTaskStore`/`useProjectStore`/`useCalendarStore`/…)로 분리한다. 브리핑용 스토어는 D3 에서 별도 신설.
 
-### `useLayoutStore` ✅ C5 (`frontend/src/store/useLayoutStore.js`) — 위젯 셸 UI 상태
+### `useLayoutStore` ✅ C5 · P4.5 (`frontend/src/store/useLayoutStore.js`) — 위젯 셸 UI 상태
 ```
-상태:   instances: WidgetInstance[]   // { id, type, x,y,w,h, z, minimized, prevH?, config }
-        editMode: boolean            // 세션 전용(영속 X)
+상태:   instances: WidgetInstance[]   // 항상 "현재 주제" 배열. { id, type, x,y,w,h, z, minimized, prevH?, config }
+        editMode: boolean            // 전역 세션 상태(영속 X, 주제 전환 시 유지)
         focusedId: string | null     // 세션 전용(영속 X)
-액션:   setInstances(list)                 // 부팅 시 하이드레이션
-        addWidget(type)                    // 레지스트리 defaultSize, 최하단 배치, z=max+1, 중복 타입 무시
+        topicId: string | null       // 현재 주제 id (P4.5)
+액션:   setTopic(topicId)                  // (P4.5) 주제 전환: 이전 주제 pending 저장 즉시 flush →
+                                          //   loadTopicLayout(topicId) ?? defaultInstancesFor(topicId) 로 교체 →
+                                          //   저장값 없어 기본값 쓴 경우만 persist. focusedId=null
+        addWidget(type)                    // 레지스트리 defaultSize, 최하단 배치, z=max+1, 현재 주제 내 중복 타입 무시(DO-2 주제 스코프)
         removeWidget(id)
         toggleMinimize(id)                // 최소화 시 prevH 보관·h=1, 복원 시 prevH
         setLayout(rglLayout)              // RGL onLayoutChange → {i,x,y,w,h} 병합(최소화 항목 h 무시)
         bringToFront(id)                  // z=max+1, focusedId=id
-        updateConfig(id, patch)          // config 1단 얕은 병합 ({...config, ...patch}). C6: WidgetSettings 가 호출. 테마/표시 하위 객체는 호출측에서 병합해 완성본을 patch 로 넘김
-        toggleEditMode() / resetLayout()
-영속:   instances 변경 → 300ms 디바운스(모듈 스코프 timer) → localStorage['dashboard.layout.v1']
-        = { version:1, instances }. editMode/focusedId 는 저장 안 함
-        부팅: 없음/파싱실패/version 불일치/sanitize 실패 → widgets/defaultLayout.js 폴백 + console.warn
+        updateConfig(id, patch)          // config 1단 얕은 병합. C6: WidgetSettings 가 호출
+        toggleEditMode() / resetLayout()  // resetLayout → 현재 주제(topicId) 기본값
+영속:   instances 변경 → 300ms 디바운스(모듈 스코프 timer, 예약 시점 topicId 캡처)
+        → localStorage['dashboard.layout.v2'] = { version:2, topics:{ [topicId]: Instance[] } }
+        editMode/focusedId 는 저장 안 함
+        부팅: v2 없음/손상 → v1(dashboard.layout.v1) 을 overview 주제로 1회 마이그레이션(성공 시 v1 키 삭제) →
+              그래도 없으면 widgets/defaultLayout.js 의 DEFAULT_LAYOUTS[topicId] 폴백 + console.warn
+        미등록 topicId 키는 파기하지 않고 보존한다(FR-WIDGET-08 정신)
 ```
-> **UI 상태 전용.** 위젯이 보여주는 데이터(tasks 등)는 절대 여기 두지 않는다 — 도메인 스토어 담당 ([ADR-0021](../architecture/adr/ADR-0021-widget-layout-persistence.md)).
+> **UI 상태 전용.** 위젯이 보여주는 데이터(tasks 등)는 절대 여기 두지 않는다 — 도메인 스토어 담당 ([ADR-0021](../architecture/adr/ADR-0021-widget-layout-persistence.md) · [ADR-0032](../architecture/adr/ADR-0032-sidebar-shell-per-topic-layouts.md)).
 > `useLayoutStore` 는 네트워크를 타지 않는다(`api/client.js` 무관) — `localStorage` 만 접근한다.
+> 공개 셀렉터(`s.instances`·`s.editMode`·`s.focusedId`)·액션 시그니처는 P4.5 에서도 불변 — `WidgetFrame`·위젯 뷰 무수정.
+
+### `useUiStore` ✅ P4.5 (`frontend/src/store/useUiStore.js`) — 셸 UI 상태
+```
+상태:   activeTopic: string   // 현재 사이드바 주제. localStorage 'dashboard.ui.v1' = { version:1, activeTopic } 로 영속
+        pickerOpen: boolean   // 위젯 피커 열림. 세션 전용(영속 X)
+액션:   setActiveTopic(id)    // isValidTopicId 검사 통과 시에만 set + 영속(try/catch, 실패 warn)
+        togglePicker(v?) / setPickerOpen(v)
+초기값: 모듈 로드 시 readActiveTopic() — 저장값 유효하면 복원, 없음/손상/미등록이면 DEFAULT_TOPIC_ID('overview').
+        window 부재(node --test) 방어
+```
+> 라우터를 쓰지 않는다. 주제 전환 = 본문 그리드 교체(URL·새로고침 없음).
 
 ---
 

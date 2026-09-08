@@ -173,7 +173,7 @@ flowchart TB
 | # | 질문 | 결정 (C5, 2026-09-06) |
 |---|---|---|
 | DO-1 | 배치 방식 | **그리드 스냅** — `react-grid-layout` 2.2.4 (`/legacy` 진입점, `WidthProvider`) |
-| DO-2 | 같은 타입 다중 인스턴스? | **타입당 1개** — 인스턴스 id = 타입 id. 피커에서 이미 추가된 타입 비활성 |
+| DO-2 | 같은 타입 다중 인스턴스? | **타입당 1개** — 인스턴스 id = 타입 id. 피커에서 이미 추가된 타입 비활성. P4.5([ADR-0032](../architecture/adr/ADR-0032-sidebar-shell-per-topic-layouts.md))부터 **주제 그리드 단위**로 적용(주제가 다르면 같은 타입을 각각 1개씩 가질 수 있음) |
 | DO-3 | 레이아웃 저장 위치 1차 | **`localStorage`** `dashboard.layout.v1` (SCHEMA_VERSION 1), 300ms 디바운스 |
 | DO-4 | config 검증 위치 | **프론트만** — `layoutStorage.sanitizeInstances` + (C6) `themeToVars` 화이트리스트 |
 | DO-5 | 항상 드래그 가능? | **편집 토글 필요** — 평소 잠금, 셸 바의 "✎ 편집" 으로만 이동/리사이즈 |

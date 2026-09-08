@@ -10,6 +10,7 @@ import ProjectsWidgetView from './views/ProjectsWidgetView.jsx';
 import CalendarWidgetView from './views/CalendarWidgetView.jsx';
 import DiagramsWidgetView from './views/DiagramsWidgetView.jsx';
 import BriefWidgetView from './views/BriefWidgetView.jsx';
+import PlaceholderWidgetView from './views/PlaceholderWidgetView.jsx';
 
 // 타입 → view 컴포넌트 매핑.
 const VIEWS = {
@@ -18,6 +19,7 @@ const VIEWS = {
   calendar: CalendarWidgetView,
   diagrams: DiagramsWidgetView,
   brief: BriefWidgetView,
+  placeholder: PlaceholderWidgetView,
 };
 
 // 메타 + view 를 합쳐 최종 레지스트리를 만든다.
