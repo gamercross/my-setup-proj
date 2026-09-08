@@ -12,9 +12,10 @@ test('TC-DEMO-01: GET /health 는 { status: "ok", demo: true }', async () => {
   assert.deepEqual(await demoRequest('GET', '/health'), { status: 'ok', demo: true });
 });
 
-test('TC-DEMO-02: GET /tasks 는 샘플 8건, /brief/today 는 오늘 브리핑', async () => {
+test('TC-DEMO-02: GET /tasks 는 샘플 10건, /brief/today 는 오늘 브리핑', async () => {
   const { tasks } = await demoRequest('GET', '/tasks');
-  assert.equal(tasks.length, 8);
+  // 8건 + 주간 플래너 시연용 지난주 마감 2건 (P8).
+  assert.equal(tasks.length, 10);
   const { brief } = await demoRequest('GET', '/brief/today');
   assert.ok(brief && brief.content.includes('오늘의 우선순위'));
 });
@@ -55,10 +56,11 @@ test('TC-DEMO-07: 매핑 없는 경로는 404', async () => {
   await assert.rejects(() => demoRequest('GET', '/unknown'), (e) => e.status === 404);
 });
 
-test('TC-DEMO-08: 데모 태그 — 8건 중 5건 태그, 3건 빈 배열', async () => {
+test('TC-DEMO-08: 데모 태그 — 10건 중 5건 태그, 5건 빈 배열', async () => {
   const { tasks } = await demoRequest('GET', '/tasks');
   assert.equal(tasks.filter((t) => (t.tags || []).length > 0).length, 5);
-  assert.equal(tasks.filter((t) => (t.tags || []).length === 0).length, 3);
+  // 기존 3건 + P8 지난주 마감 2건 (둘 다 태그 없음).
+  assert.equal(tasks.filter((t) => (t.tags || []).length === 0).length, 5);
 });
 
 test('TC-DEMO-09: POST/DELETE /tasks/:id/tags — 태그 분기가 PUT 보다 먼저 매칭', async () => {
@@ -91,6 +93,64 @@ test('TC-P7-05: GET /agent/activity 는 logs·health·nextRun·runNow·checkedAt
   // /sync/logs 목도 store.sync_logs 를 반환한다
   const logs = await demoRequest('GET', '/sync/logs');
   assert.ok(logs.logs.length > 0);
+});
+
+test('TC-P8-DEMO-01: GET /okr 는 objectives + summary(백엔드와 동일 공식)', async () => {
+  const res = await demoRequest('GET', '/okr');
+  assert.equal(res.objectives.length, 2);
+  assert.equal(res.summary.objectiveCount, 2);
+  assert.equal(res.summary.keyResultCount, 4);
+  const b = res.summary.bucket;
+  assert.equal(b.high + b.mid + b.low, 4);
+  // 모든 pct 는 0~1
+  for (const o of res.objectives) {
+    assert.ok(o.pct >= 0 && o.pct <= 1);
+    for (const kr of o.keyResults) assert.ok(kr.pct >= 0 && kr.pct <= 1);
+  }
+});
+
+test('TC-P8-DEMO-02: GET /okr/trend 는 월 오름차순 points', async () => {
+  const { points } = await demoRequest('GET', '/okr/trend');
+  assert.ok(points.length > 0 && points.length <= 12);
+  const months = points.map((p) => p.month);
+  assert.deepEqual(months, [...months].sort());
+});
+
+test('TC-P8-DEMO-03: objective CRUD — 검증 400 / 404 / CASCADE', async () => {
+  await assert.rejects(() => demoRequest('POST', '/okr/objectives', { title: ' ', period: '2026' }), (e) => e.status === 400);
+  await assert.rejects(() => demoRequest('POST', '/okr/objectives', { title: 'x', period: 'bad' }), (e) => e.status === 400);
+  await assert.rejects(() => demoRequest('POST', '/okr/objectives', { title: 'x', period: '2026', status: 'paused' }), (e) => e.status === 400);
+
+  const { objective } = await demoRequest('POST', '/okr/objectives', { title: '새 목표', period: '2026-Q4' });
+  const { keyResult } = await demoRequest('POST', '/okr/key-results', { objective_id: objective.id, title: 'kr', target: 4, current: 2 });
+  assert.equal(keyResult.current, 2);
+
+  await demoRequest('DELETE', `/okr/objectives/${objective.id}`);
+  await assert.rejects(() => demoRequest('PUT', `/okr/objectives/${objective.id}`, { title: 'z' }), (e) => e.status === 404);
+  // 하위 KR 도 사라진다 (CASCADE)
+  const dash = await demoRequest('GET', '/okr');
+  assert.ok(!dash.objectives.some((o) => o.id === objective.id));
+});
+
+test('TC-P8-DEMO-04: key-result 검증 — objective 미존재 400, target 음수 400', async () => {
+  await assert.rejects(
+    () => demoRequest('POST', '/okr/key-results', { objective_id: 99999, title: 'x', target: 1 }),
+    (e) => e.status === 400 && /목표\(objective\)/.test(e.message)
+  );
+  await assert.rejects(
+    () => demoRequest('POST', '/okr/key-results', { objective_id: 1, title: 'x', target: -1 }),
+    (e) => e.status === 400
+  );
+});
+
+test('TC-P8-DEMO-05: GET /planner/weekly 는 3버킷 계약', async () => {
+  const w = await demoRequest('GET', '/planner/weekly');
+  assert.deepEqual(Object.keys(w).sort(), ['lastWeek', 'nextWeek', 'thisWeek']);
+  assert.ok('done' in w.lastWeek && 'total' in w.lastWeek);
+  assert.ok(Array.isArray(w.thisWeek.items) && Array.isArray(w.nextWeek.items));
+  // 지난주 마감 2건(1건 done) 시드 반영
+  assert.equal(w.lastWeek.total, 2);
+  assert.equal(w.lastWeek.done, 1);
 });
 
 test('TC-P7-06: POST /agent/run-now 는 즉시 성공 + 이력 1건 추가', async () => {

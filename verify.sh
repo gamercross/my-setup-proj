@@ -84,6 +84,10 @@ syntax_check "backend supabase.js 문법"           node node -c backend/src/sup
 syntax_check "backend routes/sync.js 문법"        node node -c backend/src/routes/sync.js
 syntax_check "backend routes/agent.js 문법"       node node -c backend/src/routes/agent.js
 syntax_check "backend services/agent.js 문법"     node node -c backend/src/services/agent.js
+syntax_check "backend routes/okr.js 문법"         node node -c backend/src/routes/okr.js
+syntax_check "backend services/okr.js 문법"       node node -c backend/src/services/okr.js
+syntax_check "backend routes/planner.js 문법"     node node -c backend/src/routes/planner.js
+syntax_check "backend services/planner.js 문법"   node node -c backend/src/services/planner.js
 syntax_check "backend middleware/cors.js 문법"          node node -c backend/src/middleware/cors.js
 syntax_check "backend middleware/requestLogger.js 문법" node node -c backend/src/middleware/requestLogger.js
 syntax_check "backend middleware/errorHandler.js 문법"  node node -c backend/src/middleware/errorHandler.js

@@ -509,6 +509,88 @@ FR-UI-05 · [ADR-0014](../architecture/adr/ADR-0014-dashboard-diagram-viewer.md)
 
 ---
 
+## OKR (okr) ✅ 구현 — P8 (2026-09-08)
+
+FR-OKR-01~04 · [ADR-0030](../architecture/adr/ADR-0030-okr-data-model.md) · 서비스 `backend/src/services/okr.js`
+
+달성률 공식: `krPct = target > 0 ? clamp(current/target, 0, 1) : 0`,
+`objectivePct = 하위 KR pct 산술 평균`. 소수 셋째 자리 반올림. 버킷: `pct ≥ 0.9 high` · `≥ 0.4 mid` · 그 외 `low`.
+
+### `GET /api/okr` — 대시보드 ✅
+
+| 쿼리 | 설명 |
+|---|---|
+| `includeArchived` | `1`·`true` 면 `status='archived'` 목표 포함 (기본 제외) |
+
+**응답 200**
+```json
+{
+  "objectives": [ { "id": 1, "title": "...", "period": "2026-Q1", "status": "active", "pct": 0.62,
+                    "keyResults": [ { "id": 3, "title": "...", "target": 100, "current": 62,
+                                     "unit": "건", "pct": 0.62, "project_id": null } ] } ],
+  "summary": { "krAvgPct": 0.62, "objectiveCount": 2, "keyResultCount": 4,
+               "bucket": { "high": 1, "mid": 2, "low": 1 } }
+}
+```
+
+### `GET /api/okr/trend` — 월별 KR 평균 달성률 추이 ✅
+
+진입 시 이번 달 스냅샷을 UPSERT 한다 (적재 주체 = 백엔드, 프로세스당 하루 1회 가드). 스냅샷 실패는 200 을 막지 않는다.
+
+**응답 200** — `{ "points": [ { "month": "2026-07", "krAvgPct": 0.41 }, ... ] }` (month 오름차순)
+
+### `POST /api/okr/objectives` ✅ · `PUT /api/okr/objectives/:id` ✅ · `DELETE /api/okr/objectives/:id` ✅
+
+| 필드 | 규칙 |
+|---|---|
+| `title` | 필수, 1~120자 |
+| `period` | 필수, `YYYY` 또는 `YYYY-Q1`~`YYYY-Q4` |
+| `status` | 선택, `active`·`done`·`archived` |
+
+- POST → `201 { "objective": {...} }`. PUT 은 부분 수정 → `200 { "objective": {...} }`. DELETE → `200 { "ok": true }` (하위 KR·스냅샷 CASCADE).
+- 없는 id 수정/삭제 → 404. 검증 실패 → 400.
+
+### `POST /api/okr/key-results` ✅ · `PUT /api/okr/key-results/:id` ✅ · `DELETE /api/okr/key-results/:id` ✅
+
+| 필드 | 규칙 |
+|---|---|
+| `objective_id` | 생성 시 필수. 없는 목표면 **400** (404 아님) |
+| `title` | 필수, 1~120자 |
+| `target` | 0 이상의 숫자 (생성 시 필수) |
+| `current` | 숫자 (기본 0) |
+| `unit` | 선택, 트림 후 `''`→null, 12자 이하 |
+| `project_id` | 선택, 느슨 FK (없는 프로젝트면 400) |
+
+- POST → `201 { "keyResult": {...} }`. PUT 부분 수정 → `200 { "keyResult": {...} }`. DELETE → `200 { "ok": true }` (하위 스냅샷 CASCADE).
+
+---
+
+## 주간 플래너 (planner) ✅ 구현 — P8 (2026-09-08)
+
+FR-OKR-05 · 서비스 `backend/src/services/planner.js` · 읽기 전용 SQL 집계 (Claude 호출 없음)
+
+### `GET /api/planner/weekly` — 주간 요약 ✅
+
+`tasks.due_date` 를 ISO 주(월요일 시작, 서버 로컬 시간대)로 버킷팅한다. `due_date` 없는 할 일은 제외.
+
+| 쿼리 | 설명 |
+|---|---|
+| `limit` | `thisWeek`·`nextWeek` items 최대 수 (기본 50) |
+
+**응답 200**
+```json
+{
+  "lastWeek": { "done": 5, "total": 8 },
+  "thisWeek": { "done": 2, "total": 6,
+                "items": [ { "id": 1, "title": "...", "due_date": "2026-09-09",
+                             "priority": "high", "status": "todo", "tags": [] } ] },
+  "nextWeek": { "total": 3, "items": [ ... ] }
+}
+```
+- `lastWeek` 는 카운트만 (items 없음). 정렬은 `due_date` → `id` 오름차순.
+
+---
+
 # curl 예시 세트
 
 ```bash

@@ -4,6 +4,8 @@
 //   (새로고침 = 초기화). 목적은 "보여주기"이지 정합성 테스트가 아니다.
 
 import { createDataset } from './demoData.js';
+import { krPct, objectivePct, summarize, round3 } from '../store/okrMath.js';
+import { bucketTasks } from '../widgets/weekBuckets.js';
 
 let store = createDataset();
 const nowIso = () => new Date().toISOString();
@@ -184,6 +186,184 @@ function agentRunNow() {
   return { ok: true, pending: false, requestedAt, alreadyPending: false, note: '데모 모드 — 즉시 실행됨' };
 }
 
+// ── OKR (FR-OKR-01~04) — 백엔드 라우트의 행복 경로 + 최소 검증 ──────────
+const PERIOD_RE = /^\d{4}(-Q[1-4])?$/;
+
+function okrDashboard(query) {
+  const includeArchived = query.includeArchived === '1' || query.includeArchived === 'true';
+  const objs = store.objectives.filter((o) => includeArchived || o.status !== 'archived');
+  const krsByObj = new Map();
+  for (const kr of store.key_results) {
+    if (!krsByObj.has(kr.objective_id)) krsByObj.set(kr.objective_id, []);
+    krsByObj.get(kr.objective_id).push(kr);
+  }
+  const included = [];
+  const objectives = objs.map((o) => {
+    const krs = krsByObj.get(o.id) || [];
+    const keyResults = krs.map((kr) => {
+      included.push(kr);
+      return {
+        id: kr.id,
+        title: kr.title,
+        target: kr.target,
+        current: kr.current,
+        unit: kr.unit,
+        pct: round3(krPct(kr)),
+        project_id: kr.project_id,
+      };
+    });
+    return {
+      id: o.id,
+      title: o.title,
+      period: o.period,
+      status: o.status,
+      pct: round3(objectivePct(krs)),
+      keyResults,
+    };
+  });
+  const { krAvgPct, bucket } = summarize(included, objectives.length);
+  return {
+    objectives,
+    summary: { krAvgPct, objectiveCount: objectives.length, keyResultCount: included.length, bucket },
+  };
+}
+
+function okrTrend() {
+  const byMonth = new Map();
+  for (const s of store.kr_snapshots) {
+    if (!byMonth.has(s.month)) byMonth.set(s.month, []);
+    byMonth.get(s.month).push(s.pct);
+  }
+  const points = [...byMonth.entries()]
+    .sort((a, b) => (a[0] < b[0] ? -1 : 1))
+    .slice(-12)
+    .map(([month, pcts]) => ({
+      month,
+      krAvgPct: round3(pcts.reduce((x, y) => x + y, 0) / pcts.length),
+    }));
+  return { points };
+}
+
+function createObjective(body) {
+  const b = body || {};
+  const title = String(b.title ?? '').trim();
+  if (!title) throw err(400, 'title 은 필수입니다.');
+  if (!PERIOD_RE.test(String(b.period ?? '').trim())) {
+    throw err(400, 'period 는 YYYY 또는 YYYY-Q1~Q4 형식이어야 합니다.');
+  }
+  const status = b.status ?? 'active';
+  if (!['active', 'done', 'archived'].includes(status)) {
+    throw err(400, 'status 는 active·done·archived 중 하나여야 합니다.');
+  }
+  const now = nowIso();
+  const objective = { id: nextId(), title, period: b.period.trim(), status, created_at: now, updated_at: now };
+  store.objectives.push(objective);
+  return { objective };
+}
+
+function updateObjective(id, body) {
+  const objective = store.objectives.find((o) => o.id === Number(id));
+  if (!objective) throw err(404, '목표를 찾을 수 없습니다.');
+  if (body && body.title !== undefined) {
+    const title = String(body.title).trim();
+    if (!title) throw err(400, 'title 은 필수입니다.');
+    objective.title = title;
+  }
+  if (body && body.period !== undefined) {
+    if (!PERIOD_RE.test(String(body.period).trim())) throw err(400, 'period 는 YYYY 또는 YYYY-Q1~Q4 형식이어야 합니다.');
+    objective.period = body.period.trim();
+  }
+  if (body && body.status !== undefined) {
+    if (!['active', 'done', 'archived'].includes(body.status)) throw err(400, 'status 는 active·done·archived 중 하나여야 합니다.');
+    objective.status = body.status;
+  }
+  objective.updated_at = nowIso();
+  return { objective };
+}
+
+function deleteObjective(id) {
+  const nid = Number(id);
+  if (!store.objectives.some((o) => o.id === nid)) throw err(404, '목표를 찾을 수 없습니다.');
+  store.objectives = store.objectives.filter((o) => o.id !== nid);
+  // CASCADE: 하위 KR·스냅샷 제거
+  const krIds = store.key_results.filter((k) => k.objective_id === nid).map((k) => k.id);
+  store.key_results = store.key_results.filter((k) => k.objective_id !== nid);
+  store.kr_snapshots = store.kr_snapshots.filter((s) => !krIds.includes(s.key_result_id));
+  return { ok: true };
+}
+
+function createKeyResult(body) {
+  const b = body || {};
+  const objId = Number(b.objective_id);
+  if (!store.objectives.some((o) => o.id === objId)) {
+    throw err(400, '목표(objective)를 찾을 수 없습니다.');
+  }
+  const title = String(b.title ?? '').trim();
+  if (!title) throw err(400, 'title 은 필수입니다.');
+  const target = Number(b.target);
+  if (!Number.isFinite(target) || target < 0) throw err(400, 'target 은 0 이상의 숫자여야 합니다.');
+  const now = nowIso();
+  const keyResult = {
+    id: nextId(),
+    objective_id: objId,
+    title,
+    target,
+    current: b.current === undefined ? 0 : Number(b.current),
+    unit: b.unit && String(b.unit).trim() ? String(b.unit).trim() : null,
+    project_id: b.project_id ?? null,
+    created_at: now,
+    updated_at: now,
+  };
+  store.key_results.push(keyResult);
+  return { keyResult };
+}
+
+function updateKeyResult(id, body) {
+  const keyResult = store.key_results.find((k) => k.id === Number(id));
+  if (!keyResult) throw err(404, '핵심 결과를 찾을 수 없습니다.');
+  const b = body || {};
+  if (b.title !== undefined) {
+    const title = String(b.title).trim();
+    if (!title) throw err(400, 'title 은 필수입니다.');
+    keyResult.title = title;
+  }
+  if (b.target !== undefined) {
+    const target = Number(b.target);
+    if (!Number.isFinite(target) || target < 0) throw err(400, 'target 은 0 이상의 숫자여야 합니다.');
+    keyResult.target = target;
+  }
+  if (b.current !== undefined) keyResult.current = Number(b.current);
+  if (b.unit !== undefined) keyResult.unit = b.unit && String(b.unit).trim() ? String(b.unit).trim() : null;
+  if (b.project_id !== undefined) keyResult.project_id = b.project_id;
+  keyResult.updated_at = nowIso();
+  return { keyResult };
+}
+
+function deleteKeyResult(id) {
+  const nid = Number(id);
+  if (!store.key_results.some((k) => k.id === nid)) throw err(404, '핵심 결과를 찾을 수 없습니다.');
+  store.key_results = store.key_results.filter((k) => k.id !== nid);
+  store.kr_snapshots = store.kr_snapshots.filter((s) => s.key_result_id !== nid);
+  return { ok: true };
+}
+
+function plannerWeekly() {
+  const b = bucketTasks(store.tasks, new Date());
+  const pick = (t) => ({
+    id: t.id,
+    title: t.title,
+    due_date: t.due_date,
+    priority: t.priority,
+    status: t.status,
+    tags: t.tags || [],
+  });
+  return {
+    lastWeek: { done: b.lastWeek.done, total: b.lastWeek.total },
+    thisWeek: { done: b.thisWeek.done, total: b.thisWeek.total, items: b.thisWeek.items.slice(0, 50).map(pick) },
+    nextWeek: { total: b.nextWeek.total, items: b.nextWeek.items.slice(0, 50).map(pick) },
+  };
+}
+
 // method+path 를 받아 백엔드와 같은 형태의 객체를 반환한다 (실패 시 throw).
 export async function demoRequest(method, path, body) {
   const { p, q } = parse(path);
@@ -226,6 +406,17 @@ export async function demoRequest(method, path, body) {
   }
   if (p === '/agent/activity' && method === 'GET') return agentActivity(q);
   if (p === '/agent/run-now' && method === 'POST') return agentRunNow();
+
+  // OKR — 구체 경로를 /okr 보다 먼저 매칭한다.
+  if (p === '/okr/trend' && method === 'GET') return okrTrend();
+  if (p === '/okr/objectives' && method === 'POST') return createObjective(body);
+  if (p.startsWith('/okr/objectives/') && method === 'PUT') return updateObjective(p.slice(16), body);
+  if (p.startsWith('/okr/objectives/') && method === 'DELETE') return deleteObjective(p.slice(16));
+  if (p === '/okr/key-results' && method === 'POST') return createKeyResult(body);
+  if (p.startsWith('/okr/key-results/') && method === 'PUT') return updateKeyResult(p.slice(17), body);
+  if (p.startsWith('/okr/key-results/') && method === 'DELETE') return deleteKeyResult(p.slice(17));
+  if (p === '/okr' && method === 'GET') return okrDashboard(q);
+  if (p === '/planner/weekly' && method === 'GET') return plannerWeekly();
 
   throw err(404, '요청을 처리하지 못했습니다.');
 }

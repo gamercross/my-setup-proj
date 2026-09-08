@@ -35,3 +35,28 @@ test('TC-BRIEF-07: defaultLayout 크기가 w≤12 이고 minSize 이상이다', 
     assert.ok(inst.h >= meta.minSize.h, `${inst.id} h < minSize.h`);
   }
 });
+
+test('TC-P8-REG-01: okr·weekly 위젯 메타가 등록돼 있다', () => {
+  const okr = WIDGET_META.okr;
+  assert.ok(okr);
+  assert.equal(okr.configSchema.showTrend.type, 'bool');
+  assert.equal(okr.configSchema.showTrend.default, true);
+  assert.equal(okr.configSchema.includeArchived.default, false);
+
+  const weekly = WIDGET_META.weekly;
+  assert.ok(weekly);
+  assert.equal(weekly.configSchema.maxItems.type, 'number');
+  assert.equal(weekly.configSchema.maxItems.default, 20);
+  assert.equal(weekly.configSchema.hideCompleted.default, false);
+});
+
+test('TC-P8-REG-02: PLAN 주제 기본 레이아웃이 okr·weekly 전용 위젯을 쓴다', () => {
+  assert.deepEqual(DEFAULT_LAYOUTS.okr.map((i) => i.type), ['okr']);
+  assert.deepEqual(DEFAULT_LAYOUTS.weekly.map((i) => i.type), ['weekly']);
+  for (const key of ['okr', 'weekly']) {
+    for (const inst of DEFAULT_LAYOUTS[key]) {
+      const meta = WIDGET_META[inst.type];
+      assert.ok(inst.w >= meta.minSize.w && inst.h >= meta.minSize.h);
+    }
+  }
+});

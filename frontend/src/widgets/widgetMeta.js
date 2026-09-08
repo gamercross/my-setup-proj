@@ -82,6 +82,32 @@ export const WIDGET_META = {
       showHealth: { type: 'bool', default: true, label: '연결 상태 표시' },
     },
   },
+  okr: {
+    type: 'okr',
+    name: 'OKR',
+    icon: '🎯',
+    description: '목표·핵심 결과 달성률',
+    defaultSize: { w: 8, h: 10 },
+    minSize: { w: 4, h: 6 },
+    maxSize: { w: 12, h: 24 },
+    configSchema: {
+      showTrend: { type: 'bool', default: true, label: '월별 추이 차트 표시' },
+      includeArchived: { type: 'bool', default: false, label: '보관된 목표 포함' },
+    },
+  },
+  weekly: {
+    type: 'weekly',
+    name: '주간 플래너',
+    icon: '🗓️',
+    description: '지난주·이번주·다음주 요약',
+    defaultSize: { w: 8, h: 8 },
+    minSize: { w: 4, h: 4 },
+    maxSize: { w: 12, h: 20 },
+    configSchema: {
+      maxItems: { type: 'number', min: 5, max: 50, step: 5, default: 20, label: '최대 표시 개수' },
+      hideCompleted: { type: 'bool', default: false, label: '완료한 항목 숨기기' },
+    },
+  },
   // "준비 중" 자리표시자 — 전용 위젯이 아직 없는 주제의 기본 인스턴스 (ADR-0032).
   // hidden: true 는 옵셔널 신규 필드. 피커 목록에서 제외한다 (다른 메타엔 넣지 않는다).
   placeholder: {

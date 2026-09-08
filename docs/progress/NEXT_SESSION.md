@@ -1,6 +1,6 @@
 # 🧭 다음 세션 인계 — 상태 확인 + 작업 방향
 
-> 작성: 2026-09-07 · **갱신: 2026-09-08 (P7 병합 + ADR-0033 독립 위젯 창 방향)**
+> 작성: 2026-09-07 · **갱신: 2026-09-08 (P8 OKR + 주간 플래너 완료 — PR 대기)**
 > 이 문서는 새 세션 시작 시 **가장 먼저 읽는다.** 이후 정식 문서
 > ([PROGRESS.md](PROGRESS.md) · [PERSONAL_OS.md](../product/vision/PERSONAL_OS.md) ·
 > [DEMO_FEEDBACK.md](DEMO_FEEDBACK.md))로 교차 확인.
@@ -9,10 +9,11 @@
 
 ## 0. 지금 어디까지 왔나 (한 문단)
 
-Phase A~D 완료·병합. "개인 생산성 OS" 방향으로 **P0~P7 완료·병합**. P3(라이트 테마)·P4(공통
+Phase A~D 완료·병합. "개인 생산성 OS" 방향으로 **P0~P7 완료·병합, P8 완료(PR 대기)**. P3(라이트 테마)·P4(공통
 컴포넌트)·P4.5(사이드바 셸)·P5(단일 캐시+칸반)·P6(자유 태그+자동 분류)·P7(에이전트 활동 위젯)
-전부 `main` 에 있다. **채택 ADR:** 0027·0032·0028·0018·0029·0030 + 0013(부분 — P7 "지금 실행"
-트리거만). **제안·보류:** 0013 전체 작업 큐, **0031**(P9 선행), **0033**(독립 위젯 창 — 방향만
+전부 `main` 에 있다. **P8(T3 OKR Phase + 주간 플래너)** 는 `feature/p8-okr-planner` 에서 완료 —
+supervisor PASS + 비차단 후속 5건 정리, PR 대기(병합은 사용자). **채택 ADR:** 0027·0032·0028·0018·0029·0030 + 0013(부분 — P7 "지금 실행"
+트리거만). **제안·보류:** 0013 전체 작업 큐, **0031**(P9 선행 — 채택됨), **0033**(독립 위젯 창 — 방향만
 유지, 아래 §4-3).
 
 **2026-09-08 세션 후반:** 사용자가 "웹 데모 ≠ 앱" 을 강조 — 산출물은 Electron 앱(백엔드+에이전트
@@ -22,9 +23,9 @@ Phase A~D 완료·병합. "개인 생산성 OS" 방향으로 **P0~P7 완료·병
 
 **PR 상태:** #52~#55(P6·P7 + 문서 스윕) 전부 병합됨. **#56(ADR-0033) 만 열림 — CI green, 병합 대기.**
 
-**다음 세션은 P8 (T3 OKR + 주간 플래너)** — `objectives`/`key_results` + OKR 대시보드 + 주간 플래너.
-ADR-0030 은 이미 채택이므로 착수 전 선행은 **`requirements/OKR.md` 작성 + FR-OKR-\* 정의**.
-그 뒤 `/feature`. 상세는 §4.
+**다음 세션은 P9 (T6 진행 현황 · 파일 탐색 뷰)** — `GET /api/docs/:name` + `GET /api/tree` + 위젯
+(좌 폴더 트리 / 우 본문). ADR-0031 은 이미 채택이므로 바로 `/feature`. 그 전후로 §4-3 앱 통합.
+P8 PR 병합 확인 먼저. 상세는 §4.
 
 ---
 
@@ -36,17 +37,19 @@ ADR-0030 은 이미 채택이므로 착수 전 선행은 **`requirements/OKR.md`
 | #53 | docs: README·상태 문서에 P3~P6 반영 | ✅ 병합됨 |
 | #54 | docs: 취소선(`~~`) 전체 제거 | ✅ 병합됨 |
 | #55 | **P7** T4 에이전트 활동 위젯 + '지금 실행' 파일 플래그 (ADR-0013 부분 채택, FR-AGENT-08/09) | ✅ 병합됨 (main `82586ab`) |
-| **#56** | docs: ADR-0033 독립 위젯 창 방향 유지 (제안·보류) | **OPEN · main 머지로 충돌 해소 완료 · CI green · 병합 대기** |
+| #56 | docs: ADR-0033 독립 위젯 창 방향 유지 (제안·보류) | ✅ 병합됨 (#56) |
+| #57 | docs: P8 선행 — requirements/OKR.md + FR-OKR-01~06 | ✅ 병합됨 (main `915b203`/`357893e`) |
+| **P8** | **T3 OKR Phase + 주간 플래너** (FR-OKR-01~06, ADR-0030) — `feature/p8-okr-planner` | **PR 대기 (병합은 사용자)** |
 
 **다음 세션 첫 작업:**
 1. `git checkout main && git pull` (SessionStart 훅이 병합된 로컬 브랜치를 자동 정리).
-2. #56 병합 확인.
+2. P8 PR 병합 확인.
 3. **로컬 수동 검증 백로그** — 아래를 실제 Electron 앱(`cd backend && npm start` + `cd frontend && npm run dev`)에서 확인하고 `PROGRESS.md`·`TEST_PLAN.md` 에 반영:
    - TC-P3-M(라이트 테마) · TC-P4-M(공통 컴포넌트) · TC-SHELL-M1~6(사이드바 셸)
    - TC-P5-M1~4(칸반 리스트/보드) · TC-P6-M1~4(태그 칩·필터)
    - TC-ACT-M / TC-AGENT-M(P7 — `bash scripts/install-runnow-launchd.sh` 후 "지금 실행" → 플래그 감지)
-4. **P8 착수 전 선행:** `requirements/OKR.md` 작성 + FR-OKR-\* 정의 (ADR-0030 은 이미 채택).
-5. **→ `/feature` 로 P8 (T3 OKR + 주간 플래너).**
+   - **TC-OKR-M / TC-PLAN-M(P8 — OKR CRUD·주간 플래너·인라인 SVG 라인차트 실제 앱 확인)**
+4. **→ `/feature` 로 P9 (T6 진행 현황 · 파일 탐색 뷰, ADR-0031 채택됨).**
 
 ### P4.5 구현 요약 (PR #45, 커밋 `1c5ee54`)
 - 신규: `components/{AppShell,Sidebar,TopicView,TopicIcons}.jsx`, `widgets/topics.js`(11주제/4그룹),
@@ -101,8 +104,8 @@ ADR-0030 은 이미 채택이므로 착수 전 선행은 **`requirements/OKR.md`
 | **P5** | **T1 단일 캐시 + 칸반 뷰** — `useTaskStore` `byId`/`order`, 칸반 = tasks 위젯 내 리스트/보드 토글(PO-7) | ✅ **#47 병합됨** (ADR-0028 채택), 수동 검증 TC-P5-M1~4 대기 |
 | **P6** | T2 자동 분류 — 최소 마이그레이션 + 에이전트 배치 분류 + 태그 칩 필터 | ✅ **#52 병합됨** (ADR-0018·0029 채택, FR-TASK-08), 수동 검증 TC-P6-M1~4 대기 |
 | **P7** | T4 에이전트 활동 위젯 — `sync_logs`/`health`/다음 실행 + "지금 실행" 파일 플래그 | ✅ **#55 병합됨** (ADR-0013 부분 채택, FR-AGENT-08/09), launchd WatchPaths 수동 검증 대기 |
-| **P8** | T3 OKR Phase — `objectives`/`key_results` + OKR 대시보드 + 주간 플래너 | ⏳ **다음** (`OKR.md` + FR-OKR-\* 선행. ADR-0030 은 채택됨) |
-| P9 | T6 진행 현황 · 파일 탐색 뷰 — `GET /api/docs/:name` + `GET /api/tree` + 위젯(좌 폴더 트리 / 우 본문) | ⏳ (ADR-0031 채택됨, 착수만 하면 됨) |
+| **P8** | T3 OKR Phase — `objectives`/`key_results`/`kr_snapshots` + OKR 대시보드 + 주간 플래너 + 인라인 SVG 라인차트 | ✅ **완료, PR 대기** (`feature/p8-okr-planner`, ADR-0030 채택, FR-OKR-01~06). backend 126/126, frontend 98/98. 수동 검증 TC-OKR-M / TC-PLAN-M 대기 |
+| P9 | T6 진행 현황 · 파일 탐색 뷰 — `GET /api/docs/:name` + `GET /api/tree` + 위젯(좌 폴더 트리 / 우 본문) | ⏳ **다음** (ADR-0031 채택됨, 착수만 하면 됨) |
 | (별도) | **앱 통합** — 통합 실행 스크립트 + Electron↔백엔드 프로세스 토폴로지([ADR-0016](../product/architecture/adr/ADR-0016-desktop-process-topology.md) 결정) + 독립 위젯 창([ADR-0033](../product/architecture/adr/ADR-0033-standalone-widget-windows.md)) | ⏳ P9 전후 / 패키징 전. §4-3 |
 
 ---
@@ -197,13 +200,13 @@ ADR-0013 부분 채택(P7 — 트리거만), ADR-0030(P8), ADR-0031(P9), ADR-001
 
 ---
 
-## 8. 자동 검증 현황 (2026-09-08 P7 기준 — 전부 초록)
+## 8. 자동 검증 현황 (2026-09-08 P8 기준 — 전부 초록)
 
 | 스위트 | 결과 |
 |---|---|
-| `verify.sh --code-only` | 29 / 0 / 0 |
+| `verify.sh --code-only` | 33 / 0 / 0 |
 | `check-docs.sh` (문서 정합) | 11 / 0 / 0 |
-| backend `npm test` | 106 pass / 0 fail (P7) |
-| frontend `npm test` | 76 pass / 0 fail (P7) |
-| agent `pytest -m "not network"` | 80 passed / 4 deselected (P7) |
+| backend `npm test` | 126 pass / 0 fail (P8) |
+| frontend `npm test` | 98 pass / 0 fail (P8) |
+| agent `pytest -m "not network"` | 80 passed / 4 deselected (P7 — P8 변경 없음) |
 | `npm run build` / `build:demo` | 성공 |

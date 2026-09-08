@@ -13,6 +13,12 @@ const PORT = process.env.PORT || 3000;
 // 서버 시작
 const server = app.listen(PORT, () => {
   console.log(`✅ 백엔드 서버 실행 중: http://localhost:${PORT}`);
+  // 기동 시 1회 이번 달 KR 스냅샷 적재 (FR-OKR-04, 적재 주체 = 백엔드).
+  try {
+    require('./services/okr').snapshotCurrentMonth();
+  } catch (err) {
+    console.error('월별 KR 스냅샷 적재 실패:', err.message);
+  }
 });
 
 // 프로세스 수명주기 핸들러 등록 (lifecycle.js):

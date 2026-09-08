@@ -98,9 +98,9 @@ flowchart TB
 | | |
 |---|---|
 | 무엇 | OKR(목표·핵심결과) 진행률 대시보드 + `due_date` 를 ISO 주(월~일)로 버킷팅한 "지난주 완료 N / 이번주 예정 M(완료 K) / 다음주 P" |
-| 지금 | `projects.progress`(0-100)만. OKR 구조·주간 버킷 없음 |
+| 상태 | ✅ P8 (2026-09-08) — `objectives`/`key_results`/`kr_snapshots` 3테이블, `GET /api/okr`·`/api/okr/trend`·CRUD·`GET /api/planner/weekly`, OKR/주간 위젯 + 인라인 SVG 라인차트 |
 | 목표 | `objectives` + `key_results` 테이블. 스탯 타일 그리드(KR 평균 달성률·Objective 수·KR 수·90%+/40-90%/<40% 구간) + 월별 라인차트. 주간 요약은 순수 집계, 심화 시 "Weekly Brief"(Claude)로 확장 — Daily Brief 인프라 재사용 |
-| 관련 | 새 `requirements/OKR.md` (예정) · FR-OKR-* · ADR-0030 (채택 2026-09-08, OKR 데이터 모델) · ADR-0018 마이그레이션(채택) |
+| 관련 | [requirements/OKR.md](../requirements/OKR.md) · FR-OKR-01~06 · ADR-0030 (채택 2026-09-08, OKR 데이터 모델) · ADR-0018 마이그레이션(채택) |
 | 크기 | 상 (독립 Phase) |
 | 메타 | 이 프로젝트의 `PROGRESS.md` 가 프로젝트에 하는 일을, 앱이 사용자에게 해준다 |
 
@@ -193,7 +193,7 @@ flowchart TB
 | P5 ✅ | T1 단일 캐시 + 칸반 뷰 (2026-09-08, ADR-0028 채택) | `frontend/src/store/taskCache.js`(순수 캐시 헬퍼) + `useTaskStore` `byId`/`order` 정본·`tasks` 파생 미러, `frontend/src/widgets/taskBoard.js`(`groupByPriority`), `components/TaskBoard.jsx`·`TaskCard.jsx`, `TasksWidgetView` 리스트/보드 전환(`config.display.view`), `widgetMeta.tasks.configSchema.view`. 테스트 `frontend/test/{taskCache,taskBoard,taskStore}.test.mjs` TC-P5-01~13. **태그·자동분류는 P6 이월** (스키마 무변경) | P3 |
 | P6 ✅ | T2 자동 분류 (2026-09-08, ADR-0018·0029 채택) | `backend/db/schema.sql`(`task_tags` + `sync_logs` CHECK), `backend/db/index.js`(마이그레이션 러너 `PRAGMA user_version`), `backend/src/{db,services/tasks,routes/tasks}.js`(태그 API), `agent/classify.py`(신규)·`agent/db.py`·`agent/daily_brief.py`(배치 배선), `frontend/src/store/taskTags.js`(신규)·`useTaskStore.js`·`components/{TaskTags,TaskCard,TaskList,TaskBoard}.jsx`·`TasksWidgetView.jsx`. 테스트 TC-TAG-01~08·TC-DB-05·TC-SYNC-11·TC-P6-01~08·TC-AGENT-31~40 | P4·P5 |
 | **P7** ✅ | T4 에이전트 활동 위젯 (2026-09-08) | `sync_logs`/`health`/다음 실행 → 위젯 + "지금 실행" 파일 플래그 트리거 (FR-AGENT-08) | P4 |
-| **P8** | T3 OKR Phase | `objectives`/`key_results` + OKR 대시보드 + 주간 플래너 + (선택) Weekly Brief | P4·P5 |
+| **P8** ✅ | T3 OKR Phase + 주간 플래너 (2026-09-08, ADR-0030 채택, FR-OKR-01~06) | `backend/db/schema.sql`(`objectives`/`key_results`/`kr_snapshots` — `CREATE TABLE IF NOT EXISTS`, SCHEMA_VERSION 무변경), `backend/src/{db,services/okr,services/planner,routes/okr,routes/planner,server}.js`(신규 다수), `GET /api/okr`·`/api/okr/trend`·objectives/key-results CRUD·`GET /api/planner/weekly`. kr_snapshots 월별 적재는 백엔드 자체(기동+trend 진입, 일자 가드 — 에이전트 미관여). 프런트: `store/{useOkrStore,okrMath}.js`·`widgets/weekBuckets.js`·`components/{LineChart.jsx,linePath.js}`(인라인 SVG, Recharts 미도입 PO-8)·`widgets/views/{OkrWidgetView,PlannerWidgetView}.jsx`·`widgets/{registry,defaultLayout,widgetMeta}.js`. 테스트 TC-OKR-01~14·TC-PLAN-01~04·TC-DB-06·TC-P8-MATH/STORE/WEEK/LINE. 실 앱 수동 검증 TC-OKR-M/TC-PLAN-M 백로그 | P4·P5 |
 | **P9** | T6 진행 현황 · 파일 탐색 | `GET /api/tree`(허용 루트·상한) + `GET /api/docs/:path`(안전 토큰화) + "진행 현황" 위젯(왼쪽 트리 + 오른쪽 내용, mermaid 은 `DiagramPanel` 재사용). 데모용 `demoClient.js` 목 트리 | P4 |
 
 각 빌드 단계는 `/feature` 파이프라인 1회, 개별 브랜치·PR. `frontend/` 변경은 병합 시 데모 자동 재배포.

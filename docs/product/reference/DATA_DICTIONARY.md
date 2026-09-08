@@ -131,9 +131,54 @@
 - 매 동기화 시도마다 1행 append (갱신 아님).
 - `classify` = 에이전트 할일 자동 분류 배치 결과 (ADR-0029). 기존 파일 DB 는 `backend/db/index.js` 의 마이그레이션(`PRAGMA user_version` v1)이 CHECK 를 확장한다 — ADR-0018.
 
+## 7. `objectives` — OKR 목표 (FR-OKR-01, ADR-0030)
+
+분기/연간 목표. 사용자가 앱에서 CRUD 한다. 에이전트는 손대지 않는다.
+
+| 컬럼 | 타입 | 제약 | 의미 | 예시 |
+|---|---|---|---|---|
+| `id` | INTEGER | PK, auto | 목표 식별자 | `1` |
+| `title` | TEXT | NOT NULL | 목표 제목. 1~120자 (API 검증) | `"온보딩 완성도 높이기"` |
+| `period` | TEXT | NOT NULL | 대상 기간. `YYYY` 또는 `YYYY-Q1`~`YYYY-Q4` (API 검증) | `"2026-Q1"` |
+| `status` | TEXT | NOT NULL, 기본 `active`, CHECK | `active`/`done`/`archived` | `"active"` |
+| `created_at` `updated_at` | TEXT | NOT NULL | ISO8601 | — |
+
+- 인덱스: `idx_objectives_status(status)`.
+- 대시보드(`GET /api/okr`)는 기본으로 `archived` 를 제외한다 (`?includeArchived=1` 로 포함).
+
+## 8. `key_results` — OKR 핵심 결과 (FR-OKR-02, ADR-0030)
+
+| 컬럼 | 타입 | 제약 | 의미 | 예시 |
+|---|---|---|---|---|
+| `id` | INTEGER | PK, auto | KR 식별자 | `3` |
+| `objective_id` | INTEGER | NOT NULL, FK → `objectives(id)` `ON DELETE CASCADE` | 소속 목표. 생성 시 없는 목표면 **400** | `1` |
+| `title` | TEXT | NOT NULL | KR 제목. 1~120자 | `"신규 사용자 첫날 완료율 80%"` |
+| `target` | REAL | NOT NULL | 목표치. 0 이상 | `80` |
+| `current` | REAL | NOT NULL, 기본 `0` | 현재치. SQL 예약어라 DDL 에서 항상 인용(`"current"`) | `50` |
+| `unit` | TEXT | NULL 허용 | 단위. 트림 후 `''`→NULL, 12자 이하 | `"%"` / `null` |
+| `project_id` | INTEGER | NULL 허용, FK → `projects(id)` `ON DELETE SET NULL` | 연결 프로젝트 (느슨 FK, ADR-0012) | `2` / `null` |
+| `created_at` `updated_at` | TEXT | NOT NULL | ISO8601 | — |
+
+- 인덱스: `idx_key_results_objective(objective_id)`, `idx_key_results_project(project_id)`.
+- 달성률 `pct` 는 저장하지 않는다 — 조회 시 `target > 0 ? clamp(current/target,0,1) : 0` 으로 계산.
+
+## 9. `kr_snapshots` — 월별 달성률 스냅샷 (FR-OKR-04)
+
+백엔드가 월 1회 각 KR 의 그 시점 pct 를 UPSERT 한다 (기동 시 + `GET /api/okr/trend` 진입 시, 프로세스당 하루 1회 가드). 에이전트/launchd 미관여.
+
+| 컬럼 | 타입 | 제약 | 의미 | 예시 |
+|---|---|---|---|---|
+| `id` | INTEGER | PK, auto | 식별자 | `1` |
+| `key_result_id` | INTEGER | NOT NULL, FK → `key_results(id)` `ON DELETE CASCADE` | 대상 KR | `3` |
+| `month` | TEXT | NOT NULL | 스냅샷 월 `YYYY-MM` | `"2026-07"` |
+| `pct` | REAL | NOT NULL | 그 시점 달성률 0~1 | `0.62` |
+
+- `UNIQUE (key_result_id, month)` — 같은 달 재적재는 갱신(UPSERT).
+- 세 테이블 모두 `SCHEMA_VERSION` 을 올리지 않고 `CREATE TABLE IF NOT EXISTS` 로 매 오픈 시 반영한다 (P6 `task_tags` 선례).
+
 ---
 
-## 7. `widget_instances` — 위젯 레이아웃 (🔶 제안, C5 단계 2)
+## 10. `widget_instances` — 위젯 레이아웃 (🔶 제안, C5 단계 2)
 
 > UI 상태다(도메인 데이터 아님). **1차는 SQLite 가 아니라 브라우저 `localStorage`** 에 `dashboard.layout.v1` 키로 저장한다.
 > SQLite 이관은 재설치·다기기 요구가 생길 때 ([ADR-0021](../architecture/adr/ADR-0021-widget-layout-persistence.md)). 아직 `schema.sql` 에 없다.
@@ -159,6 +204,9 @@
 ```
 projects (1) ──< (N) tasks        tasks.project_id FK, ON DELETE SET NULL (ADR-0012)
 tasks (1) ──< (N) task_tags       PK(task_id, tag), ON DELETE CASCADE (ADR-0029)
+objectives (1) ──< (N) key_results     ON DELETE CASCADE (ADR-0030)
+key_results (1) ──< (N) kr_snapshots   UNIQUE(key_result_id, month), ON DELETE CASCADE
+projects (0..1) ──< (N) key_results    key_results.project_id FK, ON DELETE SET NULL (느슨, ADR-0012)
 briefs          독립 (날짜별 1건)
 calendar_events 독립 (외부 캐시)
 emails          독립 (외부 캐시)

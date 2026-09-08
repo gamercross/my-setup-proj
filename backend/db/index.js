@@ -40,6 +40,7 @@ function backupIfNeeded(db, dbPath, isNew) {
 
 // PRAGMA user_version 기반 최소 마이그레이션 러너 (ADR-0018).
 // 별도 러너 모듈·migrations/ 디렉터리 없이 여기 인라인으로 둔다. forward-only.
+// 신규 테이블은 schema.sql 로 충분(P6 task_tags 선례). 버전 상향은 기존 테이블 변경 시에만.
 function applyMigrations(db, dbPath, isNew) {
   const cur = db.pragma('user_version', { simple: true });
   if (cur >= SCHEMA_VERSION) return;
