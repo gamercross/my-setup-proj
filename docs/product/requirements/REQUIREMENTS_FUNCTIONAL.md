@@ -17,15 +17,17 @@ flowchart LR
     SYNC["SYNC 01~03<br/>클라우드 동기화"]
     UI["UI 01~05<br/>대시보드 공통"]
     WIDGET["WIDGET 01~08<br/>위젯 셸·커스터마이즈<br/>(대시보드 OS)"]
+    OKR["OKR 01~06<br/>목표·핵심결과·주간 플래너<br/>(개인 OS P8)"]
   end
   TASK & UI --> B["Phase B (완료)"]
   PROJ --> C2["Phase C2 (완료)"]
   CAL --> C3["Phase C3"]
   UI --> C4["Phase C4 (다이어그램 뷰어)"]
   WIDGET --> C5["Phase C5~C6 (위젯 셸·테마)"]
+  OKR --> P8["개인 OS P8"]
   AGENT & MAIL --> D["Phase D (Week 6~7)"]
   AUTH & SYNC --> E["Phase E (Week 9~)"]
-  B & C2 & C3 & C4 & C5 & D & E --> TR["TRACEABILITY.md<br/>+ TEST_PLAN.md (TC-*)"]
+  B & C2 & C3 & C4 & C5 & P8 & D & E --> TR["TRACEABILITY.md<br/>+ TEST_PLAN.md (TC-*)"]
 ```
 
 > 🆕 **대시보드 OS 전환** (2026-09-03) — 고정 패널 대시보드를 **위젯이 움직이고 위젯마다 디자인하는 데스크톱 OS** 형태로 확장. 개념 [../vision/DASHBOARD_OS.md](../vision/DASHBOARD_OS.md), 상세 [WIDGET.md](WIDGET.md), 결정 [ADR-0020~0022](../architecture/adr/).
@@ -52,6 +54,7 @@ flowchart LR
 | PROJ | [requirements/PROJ.md](PROJ.md) | P0 완료 (C2, 2026-09-03) |
 | CAL | [requirements/CAL.md](CAL.md) | FR-CAL-01/02 완료 (C3 위젯 + D-마무리 캐시 조회), FR-CAL-03 D2-b 완료 |
 | WIDGET | [requirements/WIDGET.md](WIDGET.md) | 초안 (제안 — 착수 전 DASHBOARD_OS §8 결정) |
+| OKR | [requirements/OKR.md](OKR.md) | P8 착수 전 상세화 (2026-09-08, ADR-0030 채택) |
 | MAIL / SYNC / AUTH | (예정) | 아래 표만 — 해당 주차 착수 전 상세화 |
 
 ---
@@ -149,6 +152,19 @@ flowchart LR
 | FR-WIDGET-06 | 위젯마다 표시 옵션(정렬·필터·최대 개수)을 지정한다 | P2 | W6 (C6) | ✅ (C6) |
 | FR-WIDGET-07 | 한 위젯의 에러/렌더 예외가 셸·다른 위젯에 전파되지 않는다 | P0 | W4~5 (C5) | ✅ (C5) |
 | FR-WIDGET-08 | 위젯 레지스트리에 항목을 추가하면 셸 수정 없이 새 위젯이 붙는다 | P2 | W5 (C5) | ✅ (C5) |
+
+## 10. OKR + 주간 플래너 (OKR) — 개인 생산성 OS P8
+
+> 상세 수용 기준은 [requirements/OKR.md](OKR.md). 방향 [../vision/PERSONAL_OS.md](../vision/PERSONAL_OS.md) T3, 결정 [ADR-0030](../architecture/adr/ADR-0030-okr-data-model.md) (채택 2026-09-08, PO-5/6), 마이그레이션 [ADR-0018](../architecture/adr/ADR-0018-schema-migration-strategy.md).
+
+| ID | 요구사항 | 우선순위 | 목표 주차 | 상태 |
+|---|---|:---:|:---:|:---:|
+| FR-OKR-01 | 사용자는 Objective(분기/연간 목표)를 제목·기간·상태로 생성/수정/삭제할 수 있다 | P1 | 개인 OS P8 | ⏳ |
+| FR-OKR-02 | 사용자는 Key Result 를 목표치·현재치·단위(선택 프로젝트 연결)로 생성/수정/삭제하고 현재치를 갱신한다 | P1 | 개인 OS P8 | ⏳ |
+| FR-OKR-03 | OKR 대시보드: Objective·KR 달성률 + 스탯 타일 요약(KR 평균 달성률·개수·구간 카운트)을 조회한다 | P1 | 개인 OS P8 | ⏳ |
+| FR-OKR-04 | 월별 KR 평균 달성률 추이를 스냅샷으로 쌓고 인라인 SVG 라인차트로 본다 | P2 | 개인 OS P8 | ⏳ |
+| FR-OKR-05 | 주간 플래너: `due_date` 를 ISO 주로 버킷팅해 지난주 완료 / 이번주 / 다음주 요약을 조회한다 (순수 집계) | P1 | 개인 OS P8 | ⏳ |
+| FR-OKR-06 | OKR·주간 플래너 위젯: 스탯 타일 그리드 + objective/KR 편집 + 주간 리스트(단일 캐시 완료 토글) | P1 | 개인 OS P8 | ⏳ |
 
 ---
 
