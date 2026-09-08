@@ -165,3 +165,17 @@ test('TC-P7-06: POST /agent/run-now 는 즉시 성공 + 이력 1건 추가', asy
   const after = (await demoRequest('GET', '/agent/activity')).logs.length;
   assert.equal(after, before + 1);
 });
+
+test('TC-P9-DEMO-01: GET /tree 는 노드 배열, GET /docs/<존재> 는 tokens, <없음> 은 404', async () => {
+  const { tree } = await demoRequest('GET', '/tree');
+  assert.ok(Array.isArray(tree) && tree.length > 0);
+
+  const doc = await demoRequest('GET', '/docs/docs%2Fprogress%2FPROGRESS.md');
+  assert.equal(doc.path, 'docs/progress/PROGRESS.md');
+  assert.ok(Array.isArray(doc.tokens) && doc.tokens.length > 0);
+
+  await assert.rejects(
+    () => demoRequest('GET', '/docs/docs%2Fnope.md'),
+    (e) => e.status === 404
+  );
+});

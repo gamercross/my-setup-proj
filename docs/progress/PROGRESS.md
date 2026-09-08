@@ -243,7 +243,7 @@ wc -l                  # 줄 수 세기
 ```
 완료한 작업: 18개 (… C6 까지 = C1~C6, Daily Brief 에이전트 배선 = D1, 재시도·sync_logs = D2-a, Google OAuth + Gmail/Calendar 수집 = D2-b, Notion 저장 + Brief API·위젯 + launchd = D3, 백엔드 조회 API 실 캐시 배선 + mail 엔드포인트 + task 필터 + seed-demo = D-마무리, 웹 데모 모드(VITE_DEMO 목 어댑터) + GitHub Pages 배포 = 웹 데모)
 진행 중: 1개 (B3·C2·C3·C4·C5·C6 브라우저 E2E·GUI 수동체크 — 로컬 대기)
-예정된 작업: 개인 생산성 OS 방향 P1~P8 (PERSONAL_OS.md) + Phase E(다중 사용자, Week 10 ADR 선행)
+예정된 작업: 개인 생산성 OS 방향 P1~P9 완료 (PERSONAL_OS.md) → 앱 통합(§4-3) + Phase E(다중 사용자, Week 10 ADR 선행)
 
 진행도: 90%
 강의 수강: 0%
@@ -337,6 +337,7 @@ flowchart LR
   style P6 fill:#dcfce7,stroke:#16a34a
   style P7 fill:#dcfce7,stroke:#16a34a
   style P8 fill:#dcfce7,stroke:#16a34a
+  style P9 fill:#dcfce7,stroke:#16a34a
 ```
 
 | 단계 | 상태 | 산출물 |
@@ -351,7 +352,8 @@ flowchart LR
 | P6 자동 분류 | ✅ 2026-09-08 | T2 자유 태그(다중) + 에이전트 배치 자동 태깅 + 위젯 태그 칩 필터 (ADR-0018·0029 채택). 최소 마이그레이션 도입: `PRAGMA user_version` + `backend/db/index.js` 인라인 러너, forward-only, 실행 전 `.bak-<ts>`. 신규 `task_tags` 테이블 + `POST/DELETE /api/tasks/:id/tags`. `agent/classify.py`(키워드 규칙 배치 분류) + `agent/daily_brief.py` 배선. `frontend/src/components/TaskTags.jsx` · `store/taskTags.js` · `TasksWidgetView` 칩 필터. 신규 요구사항 **FR-TASK-08**. `frontend/src/api/{demoClient,demoData}.js` 목 어댑터 동기화. 검증: backend 97/0, frontend 68/0, agent 75 passed, build/build:demo 성공, `verify.sh --code-only` 27/0/0, `check-docs.sh` 11/0/0. supervisor PASS(수정 1회 — WAL 백업 버그 수정 포함). 수동 검증 TC-P6-M1~4(로컬 GUI) 대기 |
 | P7 에이전트 활동 위젯 | ✅ 2026-09-08 | T4 "활동" 주제 위젯 — 최근 sync 로그 10건 + Supabase health + 다음 실행 시각(고정 07:30 계산) + "지금 실행" 버튼 (ADR-0013 부분 채택 = 트리거만, 전체 큐는 제안 유지). "지금 실행" = 백엔드가 `agent/.triggers/run-now` 플래그 파일 write → launchd `WatchPaths` 잡이 `agent/trigger.py` 실행 (subprocess 없음, ADR-0011 유지). 신규 `backend/src/{routes,services}/agent.js` + `GET /api/agent/activity`·`POST /api/agent/run-now`. `agent/trigger.py` + `scripts/{agent-run-now.sh,install-runnow-launchd.sh,com.aicomputeros.runnow.plist}`. `frontend/src/store/useAgentStore.js` + `widgets/views/AgentActivityWidgetView.jsx`. 신규 요구사항 **FR-AGENT-08** (기존 "작업 큐" 자리표시 → FR-AGENT-09 로 재번호). 데모 목 어댑터 동기화. 검증: backend 106/0, frontend 76/0, agent 80 passed, build/build:demo 성공, `verify.sh --code-only` 29/0/0, `check-docs.sh` 11/0/0. supervisor PASS(수정 1회 + 비차단 4건 정리). launchd WatchPaths 실제 감지는 로컬 수동 검증(TC-ACT-M / TC-AGENT-M) 대기 |
 | P8 OKR + 주간 플래너 | ✅ 2026-09-08 | T3 OKR Phase (FR-OKR-01~06, ADR-0030 채택). 백엔드: `objectives`/`key_results`/`kr_snapshots` 3테이블(`schema.sql`, `CREATE TABLE IF NOT EXISTS` — SCHEMA_VERSION 미변경, P6 `task_tags` 선례) + `backend/src/db.js` prepared stmts + `services/okr.js`(검증·CRUD·getDashboard·getTrend·snapshotCurrentMonth) · `services/planner.js`(ISO 주 버킷팅·getWeekly). `routes/okr.js`(`GET /api/okr`·`GET /api/okr/trend` + objectives/key-results POST·PUT·DELETE) · `routes/planner.js`(`GET /api/planner/weekly`). `server.js` 기동 시 스냅샷 1회. kr_snapshots 월별 적재는 백엔드 자체(기동 + `/api/okr/trend` 진입, 프로세스·일자 가드) — 에이전트/launchd 미사용(ADR-0011). 프런트: `useOkrStore`(낙관적+롤백) · `okrMath.js`·`weekBuckets.js`·`linePath.js`(순수) · `LineChart.jsx`(인라인 SVG, Recharts 미도입 PO-8) · `OkrWidgetView`·`PlannerWidgetView`(useTaskStore 파생 — 단일 캐시 FR-TASK-09). `widgetMeta`·`registry`·`defaultLayout` 에 okr·weekly 등록 + PLAN 주제 레이아웃. 데모 목 어댑터 6 엔드포인트 동기화. 검증: backend 126/126, frontend 98/98, `verify.sh --code-only` 33/0/0, `check-docs.sh` 11/0/0, `build:demo` 성공. supervisor PASS + 비차단 후속 5건 정리. 실 Electron 수동 검증(TC-OKR-M / TC-PLAN-M) 백로그 |
-| P9 빌드 | ⏳ | **`/feature` 파이프라인으로 진행** (P9 진행 현황 뷰 = 이 문서를 대시보드에서 보기). 다음 = P9 (T6 진행 현황·파일 탐색, ADR-0031 채택됨) |
+| P9 진행 현황 · 파일 탐색 뷰 | ✅ 2026-09-08 | T6 (FR-UI-06, ADR-0031 채택·구현). 백엔드: `backend/src/services/{docs,tree}.js` + `routes/{docs,tree}.js`(신규 — 의존성 0 마크다운 토크나이저, `.md` 만, 허용 루트 `docs/` + 저장소 루트 `*.md`(PO-12), 상한 깊이 8·항목 2000·1MB, 심링크 스킵, 캐시 없음) + `api.js` 마운트. `GET /api/tree` → `{ tree, truncated }`, `GET /api/docs/:path` → `{ path, tokens }` (형태 위반 400 / 없음 404, ADR-0013 읽기 전용). 프런트: `components/{DocView,FileTree,MermaidBlock}.jsx`(토큰→React 요소, 마크다운 파서·`dangerouslySetInnerHTML` 없음, 인라인 링크는 외부 내비 대신 복사 버튼) + `widgets/docSections.js`(순수) + `widgets/views/ProgressWidgetView.jsx`(위젯 한 칸 안 좌 트리/우 본문, 분할선 드래그 크기조절 — pointerup 시 `updateConfig` 1회 persist, 패널·섹션 접기, 브레드크럼) + `widgets/{widgetMeta,registry,defaultLayout}.js` 에 progress 위젯 등록(placeholder 교체). `DiagramPanel.jsx` 는 `export function loadMermaid` 한 줄만(FR-UI-05 무회귀, TC-DIAG-01~05 통과). 데모 패리티: `demoData.js` docTree·docTokens + `demoClient.js` `/tree`·`/docs` 분기. DATA_ARCHITECTURE §8(문서 계층/도메인 데이터 저장·수정 경로 분리) 추가. 검증: backend 142/142, frontend 103/103, `verify.sh --code-only` 37/0/0, `check-docs.sh` 11/0/0, `npm run build` 성공. supervisor PASS + 비차단 후속 2건 정리. **R7:** 기존 저장 레이아웃 사용자는 `progress` 주제에 placeholder 가 남아 "레이아웃 초기화" 해야 새 위젯이 보임. 실 Electron 수동 검증(TC-P9-M) 백로그 |
+| 다음 | ⏳ | **앱 통합** (PERSONAL_OS §4-3 — 통합 실행 스크립트 `npm run app`, ADR-0016 결정, 데모↔실서버 패리티) + P7·P8·P9 로컬 수동 검증 백로그(TC-ACT-M/TC-AGENT-M, TC-OKR-M/TC-PLAN-M, TC-P9-M) |
 
 **열린 질문 PO-1~10** (착수 전 결정) 은 [PERSONAL_OS.md §8](../product/vision/PERSONAL_OS.md) 참조 — 특히 PO-1(라이트 기본 전환), PO-7(칸반이 할 일 위젯 대체 vs 추가), PO-10(Phase E 와의 순서).
 

@@ -9,7 +9,8 @@ import { apiGet } from '../api/client.js';
 
 // mermaid 는 최초 1회만 로드·initialize 한다 (모듈 스코프 캐시)
 let mermaidPromise = null;
-function loadMermaid() {
+// MermaidBlock.jsx(FR-UI-06)도 이 로더를 재사용한다 — mermaid 를 한 번만 로드·initialize 하기 위함.
+export function loadMermaid() {
   if (!mermaidPromise) {
     mermaidPromise = import('mermaid').then((m) => {
       const mermaid = m.default ?? m;

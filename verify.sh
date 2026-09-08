@@ -80,6 +80,10 @@ syntax_check "backend services/brief.js 문법"     node node -c backend/src/ser
 syntax_check "scripts/seed-demo.js 문법"          node node -c scripts/seed-demo.js
 syntax_check "backend routes/diagrams.js 문법"    node node -c backend/src/routes/diagrams.js
 syntax_check "backend services/diagrams.js 문법"  node node -c backend/src/services/diagrams.js
+syntax_check "backend routes/tree.js 문법"        node node -c backend/src/routes/tree.js
+syntax_check "backend services/tree.js 문법"      node node -c backend/src/services/tree.js
+syntax_check "backend routes/docs.js 문법"        node node -c backend/src/routes/docs.js
+syntax_check "backend services/docs.js 문법"      node node -c backend/src/services/docs.js
 syntax_check "backend supabase.js 문법"           node node -c backend/src/supabase.js
 syntax_check "backend routes/sync.js 문법"        node node -c backend/src/routes/sync.js
 syntax_check "backend routes/agent.js 문법"       node node -c backend/src/routes/agent.js

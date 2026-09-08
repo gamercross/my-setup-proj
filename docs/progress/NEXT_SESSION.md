@@ -1,6 +1,6 @@
 # 🧭 다음 세션 인계 — 상태 확인 + 작업 방향
 
-> 작성: 2026-09-07 · **갱신: 2026-09-08 (P8 OKR + 주간 플래너 완료 — PR 대기)**
+> 작성: 2026-09-07 · **갱신: 2026-09-08 (P9 진행 현황 · 파일 탐색 뷰 완료 — PR 대기. P8 병합됨 #58)**
 > 이 문서는 새 세션 시작 시 **가장 먼저 읽는다.** 이후 정식 문서
 > ([PROGRESS.md](PROGRESS.md) · [PERSONAL_OS.md](../product/vision/PERSONAL_OS.md) ·
 > [DEMO_FEEDBACK.md](DEMO_FEEDBACK.md))로 교차 확인.
@@ -9,23 +9,24 @@
 
 ## 0. 지금 어디까지 왔나 (한 문단)
 
-Phase A~D 완료·병합. "개인 생산성 OS" 방향으로 **P0~P7 완료·병합, P8 완료(PR 대기)**. P3(라이트 테마)·P4(공통
-컴포넌트)·P4.5(사이드바 셸)·P5(단일 캐시+칸반)·P6(자유 태그+자동 분류)·P7(에이전트 활동 위젯)
-전부 `main` 에 있다. **P8(T3 OKR Phase + 주간 플래너)** 는 `feature/p8-okr-planner` 에서 완료 —
-supervisor PASS + 비차단 후속 5건 정리, PR 대기(병합은 사용자). **채택 ADR:** 0027·0032·0028·0018·0029·0030 + 0013(부분 — P7 "지금 실행"
-트리거만). **제안·보류:** 0013 전체 작업 큐, **0031**(P9 선행 — 채택됨), **0033**(독립 위젯 창 — 방향만
-유지, 아래 §4-3).
+Phase A~D 완료·병합. "개인 생산성 OS" 방향으로 **P0~P8 완료·병합(P8 = PR #58), P9 완료(PR 대기)**. P3(라이트 테마)·P4(공통
+컴포넌트)·P4.5(사이드바 셸)·P5(단일 캐시+칸반)·P6(자유 태그+자동 분류)·P7(에이전트 활동 위젯)·P8(OKR + 주간 플래너)
+전부 `main` 에 있다. **P9(T6 진행 현황 · 파일 탐색 뷰)** 는 `feature/p9-progress-file-explorer` 에서 완료 —
+supervisor PASS + 비차단 후속 2건 정리, PR 대기(병합은 사용자). `GET /api/tree`·`GET /api/docs/:path`(의존성 0 토크나이저,
+`.md` 만, 허용 루트 `docs/` + 루트 `*.md`) + `progress` 위젯(좌 트리/우 본문, 분할선 드래그·패널 접기). **채택 ADR:**
+0027·0032·0028·0018·0029·0030·**0031**(P9 구현) + 0013(부분 — P7 "지금 실행" 트리거만). **제안·보류:** 0013 전체 작업 큐,
+**0033**(독립 위젯 창 — 방향만 유지, 아래 §4-3).
 
 **2026-09-08 세션 후반:** 사용자가 "웹 데모 ≠ 앱" 을 강조 — 산출물은 Electron 앱(백엔드+에이전트
 포함)이고 웹 데모는 미리보기다. 그리고 개별 위젯을 바탕화면 독립 창으로 띄우는 방향을 열어두려고
 **ADR-0033**(제안·보류)을 신설했다: 위젯 뷰는 셸(`WidgetShell`·`react-grid-layout`·`useLayoutStore`)에
 독립적으로 유지 → 나중에 같은 뷰를 독립 창 루트에 마운트 가능. 구현은 안 함.
 
-**PR 상태:** #52~#55(P6·P7 + 문서 스윕) 전부 병합됨. **#56(ADR-0033) 만 열림 — CI green, 병합 대기.**
+**PR 상태:** #52~#58 전부 병합됨. **P9 PR(`feature/p9-progress-file-explorer`) 만 열림 — 병합 대기(사용자).**
 
-**다음 세션은 P9 (T6 진행 현황 · 파일 탐색 뷰)** — `GET /api/docs/:name` + `GET /api/tree` + 위젯
-(좌 폴더 트리 / 우 본문). ADR-0031 은 이미 채택이므로 바로 `/feature`. 그 전후로 §4-3 앱 통합.
-P8 PR 병합 확인 먼저. 상세는 §4.
+**다음 세션은 §4-3 앱 통합** — 통합 실행 스크립트(`npm run app`), ADR-0016 프로세스 토폴로지 결정,
+데모↔실서버 패리티, 독립 위젯 창(ADR-0033) 규범 유지. 그리고 P7·P8·P9 로컬 수동 검증 백로그
+(TC-ACT-M/TC-AGENT-M, TC-OKR-M/TC-PLAN-M, TC-P9-M). P9 PR 병합 확인 먼저. 상세는 §4.
 
 ---
 
@@ -39,17 +40,19 @@ P8 PR 병합 확인 먼저. 상세는 §4.
 | #55 | **P7** T4 에이전트 활동 위젯 + '지금 실행' 파일 플래그 (ADR-0013 부분 채택, FR-AGENT-08/09) | ✅ 병합됨 (main `82586ab`) |
 | #56 | docs: ADR-0033 독립 위젯 창 방향 유지 (제안·보류) | ✅ 병합됨 (#56) |
 | #57 | docs: P8 선행 — requirements/OKR.md + FR-OKR-01~06 | ✅ 병합됨 (main `915b203`/`357893e`) |
-| **P8** | **T3 OKR Phase + 주간 플래너** (FR-OKR-01~06, ADR-0030) — `feature/p8-okr-planner` | **PR 대기 (병합은 사용자)** |
+| #58 | **P8** T3 OKR Phase + 주간 플래너 (FR-OKR-01~06, ADR-0030) | ✅ 병합됨 (main `8a07126`/`409c137`) |
+| **P9** | **T6 진행 현황 · 파일 탐색 뷰** (FR-UI-06, ADR-0031) — `feature/p9-progress-file-explorer` | **PR 대기 (병합은 사용자)** |
 
 **다음 세션 첫 작업:**
 1. `git checkout main && git pull` (SessionStart 훅이 병합된 로컬 브랜치를 자동 정리).
-2. P8 PR 병합 확인.
+2. P9 PR 병합 확인.
 3. **로컬 수동 검증 백로그** — 아래를 실제 Electron 앱(`cd backend && npm start` + `cd frontend && npm run dev`)에서 확인하고 `PROGRESS.md`·`TEST_PLAN.md` 에 반영:
    - TC-P3-M(라이트 테마) · TC-P4-M(공통 컴포넌트) · TC-SHELL-M1~6(사이드바 셸)
    - TC-P5-M1~4(칸반 리스트/보드) · TC-P6-M1~4(태그 칩·필터)
    - TC-ACT-M / TC-AGENT-M(P7 — `bash scripts/install-runnow-launchd.sh` 후 "지금 실행" → 플래그 감지)
-   - **TC-OKR-M / TC-PLAN-M(P8 — OKR CRUD·주간 플래너·인라인 SVG 라인차트 실제 앱 확인)**
-4. **→ `/feature` 로 P9 (T6 진행 현황 · 파일 탐색 뷰, ADR-0031 채택됨).**
+   - TC-OKR-M / TC-PLAN-M(P8 — OKR CRUD·주간 플래너·인라인 SVG 라인차트 실제 앱 확인)
+   - **TC-P9-M(P9 — `progress` 주제 진입: 기존 저장 레이아웃 사용자는 "레이아웃 초기화" 필요(R7) → 트리 탐색 → `PROGRESS.md` 렌더/섹션 접기 → 분할선 드래그 후 새로고침 비율 유지 → 패널 접기 → mermaid 렌더 → 링크 복사 버튼 & 외부 브라우저로 안 튐)**
+4. **→ 앱 통합(§4-3): 통합 실행 스크립트 `npm run app` + ADR-0016 결정 + 데모↔실서버 패리티.**
 
 ### P4.5 구현 요약 (PR #45, 커밋 `1c5ee54`)
 - 신규: `components/{AppShell,Sidebar,TopicView,TopicIcons}.jsx`, `widgets/topics.js`(11주제/4그룹),
@@ -104,29 +107,25 @@ P8 PR 병합 확인 먼저. 상세는 §4.
 | **P5** | **T1 단일 캐시 + 칸반 뷰** — `useTaskStore` `byId`/`order`, 칸반 = tasks 위젯 내 리스트/보드 토글(PO-7) | ✅ **#47 병합됨** (ADR-0028 채택), 수동 검증 TC-P5-M1~4 대기 |
 | **P6** | T2 자동 분류 — 최소 마이그레이션 + 에이전트 배치 분류 + 태그 칩 필터 | ✅ **#52 병합됨** (ADR-0018·0029 채택, FR-TASK-08), 수동 검증 TC-P6-M1~4 대기 |
 | **P7** | T4 에이전트 활동 위젯 — `sync_logs`/`health`/다음 실행 + "지금 실행" 파일 플래그 | ✅ **#55 병합됨** (ADR-0013 부분 채택, FR-AGENT-08/09), launchd WatchPaths 수동 검증 대기 |
-| **P8** | T3 OKR Phase — `objectives`/`key_results`/`kr_snapshots` + OKR 대시보드 + 주간 플래너 + 인라인 SVG 라인차트 | ✅ **완료, PR 대기** (`feature/p8-okr-planner`, ADR-0030 채택, FR-OKR-01~06). backend 126/126, frontend 98/98. 수동 검증 TC-OKR-M / TC-PLAN-M 대기 |
-| P9 | T6 진행 현황 · 파일 탐색 뷰 — `GET /api/docs/:name` + `GET /api/tree` + 위젯(좌 폴더 트리 / 우 본문) | ⏳ **다음** (ADR-0031 채택됨, 착수만 하면 됨) |
+| **P8** | T3 OKR Phase — `objectives`/`key_results`/`kr_snapshots` + OKR 대시보드 + 주간 플래너 + 인라인 SVG 라인차트 | ✅ **#58 병합됨** (ADR-0030 채택, FR-OKR-01~06). backend 126/126, frontend 98/98. 수동 검증 TC-OKR-M / TC-PLAN-M 대기 |
+| **P9** | T6 진행 현황 · 파일 탐색 뷰 — `GET /api/tree` + `GET /api/docs/:path`(안전 토큰화) + `progress` 위젯(좌 폴더 트리 / 우 본문) | ✅ **완료, PR 대기** (`feature/p9-progress-file-explorer`, ADR-0031 채택·구현, FR-UI-06). backend 142/142, frontend 103/103. 수동 검증 TC-P9-M 대기. R7: 기존 저장 레이아웃 사용자는 레이아웃 초기화 필요 |
 | (별도) | **앱 통합** — 통합 실행 스크립트 + Electron↔백엔드 프로세스 토폴로지([ADR-0016](../product/architecture/adr/ADR-0016-desktop-process-topology.md) 결정) + 독립 위젯 창([ADR-0033](../product/architecture/adr/ADR-0033-standalone-widget-windows.md)) | ⏳ P9 전후 / 패키징 전. §4-3 |
 
 ---
 
-## 4. 다음 세션 = P8 착수 전 선행 + `/feature` P8
+## 4. 다음 세션 = 앱 통합 (§4-3) + 수동 검증 백로그
 
-**P8 = T3 OKR Phase + 주간 플래너** — `objectives`/`key_results` 스키마 + OKR 대시보드 위젯 + 주간 플래너.
+개인 OS 빌드 P0~P9 는 전부 완료됐다(P9 = PR 대기). 남은 큰 축은 **앱 통합**과 **로컬 수동 검증 백로그**다.
 
-### 4-1. 착수 전 선행 (planner 진입 전)
-- **`requirements/OKR.md` 작성 + FR-OKR-\* 정의** — ADR-0030 은 2026-09-08 이미 채택이므로 새 ADR 결정은 불필요.
-  OKR 데이터 계약을 확정한다:
-  - `objectives`(분기·제목·상태) / `key_results`(목표치·현재치·단위·진행 %) 필드.
-  - 주간 플래너가 OKR·할일과 어떻게 엮이는지 (참조만 vs 별도 테이블).
-  - 최소 마이그레이션(P6 도입 `PRAGMA user_version` 러너)으로 스키마 추가.
-  - FR 을 `REQUIREMENTS_FUNCTIONAL.md` + `TRACEABILITY.md` + `requirements/README.md` 에 추가.
-- 웹 데모: `GET /api/okr/*` 신설 시 `demoClient.js`/`demoData.js` 목 어댑터도 같이.
-
-### 4-2. P7 로컬 수동 검증 대기 (사용자)
-- `bash scripts/install-runnow-launchd.sh` 로 `com.aicomputeros.runnow` 잡 등록 (`WatchPaths = agent/.triggers/`).
-- 위젯 "지금 실행" 클릭 → `agent/.triggers/run-now` 생성 → launchd 가 `agent/trigger.py` 실행하는지 확인 (TC-ACT-M / TC-AGENT-M).
+### 4-1. 로컬 수동 검증 백로그 (사용자, 실제 Electron 앱)
+- P3~P6: TC-P3-M · TC-P4-M · TC-SHELL-M1~6 · TC-P5-M1~4 · TC-P6-M1~4
+- P7: TC-ACT-M / TC-AGENT-M — `bash scripts/install-runnow-launchd.sh` 후 "지금 실행" → `agent/.triggers/run-now` 생성 → launchd 가 `agent/trigger.py` 실행하는지.
+- P8: TC-OKR-M / TC-PLAN-M — OKR CRUD·주간 플래너·인라인 SVG 라인차트.
+- P9: TC-P9-M — `progress` 주제 진입(R7: 기존 저장 레이아웃 사용자는 "레이아웃 초기화" 필요) → 트리 탐색 → `PROGRESS.md` 렌더·섹션 접기 → 분할선 드래그 후 새로고침 비율 유지 → 패널 접기 → mermaid 렌더 → 인라인 링크 복사 버튼(외부 브라우저로 안 튐).
 - 결과를 `PROGRESS.md`·`TEST_PLAN.md` 에 반영.
+
+### 4-2. (참고) P9 요약
+`backend/src/services/{docs,tree}.js` + `routes/{docs,tree}.js`(신규, 의존성 0 토크나이저·트리, `.md` 만, 허용 루트 `docs/` + 루트 `*.md`, 상한 깊이 8·항목 2000·1MB, 심링크 스킵). `GET /api/tree` → `{ tree, truncated }`, `GET /api/docs/:path` → `{ path, tokens }`(형태 위반 400 / 없음 404, ADR-0013 읽기 전용). 프런트 `components/{DocView,FileTree,MermaidBlock}.jsx`(파서·`dangerouslySetInnerHTML` 없음, 인라인 링크는 복사 버튼) + `widgets/docSections.js`(순수) + `widgets/views/ProgressWidgetView.jsx` + `widgets/{widgetMeta,registry,defaultLayout}.js` progress 위젯 등록. 데모 패리티 `demoData.js`/`demoClient.js`. DATA_ARCHITECTURE §8(문서 계층/도메인 데이터 분리) 추가.
 
 ### 4-3. 앱 통합 — "웹 데모 ≠ 앱" (사용자 강조, 2026-09-08)
 
@@ -200,13 +199,14 @@ ADR-0013 부분 채택(P7 — 트리거만), ADR-0030(P8), ADR-0031(P9), ADR-001
 
 ---
 
-## 8. 자동 검증 현황 (2026-09-08 P8 기준 — 전부 초록)
+## 8. 자동 검증 현황 (2026-09-08 P9 기준 — 전부 초록)
 
 | 스위트 | 결과 |
 |---|---|
-| `verify.sh --code-only` | 33 / 0 / 0 |
+| `verify.sh` | 45 / 0 / 0 |
+| `verify.sh --code-only` | 37 / 0 / 0 |
 | `check-docs.sh` (문서 정합) | 11 / 0 / 0 |
-| backend `npm test` | 126 pass / 0 fail (P8) |
-| frontend `npm test` | 98 pass / 0 fail (P8) |
-| agent `pytest -m "not network"` | 80 passed / 4 deselected (P7 — P8 변경 없음) |
+| backend `npm test` | 142 pass / 0 fail (P9) |
+| frontend `node --test test/**/*.test.mjs` | 103 pass / 0 fail (P9) |
+| agent `pytest -m "not network"` | 80 passed / 4 deselected (P7 — P8·P9 변경 없음) |
 | `npm run build` / `build:demo` | 성공 |

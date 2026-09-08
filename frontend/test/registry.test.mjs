@@ -50,6 +50,22 @@ test('TC-P8-REG-01: okr·weekly 위젯 메타가 등록돼 있다', () => {
   assert.equal(weekly.configSchema.hideCompleted.default, false);
 });
 
+test('TC-P9-REG-01: progress 위젯 메타·treePct 스키마·기본 레이아웃', () => {
+  const p = WIDGET_META.progress;
+  assert.ok(p, 'progress 메타 누락');
+  assert.equal(p.configSchema.treePct.type, 'number');
+  assert.equal(p.configSchema.treePct.default, 30);
+  assert.equal(p.configSchema.treePct.min, 15);
+  assert.equal(p.configSchema.treePct.max, 85);
+  assert.equal(p.configSchema.autoExpandSections.default, true);
+
+  assert.deepEqual(DEFAULT_LAYOUTS.progress.map((i) => i.type), ['progress']);
+  for (const inst of DEFAULT_LAYOUTS.progress) {
+    assert.ok(inst.w <= 12);
+    assert.ok(inst.w >= p.minSize.w && inst.h >= p.minSize.h);
+  }
+});
+
 test('TC-P8-REG-02: PLAN 주제 기본 레이아웃이 okr·weekly 전용 위젯을 쓴다', () => {
   assert.deepEqual(DEFAULT_LAYOUTS.okr.map((i) => i.type), ['okr']);
   assert.deepEqual(DEFAULT_LAYOUTS.weekly.map((i) => i.type), ['weekly']);

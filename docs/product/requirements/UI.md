@@ -132,4 +132,39 @@ DESIGN §8 (신규 단계) · Phase C1(CORS 선행) · NFR-REL-02, NFR-PERF
 
 ---
 
-**작성:** 2026-09-02 (FR-UI-05 추가: 2026-09-03)
+## FR-UI-06 — 진행 현황 · 파일 탐색 뷰
+
+**사용자 스토리:** 사용자로서 나는 저장소를 IDE 로 열지 않고 대시보드 위젯에서
+프로젝트 진행 문서 구조를 왼쪽 트리로 훑고, 문서를 클릭해 본문을 그림·표까지 포함해 보고 싶다.
+
+**우선순위** P2 · **목표 주차** 개인 OS P9 · **상태** ✅ 구현 완료 (2026-09-08, [ADR-0031](../architecture/adr/ADR-0031-safe-markdown-render.md) 채택) — 브라우저 E2E 수동 확인 대기 (TC-P9-M)
+
+### 범위
+- **이번**: `docs/` + 저장소 루트 `*.md` 의 `.md` 파일만. 서버가 제한된 토큰 배열로 파싱 →
+  클라이언트가 React 요소로 매핑 (마크다운 파서·`dangerouslySetInnerHTML` 없음, NFR-SEC-04).
+- **범위 밖**: 소스 파일(`.js`/`.py`/`.sh`) 렌더, 파일 생성·수정·삭제 (ADR-0013 읽기 전용 유지).
+
+### 수용 기준
+- **AC-1** `GET /api/tree` → `docs/` + 루트 `*.md` 의 `.md` 파일 트리 JSON(`{ tree, truncated }`).
+  제외 목록(`.env*`·`node_modules`·`.git`·`venv`·`dist`·`*.log`·`__pycache__`·숨김)·상한(깊이 8·항목 2000·1MB) 적용.
+  루트 부재 시 200 빈 트리, 심링크 스킵.
+- **AC-2** `GET /api/docs/:path`(허용 루트 안 `.md`) → `{ path, tokens }`. `..`·절대경로·허용 밖·비-`.md`·심링크 탈출은 400/404.
+- **AC-3** 위젯이 왼쪽 트리 + 오른쪽 본문(제목·문단·목록·표·코드·인용·hr·mermaid, 인라인 link/code/strong/em)을 렌더한다 — 파서 없음.
+- **AC-4** 파일을 고치고 새로고침하면 다음 요청에 반영된다 (캐시 없음).
+- **AC-5** 지원 안 하는 문법(이미지·HTML 블록·각주 등)은 원문 텍스트로 안전하게 표시한다.
+- **AC-6** 위젯의 좌/우 패널 분할 비율을 분할선 드래그로 바꿀 수 있고(pointerup 시 1회 persist), 각 패널을 접었다 펼 수 있다. 본문은 heading 기준 섹션 접기를 지원한다.
+
+### 오류 시나리오
+| 상황 | 기대 동작 |
+|---|---|
+| 백엔드 미기동 / CORS 미설정 | 패널에 `ErrorBanner`(재시도) |
+| 패키지 빌드에 `docs/` 미동봉 | `GET /api/tree` 가 빈 트리(200) → "비어있음" 상태 |
+| 인라인 링크 클릭 | 외부 브라우저로 내비게이션하지 않고 복사 버튼으로 URL 복사 (BriefCard 선례) |
+
+### 관련
+[ADR-0031](../architecture/adr/ADR-0031-safe-markdown-render.md) · [ADR-0013](../architecture/adr/ADR-0013-dashboard-agent-queue.md)(읽기 전용) · [ADR-0014](../architecture/adr/ADR-0014-dashboard-diagram-viewer.md)(다이어그램 재사용) ·
+[PERSONAL_OS.md](../vision/PERSONAL_OS.md) T6 · NFR-SEC-04, NFR-REL-02
+
+---
+
+**작성:** 2026-09-02 (FR-UI-05 추가: 2026-09-03 · FR-UI-06 추가: 2026-09-08)
