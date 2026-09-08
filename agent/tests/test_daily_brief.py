@@ -241,6 +241,34 @@ def test_agent_21_build_context_does_not_import_network_services():
     assert "services.calendar" not in src
 
 
+def test_agent_run_invokes_classify_before_context(temp_db, monkeypatch):
+    """_run() 은 build_context 전에 classify_untagged 를 부르고, 그 실패는 삼킨다."""
+    order = []
+    monkeypatch.setattr(daily_brief, "get_today_tasks", lambda: [])
+    monkeypatch.setattr(daily_brief, "get_unread_emails", lambda: [])
+    monkeypatch.setattr(daily_brief, "get_today_events", lambda: [])
+    monkeypatch.setattr(daily_brief, "ask", lambda *a, **k: "브리핑 본문")
+    monkeypatch.setattr(daily_brief, "save_to_notion", lambda data: None)
+
+    def boom_classify():
+        order.append("classify")
+        raise RuntimeError("분류 실패")
+
+    _orig_ctx = daily_brief.build_context
+
+    def tracked_ctx():
+        order.append("context")
+        return _orig_ctx()
+
+    monkeypatch.setattr(daily_brief, "classify_untagged", boom_classify)
+    monkeypatch.setattr(daily_brief, "build_context", tracked_ctx)
+
+    ok, _ = daily_brief._run()
+
+    assert ok is True
+    assert order == ["classify", "context"]
+
+
 @pytest.mark.network
 def test_agent_15_real_claude_smoke(temp_db, monkeypatch):
     """TC-AGENT-15: 실제 Claude 1회 호출 → 비어있지 않은 브리핑 + briefs 저장."""

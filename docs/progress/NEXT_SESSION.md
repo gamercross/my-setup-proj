@@ -1,6 +1,6 @@
 # 🧭 다음 세션 인계 — 상태 확인 + 작업 방향
 
-> 작성: 2026-09-07 · **갱신: 2026-09-08 (P5 파이프라인 완주 — 단일 캐시 + 칸반)**
+> 작성: 2026-09-07 · **갱신: 2026-09-08 (P6 파이프라인 완주 — 자유 태그 + 에이전트 자동 태깅)**
 > 이 문서는 새 세션 시작 시 **가장 먼저 읽는다.** 이후 정식 문서
 > ([PROGRESS.md](PROGRESS.md) · [PERSONAL_OS.md](../product/vision/PERSONAL_OS.md) ·
 > [DEMO_FEEDBACK.md](DEMO_FEEDBACK.md))로 교차 확인.
@@ -9,41 +9,39 @@
 
 ## 0. 지금 어디까지 왔나 (한 문단)
 
-Phase A~D 완료·병합. "개인 생산성 OS" 방향으로 **P0~P4.5 완료**(전부 병합됨). **2026-09-08 세션**에서
-**`/feature` 파이프라인으로 P5(단일 클라이언트 캐시 + 칸반 뷰)를 완주**했다
-(planner→developer→supervisor(PASS)→finisher). ADR-0028 채택. `useTaskStore` 를 `byId`/`order`
-정본으로 전환 + `tasks` 파생 미러 유지, `TasksWidgetView` 리스트/보드 세그먼티드 토글
-(`config.display.view`), 순수 모듈 `taskCache.js`/`taskBoard.js` + props-only `TaskBoard.jsx`/`TaskCard.jsx`.
-신규 요구사항 **FR-TASK-09**.
+Phase A~D 완료·병합. "개인 생산성 OS" 방향으로 **P0~P5 완료**(전부 병합됨). **2026-09-08 세션**에서
+**`/feature` 파이프라인으로 P6(T2 자동 분류)를 완주**했다
+(planner→developer→supervisor(수정 1회 후 PASS)→finisher). **ADR-0018·0029 채택**
+(ADR-0030·0031·0013 은 여전히 제안 — P7~P9 착수 전 결정 필요).
+할 일 자유 태그(다중, `task_tags` 테이블) + 에이전트 배치 자동 태깅(`agent/classify.py`) +
+위젯 태그 칩 필터. **최소 마이그레이션 도입**: `PRAGMA user_version` + `backend/db/index.js` 인라인
+러너, forward-only, 실행 전 `.bak-<ts>` (supervisor 가 WAL 백업 버그 1건 잡아 수정). 신규 요구사항 **FR-TASK-08**.
 
-**PR 상태:** #42~#49 **전부 병합 완료.** 열린 PR 없음. 로컬 브랜치 정리됨(#48 의 `SessionStart` 훅 가동).
+**PR 상태:** P6 PR 를 이 세션에서 염(아래 §1). 그 외 열린 PR 없음.
 
-**다음 세션은 코드가 아니라 "ADR 결정 세션" 으로 시작한다** (사용자 요청, 2026-09-08). P1 문서 잔여 =
-제안 상태 ADR 5건(0018·0029·0030·0031·0013 재활성)이 P6~P9 를 전부 막고 있다. 한 세션에서
-`AskUserQuestion` 으로 관련 PO 질문을 몰아 묻고 ADR 을 채택 → `OKR.md` 작성 → 그 뒤 `/feature` 로 P6.
-상세 진행안은 §4.
+**다음 세션은 P7 (T4 에이전트 활동 위젯)** — `sync_logs`/`health`/다음 실행 표시.
+착수 전 **ADR-0013 재활성·채택**(PO-9, "지금 실행" = 파일 플래그 방향) + **FR-AGENT-\* 신규 요구사항**
+정의 필요(위젯이 노출할 데이터 계약 — sync 상태·최근 로그·다음 스케줄). 그 뒤 `/feature`. 상세는 §4.
 
 ---
 
-## 1. Git / PR 상태 (2026-09-08 세션 종료 시점)
+## 1. Git / PR 상태 (2026-09-08 P6 세션 종료 시점)
 
 | PR | 내용 | 상태 |
 |---|---|---|
-| #42 | P4 공통 컴포넌트 | ✅ 병합됨 (main `5aac20a`) |
-| #43 | UI_STYLE v2 + ADR-0032(제안) | ✅ 병합됨 (main `8a2d8a4`) |
-| #44 | P2 캔버스 v2 + **ADR-0032 채택** + PO-13/14 결정 (docs) | ✅ 병합됨 (main `2687f9d`) |
-| #45 | **P4.5 사이드바 셸 구현** (`feat`, 커밋 `1c5ee54`, 34파일) | ✅ 병합됨 (main `5217d77`) |
-| #46 | ADR-0028 §결정4 를 PO-7(리스트/보드 토글)에 맞춤 (docs) | ✅ 병합됨 |
-| #47 | **P5 단일 클라이언트 캐시(ADR-0028 채택) + 칸반 리스트/보드 토글** (`feat`, 커밋 `b26985a`, 23파일) | ✅ 병합됨 (main `242d853`) |
-| #48 | 병합된 로컬 브랜치 자동 정리 — `prune-merged-branches.sh` + `SessionStart` 훅 (`chore`) | ✅ 병합됨 (main `e8caddb`) |
-| #49 | P5 AC-7 참조 안정성 단언 TC-P5-14 (`test`) | ⚠️ base 를 `feature/p5-task-cache-kanban` 로 둔 채 병합돼 **main 에 안 들어감** — `docs/adr-decision-session-prep` 브랜치로 복구 |
+| #47 | P5 단일 클라이언트 캐시(ADR-0028 채택) + 칸반 리스트/보드 토글 | ✅ 병합됨 (main `242d853`) |
+| #48 | 병합된 로컬 브랜치 자동 정리 — `SessionStart` 훅 (`chore`) | ✅ 병합됨 |
+| #49 | P5 AC-7 참조 안정성 단언 TC-P5-14 (`test`) | ✅ #50 으로 복구·병합됨 (main `e72c358`) |
+| #50 | ADR 결정 세션 준비 + #49 유실분 복구 (docs) | ✅ 병합됨 (main `f0dd7bf`) |
+| **P6** | **T2 자동 분류 — 자유 태그(다중) + 에이전트 배치 자동 태깅 + 칩 필터** (ADR-0018·0029 채택, `feat`, 41파일) | 🔀 **이 세션에서 PR 염** (`feature/p6-task-tags-classify` → main), 병합 대기 |
 
 **다음 세션 첫 작업:**
 1. `git checkout main && git pull` (SessionStart 훅이 병합된 로컬 브랜치를 자동 정리).
-2. `docs/adr-decision-session-prep` PR 병합 확인 (TC-P5-14 + 이 문서 갱신 복구분).
-3. 데모 확인: tasks 위젯에 리스트/보드 세그먼티드 토글 등장.
-4. **→ §4 "ADR 결정 세션" 진행.** 코드 작업(`/feature`)은 그 뒤.
-5. P5 수동 검증 TC-P5-M1~4 (로컬 GUI) 결과를 `PROGRESS.md`·`TEST_PLAN.md` 에 반영.
+2. P6 PR 병합 확인. 데모 확인: tasks 위젯에 태그 칩 + 칩 필터 등장.
+3. P6 수동 검증 TC-P6-M1~4 (로컬 GUI) 결과를 `PROGRESS.md`·`TEST_PLAN.md` 에 반영.
+4. **P7 착수 전 결정:** ADR-0013 재활성·채택(PO-9, 파일 플래그 방향) + FR-AGENT-\* 신규 요구사항
+   정의 (에이전트 활동 위젯 데이터 계약).
+5. **→ `/feature` 로 P7 (T4 에이전트 활동 위젯).**
 
 ### P4.5 구현 요약 (PR #45, 커밋 `1c5ee54`)
 - 신규: `components/{AppShell,Sidebar,TopicView,TopicIcons}.jsx`, `widgets/topics.js`(11주제/4그룹),
@@ -90,45 +88,42 @@ Phase A~D 완료·병합. "개인 생산성 OS" 방향으로 **P0~P4.5 완료**(
 | 단계 | 내용 | 상태 |
 |---|---|---|
 | P0 | 문서 + PROGRESS 다이어그램 | ✅ |
-| P1 | ADR 초안 + 요구사항 | 🚧 **부분** (아래 §4) |
+| P1 | ADR 초안 + 요구사항 | 🚧 ADR-0018·0029 채택 (P6). ADR-0030·0031·0013 은 아직 **제안** — P7/P8/P9 착수 전 결정 필요. `OKR.md` 는 P8 선행 |
 | P2 | 디자인 캔버스 6 아트보드 + 토큰 v2 | ✅ · **v2 재작성 2026-09-08** (UI_STYLE v2 사이드바, 같은 URL: https://claude.ai/code/artifact/a8e15d6b-2bfb-42d9-96c7-cdb0d964ebf3) |
 | P3 | T5 라이트 테마 1차 (ADR-0027 채택) | ✅ 병합됨 |
 | P4 | T5 공통 컴포넌트 | ✅ 병합됨 |
 | **P4.5** | 사이드바 셸 (UI_STYLE v2 / ADR-0032 채택) | ✅ **PR #45 병합됨** |
 | **P5** | **T1 단일 캐시 + 칸반 뷰** — `useTaskStore` `byId`/`order`, 칸반 = tasks 위젯 내 리스트/보드 토글(PO-7) | ✅ **#47 병합됨** (ADR-0028 채택), 수동 검증 TC-P5-M1~4 대기 |
-| **P6** | T2 자동 분류 — 스키마 마이그레이션 + 에이전트 분류 + 칩 필터 | ⏳ **다음** (ADR-0018·0029 선행·제안) |
-| P7 | T4 에이전트 활동 위젯 — `sync_logs`/`health`/다음 실행 | ⏳ |
+| **P6** | T2 자동 분류 — 최소 마이그레이션 + 에이전트 배치 분류 + 태그 칩 필터 | ✅ **PR 열림** (ADR-0018·0029 채택, FR-TASK-08), 수동 검증 TC-P6-M1~4 대기 |
+| **P7** | T4 에이전트 활동 위젯 — `sync_logs`/`health`/다음 실행 | ⏳ **다음** (ADR-0013 재활성·채택 + FR-AGENT-\* 신규 필요) |
 | P8 | T3 OKR Phase — `objectives`/`key_results` + OKR 대시보드 + 주간 플래너 | ⏳ |
 | P9 | T6 진행 현황 · 파일 탐색 뷰 — `GET /api/docs/:name` + `GET /api/tree` + 위젯(좌 폴더 트리 / 우 본문) | ⏳ |
 
 ---
 
-## 4. ADR 결정 세션 (다음 세션 = 여기서 시작)
+## 4. 다음 세션 = P7 착수 전 결정 + `/feature` P7
 
-**목적:** P6~P9 를 막고 있는 제안 상태 ADR 5건 + 관련 PO 질문을 한 번에 종결한다. 코드는 안 짠다.
-**진행 방식:** 각 안건마다 `AskUserQuestion` 으로 선택지를 제시 → 답을 해당 ADR 본문에 반영하고 상태를
-`제안 → 채택` 으로 바꾼다 → `DESIGN.md` §2 · `adr/README.md` · `TRACEABILITY.md` 표 갱신.
-문서 전용이므로 `docs/adr-decisions-<날짜>` 한 브랜치에 모아 커밋 → PR. (`/feature` 아님 — ADR 결정은 사람 몫.)
+**P7 = T4 에이전트 활동 위젯** — 대시보드에서 에이전트(daily brief / sync) 상태를 본다:
+최근 `sync_logs` 항목 · Supabase `health` · 다음 launchd 실행 시각 · "지금 실행" 버튼.
 
-### 4-1. 안건 (순서대로)
+### 4-1. 착수 전 결정 (planner 진입 전, `AskUserQuestion` 으로)
+- **ADR-0013 재활성 → 채택** — PO-9: "지금 실행" 트리거 방식. 이번 세션 방향 지시로는
+  **파일 플래그**(백엔드가 플래그 파일 write → launchd `WatchPaths` 또는 에이전트 폴링이 집음)로 가되,
+  ADR 본문·상태(`제안 → 채택`) + `DESIGN.md` §2 · `adr/README.md` 갱신 필요.
+- **FR-AGENT-\* 신규 요구사항** — 위젯이 노출할 데이터 계약을 확정한다:
+  - 최근 sync 로그 몇 건, 어떤 필드(소스·상태·시각·마스킹된 에러)를 보일지.
+  - "다음 실행 시각" 을 어디서 얻을지 (plist 파싱 vs 고정 표시 vs 에이전트가 기록).
+  - FR 을 `REQUIREMENTS_FUNCTIONAL.md` + `TRACEABILITY.md` 에 추가.
+- 웹 데모: `GET /api/agent/*` 신설 시 `demoClient.js`/`demoData.js` 목 어댑터도 같이.
 
-| # | ADR | 상태 | 물어볼 것 (PO) | 막는 Phase |
-|---|---|---|---|---|
-| 1 | **ADR-0018** 스키마 마이그레이션 전략 | 제안 | 초안(순번 기반 forward-only, `backend/db/migrations/` + `schema_migrations`, 부팅 시 러너, 실행 전 `.bak`)을 그대로 채택할지 | P6 (선행 강제) |
-| 2 | **ADR-0029** 할 일 자동 분류 | 제안 | **PO-3** taxonomy: 고정 집합 vs 자유 태그 / 단일 vs 다중. **PO-4** 분류 시점·주체: 백엔드 POST 시 Claude 호출 vs 에이전트 배치 vs 별도 테이블 | P6 |
-| 3 | **ADR-0013** 에이전트 "지금 실행" 트리거 | 보류(재활성 필요) | **PO-9** 백엔드가 python 프로세스를 트리거하는 것을 ADR-0011(프로세스 분리)의 예외로 허용할지, 아니면 다른 방식(파일 플래그·큐) | P7 |
-| 4 | **ADR-0030** OKR 데이터 모델 | 제안 | **PO-5** OKR = 1급 엔티티(`objectives`/`key_results`/`kr_snapshots`) vs `projects` 재해석. **PO-6** 주간 요약: 순수 집계 vs Claude "Weekly Brief" | P8 |
-| 5 | **ADR-0031** 안전 마크다운 렌더 + 파일 트리 API | 제안 | **PO-11** 진행 현황 뷰에 노출할 문서·섹션 범위(전체 vs 큐레이션) + 접기 UI. **PO-12** 파일 트리 허용 루트·제외 목록, 소스 파일(`.js`/`.py`)도 코드블록으로 보여줄지 `.md` 만 렌더할지 | P9 |
-
-### 4-2. 파생 작업 (ADR 결정 직후 같은 세션 또는 바로 다음)
-- **`requirements/OKR.md` 작성** — ADR-0030 채택 결과를 요구사항으로 (P8 선행).
-- **PO-10** — 개인 OS 방향(P6~P9)과 Phase E(다중 사용자·Supabase 동기화)의 순서: 병행 vs P9 이후. `PROGRESS.md` 에 기록.
+### 4-2. 이후 로드맵 파생 작업 (P8/P9 전)
+- **ADR-0030 채택** (PO-5·6) + **`requirements/OKR.md` 작성** — P8 선행.
+- **ADR-0031 채택** (PO-11·12) — P9 선행.
+- **PO-10** — 개인 OS 방향(P7~P9)과 Phase E(다중 사용자·Supabase 동기화)의 순서: 미결. `PROGRESS.md` 에 기록.
 
 ### 4-3. 이미 종결된 결정 (참고)
-PO-7(= tasks 위젯 내 `config.display.view` 리스트/보드, ADR-0028 채택·P5 구현), PO-8(인라인 SVG),
-PO-13/PO-14(사이드바 구성·rail 후속, ADR-0032 채택·P4.5 구현), PO-1/PO-2(라이트 기본·파랑 강조, ADR-0027).
-
-**→ ADR 결정 세션 끝나면: `/feature` 로 P6 (마이그레이션 러너 + `tasks.category` + 에이전트 분류 + 칩 필터).**
+ADR-0018·0029(P6 구현), ADR-0028/PO-7(P5), ADR-0032/PO-13·14(P4.5), ADR-0027/PO-1·2(P3) — 채택.
+**아직 제안 상태:** ADR-0013(P7 선행), ADR-0030(P8 선행), ADR-0031(P9 선행).
 
 ---
 
@@ -185,6 +180,6 @@ PO-13/PO-14(사이드바 구성·rail 후속, ADR-0032 채택·P4.5 구현), PO-
 |---|---|
 | `verify.sh --code-only` | 27 / 0 / 0 |
 | `check-docs.sh` (문서 정합) | 11 / 0 / 0 |
-| backend `npm test` | 85 pass / 0 fail |
-| frontend `npm test` | 57 pass / 0 fail (P5 + TC-P5-14) |
-| agent `pytest -m "not network"` | 64 passed / 4 deselected |
+| backend `npm test` | 97 pass / 0 fail (P6) |
+| frontend `npm test` | 68 pass / 0 fail (P6) |
+| agent `pytest -m "not network"` | 75 passed / 4 deselected (P6) |

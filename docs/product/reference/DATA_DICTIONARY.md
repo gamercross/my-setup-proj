@@ -37,6 +37,23 @@
 - 인덱스: `idx_tasks_due(due_date)`, `idx_tasks_status(status)`, `idx_tasks_project(project_id)` — 필터/정렬용 (FR-TASK-06, FR-PROJ).
 - `project_id`: ✅ Phase C2 (2026-09-03) — `POST/PUT /api/tasks` 검증 배선, API 응답에 노출(NULL = 단독 할일). 없는 id/타입 오류는 400(`backend/src/errors.js`). `GET /api/tasks?project_id=` 쿼리 필터는 이월(FR-TASK-06 과 함께).
 - 완료 토글(FR-TASK-03): `status` 를 `todo` ↔ `done` 전환, `updated_at` 갱신.
+- API 응답에는 `tasks.*` 컬럼 + 파생 필드 `tags: []`(문자열 배열, 오름차순) 이 실린다. `TASK_COLS` 는 불변이고 `task_tags` 를 별도 조회해 JS 로 부착한다.
+
+## 1-a. `task_tags` — 할일 태그 (FR-TASK-08, ADR-0029)
+
+자유 문자열 태그, 한 할일에 다중. 수동(`user`)과 에이전트 자동 분류(`agent`)를 `source` 로 구분한다.
+
+| 컬럼 | 타입 | 제약 | 의미 | 예시 |
+|---|---|---|---|---|
+| `task_id` | INTEGER | NOT NULL, FK → `tasks(id)` `ON DELETE CASCADE` | 대상 할일 | `3` |
+| `tag` | TEXT | NOT NULL | 태그 문자열. 트림 후 1~20자, 개행·콤마 불가 (API 검증) | `"공부"` |
+| `source` | TEXT | NOT NULL, CHECK `IN ('user','agent')` | 태그를 단 주체 | `"agent"` |
+| `created_at` | TEXT | NOT NULL | 생성 시각 | `"2026-09-08T08:00:00Z"` |
+
+- PK: `(task_id, tag)` — 같은 태그 중복 불가(추가는 `INSERT OR IGNORE` 로 멱등).
+- 인덱스: `idx_task_tags_tag(tag)` — 태그별 조회/필터용.
+- 쓰기 주체: 수동은 백엔드(`POST/DELETE /api/tasks/:id/tags`, `source='user'`). 자동은 **에이전트**(`agent/classify.py` → `agent/db.py:add_agent_tags`, `source='agent'`) — `daily_brief` 배치에서 태그 0개인 미완료 할일에만. ADR-0011 "에이전트 tasks 읽기 전용" 의 명시적 예외(`task_tags` 쓰기만).
+- API 응답에 `source` 는 노출하지 않는다(`tags` 는 문자열 배열).
 
 ## 2. `projects` — 프로젝트
 
@@ -105,13 +122,14 @@
 | 컬럼 | 타입 | 제약 | 의미 | 예시 |
 |---|---|---|---|---|
 | `id` | INTEGER | PK, auto | 식별자 | `1` |
-| `service` | TEXT | NOT NULL, CHECK | 동기화 대상 `gmail`/`calendar`/`notion`/`supabase` | `"gmail"` |
+| `service` | TEXT | NOT NULL, CHECK | 동기화 대상 `gmail`/`calendar`/`notion`/`supabase`/`classify` | `"gmail"` |
 | `status` | TEXT | NOT NULL, CHECK | `success`/`failed` | `"failed"` |
 | `last_sync` | TEXT | NOT NULL | 이 시도의 시각 (ISO8601) | — |
 | `error_message` | TEXT | NULL 허용 | `status='failed'` 일 때만 채움 | `"401 Unauthorized"` |
 
 - 인덱스: `idx_sync_service(service, last_sync)` — 서비스별 최근 동기화 조회 (FR-SYNC-03, NFR-OBS-03).
 - 매 동기화 시도마다 1행 append (갱신 아님).
+- `classify` = 에이전트 할일 자동 분류 배치 결과 (ADR-0029). 기존 파일 DB 는 `backend/db/index.js` 의 마이그레이션(`PRAGMA user_version` v1)이 CHECK 를 확장한다 — ADR-0018.
 
 ---
 
@@ -140,6 +158,7 @@
 
 ```
 projects (1) ──< (N) tasks        tasks.project_id FK, ON DELETE SET NULL (ADR-0012)
+tasks (1) ──< (N) task_tags       PK(task_id, tag), ON DELETE CASCADE (ADR-0029)
 briefs          독립 (날짜별 1건)
 calendar_events 독립 (외부 캐시)
 emails          독립 (외부 캐시)

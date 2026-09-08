@@ -58,6 +58,19 @@ describe('동기화 이력 API', () => {
     assert.match(bad.body.error, /gmail\|calendar\|notion\|supabase/);
   });
 
+  it('TC-SYNC-11: classify 는 유효한 service — 저장·조회·필터가 된다 (ADR-0029)', async () => {
+    seedLogs([
+      { service: 'classify', status: 'success', last_sync: '2026-09-08T08:00:00.000Z' },
+      { service: 'classify', status: 'failed', last_sync: '2026-09-08T08:05:00.000Z', error_message: 'x' },
+      { service: 'gmail', status: 'success', last_sync: '2026-09-08T08:10:00.000Z' },
+    ]);
+
+    const res = await request(app).get('/api/sync/logs?service=classify');
+    assert.equal(res.status, 200);
+    assert.equal(res.body.logs.length, 2);
+    assert.ok(res.body.logs.every((l) => l.service === 'classify'));
+  });
+
   it('TC-SYNC-10: ?limit=1 준수, limit 비정수는 400', async () => {
     seedLogs([
       { service: 'gmail', status: 'success', last_sync: '2026-09-06T08:00:00.000Z' },

@@ -6,7 +6,15 @@ import React from 'react';
 import TaskCard from './TaskCard';
 import { BOARD_COLUMNS } from '../widgets/taskBoard.js';
 
-export default function TaskBoard({ columns = {}, onToggle, onDelete }) {
+export default function TaskBoard({
+  columns = {},
+  onToggle,
+  onDelete,
+  activeTag,
+  onTagSelect,
+  onTagAdd,
+  onTagRemove,
+}) {
   return (
     <div style={{ display: 'flex', gap: '12px', overflowX: 'auto' }}>
       {BOARD_COLUMNS.map((col) => {
@@ -29,7 +37,16 @@ export default function TaskBoard({ columns = {}, onToggle, onDelete }) {
               <p style={{ color: 'var(--muted)', fontSize: '12px', margin: 0 }}>비어 있음</p>
             ) : (
               items.map((task) => (
-                <TaskCard key={task.id} task={task} onToggle={onToggle} onDelete={onDelete} />
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                  onToggle={onToggle}
+                  onDelete={onDelete}
+                  activeTag={activeTag}
+                  onTagSelect={onTagSelect}
+                  onTagAdd={onTagAdd}
+                  onTagRemove={onTagRemove}
+                />
               ))
             )}
           </div>

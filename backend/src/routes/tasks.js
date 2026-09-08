@@ -75,6 +75,26 @@ router.put('/:id', (req, res) => {
   }
 });
 
+// POST /api/tasks/:id/tags - 태그 추가 (수동, FR-TASK-08)
+router.post('/:id/tags', (req, res) => {
+  try {
+    const task = tasksService.addTag(req.params.id, (req.body || {}).tag);
+    res.status(201).json({ task });
+  } catch (err) {
+    handleError(err, res, { logPrefix: '태그 추가 실패:', failMessage: '태그를 저장하지 못했습니다.' });
+  }
+});
+
+// DELETE /api/tasks/:id/tags/:tag - 태그 삭제 (:tag 는 Express 가 자동 디코드)
+router.delete('/:id/tags/:tag', (req, res) => {
+  try {
+    const task = tasksService.removeTag(req.params.id, req.params.tag);
+    res.json({ task });
+  } catch (err) {
+    handleError(err, res, { logPrefix: '태그 삭제 실패:', failMessage: '태그를 삭제하지 못했습니다.' });
+  }
+});
+
 // DELETE /api/tasks/:id - 할일 삭제
 router.delete('/:id', (req, res) => {
   try {

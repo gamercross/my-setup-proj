@@ -39,6 +39,18 @@ CREATE INDEX IF NOT EXISTS idx_tasks_due     ON tasks(due_date);
 CREATE INDEX IF NOT EXISTS idx_tasks_status  ON tasks(status);
 CREATE INDEX IF NOT EXISTS idx_tasks_project ON tasks(project_id);
 
+-- ── 할일 태그 (T2 자동 분류 — ADR-0029) ────────────────
+-- 자유 문자열 태그·다중. source: 'user' 수동, 'agent' 에이전트 배치 분류.
+-- tasks.category 컬럼은 만들지 않는다 (폐기 — ADR-0029).
+CREATE TABLE IF NOT EXISTS task_tags (
+  task_id    INTEGER NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+  tag        TEXT    NOT NULL,
+  source     TEXT    NOT NULL CHECK (source IN ('user','agent')),
+  created_at TEXT    NOT NULL,
+  PRIMARY KEY (task_id, tag)
+);
+CREATE INDEX IF NOT EXISTS idx_task_tags_tag ON task_tags(tag);
+
 -- ── 캘린더 일정 (Google Calendar 캐시) ──────────────────
 CREATE TABLE IF NOT EXISTS calendar_events (
   id         INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -77,7 +89,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_briefs_date ON briefs(date);
 -- ── 동기화 로그 ────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS sync_logs (
   id            INTEGER PRIMARY KEY AUTOINCREMENT,
-  service       TEXT NOT NULL CHECK (service IN ('gmail','calendar','notion','supabase')),
+  service       TEXT NOT NULL CHECK (service IN ('gmail','calendar','notion','supabase','classify')),
   status        TEXT NOT NULL CHECK (status IN ('success','failed')),
   last_sync     TEXT NOT NULL,                         -- 이 시도의 시각 (ISO8601)
   error_message TEXT                                   -- status='failed' 일 때만 채움

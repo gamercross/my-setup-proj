@@ -19,6 +19,7 @@ from db import (
     log_sync,
     upsert_brief,
 )
+from classify import classify_untagged
 from services.claude import ask
 from services.notion import NotionNotConfigured, save_to_notion
 from services.sanitize import sanitize_error as _sanitize_error
@@ -89,6 +90,12 @@ def _run() -> tuple[bool, str]:
             ensure_schema(conn)
     except Exception as err:  # noqa: BLE001 - 부트스트랩 실패해도 계속 진행
         logger.warning("스키마 부트스트랩 실패(계속 진행): %s", err)
+
+    # 태그 없는 할일 자동 분류 (T2 — FR-TASK-08). 실패해도 브리핑은 계속 진행한다.
+    try:
+        classify_untagged()
+    except Exception as err:  # noqa: BLE001 - 분류 실패 격리
+        logger.warning("자동 분류 건너뜀: %s", err)
 
     today = f"{datetime.now():%Y-%m-%d}"
     context = build_context()

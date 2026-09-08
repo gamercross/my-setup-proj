@@ -64,4 +64,45 @@ function deleteTask(id) {
   }
 }
 
-module.exports = { listTasks, getTask, createTask, updateTask, deleteTask, assertProjectId };
+// ── 태그(task_tags) — T2 자동 분류 (FR-TASK-08) ──────────
+
+// 태그 문자열 정규화. 트림 후 1~20자가 아니거나 개행·콤마가 있으면 ValidationError.
+// 소문자화는 하지 않는다 (한글·대소문자 원형 유지).
+function normalizeTag(raw) {
+  const tag = String(raw ?? '').trim();
+  if (tag.length < 1 || tag.length > 20 || /[\n\r,]/.test(tag)) {
+    throw new ValidationError('태그는 1~20자여야 합니다.');
+  }
+  return tag;
+}
+
+// 태그 추가 — 존재 확인(404) → 정규화(400) → 저장. 멱등(이미 있으면 그대로).
+function addTag(id, tag) {
+  if (!db.getTask(id)) {
+    throw new NotFoundError('할일을 찾을 수 없습니다.');
+  }
+  const clean = normalizeTag(tag);
+  db.addTaskTag(id, clean);
+  return db.getTask(id);
+}
+
+// 태그 삭제 — 존재 확인(404) → 삭제. 없던 태그도 성공으로 본다(멱등).
+function removeTag(id, tag) {
+  if (!db.getTask(id)) {
+    throw new NotFoundError('할일을 찾을 수 없습니다.');
+  }
+  db.removeTaskTag(id, String(tag ?? ''));
+  return db.getTask(id);
+}
+
+module.exports = {
+  listTasks,
+  getTask,
+  createTask,
+  updateTask,
+  deleteTask,
+  assertProjectId,
+  normalizeTag,
+  addTag,
+  removeTag,
+};

@@ -120,6 +120,17 @@ NFR-REL-02, NFR-REL-05, NFR-OBS-02
 
 ---
 
+## 할 일 자동 분류 배치 (FR-TASK-08 / ADR-0029)
+
+**엔트리:** `agent/classify.py` — `daily_brief._run()` 이 `ensure_schema` 직후·`build_context` 전에 `classify_untagged()` 를 호출한다.
+
+- 대상: 태그가 0개인 미완료 할 일(`agent/db.py:get_untagged_tasks`, 최대 30건). 0건이면 Claude 호출 없이 종료.
+- 1회 Claude 호출(`services/claude.py:ask` 재사용)로 `{"tags": {"<id>": ["태그"]}}` JSON 을 받아 파싱(`parse_tags`).
+- 저장: `agent/db.py:add_agent_tags` — 저장 시점에도 태그 0개이고 `source='user'` 없는 할 일에만 `INSERT ... source='agent'`. `tasks` 행은 UPDATE 안 함(ADR-0011 예외 — `task_tags` 쓰기만).
+- 성공 → `sync_logs('classify','success')`. 예외 → `logger.warning` + `sync_logs('classify','failed', sanitize_error(...))` + 반환 0(브리핑 계속 진행).
+
+---
+
 ## FR-AGENT-07 — 스케줄 제안 (P2)
 
 **우선순위** P2 · **목표 주차** W11 · **상태** ⏳ (상세화 예정)

@@ -193,8 +193,9 @@ stateDiagram-v2
 | 목적 | 할일 목록 조회·완료 토글·삭제·추가 |
 | 요소 | 상단 `[리스트][보드]` 세그먼티드 컨트롤(`role="group"`, `aria-pressed`) + `TaskList` **또는** `TaskBoard`, 하단 공통 `TaskForm`("+ 할일 추가"). 위젯 타이틀바가 제목을 대신하므로 `<h2>` 없음. 뷰: `frontend/src/widgets/views/TasksWidgetView.jsx` (스토어 구독·effect 를 뷰가 소유) — ✅ C5 / 뷰 전환 ✅ P5 |
 | 데이터 출처 | `GET /api/tasks` → `useTaskStore.tasks`(파생 미러, 정본은 `byId`/`order`) (`frontend/src/store/useTaskStore.js`, `api/client.js` 경유) |
-| 보드 뷰 (§FR-TASK-09) | `config.display.view='board'` 이면 우선순위 3열(높음/보통/낮음) 칸반. 열 데이터는 `groupByPriority(visible)` (`frontend/src/widgets/taskBoard.js`), 각 열은 `TaskBoard` → `TaskCard`. `priority` 누락/미지값은 보통 열. 리스트와 **같은 `visible`**(hideCompleted/sortBy/maxItems 적용 결과)을 공유. `view` 저장은 `config.display.view`, 읽기는 `resolveDisplay(configSchema, config.display).view` (enum `['list','board']`, default `'list'`, 손상값은 `'list'` 폴백). `overview`·`tasks` 주제의 위젯이 각각 독립 view (ADR-0032). 태그/카드 라벨은 P6 이월 — 카드는 제목/기한/우선순위 배지만. |
-| 관련 FR | FR-TASK-01/02/03/04/09, FR-UI-01 |
+| 보드 뷰 (§FR-TASK-09) | `config.display.view='board'` 이면 우선순위 3열(높음/보통/낮음) 칸반. 열 데이터는 `groupByPriority(visible)` (`frontend/src/widgets/taskBoard.js`), 각 열은 `TaskBoard` → `TaskCard`. `priority` 누락/미지값은 보통 열. 리스트와 **같은 `visible`**(hideCompleted/sortBy/maxItems 적용 결과)을 공유. `view` 저장은 `config.display.view`, 읽기는 `resolveDisplay(configSchema, config.display).view` (enum `['list','board']`, default `'list'`, 손상값은 `'list'` 폴백). `overview`·`tasks` 주제의 위젯이 각각 독립 view (ADR-0032). |
+| 태그 (§FR-TASK-08) | 카드는 2행 레이아웃(1행: 체크박스+제목+기한+우선순위 배지+삭제 / 2행: `TaskTags`). `TaskTags` props: `{tags, activeTag, onSelect, onAdd, onRemove}` — 각 태그는 `Chip`(활성이면 `variant="active"`) + 옆에 작은 `×`(삭제), 끝에 `＋` 버튼 → 인라인 `<input>`(Enter 확정, Esc/blur 닫기, `window.prompt` 금지). 태그 0개면 `＋` 만. 보기 전환 버튼 아래 **태그 필터 바**: `collectTags(tasks)`(필터 전 전체) 칩, 활성 칩 재클릭 해제, 태그 0건이면 바 숨김. 필터 상태는 `TasksWidgetView` 로컬 `useState`(비영속 — `config.display` 는 enum/bool/number 만). 필터 결과 0건 → "이 태그의 할 일이 없습니다" + [필터 해제]. `visible` 파이프라인: `hideCompleted` → `filterByTag` → 정렬 → `slice(0, maxItems)`. 순수 로직: `frontend/src/store/taskTags.js`. |
+| 관련 FR | FR-TASK-01/02/03/04/08/09, FR-UI-01 |
 | 상태 | ✅ 코드 배선 완료. 정상(200) 경로 브라우저 검증은 CORS/C1 이후 로컬 대기 |
 
 **렌더 상태 4종:**
@@ -361,11 +362,12 @@ stateDiagram-v2
 | `WidgetPicker` | `activeTypes`, `onAdd(type)`, `onClose()` | — | `onAdd`, `onClose` | ✅ C5 (이미 추가된 타입 비활성) |
 | `*WidgetView` (tasks/projects/calendar/diagrams/brief) | `instanceId`, `config`, `configSchema` | 도메인 스토어 필드별 구독 + `useEffect(fetch)` | — | ✅ C5 · C6 · D3(brief) (`config.display` 클라이언트 필터, `configSchema` prop) |
 | `TasksWidgetView` | `instanceId`, `config`, `configSchema` | `useTaskStore` 필드별 구독 + `useLayoutStore.updateConfig` + `useEffect(fetchTasks)` | — | ✅ P5 (`config.display.view` 리스트/보드 전환 — `updateConfig(instanceId, { display: {...d, view} })`, 두 뷰가 같은 `visible` 공유) |
-| `TaskBoard` | `columns: {high:Task[],medium:Task[],low:Task[]}`, `onToggle(id)`, `onDelete(id)` | — | `onToggle`, `onDelete` | ✅ P5 (props-only, 3열 flex, `BOARD_COLUMNS` 순서, 빈 열 안내) |
-| `TaskCard` | `task: Task`, `onToggle(id)`, `onDelete(id)` | — | `onToggle`, `onDelete` | ✅ P5 (체크박스 + 제목(완료 취소선) + 기한 + 우선순위 배지 + 삭제. `priorityColor` export — `TaskList` 가 재사용) |
+| `TaskBoard` | `columns: {high:Task[],medium:Task[],low:Task[]}`, `onToggle(id)`, `onDelete(id)`, `activeTag?`, `onTagSelect?`, `onTagAdd?`, `onTagRemove?` | — | 콜백 pass-through | ✅ P5 · 태그 pass-through P6 (props-only, 3열 flex, `BOARD_COLUMNS` 순서, 빈 열 안내) |
+| `TaskCard` | `task: Task`, `onToggle(id)`, `onDelete(id)`, `activeTag?`, `onTagSelect(tag)?`, `onTagAdd(id,tag)?`, `onTagRemove(id,tag)?` | — | `onToggle`, `onDelete`, 태그 콜백 | ✅ P5 · P6 (2행 flex column: 1행 체크박스+제목(완료 취소선)+기한+우선순위 배지+삭제 / 2행 `TaskTags`. 태그 콜백 미전달 시 2행 비표시. `priorityColor` export) |
+| `TaskTags` | `tags: string[]`, `activeTag`, `onSelect(tag)`, `onAdd(tag)`, `onRemove(tag)` | `adding`, `draft` (인라인 입력) | `onSelect`, `onAdd`, `onRemove` | ✅ P6 (props-only, `Chip` 재사용, `×`/`＋` 인라인 input, `window.prompt` 금지) |
 | `PlaceholderWidgetView` | — | `useUiStore.activeTopic` 구독 | — | ✅ P4.5 ("준비 중" 안내 — 전용 위젯 없는 주제 기본 인스턴스, fetch 없음·항상 ready) |
 | `WidgetSettings` | `instance`, `configSchema`, `onChange(patch)`, `onClose()` | `tab` (theme/display) | `onChange`, `onClose` | ✅ C6 (portal 중앙 모달, 테마 탭 + 표시 탭, 화이트리스트 입력만) |
-| `TaskList` | `tasks: Task[]`, `onToggle(id)`, `onDelete(id)` | — | `onToggle`, `onDelete` | ✅ |
+| `TaskList` | `tasks: Task[]`, `onToggle(id)`, `onDelete(id)`, `activeTag?`, `onTagSelect?`, `onTagAdd?`, `onTagRemove?` | — | `onToggle`, `onDelete`, 태그 콜백 | ✅ · P6: `<li>` 안에 `TaskCard` 로 렌더 통일(`<ul>/<li>` 시맨틱 유지) |
 | `TaskForm` | `onSubmit(payload)`, `disabled` | `title, priority, dueDate` | `onSubmit` | ✅ B3 |
 | `ErrorBanner` | `message: string`, `onRetry()` | — | `onRetry` | ✅ B3 |
 | `ErrorBoundary` | `children`, `fallback?`, `onReset?` | `hasError` | — | ✅ B3 + C5 (`fallback` prop — 없으면 기존 전면 폴백) |
@@ -415,9 +417,12 @@ stateDiagram-v2
         toggleTask(id)                   → PUT /api/tasks/:id  (낙관적 + 실패 롤백)
         updateTask(id, patch)            → PUT /api/tasks/:id  (낙관적, 성공 시 서버 task 로 치환)
         removeTask(id)                   → DELETE /api/tasks/:id (낙관적, 실패 시 order 스냅샷 복원)
+        addTag(id, tag)                  → POST /api/tasks/:id/tags        (낙관적, 성공 시 서버 task 로 치환, throw 안 함)
+        removeTag(id, tag)               → DELETE /api/tasks/:id/tags/:tag (낙관적, 실패 시 스냅샷 복원)
         clearError()
 ```
 - 캐시 헬퍼는 `frontend/src/store/taskCache.js` (순수: `toCache`/`listFrom`/`upsert`/`patchOne`/`removeOne`, 전부 불변·대상 없으면 원본 참조).
+- 태그 순수 로직은 `frontend/src/store/taskTags.js` (`normalizeTags`/`addTagTo`/`removeTagFrom`/`collectTags`/`filterByTag` — React·zustand 무의존, FR-TASK-08).
 - 공개 셀렉터·액션 시그니처·에러 정규화·`error=null` 규약·boolean 반환은 B3 그대로 (기존 뷰 무수정).
 - 액션은 throw 하지 않고 `error` 에 문자열 저장. 성공하는 액션은 `error=null` (FR-UI-04 AC-4).
 - 위젯 뷰·`WidgetShell` 은 객체 리터럴 셀렉터 금지 — 필드별 개별 셀렉터로 구독 (zustand v4 리렌더 함정).

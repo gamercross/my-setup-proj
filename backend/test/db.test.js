@@ -20,6 +20,7 @@ const TASK_KEYS = [
   'priority',
   'status',
   'project_id',
+  'tags',
   'created_at',
   'updated_at',
 ];
@@ -84,6 +85,7 @@ describe('DB 계층', () => {
     assert.equal(task.priority, 'medium');
     assert.equal(task.status, 'todo');
     assert.equal(task.project_id, null);
+    assert.deepEqual(task.tags, []); // 신규 할일은 태그 없음 (FR-TASK-08)
     assert.match(task.created_at, ISO8601);
     assert.match(task.updated_at, ISO8601);
 
@@ -130,10 +132,101 @@ describe('DB 계층', () => {
       'emails',
       'projects',
       'sync_logs',
+      'task_tags',
       'tasks',
     ]);
 
     assert.equal(conn.pragma('journal_mode', { simple: true }), 'wal');
+  });
+
+  it('TC-DB-05: 기존 파일 DB 재오픈 시 마이그레이션이 sync_logs CHECK 를 확장한다', () => {
+    const dbPath = path.join(tmpDir, 'migrate.db');
+
+    // 1) 마이그레이션 전 상태를 흉내 낸다: user_version=0 + 옛 CHECK(classify 없음)
+    const Database = require('better-sqlite3');
+    const seed = new Database(dbPath);
+    seed.exec(`
+      CREATE TABLE sync_logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        service TEXT NOT NULL CHECK (service IN ('gmail','calendar','notion','supabase')),
+        status  TEXT NOT NULL CHECK (status IN ('success','failed')),
+        last_sync TEXT NOT NULL,
+        error_message TEXT
+      );
+      INSERT INTO sync_logs (service, status, last_sync) VALUES ('gmail','success','2026-01-01T00:00:00Z');
+    `);
+    seed.close();
+
+    // 2) 앱 커넥션으로 재오픈 → applyMigrations 가 CHECK 를 확장해야 한다
+    const db = loadDb(dbPath);
+    const conn = require('../db').getDb();
+    assert.equal(conn.pragma('user_version', { simple: true }), 1);
+
+    // 기존 행 보존
+    const rows = conn.prepare('SELECT service, status FROM sync_logs').all();
+    assert.equal(rows.length, 1);
+    assert.equal(rows[0].service, 'gmail');
+
+    // 이제 classify 를 넣을 수 있다
+    conn
+      .prepare("INSERT INTO sync_logs (service, status, last_sync) VALUES ('classify','success',?)")
+      .run(new Date().toISOString());
+    assert.ok(db.SYNC_SERVICES.includes('classify'));
+
+    require('../db').closeDatabase();
+  });
+
+  it('TC-DB-05b: 마이그레이션 백업본이 WAL 사이드카의 행까지 온전히 담는다', () => {
+    const dbPath = path.join(tmpDir, 'migrate-wal.db');
+    const Database = require('better-sqlite3');
+
+    // 구 CHECK 스키마 + 행을 WAL 에만 남긴다 (autocheckpoint 0, 커넥션 유지).
+    const seed = new Database(dbPath);
+    seed.pragma('journal_mode = WAL');
+    seed.pragma('wal_autocheckpoint = 0');
+    seed.exec(`
+      CREATE TABLE sync_logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        service TEXT NOT NULL CHECK (service IN ('gmail','calendar','notion','supabase')),
+        status  TEXT NOT NULL CHECK (status IN ('success','failed')),
+        last_sync TEXT NOT NULL,
+        error_message TEXT
+      );
+      INSERT INTO sync_logs (service, status, last_sync) VALUES ('gmail','success','2026-01-01T00:00:00Z');
+    `);
+    // 메인 파일이 아직 비어 있고 -wal 에 내용이 있음을 확인
+    assert.ok(fs.existsSync(`${dbPath}-wal`), '-wal 사이드카가 있어야 한다');
+    assert.ok(fs.statSync(`${dbPath}-wal`).size > 0, '-wal 에 아직 반영 안 된 프레임이 있어야 한다');
+
+    try {
+      // 앱 커넥션으로 재오픈 → applyMigrations 가 백업(체크포인트 포함) 후 DROP TABLE
+      loadDb(dbPath);
+      require('../db').closeDatabase();
+
+      const baks = fs
+        .readdirSync(tmpDir)
+        .filter((f) => f.startsWith('migrate-wal.db.bak-'));
+      assert.equal(baks.length, 1, '백업본이 정확히 1개 생겨야 한다');
+
+      // 백업본을 열어 마이그레이션 전 행이 그대로 있는지 확인
+      const backup = new Database(path.join(tmpDir, baks[0]), { readonly: true });
+      const cnt = backup.prepare('SELECT count(*) AS c FROM sync_logs').get().c;
+      backup.close();
+      assert.equal(cnt, 1, 'WAL 에만 있던 sync_logs 행이 백업본에 담겨야 한다');
+    } finally {
+      seed.close();
+    }
+  });
+
+  it('TC-DB-05c: 신규 파일 DB 는 백업본을 만들지 않는다', () => {
+    const dbPath = path.join(tmpDir, 'brandnew.db');
+    assert.ok(!fs.existsSync(dbPath), '사전 조건: 파일이 없어야 한다');
+
+    loadDb(dbPath);
+    require('../db').closeDatabase();
+
+    const baks = fs.readdirSync(tmpDir).filter((f) => f.startsWith('brandnew.db.bak-'));
+    assert.equal(baks.length, 0, '신규 DB 는 .bak-* 를 만들지 않는다');
   });
 
   it('TC-DB-04c: CHECK 위반은 SqliteError(code=SQLITE_CONSTRAINT_CHECK) 로 던진다', () => {
