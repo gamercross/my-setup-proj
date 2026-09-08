@@ -1,7 +1,7 @@
 # ADR-0016: 데스크톱 프로세스 토폴로지 (백엔드 실행 주체)
 
 - 상태: 제안 (2026-09-03) — Week 5, 패키징 전 확정
-- 관련: [RUNTIME_VIEW.md](../RUNTIME_VIEW.md) §5, NFR-REL-06, NFR-PORT-01, README "앱 실행" 미정 항목
+- 관련: [RUNTIME_VIEW.md](../RUNTIME_VIEW.md) §5, NFR-REL-06, NFR-PORT-01, README "앱 실행" 미정 항목, [ADR-0033](ADR-0033-standalone-widget-windows.md)(독립 위젯 창 — 다중 `BrowserWindow` 결정을 여기서 함께)
 
 ## 맥락
 Electron·Express·에이전트는 독립 프로세스다([ADR-0015](ADR-0015-local-first-architecture.md)). 현재 개발자가 백엔드를 별도 터미널로 직접 띄운다. 패키징된 앱에서 백엔드를 누가·어떻게 실행하는지, 죽으면 어떻게 하는지 정해진 바 없다.
