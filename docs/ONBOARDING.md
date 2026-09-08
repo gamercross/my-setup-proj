@@ -174,7 +174,7 @@ cd agent && source venv/bin/activate && python test_claude.py
 
 - 불확실하면 추측하지 말고 **"확인 필요"** 로 표시하고 멈춘다.
 - 계획 범위를 벗어나야 하면 이유와 함께 보고하고 사용자 확인을 받는다.
-- 남은 미결정(제안): [ADR-0013](product/architecture/adr/ADR-0013-dashboard-agent-queue.md)(에이전트 작업 큐, 향후 확장),
+- 남은 미결정(제안): [ADR-0013](product/architecture/adr/ADR-0013-dashboard-agent-queue.md) **부분 채택** — P7 "지금 실행" 트리거(FR-AGENT-08)는 파일 플래그 + launchd WatchPaths 로 채택(2026-09-08), 전체 작업 큐(FR-AGENT-09)만 제안 상태,
   [ADR-0014](product/architecture/adr/ADR-0014-dashboard-diagram-viewer.md)(대시보드 다이어그램 뷰어, Phase C1 이후 착수). 0009~0012 는 채택 완료.
 
 ---

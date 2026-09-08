@@ -37,7 +37,7 @@
 | [0010](adr/ADR-0010-vite-dev-vs-build.md) | Vite: `NODE_ENV` 로 dev/빌드 분기 | 채택 |
 | [0011](adr/ADR-0011-agent-backend-db-access.md) | 에이전트–백엔드 SQLite: WAL + 쓰기 주체 분리 | 채택 |
 | [0012](adr/ADR-0012-task-project-link.md) | `tasks.project_id` FK (`ON DELETE SET NULL`) | 채택 |
-| [0013](adr/ADR-0013-dashboard-agent-queue.md) | 대시보드 에이전트 작업 큐 (향후 확장) | **제안** — 단, P7 "지금 실행" = 파일 플래그 (2026-09-08, PO-9) |
+| [0013](adr/ADR-0013-dashboard-agent-queue.md) | 대시보드 에이전트 작업 큐 (향후 확장) | 전체 큐(FR-AGENT-09) **제안** / P7 "지금 실행"(FR-AGENT-08) = 전용 디렉터리 파일 플래그 + launchd WatchPaths **채택** (2026-09-08, PO-9) |
 | [0014](adr/ADR-0014-dashboard-diagram-viewer.md) | 대시보드 다이어그램 뷰어 (mermaid 클라이언트 렌더 + `/api/diagrams`) | 채택 |
 | [0015](adr/ADR-0015-local-first-architecture.md) | 아키텍처 스타일 — 로컬 우선 + 프로세스 분리 | **제안** |
 | [0016](adr/ADR-0016-desktop-process-topology.md) | 데스크톱 프로세스 토폴로지 (백엔드 실행 주체) | **제안** |
@@ -438,7 +438,10 @@ Phase A~D 를 막던 제안 ADR 4건은 **2026-09-02 채택**:
 | [0011](adr/ADR-0011-agent-backend-db-access.md) | WAL 모드 + `busy_timeout=5000`, 쓰기 주체 분리(agent=캐시, backend=tasks/projects) |
 | [0012](adr/ADR-0012-task-project-link.md) | `tasks.project_id` FK `ON DELETE SET NULL`. ✅ C2 (2026-09-03) — POST/PUT `/api/tasks` 배선·검증, API 응답 노출. `?project_id=` 필터·TaskForm 드롭다운은 이월 |
 
-남은 열린 질문: [ADR-0013](adr/ADR-0013-dashboard-agent-queue.md)(대시보드 에이전트 작업 큐) — 핵심 4기능 완성 후.
+남은 열린 질문: [ADR-0013](adr/ADR-0013-dashboard-agent-queue.md) 의 **전체 작업 큐**(FR-AGENT-09) — 핵심 4기능 완성 후.
+그 전 단계인 **에이전트 활동 위젯 + "지금 실행" 트리거**(FR-AGENT-08)는 P7(2026-09-08)에서 구현:
+백엔드가 `agent/.triggers/run-now` 플래그 파일을 쓰고(`POST /api/agent/run-now`), launchd `WatchPaths` 가
+감지해 `agent/trigger.py` → `sync.sync_all()` 을 실행한다. 백엔드는 파이썬을 spawn 하지 않는다(ADR-0011).
 
 ---
 

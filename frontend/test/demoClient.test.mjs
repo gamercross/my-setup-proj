@@ -79,3 +79,29 @@ test('TC-DEMO-10: 태그 검증 — 1~20자 아니면 400, 없는 id 404', async
   await assert.rejects(() => demoRequest('POST', '/tasks/3/tags', { tag: 'x'.repeat(21) }), (e) => e.status === 400);
   await assert.rejects(() => demoRequest('POST', '/tasks/99999/tags', { tag: 'a' }), (e) => e.status === 404);
 });
+
+test('TC-P7-05: GET /agent/activity 는 logs·health·nextRun·runNow·checkedAt 스키마', async () => {
+  const res = await demoRequest('GET', '/agent/activity?limit=5');
+  assert.ok(Array.isArray(res.logs) && res.logs.length > 0 && res.logs.length <= 5);
+  assert.equal(res.health.supabase, 'unconfigured');
+  assert.equal(res.nextRun.hour, 7);
+  assert.equal(res.nextRun.minute, 30);
+  assert.equal(res.runNow.available, true);
+  assert.ok(typeof res.checkedAt === 'string');
+  // /sync/logs 목도 store.sync_logs 를 반환한다
+  const logs = await demoRequest('GET', '/sync/logs');
+  assert.ok(logs.logs.length > 0);
+});
+
+test('TC-P7-06: POST /agent/run-now 는 즉시 성공 + 이력 1건 추가', async () => {
+  const before = (await demoRequest('GET', '/agent/activity')).logs.length;
+  const res = await demoRequest('POST', '/agent/run-now', {});
+  assert.equal(res.ok, true);
+  // 데모는 즉시 실행이라 후속 activity 의 pending:false 와 일관되게 응답도 pending:false
+  assert.equal(res.pending, false);
+  assert.equal(res.alreadyPending, false);
+  assert.match(res.note, /데모/);
+  assert.ok(typeof res.requestedAt === 'string');
+  const after = (await demoRequest('GET', '/agent/activity')).logs.length;
+  assert.equal(after, before + 1);
+});

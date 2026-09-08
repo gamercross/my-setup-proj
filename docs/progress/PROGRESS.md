@@ -335,6 +335,7 @@ flowchart LR
   style P45 fill:#dcfce7,stroke:#16a34a
   style P5 fill:#dcfce7,stroke:#16a34a
   style P6 fill:#dcfce7,stroke:#16a34a
+  style P7 fill:#dcfce7,stroke:#16a34a
 ```
 
 | 단계 | 상태 | 산출물 |
@@ -347,7 +348,8 @@ flowchart LR
 | P4.5 사이드바 셸 | ✅ 2026-09-08 | 단일 위젯 셸 → 왼쪽 사이드바(4그룹 11항목) + 페이지 헤더 + 주제별 위젯 셸로 재편 (ADR-0032 채택·구현). `frontend/src/components/` — `AppShell.jsx`(사이드바+헤더+본문 3열) · `Sidebar.jsx`(그룹형 네비, 활성 표시) · `TopicView.jsx`(주제별 위젯 그리드 셸) · `TopicIcons.jsx`. `store/useUiStore.js`(activeTopic 영속 + picker 세션 상태) · `widgets/topics.js`(주제 4그룹 11항목 정의 + 폴백) · `widgets/views/PlaceholderWidgetView.jsx`(미구현 주제 placeholder, hidden 메타). 레이아웃 마이그레이션 v1→v2: 기존 단일 배치는 `overview` 주제로 보존(`layoutStorage.js`·`defaultLayout.js`·`useLayoutStore.js`). `frontend/test/` — `topics.test.mjs`·`uiStore.test.mjs`·`layoutStorage.test.mjs` TC-SHELL-01~10 (42/42). 로컬 GUI 수동 검증(TC-SHELL-M1~6) 대기 |
 | P5 캐시 + 칸반 | ✅ 2026-09-08 | T1 단일 클라이언트 캐시(ADR-0028 채택). `useTaskStore` 를 `byId`/`order` 정본으로 전환 + `tasks` 파생 미러 유지. `TasksWidgetView` 리스트/보드 세그먼티드 토글(`config.display.view`). 순수 모듈 `store/taskCache.js`(정규화·머지·재정렬) · `widgets/taskBoard.js`(우선순위 열 그룹핑). props-only `components/TaskBoard.jsx`·`TaskCard.jsx`. `widgetMeta.js` display.view 옵션 · `TaskList.jsx`·`api/demoData.js` 연동. `frontend/test/` — `taskCache.test.mjs`·`taskBoard.test.mjs`·`taskStore.test.mjs` (총 56/56). 신규 요구사항 **FR-TASK-09**. 로컬 GUI 수동 검증(TC-P5-M1~4) 대기 |
 | P6 자동 분류 | ✅ 2026-09-08 | T2 자유 태그(다중) + 에이전트 배치 자동 태깅 + 위젯 태그 칩 필터 (ADR-0018·0029 채택). 최소 마이그레이션 도입: `PRAGMA user_version` + `backend/db/index.js` 인라인 러너, forward-only, 실행 전 `.bak-<ts>`. 신규 `task_tags` 테이블 + `POST/DELETE /api/tasks/:id/tags`. `agent/classify.py`(키워드 규칙 배치 분류) + `agent/daily_brief.py` 배선. `frontend/src/components/TaskTags.jsx` · `store/taskTags.js` · `TasksWidgetView` 칩 필터. 신규 요구사항 **FR-TASK-08**. `frontend/src/api/{demoClient,demoData}.js` 목 어댑터 동기화. 검증: backend 97/0, frontend 68/0, agent 75 passed, build/build:demo 성공, `verify.sh --code-only` 27/0/0, `check-docs.sh` 11/0/0. supervisor PASS(수정 1회 — WAL 백업 버그 수정 포함). 수동 검증 TC-P6-M1~4(로컬 GUI) 대기 |
-| P7~P9 빌드 | ⏳ | 위 다이어그램 순서대로 — **`/feature` 파이프라인으로 진행** (P9 진행 현황 뷰 = 이 문서를 대시보드에서 보기). 다음 = P7 (T4 에이전트 활동 위젯) |
+| P7 에이전트 활동 위젯 | ✅ 2026-09-08 | T4 "활동" 주제 위젯 — 최근 sync 로그 10건 + Supabase health + 다음 실행 시각(고정 07:30 계산) + "지금 실행" 버튼 (ADR-0013 부분 채택 = 트리거만, 전체 큐는 제안 유지). "지금 실행" = 백엔드가 `agent/.triggers/run-now` 플래그 파일 write → launchd `WatchPaths` 잡이 `agent/trigger.py` 실행 (subprocess 없음, ADR-0011 유지). 신규 `backend/src/{routes,services}/agent.js` + `GET /api/agent/activity`·`POST /api/agent/run-now`. `agent/trigger.py` + `scripts/{agent-run-now.sh,install-runnow-launchd.sh,com.aicomputeros.runnow.plist}`. `frontend/src/store/useAgentStore.js` + `widgets/views/AgentActivityWidgetView.jsx`. 신규 요구사항 **FR-AGENT-08** (기존 "작업 큐" 자리표시 → FR-AGENT-09 로 재번호). 데모 목 어댑터 동기화. 검증: backend 106/0, frontend 76/0, agent 80 passed, build/build:demo 성공, `verify.sh --code-only` 29/0/0, `check-docs.sh` 11/0/0. supervisor PASS(수정 1회 + 비차단 4건 정리). launchd WatchPaths 실제 감지는 로컬 수동 검증(TC-ACT-M / TC-AGENT-M) 대기 |
+| P8~P9 빌드 | ⏳ | 위 다이어그램 순서대로 — **`/feature` 파이프라인으로 진행** (P9 진행 현황 뷰 = 이 문서를 대시보드에서 보기). 다음 = P8 (T3 OKR + 주간 플래너) |
 
 **열린 질문 PO-1~10** (착수 전 결정) 은 [PERSONAL_OS.md §8](../product/vision/PERSONAL_OS.md) 참조 — 특히 PO-1(라이트 기본 전환), PO-7(칸반이 할 일 위젯 대체 vs 추가), PO-10(Phase E 와의 순서).
 
@@ -573,7 +575,7 @@ git commit -m "refactor: [부분] 개선"
 
 ---
 
-**마지막 업데이트:** 2026-09-08 (개인 OS P6 완료)  
+**마지막 업데이트:** 2026-09-08 (개인 OS P7 완료 — 에이전트 활동 위젯)  
 **다음 업데이트:** 2026-09-09 (매주 월요일)
 
 > 💡 **팁:** 매주 금요일에 이 파일을 검토하고 다음주 계획을 추가하세요!

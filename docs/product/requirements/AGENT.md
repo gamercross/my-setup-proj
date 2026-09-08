@@ -139,7 +139,31 @@ NFR-REL-02, NFR-REL-05, NFR-OBS-02
 
 ---
 
-## FR-AGENT-08 — 대시보드 기반 작업 큐 (P2, 향후 확장)
+## FR-AGENT-08 — 에이전트 활동 위젯 + 지금 실행 (P1)
+
+**우선순위** P1 · **목표 주차** W8 · **상태** ✅ (P7, 2026-09-08) · **결정** [ADR-0013](../architecture/adr/ADR-0013-dashboard-agent-queue.md) 부분 채택(PO-9)
+
+**사용자 스토리:** 사용자로서 나는 대시보드에서 에이전트가 마지막으로 언제 무엇을 했는지, 다음 실행은 언제인지 보고, 필요하면 지금 바로 실행을 요청하고 싶다.
+
+### 구현
+- **활동 위젯**(`activity` 주제 기본 위젯 `agent`): 최근 `sync_logs`(성공/실패·시각·오류), Supabase 연결 상태, 다음 예약 시각, "지금 실행" 버튼.
+- **API**: `GET /api/agent/activity`(조립·읽기 전용), `POST /api/agent/run-now`(트리거 플래그 생성, 멱등). [API_REFERENCE.md](../reference/API_REFERENCE.md) 참조.
+- **트리거 방식**: 백엔드는 파이썬을 띄우지 않는다(ADR-0011). `agent/.triggers/run-now` 플래그 파일만 쓰고, launchd `WatchPaths`(`scripts/install-runnow-launchd.sh`)가 감지해 `agent/trigger.py` → `sync.sync_all()` 을 실행한다. `daily-brief-run.sh` 도 시작 시 밀린 플래그를 소비한다(폴백).
+- **예약 시각 표시**: plist 를 파싱하지 않고 `.env` 의 `DAILY_BRIEF_HOUR`/`MINUTE`(기본 07:30)로 계산한다. 시각을 바꿀 때는 launchd 재설치와 `.env` 를 함께 고친다 ([AUTOMATION.md](../../setup/AUTOMATION.md)).
+
+### 수용 기준
+1. 활동 위젯이 최근 실행 이력(서비스·상태·시각)을 최신순으로 보여준다.
+2. "지금 실행"을 누르면 요청이 저장되고, 버튼은 요청 중/대기 중 상태를 표시한다.
+3. 같은 요청을 두 번 눌러도 플래그는 하나다(멱등, `alreadyPending`).
+4. 백엔드는 어떤 경우에도 파이썬 프로세스를 직접 실행하지 않는다.
+5. Supabase 연결 확인이 실패해도 위젯은 200 으로 나머지 정보를 보여준다.
+6. `agent/` 폴더를 못 찾으면 "지금 실행"은 503 으로 안내하고 위젯은 계속 동작한다.
+7. 다음 실행 시각이 `.env` 기준으로 표시된다.
+8. 데모 모드에서도 위젯이 샘플 이력과 함께 동작한다.
+
+---
+
+## FR-AGENT-09 — 대시보드 기반 작업 큐 (P2, 향후 확장)
 
 **우선순위** P2 · **목표 주차** W11+ · **상태** ⏳ (자리표시 — [VISION.md](../vision/VISION.md) 향후 확장, [ADR-0013](../architecture/adr/ADR-0013-dashboard-agent-queue.md))
 

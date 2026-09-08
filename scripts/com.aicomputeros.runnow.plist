@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  "지금 실행" 트리거 launchd 작업. **참고용 템플릿이다 — 직접 복사 금지.**
+
+  아래 __REPO_ROOT__ 는 플레이스홀더다. 다른 컴퓨터에서는 이 파일을 복사하지 말고
+  아래 스크립트로 설치한다 (경로 자동 생성):
+
+    bash scripts/install-runnow-launchd.sh              # 설치/재설치
+    bash scripts/install-runnow-launchd.sh --uninstall
+
+  WatchPaths: agent/.triggers/ 가 바뀌면(백엔드가 run-now 플래그를 만들면) 즉시 실행한다.
+  실패해도 재시도하지 않는다(KeepAlive 없음).
+  Ubuntu 는 launchd 가 없다 → 파일 감시 도구(inotifywait)로 대체하거나 정기 sync 폴백에 의존.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.aicomputeros.runnow</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>__REPO_ROOT__/scripts/agent-run-now.sh</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>__REPO_ROOT__</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+  </dict>
+
+  <key>WatchPaths</key>
+  <array>
+    <string>__REPO_ROOT__/agent/.triggers</string>
+  </array>
+
+  <key>StandardOutPath</key>
+  <string>__REPO_ROOT__/scripts/run-now.log</string>
+  <key>StandardErrorPath</key>
+  <string>__REPO_ROOT__/scripts/run-now.log</string>
+</dict>
+</plist>

@@ -428,6 +428,52 @@ FR-SYNC-03, NFR-OBS-03
 
 ---
 
+## 에이전트 (agent) ✅ 구현 — P7 (2026-09-08)
+
+FR-AGENT-08 · [ADR-0011](../architecture/adr/ADR-0011-agent-backend-db-access.md) · [ADR-0013](../architecture/adr/ADR-0013-dashboard-agent-queue.md)
+
+에이전트 활동 위젯용. 백엔드는 파이썬 프로세스를 직접 실행하지 않는다 —
+"지금 실행"은 `agent/.triggers/run-now` 플래그 파일만 쓰고, launchd `WatchPaths` 가 감지해
+`agent/trigger.py` → `sync.sync_all()` 을 실행한다.
+
+### `GET /api/agent/activity` — 활동 요약
+
+`sync_logs`(읽기 전용) + Supabase 연결 상태 + 다음 예약 시각 + "지금 실행" 대기 상태를 조립한다.
+health 확인이 실패해도 200 이다. `sync_logs` 조회 실패만 500.
+
+| 쿼리 | 설명 |
+|---|---|
+| `limit` | 로그 최대 수 (기본 10, 상한 50). 1 이상의 정수 아니면 400 |
+
+**응답 200**
+```json
+{
+  "logs": [ { "id": 12, "service": "gmail", "status": "failed",
+              "last_sync": "2026-09-08T07:30:03Z", "error_message": "401 Unauthorized" } ],
+  "health": { "supabase": "unconfigured", "detail": "SUPABASE_URL/SUPABASE_KEY 미설정", "host": null },
+  "nextRun": { "at": "2026-09-09T07:30:00.000Z", "hour": 7, "minute": 30, "source": "schedule" },
+  "runNow": { "pending": false, "requestedAt": null, "available": true },
+  "checkedAt": "2026-09-08T09:00:00.000Z"
+}
+```
+- `nextRun` 은 plist 를 파싱하지 않고 `.env` 의 `DAILY_BRIEF_HOUR`/`DAILY_BRIEF_MINUTE`(기본 07:30) 기준.
+- `runNow.available` 은 `agent/` 폴더(또는 `AGENT_PATH`)를 찾은 경우에만 true.
+
+### `POST /api/agent/run-now` — 지금 실행 요청
+
+본문은 무시한다. 트리거 플래그 파일을 만든다(멱등 — 이미 있으면 기존 요청 시각 유지).
+
+**응답 200**
+```json
+{ "ok": true, "pending": true, "requestedAt": "2026-09-08T09:00:00.000Z",
+  "alreadyPending": false, "note": "에이전트가 다음 감지 시 실행합니다." }
+```
+
+**응답 503** — `{ "error": "에이전트 폴더를 찾을 수 없어 실행을 요청할 수 없습니다." }`
+**응답 500** — `{ "error": "지금 실행 요청을 저장하지 못했습니다." }` (파일 IO 실패)
+
+---
+
 ## 다이어그램 (diagrams) ✅ 구현 — Phase C4 (2026-09-06)
 
 ### `GET /api/diagrams` — 문서 다이어그램 목록

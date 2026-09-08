@@ -53,11 +53,16 @@ run_step() {
   return $rc
 }
 
+# 밀린 "지금 실행" 플래그를 먼저 소비한다(launchd WatchPaths 감지 실패 대비 폴백 — P7).
+# 정기 sync 와 중복 실행될 수 있으나 개인용 규모에서는 허용한다. 실패해도 계속 진행.
+run_step trigger python trigger.py
+TRIGGER_RC=$?
+
 run_step sync python sync.py
 SYNC_RC=$?
 
 run_step brief python daily_brief.py
 BRIEF_RC=$?
 
-log "완료: sync=$SYNC_RC brief=$BRIEF_RC"
+log "완료: trigger=$TRIGGER_RC sync=$SYNC_RC brief=$BRIEF_RC"
 exit $BRIEF_RC
