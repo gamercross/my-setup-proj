@@ -69,6 +69,19 @@ export const WIDGET_META = {
       showMeta: { type: 'bool', default: true, label: '생성 시각·Notion 링크 표시' },
     },
   },
+  agent: {
+    type: 'agent',
+    name: '에이전트 활동',
+    icon: '🛰️',
+    description: '에이전트 실행 기록·연결 상태·지금 실행',
+    defaultSize: { w: 8, h: 8 },
+    minSize: { w: 4, h: 4 },
+    maxSize: { w: 12, h: 20 },
+    configSchema: {
+      maxLogs: { type: 'number', min: 5, max: 50, step: 5, default: 10, label: '최대 로그 개수' },
+      showHealth: { type: 'bool', default: true, label: '연결 상태 표시' },
+    },
+  },
   // "준비 중" 자리표시자 — 전용 위젯이 아직 없는 주제의 기본 인스턴스 (ADR-0032).
   // hidden: true 는 옵셔널 신규 필드. 피커 목록에서 제외한다 (다른 메타엔 넣지 않는다).
   placeholder: {

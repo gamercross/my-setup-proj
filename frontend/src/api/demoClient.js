@@ -145,6 +145,45 @@ function listEvents(query) {
   return { events };
 }
 
+// 에이전트 활동 위젯(P7, FR-AGENT-08) — 백엔드 GET /api/agent/activity 의 행복 경로.
+function agentActivity(query) {
+  const lim = Number(query.limit) > 0 ? Number(query.limit) : 10;
+  const logs = store.sync_logs.slice().reverse().slice(0, lim);
+
+  // 내일 07:30 (데모는 스케줄 고정)
+  const now = new Date();
+  const next = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 7, 30, 0, 0);
+  if (next.getTime() <= now.getTime()) next.setDate(next.getDate() + 1);
+
+  return {
+    logs,
+    health: { supabase: 'unconfigured', detail: '데모 모드 — Supabase 미설정', host: null },
+    nextRun: { at: next.toISOString(), hour: 7, minute: 30, source: 'schedule' },
+    runNow: {
+      pending: store._runNowPending,
+      requestedAt: store._runNowRequestedAt ?? null,
+      available: true,
+    },
+    checkedAt: nowIso(),
+  };
+}
+
+// 백엔드 POST /api/agent/run-now — 데모는 즉시 성공 1건을 이력에 남긴다.
+function agentRunNow() {
+  const requestedAt = nowIso();
+  store._runNowPending = false;
+  store._runNowRequestedAt = requestedAt;
+  store.sync_logs.push({
+    id: nextId(),
+    service: 'gmail',
+    status: 'success',
+    last_sync: requestedAt,
+    error_message: null,
+  });
+  // 데모는 상주 에이전트가 없어 즉시 실행한다 — 후속 activity 의 pending:false 와 일관.
+  return { ok: true, pending: false, requestedAt, alreadyPending: false, note: '데모 모드 — 즉시 실행됨' };
+}
+
 // method+path 를 받아 백엔드와 같은 형태의 객체를 반환한다 (실패 시 throw).
 export async function demoRequest(method, path, body) {
   const { p, q } = parse(path);
@@ -181,7 +220,12 @@ export async function demoRequest(method, path, body) {
   if (p === '/mail/unread' && method === 'GET') return { emails: [] };
   if (p === '/brief/today' && method === 'GET') return { brief: store.brief };
   if (p === '/diagrams' && method === 'GET') return { diagrams: store.diagrams ?? [] };
-  if (p === '/sync/logs' && method === 'GET') return { logs: [] };
+  if (p === '/sync/logs' && method === 'GET') {
+    const lim = Number(q.limit) > 0 ? Number(q.limit) : 50;
+    return { logs: store.sync_logs.slice().reverse().slice(0, lim) };
+  }
+  if (p === '/agent/activity' && method === 'GET') return agentActivity(q);
+  if (p === '/agent/run-now' && method === 'POST') return agentRunNow();
 
   throw err(404, '요청을 처리하지 못했습니다.');
 }

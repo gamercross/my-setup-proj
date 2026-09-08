@@ -111,8 +111,9 @@ flowchart TB
 | 무엇 | 에이전트(런타임: sync·브리핑·Notion 저장)의 상태·이력·다음 실행이 화면에 보인다 |
 | 지금 | `GET /api/sync/logs` · `/api/sync/health` API 는 있으나 소비하는 위젯 없음. 다이어그램 뷰어는 파이프라인 *구조*만 |
 | 목표 | "에이전트 활동" 위젯 — 서비스별(Gmail·Calendar·Notion) 상태 카드 + 타임라인 + 다음 launchd 실행 시각. 선택: "지금 실행" 버튼(백엔드가 python 트리거 → ADR-0011 프로세스 분리에 손대는 큰 결정) |
-| 관련 | [ADR-0013](../architecture/adr/ADR-0013-dashboard-agent-queue.md) (전체 큐는 제안, **P7 "지금 실행"=파일 플래그로 결정됨 — PO-9**) · `UI_STYLE.md` US-2("모니터" 탭) · 새 FR-AGENT-* |
-| 크기 | 중 (위젯). "지금 실행"·작업 큐는 별도 |
+| 관련 | [ADR-0013](../architecture/adr/ADR-0013-dashboard-agent-queue.md) (전체 큐=FR-AGENT-09 제안, **P7 "지금 실행"=전용 디렉터리 파일 플래그 + launchd WatchPaths 로 채택 — PO-9**) · `UI_STYLE.md` US-2("모니터" 탭) · **FR-AGENT-08** |
+| 크기 | 중 (위젯). 전체 작업 큐(FR-AGENT-09)는 별도 |
+| 상태 | ✅ P7 (2026-09-08) — `GET/POST /api/agent/*`, `AgentActivityWidgetView`, `useAgentStore`, `agent/trigger.py`, `scripts/{agent-run-now,install-runnow-launchd}.sh` |
 
 ### T5 — 라이트 비주얼 시스템
 
@@ -191,7 +192,7 @@ flowchart TB
 | P4.5 ✅ | 사이드바 셸 (UI_STYLE v2) | `AppShell`·`Sidebar`(브랜드+검색 표시+그룹 네비 4개+사용자)·`TopicView`(페이지 헤더) + `WidgetShell` `topicId` 스코프 + `useUiStore.activeTopic` + 레이아웃 저장 v1→v2 마이그레이션 + 주제별 기본/플레이스홀더 위젯. [ADR-0032](../architecture/adr/ADR-0032-sidebar-shell-per-topic-layouts.md) 채택. 데모 반영 — 구현 완료 (2026-09-08, feature/p4.5-sidebar-shell) | P4 · ✅ ADR-0032 |
 | P5 ✅ | T1 단일 캐시 + 칸반 뷰 (2026-09-08, ADR-0028 채택) | `frontend/src/store/taskCache.js`(순수 캐시 헬퍼) + `useTaskStore` `byId`/`order` 정본·`tasks` 파생 미러, `frontend/src/widgets/taskBoard.js`(`groupByPriority`), `components/TaskBoard.jsx`·`TaskCard.jsx`, `TasksWidgetView` 리스트/보드 전환(`config.display.view`), `widgetMeta.tasks.configSchema.view`. 테스트 `frontend/test/{taskCache,taskBoard,taskStore}.test.mjs` TC-P5-01~13. **태그·자동분류는 P6 이월** (스키마 무변경) | P3 |
 | P6 ✅ | T2 자동 분류 (2026-09-08, ADR-0018·0029 채택) | `backend/db/schema.sql`(`task_tags` + `sync_logs` CHECK), `backend/db/index.js`(마이그레이션 러너 `PRAGMA user_version`), `backend/src/{db,services/tasks,routes/tasks}.js`(태그 API), `agent/classify.py`(신규)·`agent/db.py`·`agent/daily_brief.py`(배치 배선), `frontend/src/store/taskTags.js`(신규)·`useTaskStore.js`·`components/{TaskTags,TaskCard,TaskList,TaskBoard}.jsx`·`TasksWidgetView.jsx`. 테스트 TC-TAG-01~08·TC-DB-05·TC-SYNC-11·TC-P6-01~08·TC-AGENT-31~40 | P4·P5 |
-| **P7** | T4 에이전트 활동 위젯 | `sync_logs`/`health`/다음 실행 → 위젯 | P4 |
+| **P7** ✅ | T4 에이전트 활동 위젯 (2026-09-08) | `sync_logs`/`health`/다음 실행 → 위젯 + "지금 실행" 파일 플래그 트리거 (FR-AGENT-08) | P4 |
 | **P8** | T3 OKR Phase | `objectives`/`key_results` + OKR 대시보드 + 주간 플래너 + (선택) Weekly Brief | P4·P5 |
 | **P9** | T6 진행 현황 · 파일 탐색 | `GET /api/tree`(허용 루트·상한) + `GET /api/docs/:path`(안전 토큰화) + "진행 현황" 위젯(왼쪽 트리 + 오른쪽 내용, mermaid 은 `DiagramPanel` 재사용). 데모용 `demoClient.js` 목 트리 | P4 |
 
@@ -217,7 +218,7 @@ flowchart TB
 | PO-6 | 주간 요약: 순수 집계 vs Claude "Weekly Brief" | **순수 SQL 집계** (`due_date` ISO 주 3버킷). Weekly Brief 는 후속 — OKR.md 에 기록 |
 | PO-7 | 칸반이 할 일 위젯을 대체하나, 추가 뷰인가 | `tasks` 위젯 안의 리스트/보드 뷰 전환(`config.display.view`). 별 위젯 타입 아님, 위젯 개수 불변 → DO-2 유지. ADR-0028 §결정4, P5 구현 완료 |
 | PO-8 | 차트 라이브러리: Recharts vs 인라인 SVG | 인라인 SVG (`dataviz` 스킬). Recharts 미도입 |
-| PO-9 | 에이전트 "지금 실행" 트리거 | **파일 플래그** — 백엔드가 `agent/.run-now` 를 쓰고 에이전트 루프가 다음 폴링에서 감지·실행·삭제. subprocess 없이 ADR-0011 프로세스 분리 유지. ADR-0013 부분 결정 (P7) |
+| PO-9 | 에이전트 "지금 실행" 트리거 | **전용 디렉터리 파일 플래그 + launchd WatchPaths** — 백엔드가 `agent/.triggers/run-now` 를 쓰고(멱등), launchd 가 그 디렉터리 변경을 감지해 `agent/trigger.py` → `sync.sync_all()` 실행 후 플래그 삭제. `daily-brief-run.sh` 도 시작 시 소비(폴백). subprocess 없이 ADR-0011 프로세스 분리 유지. ADR-0013 부분 채택 (P7, 2026-09-08). WatchPaths 실제 감지는 로컬 launchd 환경 필요 — 개발 머신 미검증 |
 | PO-11 | 진행 현황 뷰 노출 범위·접기 UI | `heading` 기준 섹션 접기 큐레이션 (기본 첫 섹션 + 요약 섹션 펼침). ADR-0031 (P9) |
 | PO-12 | 파일 트리 허용 루트·소스 렌더 | 허용 루트 = `docs/` + 저장소 루트 `*.md` 만. **`.md` 만 렌더** (소스 파일은 트리에도 안 나옴). 위젯은 좌/우 패널 리사이즈 + 접기 + 상단 브레드크럼. ADR-0031 개정 (P9) |
 | PO-13 | 사이드바 그룹·항목 최종 구성 | COMMAND(개요·할일·브리핑·프로젝트·일정) / PLAN(OKR·주간) / AGENT(활동·진행현황·다이어그램) / SYSTEM(설정). 미구현 항목은 표시 + "준비 중" 플레이스홀더. ADR-0032 채택 (P4.5) |

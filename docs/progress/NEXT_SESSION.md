@@ -1,6 +1,6 @@
 # 🧭 다음 세션 인계 — 상태 확인 + 작업 방향
 
-> 작성: 2026-09-07 · **갱신: 2026-09-08 (P6 파이프라인 완주 — 자유 태그 + 에이전트 자동 태깅)**
+> 작성: 2026-09-07 · **갱신: 2026-09-08 (P7 파이프라인 완주 — 에이전트 활동 위젯 + '지금 실행' 파일 플래그)**
 > 이 문서는 새 세션 시작 시 **가장 먼저 읽는다.** 이후 정식 문서
 > ([PROGRESS.md](PROGRESS.md) · [PERSONAL_OS.md](../product/vision/PERSONAL_OS.md) ·
 > [DEMO_FEEDBACK.md](DEMO_FEEDBACK.md))로 교차 확인.
@@ -9,39 +9,40 @@
 
 ## 0. 지금 어디까지 왔나 (한 문단)
 
-Phase A~D 완료·병합. "개인 생산성 OS" 방향으로 **P0~P5 완료**(전부 병합됨). **2026-09-08 세션**에서
-**`/feature` 파이프라인으로 P6(T2 자동 분류)를 완주**했다
-(planner→developer→supervisor(수정 1회 후 PASS)→finisher). **ADR-0018·0029 채택**
-(ADR-0030·0031·0013 은 여전히 제안 — P7~P9 착수 전 결정 필요).
-할 일 자유 태그(다중, `task_tags` 테이블) + 에이전트 배치 자동 태깅(`agent/classify.py`) +
-위젯 태그 칩 필터. **최소 마이그레이션 도입**: `PRAGMA user_version` + `backend/db/index.js` 인라인
-러너, forward-only, 실행 전 `.bak-<ts>` (supervisor 가 WAL 백업 버그 1건 잡아 수정). 신규 요구사항 **FR-TASK-08**.
+Phase A~D 완료·병합. "개인 생산성 OS" 방향으로 **P0~P6 완료**(P6 병합 대기). **2026-09-08 세션**에서
+**`/feature` 파이프라인으로 P7(T4 에이전트 활동 위젯)을 완주**했다
+(planner→developer→supervisor(수정 1회 + 비차단 4건 정리 후 PASS)→finisher). **ADR-0013 부분 채택**
+(트리거만 = "지금 실행" 파일 플래그, 전체 작업 큐는 제안 유지. ADR-0030 은 2026-09-08 이미 채택,
+ADR-0031 은 P9 선행으로 제안).
+대시보드 "활동" 주제: 최근 sync 로그 10건 + Supabase health + 다음 실행 시각(고정 07:30 계산) +
+"지금 실행" 버튼. "지금 실행" = 백엔드가 `agent/.triggers/run-now` 플래그 파일 write →
+launchd `WatchPaths` 잡이 `agent/trigger.py` 실행 (subprocess 없음, ADR-0011 유지).
+신규 요구사항 **FR-AGENT-08**, 기존 "작업 큐" 자리표시는 **FR-AGENT-09** 로 재번호.
 
-**PR 상태:** P6 PR 를 이 세션에서 염(아래 §1). 그 외 열린 PR 없음.
+**PR 상태:** P7 PR 를 이 세션에서 염(아래 §1). P6 PR 는 아직 병합 대기. 그 외 열린 PR 없음.
 
-**다음 세션은 P7 (T4 에이전트 활동 위젯)** — `sync_logs`/`health`/다음 실행 표시.
-착수 전 **ADR-0013 재활성·채택**(PO-9, "지금 실행" = 파일 플래그 방향) + **FR-AGENT-\* 신규 요구사항**
-정의 필요(위젯이 노출할 데이터 계약 — sync 상태·최근 로그·다음 스케줄). 그 뒤 `/feature`. 상세는 §4.
+**다음 세션은 P8 (T3 OKR + 주간 플래너)** — `objectives`/`key_results` + OKR 대시보드 + 주간 플래너.
+ADR-0030 은 이미 채택(2026-09-08)이므로 착수 전 선행은 **`requirements/OKR.md` 작성 + FR-OKR-\* 정의**.
+그 뒤 `/feature`. 상세는 §4.
 
 ---
 
-## 1. Git / PR 상태 (2026-09-08 P6 세션 종료 시점)
+## 1. Git / PR 상태 (2026-09-08 P7 세션 종료 시점)
 
 | PR | 내용 | 상태 |
 |---|---|---|
 | #47 | P5 단일 클라이언트 캐시(ADR-0028 채택) + 칸반 리스트/보드 토글 | ✅ 병합됨 (main `242d853`) |
-| #48 | 병합된 로컬 브랜치 자동 정리 — `SessionStart` 훅 (`chore`) | ✅ 병합됨 |
-| #49 | P5 AC-7 참조 안정성 단언 TC-P5-14 (`test`) | ✅ #50 으로 복구·병합됨 (main `e72c358`) |
 | #50 | ADR 결정 세션 준비 + #49 유실분 복구 (docs) | ✅ 병합됨 (main `f0dd7bf`) |
-| **P6** | **T2 자동 분류 — 자유 태그(다중) + 에이전트 배치 자동 태깅 + 칩 필터** (ADR-0018·0029 채택, `feat`, 41파일) | 🔀 **이 세션에서 PR 염** (`feature/p6-task-tags-classify` → main), 병합 대기 |
+| **P6** | **T2 자동 분류 — 자유 태그(다중) + 에이전트 배치 자동 태깅 + 칩 필터** (ADR-0018·0029 채택, `feat`) | 🔀 PR 열림 (`feature/p6-task-tags-classify` → main), 병합 대기 |
+| **P7** | **T4 에이전트 활동 위젯 + '지금 실행' 파일 플래그** (ADR-0013 부분 채택, FR-AGENT-08, `feat`) | 🔀 **이 세션에서 PR 염** (`feature/p7-agent-activity-widget` → main), 병합 대기 |
 
 **다음 세션 첫 작업:**
 1. `git checkout main && git pull` (SessionStart 훅이 병합된 로컬 브랜치를 자동 정리).
-2. P6 PR 병합 확인. 데모 확인: tasks 위젯에 태그 칩 + 칩 필터 등장.
-3. P6 수동 검증 TC-P6-M1~4 (로컬 GUI) 결과를 `PROGRESS.md`·`TEST_PLAN.md` 에 반영.
-4. **P7 착수 전 결정:** ADR-0013 재활성·채택(PO-9, 파일 플래그 방향) + FR-AGENT-\* 신규 요구사항
-   정의 (에이전트 활동 위젯 데이터 계약).
-5. **→ `/feature` 로 P7 (T4 에이전트 활동 위젯).**
+2. P6·P7 PR 병합 확인. 데모 확인: "활동" 주제에 sync 로그 + health + 다음 실행 + "지금 실행" 버튼.
+3. P6 수동 검증 TC-P6-M1~4 + P7 수동 검증(launchd WatchPaths 설치·감지, TC-ACT-M / TC-AGENT-M) 결과를
+   `PROGRESS.md`·`TEST_PLAN.md` 에 반영.
+4. **P8 착수 전 선행:** `requirements/OKR.md` 작성 + FR-OKR-\* 정의 (ADR-0030 은 이미 채택).
+5. **→ `/feature` 로 P8 (T3 OKR + 주간 플래너).**
 
 ### P4.5 구현 요약 (PR #45, 커밋 `1c5ee54`)
 - 신규: `components/{AppShell,Sidebar,TopicView,TopicIcons}.jsx`, `widgets/topics.js`(11주제/4그룹),
@@ -88,42 +89,44 @@ Phase A~D 완료·병합. "개인 생산성 OS" 방향으로 **P0~P5 완료**(�
 | 단계 | 내용 | 상태 |
 |---|---|---|
 | P0 | 문서 + PROGRESS 다이어그램 | ✅ |
-| P1 | ADR 초안 + 요구사항 | 🚧 ADR-0018·0029 채택 (P6). ADR-0030·0031·0013 은 아직 **제안** — P7/P8/P9 착수 전 결정 필요. `OKR.md` 는 P8 선행 |
+| P1 | ADR 초안 + 요구사항 | 🚧 ADR-0018·0029 채택 (P6). ADR-0013 부분 채택 (P7 — 트리거만, 전체 큐는 제안 유지). ADR-0030 채택 (2026-09-08). ADR-0031 은 아직 **제안** — P9 착수 전 결정 필요. `OKR.md` + FR-OKR-\* 는 P8 선행 |
 | P2 | 디자인 캔버스 6 아트보드 + 토큰 v2 | ✅ · **v2 재작성 2026-09-08** (UI_STYLE v2 사이드바, 같은 URL: https://claude.ai/code/artifact/a8e15d6b-2bfb-42d9-96c7-cdb0d964ebf3) |
 | P3 | T5 라이트 테마 1차 (ADR-0027 채택) | ✅ 병합됨 |
 | P4 | T5 공통 컴포넌트 | ✅ 병합됨 |
 | **P4.5** | 사이드바 셸 (UI_STYLE v2 / ADR-0032 채택) | ✅ **PR #45 병합됨** |
 | **P5** | **T1 단일 캐시 + 칸반 뷰** — `useTaskStore` `byId`/`order`, 칸반 = tasks 위젯 내 리스트/보드 토글(PO-7) | ✅ **#47 병합됨** (ADR-0028 채택), 수동 검증 TC-P5-M1~4 대기 |
 | **P6** | T2 자동 분류 — 최소 마이그레이션 + 에이전트 배치 분류 + 태그 칩 필터 | ✅ **PR 열림** (ADR-0018·0029 채택, FR-TASK-08), 수동 검증 TC-P6-M1~4 대기 |
-| **P7** | T4 에이전트 활동 위젯 — `sync_logs`/`health`/다음 실행 | ⏳ **다음** (ADR-0013 재활성·채택 + FR-AGENT-\* 신규 필요) |
-| P8 | T3 OKR Phase — `objectives`/`key_results` + OKR 대시보드 + 주간 플래너 | ⏳ |
+| **P7** | T4 에이전트 활동 위젯 — `sync_logs`/`health`/다음 실행 + "지금 실행" 파일 플래그 | ✅ **PR 열림** (ADR-0013 부분 채택, FR-AGENT-08/09), launchd WatchPaths 수동 검증 대기 |
+| **P8** | T3 OKR Phase — `objectives`/`key_results` + OKR 대시보드 + 주간 플래너 | ⏳ **다음** (`OKR.md` + FR-OKR-\* 선행. ADR-0030 은 채택됨) |
 | P9 | T6 진행 현황 · 파일 탐색 뷰 — `GET /api/docs/:name` + `GET /api/tree` + 위젯(좌 폴더 트리 / 우 본문) | ⏳ |
 
 ---
 
-## 4. 다음 세션 = P7 착수 전 결정 + `/feature` P7
+## 4. 다음 세션 = P8 착수 전 선행 + `/feature` P8
 
-**P7 = T4 에이전트 활동 위젯** — 대시보드에서 에이전트(daily brief / sync) 상태를 본다:
-최근 `sync_logs` 항목 · Supabase `health` · 다음 launchd 실행 시각 · "지금 실행" 버튼.
+**P8 = T3 OKR Phase + 주간 플래너** — `objectives`/`key_results` 스키마 + OKR 대시보드 위젯 + 주간 플래너.
 
-### 4-1. 착수 전 결정 (planner 진입 전, `AskUserQuestion` 으로)
-- **ADR-0013 재활성 → 채택** — PO-9: "지금 실행" 트리거 방식. 이번 세션 방향 지시로는
-  **파일 플래그**(백엔드가 플래그 파일 write → launchd `WatchPaths` 또는 에이전트 폴링이 집음)로 가되,
-  ADR 본문·상태(`제안 → 채택`) + `DESIGN.md` §2 · `adr/README.md` 갱신 필요.
-- **FR-AGENT-\* 신규 요구사항** — 위젯이 노출할 데이터 계약을 확정한다:
-  - 최근 sync 로그 몇 건, 어떤 필드(소스·상태·시각·마스킹된 에러)를 보일지.
-  - "다음 실행 시각" 을 어디서 얻을지 (plist 파싱 vs 고정 표시 vs 에이전트가 기록).
-  - FR 을 `REQUIREMENTS_FUNCTIONAL.md` + `TRACEABILITY.md` 에 추가.
-- 웹 데모: `GET /api/agent/*` 신설 시 `demoClient.js`/`demoData.js` 목 어댑터도 같이.
+### 4-1. 착수 전 선행 (planner 진입 전)
+- **`requirements/OKR.md` 작성 + FR-OKR-\* 정의** — ADR-0030 은 2026-09-08 이미 채택이므로 새 ADR 결정은 불필요.
+  OKR 데이터 계약을 확정한다:
+  - `objectives`(분기·제목·상태) / `key_results`(목표치·현재치·단위·진행 %) 필드.
+  - 주간 플래너가 OKR·할일과 어떻게 엮이는지 (참조만 vs 별도 테이블).
+  - 최소 마이그레이션(P6 도입 `PRAGMA user_version` 러너)으로 스키마 추가.
+  - FR 을 `REQUIREMENTS_FUNCTIONAL.md` + `TRACEABILITY.md` + `requirements/README.md` 에 추가.
+- 웹 데모: `GET /api/okr/*` 신설 시 `demoClient.js`/`demoData.js` 목 어댑터도 같이.
 
-### 4-2. 이후 로드맵 파생 작업 (P8/P9 전)
-- **ADR-0030 채택** (PO-5·6) + **`requirements/OKR.md` 작성** — P8 선행.
+### 4-2. P7 로컬 수동 검증 대기 (사용자)
+- `bash scripts/install-runnow-launchd.sh` 로 `com.aicomputeros.runnow` 잡 등록 (`WatchPaths = agent/.triggers/`).
+- 위젯 "지금 실행" 클릭 → `agent/.triggers/run-now` 생성 → launchd 가 `agent/trigger.py` 실행하는지 확인 (TC-ACT-M / TC-AGENT-M).
+- 결과를 `PROGRESS.md`·`TEST_PLAN.md` 에 반영.
+
+### 4-3. 이후 로드맵 파생 작업 (P9 전)
 - **ADR-0031 채택** (PO-11·12) — P9 선행.
-- **PO-10** — 개인 OS 방향(P7~P9)과 Phase E(다중 사용자·Supabase 동기화)의 순서: 미결. `PROGRESS.md` 에 기록.
+- **PO-10** — 개인 OS 방향(P8~P9)과 Phase E(다중 사용자·Supabase 동기화)의 순서: 미결. `PROGRESS.md` 에 기록.
 
-### 4-3. 이미 종결된 결정 (참고)
-ADR-0018·0029(P6 구현), ADR-0028/PO-7(P5), ADR-0032/PO-13·14(P4.5), ADR-0027/PO-1·2(P3) — 채택.
-**아직 제안 상태:** ADR-0013(P7 선행), ADR-0030(P8 선행), ADR-0031(P9 선행).
+### 4-4. 이미 종결된 결정 (참고)
+ADR-0013 부분 채택(P7 — 트리거만), ADR-0030(P8 근거), ADR-0018·0029(P6), ADR-0028/PO-7(P5), ADR-0032/PO-13·14(P4.5), ADR-0027/PO-1·2(P3) — 채택.
+**아직 제안 상태:** ADR-0013 전체 작업 큐 부분, ADR-0031(P9 선행).
 
 ---
 
@@ -174,12 +177,13 @@ ADR-0018·0029(P6 구현), ADR-0028/PO-7(P5), ADR-0032/PO-13·14(P4.5), ADR-0027
 
 ---
 
-## 8. 자동 검증 현황 (2026-09-08 P5 기준 — 전부 초록)
+## 8. 자동 검증 현황 (2026-09-08 P7 기준 — 전부 초록)
 
 | 스위트 | 결과 |
 |---|---|
-| `verify.sh --code-only` | 27 / 0 / 0 |
+| `verify.sh --code-only` | 29 / 0 / 0 |
 | `check-docs.sh` (문서 정합) | 11 / 0 / 0 |
-| backend `npm test` | 97 pass / 0 fail (P6) |
-| frontend `npm test` | 68 pass / 0 fail (P6) |
-| agent `pytest -m "not network"` | 75 passed / 4 deselected (P6) |
+| backend `npm test` | 106 pass / 0 fail (P7) |
+| frontend `npm test` | 76 pass / 0 fail (P7) |
+| agent `pytest -m "not network"` | 80 passed / 4 deselected (P7) |
+| `npm run build` / `build:demo` | 성공 |

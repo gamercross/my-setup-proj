@@ -103,4 +103,5 @@ Daily Brief 의 일반화 버전.
   코드베이스를 수정하는 코딩 에이전트는 이 제품의 범위가 아니다 (그건 Claude Code 가 하는 일).
 - 강의 A-W11 "Mini Coding Agent" 실습을 이 기능으로 소화한다.
 - 설계 명세: 개발 파이프라인의 [ORCHESTRATION.md](../../setup/ORCHESTRATION.md) 상태 그래프를 그대로 재사용한다.
-- 요구사항 자리표시: **FR-AGENT-08** (작업 큐, [requirements/AGENT.md](../requirements/AGENT.md)), 결정 자리표시: **[ADR-0013](../architecture/adr/ADR-0013-dashboard-agent-queue.md)** (제안).
+- 요구사항: 전체 작업 큐는 **FR-AGENT-09** (자리표시, [requirements/AGENT.md](../requirements/AGENT.md)), 결정은 **[ADR-0013](../architecture/adr/ADR-0013-dashboard-agent-queue.md)** (제안).
+  그 전 단계로 **FR-AGENT-08** (에이전트 활동 위젯 + "지금 실행" 파일 플래그 트리거)를 P7 에서 구현했다 (2026-09-08).

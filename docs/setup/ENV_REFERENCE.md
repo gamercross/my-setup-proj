@@ -22,6 +22,9 @@
 | `SUPABASE_URL` | ❌ (선택) | Supabase 프로젝트 URL. 2026-09-06~ 클라이언트 부트스트랩이 사용 (연결 배선·`/api/sync/health` 진단만) | `backend/src/supabase.js` | 팩토리가 `null` 반환, 프로세스당 1회 경고. 앱 부팅·기존 기능 무영향, 로컬 SQLite 전용 |
 | `SUPABASE_KEY` | ❌ (선택) | Supabase **anon public** 키 전제. `service_role` 키는 `.env` 에 두지 않는다 (사용자가 키 종류 확인 필요) | `backend/src/supabase.js` | 동상 |
 | `SUPABASE_TIMEOUT_MS` | ❌ (선택) | Supabase 요청 타임아웃(ms). 기본 `3000` | `backend/src/supabase.js` | `3000` 사용 |
+| `DAILY_BRIEF_HOUR` | ❌ (선택) | 일일 브리핑 예약 시(hour, 0~23). 기본 `7`. `install-dailybrief-launchd.sh` 가 plist 에, `backend/src/services/agent.js` 가 활동 위젯 "다음 실행" 표시에 사용 | `scripts/*launchd*.sh`, `scripts/daily-brief-run.sh`, `backend/src/services/agent.js` | 기본 `7`. 범위 밖·비정수면 경고 후 기본값 |
+| `DAILY_BRIEF_MINUTE` | ❌ (선택) | 일일 브리핑 예약 분(minute, 0~59). 기본 `30` | 동상 | 기본 `30`. 범위 밖·비정수면 경고 후 기본값. **시각을 바꾸면 launchd 재설치 + `.env` 를 함께 고친다** |
+| `AGENT_PATH` | ❌ (선택) | `agent/` 폴더 절대 경로 명시(패키지 배포·비표준 배치용). 지정 시 폴백 없이 그 경로만 신뢰 | `backend/src/services/agent.js` | 저장소 루트의 `agent/` → `process.resourcesPath/agent` 순으로 탐색. 못 찾으면 "지금 실행" 503 |
 | `NODE_ENV` | ✅ | `development` / `production`. 로깅·개발도구·Vite 로드 방식 분기 (ADR-0010) | `backend/src/server.js`, `frontend/src/main.js` | 코드 기본값(`development` 가정) |
 | `PORT` | ✅ | 백엔드 리슨 포트. 기본 `3000` | `backend/src/server.js` | `3000` 사용 |
 | `DATABASE_PATH` | — | 로컬 SQLite 파일 경로 (ADR-0009). 비우면 `backend/data/app.db` | `backend/db/index.js`, `agent/db.py` | ✅ B2 + D1 구현: `backend/db/index.js`·`agent/db.py` 둘 다 이 값을 읽음(트림 후 비었으면 `backend/data/app.db`, `:memory:` 통과). **로딩 비대칭 주의** — agent 는 `load_dotenv()` 로 `.env` 를 읽지만 backend 는 셸 환경변수로만 읽는다. 둘을 같은 파일로 맞추려면 셸에서 `export DATABASE_PATH=...`. Electron 패키지는 `main.js` 가 `userData` 로 덮어씀 |
