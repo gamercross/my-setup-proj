@@ -49,7 +49,7 @@ C6 에서 이미 만든 것: `styles.css` `:root` 토큰, `themeToVars` 화이�
 | `--radius` / `--pad` | `8px` / `10px` (유지) | 〃 | 일반 모서리 / 위젯 패딩 |
 | `--chip-radius` | `999px` | `999px` | 칩/필 (P4 칩 컴포넌트 대비) |
 
-- ~~**P4 로 미루는 것:**~~ ✅ **P4 완료 (2026-09-07):** `--card-radius` 10→16, `--shadow-card` 추가(`WidgetFrame` wrapper), 스탯 타일(`StatTile`)·점-그리드 진행바(`DotProgress` + 순수 `dotFill.js`)·칩(`Chip`) 컴포넌트, `ProjectCard` 진행바 → `DotProgress`. P3 는 **팔레트 전환 + hex→토큰 치환**까지만. 카드 여백 추가 정리는 후속.
+- **P4 로 미룬 것 → 완료 (2026-09-07):** `--card-radius` 10→16, `--shadow-card` 추가(`WidgetFrame` wrapper), 스탯 타일(`StatTile`)·점-그리드 진행바(`DotProgress` + 순수 `dotFill.js`)·칩(`Chip`) 컴포넌트, `ProjectCard` 진행바 → `DotProgress`. P3 는 **팔레트 전환 + hex→토큰 치환**까지만. 카드 여백 추가 정리는 후속.
 
 ## 결과 / 트레이드오프
 - P3 는 팔레트(다크→라이트) + 하드코딩 hex → `var(--*)` 치환. 인라인 style 이 많아 파일 수가 많다.

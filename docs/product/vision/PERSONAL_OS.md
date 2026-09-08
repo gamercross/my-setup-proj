@@ -100,7 +100,7 @@ flowchart TB
 | 무엇 | OKR(목표·핵심결과) 진행률 대시보드 + `due_date` 를 ISO 주(월~일)로 버킷팅한 "지난주 완료 N / 이번주 예정 M(완료 K) / 다음주 P" |
 | 지금 | `projects.progress`(0-100)만. OKR 구조·주간 버킷 없음 |
 | 목표 | `objectives` + `key_results` 테이블. 스탯 타일 그리드(KR 평균 달성률·Objective 수·KR 수·90%+/40-90%/<40% 구간) + 월별 라인차트. 주간 요약은 순수 집계, 심화 시 "Weekly Brief"(Claude)로 확장 — Daily Brief 인프라 재사용 |
-| 관련 | 새 `requirements/OKR.md` (예정) · FR-OKR-* · ADR-0030 (예정, OKR 데이터 모델) · 스키마 마이그레이션 |
+| 관련 | 새 `requirements/OKR.md` (예정) · FR-OKR-* · ADR-0030 (채택 2026-09-08, OKR 데이터 모델) · ADR-0018 마이그레이션(채택) |
 | 크기 | 상 (독립 Phase) |
 | 메타 | 이 프로젝트의 `PROGRESS.md` 가 프로젝트에 하는 일을, 앱이 사용자에게 해준다 |
 
@@ -111,7 +111,7 @@ flowchart TB
 | 무엇 | 에이전트(런타임: sync·브리핑·Notion 저장)의 상태·이력·다음 실행이 화면에 보인다 |
 | 지금 | `GET /api/sync/logs` · `/api/sync/health` API 는 있으나 소비하는 위젯 없음. 다이어그램 뷰어는 파이프라인 *구조*만 |
 | 목표 | "에이전트 활동" 위젯 — 서비스별(Gmail·Calendar·Notion) 상태 카드 + 타임라인 + 다음 launchd 실행 시각. 선택: "지금 실행" 버튼(백엔드가 python 트리거 → ADR-0011 프로세스 분리에 손대는 큰 결정) |
-| 관련 | **[ADR-0013](../architecture/adr/ADR-0013-dashboard-agent-queue.md) 재활성** (제안 상태, "핵심 4기능 완성 후" 였는데 이제 완성됨) · `UI_STYLE.md` US-2("모니터" 탭) · 새 FR-AGENT-* |
+| 관련 | [ADR-0013](../architecture/adr/ADR-0013-dashboard-agent-queue.md) (전체 큐는 제안, **P7 "지금 실행"=파일 플래그로 결정됨 — PO-9**) · `UI_STYLE.md` US-2("모니터" 탭) · 새 FR-AGENT-* |
 | 크기 | 중 (위젯). "지금 실행"·작업 큐는 별도 |
 
 ### T5 — 라이트 비주얼 시스템
@@ -121,7 +121,7 @@ flowchart TB
 | 무엇 | 전 화면을 라이트 오프화이트 + 노션 위젯 스타일로 통일. 다크는 옵션으로 |
 | 지금 | 전면 다크 `#0f172a`. `styles.css` `:root` 토큰(C6)은 있으나 컴포넌트는 하드코딩 hex |
 | 목표 | 토큰 v2(§5) 로 `:root` 재정의 + `[data-theme]` 분기. 공통 컴포넌트(스탯 타일·점-그리드 진행바·칩) 도입. C6 테마 프리셋·`themeToVars` 화이트리스트 인프라 재사용 |
-| 관련 | `UI_STYLE.md` 개정 · ADR-0027 (예정, 라이트 테마 기본 전환 + 토큰 v2) · FR-WIDGET-05/06 |
+| 관련 | `UI_STYLE.md` 개정 · ADR-0027 (채택 P3) · ADR-0032 (채택 P4.5, 사이드바 셸) · FR-WIDGET-05/06 |
 | 크기 | 중 (토큰·프레임) + 지속 (위젯별 다듬기) |
 
 ### T6 — 진행 현황 · 파일 탐색 (대시보드에서 우리가 하는 것 보기)
@@ -131,7 +131,7 @@ flowchart TB
 | 무엇 | 저장소를 IDE 로 열지 않고, 대시보드 위젯 하나에서 ① **왼쪽 폴더 트리** 로 프로젝트 파일 구조를 훑고 ② 파일을 클릭하면 **오른쪽 내용 패널** 에 렌더 — `PROGRESS.md`·`PERSONAL_OS.md`·`작업로그.md`·ADR·소스 파일 등. "우리가 어디까지 왔나 / 다음 순서 / 어떤 파일이 있나" 를 앱 안에서 확인 |
 | 지금 | 다이어그램 뷰어(C4)는 mermaid 블록만 뽑아 렌더. 진행 본문·파일 구조는 저장소를 열어야 봄 |
 | 목표 | **백엔드** ① `GET /api/tree` — 허용 루트(`docs`·`frontend/src`·`backend/src`·`agent`·`scripts`·루트 `*.md`)만 재귀 나열, `.env*`·`node_modules`·`.git`·`venv`·`.secrets`·`dist` 제외, 깊이·개수 상한 (`services/diagrams.js` 인프라 재사용). ② `GET /api/docs/:path` — 허용 파일 1개를 **의존성 없이** 토큰화(제목·목록·표·코드블록·mermaid·링크)한 JSON. `.md` 는 부분집합 토큰, `.js`/`.py` 등은 `<pre>` 코드블록. **마크다운 파서·`dangerouslySetInnerHTML` 없음** (NFR-SEC-04). **프론트** 위젯 내부 레이아웃 = 왼쪽 트리(~30%) + 오른쪽 내용(~70%). mermaid 블록은 기존 `DiagramPanel` 재사용. 셸의 별도 좌측 레일이 **아님** — DO-1 단일 그리드 유지 |
-| 관련 | FR-UI-05(다이어그램 뷰어) 사촌 · 새 FR-UI-06 · ADR-0031 (예정 — 안전 마크다운 렌더 + `/api/tree`) · 다이어그램 뷰어 인프라(`resolveDocsRoot`·`resourcesPath` 폴백·상한) 재사용 |
+| 관련 | FR-UI-05(다이어그램 뷰어) 사촌 · 새 FR-UI-06 · ADR-0031 (채택 2026-09-08 — 안전 마크다운 렌더 + `/api/tree`, `.md` 만) · 다이어그램 뷰어 인프라(`resolveDocsRoot`·`resourcesPath` 폴백·상한) 재사용 |
 | 크기 | 중 (`/feature` 1회) |
 | 메타 | T3 의 "PROGRESS.md 가 프로젝트에 하는 일을 앱이 사용자에게" 와 짝 — 이건 프로젝트 자신을 위한 버전 |
 
@@ -185,36 +185,43 @@ flowchart TB
 |---|---|---|---|
 | **P0** | 이 문서 + PROGRESS 다이어그램 | `PERSONAL_OS.md`, PROGRESS §추가 | — |
 | **P1 (문서)** | ADR 초안 + 요구사항 | ADR-0027(라이트 테마)·0028(단일 캐시)·0029(자동 분류)·0030(OKR 모델)·0031(안전 마크다운 렌더), ADR-0013 재활성, ADR-0018 결정, `requirements/OKR.md`, `UI_STYLE.md` 개정 | P0 |
-| ~~P2 (디자인)~~ ✅ | 목표 화면 목업 (2026-09-07, **v2 2026-09-08**) | design 캔버스 6 아트보드 + 토큰 v2 확정. **v2: UI_STYLE v2(라이트 + 왼쪽 사이드바) 반영해 재작성** — 같은 URL. https://claude.ai/code/artifact/a8e15d6b-2bfb-42d9-96c7-cdb0d964ebf3 | P1 |
-| ~~P3 (빌드)~~ ✅ | T5 라이트 테마 1차 (2026-09-07, ADR-0027 채택) | `styles.css` `:root` 팔레트 전환(다크→라이트) + `[data-theme=dark]` 블록(정의만) + 하드코딩 hex→`var(--*)` 치환 (10개 파일) → 데모 반영. 카드 여백·라운드·점그리드·전역 다크 토글은 P4 | P2 는 P3 이후 소급 확정(2026-09-07) — PO-1/2 결정 |
-| ~~P4 (빌드)~~ ✅ | T5 공통 컴포넌트 (2026-09-07) | `frontend/src/components/` — `StatTile.jsx` · `DotProgress.jsx`(+ 순수 `dotFill.js`) · `Chip.jsx` (OKR·에이전트 공용). 카드 토큰 v2(`--card-radius` 16·`--shadow-card`) + `WidgetFrame` 그림자 + `ProjectCard` 진행바 → `DotProgress`. `frontend/test/dotFill.test.mjs` TC-P4-01~05. 시각 확인 로컬 GUI 대기 | P3 |
-| ~~P4.5~~ ✅ | 사이드바 셸 (UI_STYLE v2) | `AppShell`·`Sidebar`(브랜드+검색 표시+그룹 네비 4개+사용자)·`TopicView`(페이지 헤더) + `WidgetShell` `topicId` 스코프 + `useUiStore.activeTopic` + 레이아웃 저장 v1→v2 마이그레이션 + 주제별 기본/플레이스홀더 위젯. [ADR-0032](../architecture/adr/ADR-0032-sidebar-shell-per-topic-layouts.md) 채택. 데모 반영 — 구현 완료 (2026-09-08, feature/p4.5-sidebar-shell) | P4 · ✅ ADR-0032 |
-| ~~P5~~ ✅ | T1 단일 캐시 + 칸반 뷰 (2026-09-08, ADR-0028 채택) | `frontend/src/store/taskCache.js`(순수 캐시 헬퍼) + `useTaskStore` `byId`/`order` 정본·`tasks` 파생 미러, `frontend/src/widgets/taskBoard.js`(`groupByPriority`), `components/TaskBoard.jsx`·`TaskCard.jsx`, `TasksWidgetView` 리스트/보드 전환(`config.display.view`), `widgetMeta.tasks.configSchema.view`. 테스트 `frontend/test/{taskCache,taskBoard,taskStore}.test.mjs` TC-P5-01~13. **태그·자동분류는 P6 이월** (스키마 무변경) | P3 |
-| ~~P6~~ ✅ | T2 자동 분류 (2026-09-08, ADR-0018·0029 채택) | `backend/db/schema.sql`(`task_tags` + `sync_logs` CHECK), `backend/db/index.js`(마이그레이션 러너 `PRAGMA user_version`), `backend/src/{db,services/tasks,routes/tasks}.js`(태그 API), `agent/classify.py`(신규)·`agent/db.py`·`agent/daily_brief.py`(배치 배선), `frontend/src/store/taskTags.js`(신규)·`useTaskStore.js`·`components/{TaskTags,TaskCard,TaskList,TaskBoard}.jsx`·`TasksWidgetView.jsx`. 테스트 TC-TAG-01~08·TC-DB-05·TC-SYNC-11·TC-P6-01~08·TC-AGENT-31~40 | P4·P5 |
+| P2 (디자인) ✅ | 목표 화면 목업 (2026-09-07, **v2 2026-09-08**) | design 캔버스 6 아트보드 + 토큰 v2 확정. **v2: UI_STYLE v2(라이트 + 왼쪽 사이드바) 반영해 재작성** — 같은 URL. https://claude.ai/code/artifact/a8e15d6b-2bfb-42d9-96c7-cdb0d964ebf3 | P1 |
+| P3 (빌드) ✅ | T5 라이트 테마 1차 (2026-09-07, ADR-0027 채택) | `styles.css` `:root` 팔레트 전환(다크→라이트) + `[data-theme=dark]` 블록(정의만) + 하드코딩 hex→`var(--*)` 치환 (10개 파일) → 데모 반영. 카드 여백·라운드·점그리드·전역 다크 토글은 P4 | P2 는 P3 이후 소급 확정(2026-09-07) — PO-1/2 결정 |
+| P4 (빌드) ✅ | T5 공통 컴포넌트 (2026-09-07) | `frontend/src/components/` — `StatTile.jsx` · `DotProgress.jsx`(+ 순수 `dotFill.js`) · `Chip.jsx` (OKR·에이전트 공용). 카드 토큰 v2(`--card-radius` 16·`--shadow-card`) + `WidgetFrame` 그림자 + `ProjectCard` 진행바 → `DotProgress`. `frontend/test/dotFill.test.mjs` TC-P4-01~05. 시각 확인 로컬 GUI 대기 | P3 |
+| P4.5 ✅ | 사이드바 셸 (UI_STYLE v2) | `AppShell`·`Sidebar`(브랜드+검색 표시+그룹 네비 4개+사용자)·`TopicView`(페이지 헤더) + `WidgetShell` `topicId` 스코프 + `useUiStore.activeTopic` + 레이아웃 저장 v1→v2 마이그레이션 + 주제별 기본/플레이스홀더 위젯. [ADR-0032](../architecture/adr/ADR-0032-sidebar-shell-per-topic-layouts.md) 채택. 데모 반영 — 구현 완료 (2026-09-08, feature/p4.5-sidebar-shell) | P4 · ✅ ADR-0032 |
+| P5 ✅ | T1 단일 캐시 + 칸반 뷰 (2026-09-08, ADR-0028 채택) | `frontend/src/store/taskCache.js`(순수 캐시 헬퍼) + `useTaskStore` `byId`/`order` 정본·`tasks` 파생 미러, `frontend/src/widgets/taskBoard.js`(`groupByPriority`), `components/TaskBoard.jsx`·`TaskCard.jsx`, `TasksWidgetView` 리스트/보드 전환(`config.display.view`), `widgetMeta.tasks.configSchema.view`. 테스트 `frontend/test/{taskCache,taskBoard,taskStore}.test.mjs` TC-P5-01~13. **태그·자동분류는 P6 이월** (스키마 무변경) | P3 |
+| P6 ✅ | T2 자동 분류 (2026-09-08, ADR-0018·0029 채택) | `backend/db/schema.sql`(`task_tags` + `sync_logs` CHECK), `backend/db/index.js`(마이그레이션 러너 `PRAGMA user_version`), `backend/src/{db,services/tasks,routes/tasks}.js`(태그 API), `agent/classify.py`(신규)·`agent/db.py`·`agent/daily_brief.py`(배치 배선), `frontend/src/store/taskTags.js`(신규)·`useTaskStore.js`·`components/{TaskTags,TaskCard,TaskList,TaskBoard}.jsx`·`TasksWidgetView.jsx`. 테스트 TC-TAG-01~08·TC-DB-05·TC-SYNC-11·TC-P6-01~08·TC-AGENT-31~40 | P4·P5 |
 | **P7** | T4 에이전트 활동 위젯 | `sync_logs`/`health`/다음 실행 → 위젯 | P4 |
 | **P8** | T3 OKR Phase | `objectives`/`key_results` + OKR 대시보드 + 주간 플래너 + (선택) Weekly Brief | P4·P5 |
 | **P9** | T6 진행 현황 · 파일 탐색 | `GET /api/tree`(허용 루트·상한) + `GET /api/docs/:path`(안전 토큰화) + "진행 현황" 위젯(왼쪽 트리 + 오른쪽 내용, mermaid 은 `DiagramPanel` 재사용). 데모용 `demoClient.js` 목 트리 | P4 |
 
 각 빌드 단계는 `/feature` 파이프라인 1회, 개별 브랜치·PR. `frontend/` 변경은 병합 시 데모 자동 재배포.
 
-## 8. 열린 질문 (착수 전 결정)
+## 8. 열린 질문 / 종결된 결정
+
+### 8-1. 아직 열린 질문
 
 | ID | 질문 | 언제 |
 |---|---|---|
-| PO-1 | 라이트를 **기본**으로, 다크는 프리셋 옵션? (권장) vs 다크 유지 + 라이트 프리셋 | ADR-0027 |
-| PO-2 | `--accent` 를 파랑(`#2f6feb`)으로? US-1(앰버→보라)은 어떻게 되나 | ADR-0027 |
-| ~~PO-3~~ | 자동 분류 taxonomy | **종결 (2026-09-08, ADR-0029): 자유 태그 + 다중.** 고정 집합 아님 — 사용자가 원하는 만큼 태그, 한 할 일에 여러 개. `task_tags` 조인 테이블, `tasks.category` 폐기. P6 구현 완료 |
-| ~~PO-4~~ | 분류 시점·주체 | **종결 (2026-09-08, 초안대로): 에이전트 배치** — `daily_brief` 실행 시 태그 없는 할 일을 1회 Claude 호출로 일괄 태깅. 백엔드 POST 경로에 Claude 안 넣음. 사용자 수동 태그는 고정(에이전트가 안 덮음). P6 구현 완료 |
-| ~~PO-5~~ | OKR = 1급 엔티티 vs `projects` 재해석 | **종결 (2026-09-08, 초안대로): 1급 엔티티** `objectives`/`key_results`/`kr_snapshots` 3테이블, `projects` 와 별개(느슨 FK). ADR-0030 채택 |
-| ~~PO-6~~ | 주간 요약: 순수 집계 vs Claude "Weekly Brief" | **종결 (2026-09-08, 초안대로): 순수 SQL 집계** (`due_date` ISO 주 3버킷). Weekly Brief 는 후속 — OKR.md 에 기록 |
-| ~~PO-7~~ | 칸반이 할 일 위젯을 대체하나, 추가 뷰인가 | **종결 (2026-09-08): `tasks` 위젯 안의 리스트/보드 뷰 전환(`config.display.view` — configSchema 규약). 별 위젯 타입 아님. 위젯 개수 불변 → DO-2 유지. ADR-0028 §결정4 반영. P5 구현 완료 (2026-09-08)** |
-| PO-8 | 차트 라이브러리: Recharts vs 인라인 SVG (`dataviz` 스킬 참조) | P2 → **인라인 SVG 결정 (2026-09-08)** |
-| ~~PO-13~~ | 사이드바 그룹·항목 최종 구성 | **종결 (2026-09-08, ADR-0032): COMMAND(개요·할일·브리핑·프로젝트·일정) / PLAN(OKR·주간) / AGENT(활동·진행현황·다이어그램) / SYSTEM(설정). 미구현 항목은 표시 + "준비 중" 플레이스홀더** |
-| ~~PO-14~~ | rail 접기·⌘K 검색을 P4.5 범위에 | **종결 (2026-09-08, ADR-0032): 둘 다 P4.5 범위 밖. 검색 인풋은 표시만, 사이드바 고정 폭** |
-| ~~PO-9~~ | 에이전트 "지금 실행" 트리거 | **종결 (2026-09-08): 파일 플래그.** 백엔드가 `agent/.run-now` 를 쓰고 에이전트 루프가 다음 폴링에서 감지·실행·삭제. subprocess 없음 → ADR-0011 프로세스 분리 유지. ADR-0013 부분 결정 |
-| PO-10 | 이 방향과 Phase E(다중 사용자)의 순서 — 병행 vs 이후 | PROGRESS **(미결)** |
-| ~~PO-11~~ | 진행 현황 뷰 노출 범위·접기 UI | **종결 (2026-09-08, 초안대로): `heading` 기준 섹션 접기 큐레이션** (기본 첫 섹션 + 요약 섹션 펼침) |
-| ~~PO-12~~ | 파일 트리 허용 루트·소스 렌더 | **종결 (2026-09-08): 허용 루트 = `docs/` + 저장소 루트 `*.md` 만** (소스 디렉터리 제외). **`.md` 만 렌더** — 소스 파일은 트리에도 안 나옴. 위젯은 좌/우 패널 리사이즈 + 접기, 상단 브레드크럼. ADR-0031 개정 |
+| PO-10 | 이 방향과 Phase E(다중 사용자)의 순서 — 병행 vs 이후 | PROGRESS (P9 전후) |
+
+### 8-2. 종결된 결정 (2026-09-07~08)
+
+| ID | 질문 | 결정 |
+|---|---|---|
+| PO-1 | 라이트를 기본으로, 다크는 프리셋 옵션인가 | 라이트 기본 + `[data-theme=dark]` 프리셋. ADR-0027 채택 (P3) |
+| PO-2 | `--accent` 를 파랑으로? US-1(앰버→보라)은 | 파랑 `#2f6feb`. v2 참조 화면의 보라는 무시. ADR-0027 채택 |
+| PO-3 | 자동 분류 taxonomy: 고정 집합 vs 자유 태그 | **자유 태그 + 다중.** `task_tags` 조인 테이블, `tasks.category` 폐기. ADR-0029 채택, P6 구현 완료 |
+| PO-4 | 분류 시점·주체 | **에이전트 배치** — `daily_brief` 실행 시 태그 없는 할 일을 1회 Claude 호출로 일괄 태깅. 백엔드 POST 경로에 Claude 안 넣음. 사용자 수동 태그는 고정. ADR-0029 채택, P6 구현 완료 |
+| PO-5 | OKR = 1급 엔티티 vs `projects` 재해석 | **1급 엔티티** `objectives`/`key_results`/`kr_snapshots` 3테이블, `projects` 와 별개(느슨 FK). ADR-0030 채택 (P8) |
+| PO-6 | 주간 요약: 순수 집계 vs Claude "Weekly Brief" | **순수 SQL 집계** (`due_date` ISO 주 3버킷). Weekly Brief 는 후속 — OKR.md 에 기록 |
+| PO-7 | 칸반이 할 일 위젯을 대체하나, 추가 뷰인가 | `tasks` 위젯 안의 리스트/보드 뷰 전환(`config.display.view`). 별 위젯 타입 아님, 위젯 개수 불변 → DO-2 유지. ADR-0028 §결정4, P5 구현 완료 |
+| PO-8 | 차트 라이브러리: Recharts vs 인라인 SVG | 인라인 SVG (`dataviz` 스킬). Recharts 미도입 |
+| PO-9 | 에이전트 "지금 실행" 트리거 | **파일 플래그** — 백엔드가 `agent/.run-now` 를 쓰고 에이전트 루프가 다음 폴링에서 감지·실행·삭제. subprocess 없이 ADR-0011 프로세스 분리 유지. ADR-0013 부분 결정 (P7) |
+| PO-11 | 진행 현황 뷰 노출 범위·접기 UI | `heading` 기준 섹션 접기 큐레이션 (기본 첫 섹션 + 요약 섹션 펼침). ADR-0031 (P9) |
+| PO-12 | 파일 트리 허용 루트·소스 렌더 | 허용 루트 = `docs/` + 저장소 루트 `*.md` 만. **`.md` 만 렌더** (소스 파일은 트리에도 안 나옴). 위젯은 좌/우 패널 리사이즈 + 접기 + 상단 브레드크럼. ADR-0031 개정 (P9) |
+| PO-13 | 사이드바 그룹·항목 최종 구성 | COMMAND(개요·할일·브리핑·프로젝트·일정) / PLAN(OKR·주간) / AGENT(활동·진행현황·다이어그램) / SYSTEM(설정). 미구현 항목은 표시 + "준비 중" 플레이스홀더. ADR-0032 채택 (P4.5) |
+| PO-14 | rail 접기·⌘K 검색을 P4.5 범위에 | 둘 다 P4.5 범위 밖. 검색 인풋은 표시만, 사이드바 고정 폭. ADR-0032 채택 |
 
 ## 9. 관련 문서
 

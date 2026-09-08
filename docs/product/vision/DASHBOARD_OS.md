@@ -12,11 +12,11 @@
 
 | 축 | 기존 (AS-IS) | 전환 후 (TO-BE) |
 |---|---|---|
-| 화면 구성 | ~~`Dashboard.jsx` 고정 배치~~ (C5 에서 제거) | **위젯 셸(`WidgetShell`)** 위에 위젯을 사용자가 배치·이동·크기조절 (C5 구현) |
+| 화면 구성 | `Dashboard.jsx` 고정 배치 (C5 에서 제거) | **위젯 셸(`WidgetShell`)** 위에 위젯을 사용자가 배치·이동·크기조절 (C5 구현) |
 | 데이터 표현 단위 | "패널" (코드에 하드코딩) | **위젯 인스턴스** (레지스트리에 등록된 위젯 타입 + 인스턴스별 설정) |
 | 커스터마이즈 | 전역 디자인 토큰 1벌 | **위젯마다** 테마·표시 옵션을 따로 지정 |
 | 레이아웃 | 고정 | 저장·복원 (localStorage → SQLite → 사용자별) |
-| 확장 | ~~새 패널 = `Dashboard.jsx` 수정~~ | 새 위젯 = `widgets/registry.js` 에 항목 추가 + `widgets/views/` 에 뷰 (플러그인 유사) |
+| 확장 | 새 패널 = `Dashboard.jsx` 수정 (폐기) | 새 위젯 = `widgets/registry.js` 에 항목 추가 + `widgets/views/` 에 뷰 (플러그인 유사) |
 
 핵심 문장: **"각 테이블(tasks·projects·calendar_events·emails·briefs)이 위젯처럼 움직이고, 각 위젯(앱)은 각자 디자인할 수 있다."**
 
