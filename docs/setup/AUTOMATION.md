@@ -64,6 +64,27 @@ flowchart LR
 
 ---
 
+## 2.5 병합된 브랜치 정리 (`scripts/prune-merged-branches.sh`)
+
+작업 한 건이 PR 로 `main` 에 병합되면, 그 로컬 브랜치는 더 필요 없다. 예전에는 다음 세션의
+"첫 할 일" 로 손수 지웠다 ([NEXT_SESSION.md](../progress/NEXT_SESSION.md)). 이제 자동이다.
+
+**언제 도는가:**
+
+| 계기 | 구현 |
+|---|---|
+| 새 세션 시작 (= 새 계획 착수) | `.claude/settings.json` 의 `SessionStart` 훅 (타임아웃 30초, 실패해도 세션 안 막음) |
+| `/feature` 착수 직전 | `feature.md` 0단계 |
+| `/build-next` 루프 진입 시 1회 | `build-next.md` 0단계 (TIDY) |
+| 사람이 직접 | `bash scripts/prune-merged-branches.sh` |
+
+**무엇을 지우나:** `git branch --merged origin/main` 후보를 `git merge-base --is-ancestor` 로
+한 번 더 확인해, **origin/main 에 확실히 병합된** `feature/ · docs/ · fix/ · design/ · chore/ ·
+refactor/` 접두어 브랜치만. 현재 체크아웃된 브랜치와 `main` 은 제외. 미병합 브랜치는 절대
+건드리지 않는다. 원격 브랜치는 `git fetch --prune` 로 사라진 추적 참조만 정리한다.
+
+---
+
 ## 3. 작업로그 자동화
 
 `작업로그.md` 는 날짜별로 **요약**(사람·Claude 작성)과 **커밋**(git 이력에서 자동) 두 부분을 가진다.
@@ -172,13 +193,14 @@ bash scripts/slack-notify.sh "✅" "마무리하는 친구" "커밋 abc123 푸�
 
 ```
 .claude/
-  settings.json              # Stop 훅 → worklog.sh · PreToolUse 훅 → hook-code-branch-guard.sh
+  settings.json              # SessionStart 훅 → prune-merged-branches.sh · Stop 훅 → worklog.sh · PreToolUse 훅 → hook-code-branch-guard.sh
   agents/{planner,developer,supervisor,finisher}.md
   agents/README.md
   commands/feature.md        # /feature — 한 기능 파이프라인
   commands/build-next.md     # /build-next — 로드맵 자동 진행 상위 루프
 scripts/
   worklog.sh                 # 매 턴: 오늘 섹션 갱신
+  prune-merged-branches.sh   # SessionStart / 파이프라인 착수: origin/main 에 병합된 로컬 브랜치 삭제
   hook-code-branch-guard.sh  # PreToolUse: 코드 소스를 main 에서 직접 편집 시 승인 프롬프트 (CONVENTIONS §6)
   worklog-eod.sh             # 23:50: 커밋·푸시·슬랙
   slack-notify.sh            # 슬랙 Incoming Webhook 전송

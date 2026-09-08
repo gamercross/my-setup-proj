@@ -52,6 +52,9 @@
 - 오케스트레이터(`/feature`·`/build-next`)가 단계 시작 시 브랜치를 확인하고, `main` 위면 **먼저 브랜치를 만든다**. 브랜치명은 사용자에게 알린다.
 - 스택 PR: 의존 순서대로 쌓고 아래부터 병합, 병합 때마다 상위 PR base 를 `main` 으로 재지정.
 - `git push --force` 금지. `main` 강제 푸시 절대 금지.
+- **병합된 로컬 브랜치는 자동 정리된다.** `scripts/prune-merged-branches.sh` 가 `SessionStart` 훅과
+  `/feature`·`/build-next` 착수 시 `origin/main` 에 병합 완료된 작업 브랜치를 지운다 (미병합 브랜치는
+  보존). 손수 지울 필요 없음 — 상세는 [AUTOMATION.md](AUTOMATION.md) §2.5.
 
 ---
 

@@ -15,7 +15,10 @@ $ARGUMENTS
 `bash scripts/slack-notify.sh "<이모지>" "<이름>" "<한 줄 요약>"`
 (SLACK_WEBHOOK_URL 미설정이면 스크립트가 조용히 넘어간다. 항상 실행해도 안전.)
 
-0. 시작 알림: `bash scripts/slack-notify.sh "🚀" "에이전트 모임" "작업 시작: $ARGUMENTS"`
+0. 브랜치 정리 + 시작 알림:
+   - `bash scripts/prune-merged-branches.sh` — origin/main 에 병합된 로컬 작업 브랜치를 지운다 (미병합 브랜치는 안전하게 보존). 출력이 있으면 사용자에게 한 줄 보고.
+   - `bash scripts/slack-notify.sh "🚀" "에이전트 모임" "작업 시작: $ARGUMENTS"`
+   - 현재 브랜치가 `main` 이면 이번 작업용 `feature/<짧은-이름>` 브랜치를 만들고 사용자에게 알린다 (GIT_WORKFLOW §2).
 
 1. **planner** 에게 위임 — 구현 계획을 받는다. 계획을 사용자에게 요약해 보여준다.
    → `slack-notify.sh "🧠" "생각하는 친구" "계획 완료: <핵심 3줄>"`

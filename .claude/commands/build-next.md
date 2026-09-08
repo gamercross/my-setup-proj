@@ -14,6 +14,10 @@ $ARGUMENTS
 
 ## 루프 (정지 상태까지 반복)
 
+### 0. TIDY — 병합된 브랜치 정리 (루프 진입 시 1회)
+- `bash scripts/prune-merged-branches.sh` 를 실행한다. origin/main 에 이미 병합된 로컬 작업 브랜치를 지운다 (미병합 브랜치는 보존).
+- 출력이 있으면 사용자 보고에 포함한다.
+
 ### 1. SELECT — 다음 스텝 고르기
 - [docs/product/architecture/DESIGN.md](../../docs/product/architecture/DESIGN.md) §8 의 Phase A~E 스텝 표와
   [docs/product/requirements/TRACEABILITY.md](../../docs/product/requirements/TRACEABILITY.md) §3 상태를 읽는다.
