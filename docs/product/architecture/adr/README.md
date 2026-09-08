@@ -50,7 +50,7 @@
 | [0010](ADR-0010-vite-dev-vs-build.md) | Vite: `NODE_ENV` 로 dev 서버/빌드 분기 | 채택 | FR-UI-02 | A-W4 |
 | [0011](ADR-0011-agent-backend-db-access.md) | 에이전트–백엔드 SQLite: WAL + 쓰기 주체 분리 | 채택 | FR-AGENT-01 | A-W6, B-W7 |
 | [0012](ADR-0012-task-project-link.md) | `tasks.project_id` FK (`ON DELETE SET NULL`) | 채택 | FR-PROJ | B-W3, C-W4 |
-| [0013](ADR-0013-dashboard-agent-queue.md) | 대시보드 기반 에이전트 작업 큐 | 제안 | FR-AGENT-08 | B-W5 |
+| [0013](ADR-0013-dashboard-agent-queue.md) | 대시보드 기반 에이전트 작업 큐 | 제안 (전체 큐) — P7 "지금 실행"은 파일 플래그로 결정 (2026-09-08, PO-9) | FR-AGENT-08 | B-W5 |
 | [0014](ADR-0014-dashboard-diagram-viewer.md) | 대시보드 다이어그램 뷰어 (mermaid 클라이언트 렌더 + `/api/diagrams`) | 채택 | FR-UI-05 | C-W7 |
 | [0015](ADR-0015-local-first-architecture.md) | 아키텍처 스타일 — 로컬 우선 + 프로세스 분리 | 제안 | ASR-1~3, NFR-REL | C-W3·C-W6 |
 | [0016](ADR-0016-desktop-process-topology.md) | 데스크톱 프로세스 토폴로지 (백엔드 실행 주체) | 제안 | RUNTIME_VIEW §5 | A-W6·A-W9 |
@@ -67,6 +67,6 @@
 | [0027](ADR-0027-light-theme-default.md) | 라이트 테마 기본 전환 + 디자인 토큰 v2 | 채택 — P3 (2026-09-07) | FR-WIDGET-05/06 | — |
 | [0028](ADR-0028-single-client-cache.md) | 단일 클라이언트 캐시 — 뷰는 파생만, 칸반은 tasks 위젯 내 리스트/보드 토글 | 채택 (2026-09-08, 개인 OS P5) | FR-TASK-02/03/09, FR-UI-01 | — |
 | [0029](ADR-0029-task-auto-category.md) | 할 일 자동 분류 — 자유 태그·다중(`task_tags`), 에이전트 배치 | 채택 (2026-09-08, P6) | FR-TASK-08 | — |
-| [0030](ADR-0030-okr-data-model.md) | OKR 데이터 모델 + 주간 플래너 | 제안 — 개인 OS P1 (PO-5/6) | FR-OKR-* | — |
-| [0031](ADR-0031-safe-markdown-render.md) | 안전 마크다운 렌더 + 파일 트리 API (서버 토큰화·`GET /api/tree`) | 제안 — 개인 OS P1 (PO-11/12) | FR-UI-06 | — |
+| [0030](ADR-0030-okr-data-model.md) | OKR 데이터 모델 + 주간 플래너 | 채택 — 개인 OS P8 (2026-09-08, PO-5/6 초안대로) | FR-OKR-* | — |
+| [0031](ADR-0031-safe-markdown-render.md) | 안전 마크다운 렌더 + 파일 트리 API (서버 토큰화·`GET /api/tree`) | 채택 — 개인 OS P9 (2026-09-08, PO-11/12: `docs/`+루트 `.md` 만·소스 제외·패널 리사이즈) | FR-UI-06 | — |
 | [0032](ADR-0032-sidebar-shell-per-topic-layouts.md) | 사이드바 셸 + 주제별 위젯 레이아웃 (`activeTopic` state·레이아웃 v1→v2) | 채택 — 개인 OS P4.5 (PO-13/14, UI_STYLE v2) | FR-UI-01, FR-WIDGET-04 | — |

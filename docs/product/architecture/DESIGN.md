@@ -37,7 +37,7 @@
 | [0010](adr/ADR-0010-vite-dev-vs-build.md) | Vite: `NODE_ENV` 로 dev/빌드 분기 | 채택 |
 | [0011](adr/ADR-0011-agent-backend-db-access.md) | 에이전트–백엔드 SQLite: WAL + 쓰기 주체 분리 | 채택 |
 | [0012](adr/ADR-0012-task-project-link.md) | `tasks.project_id` FK (`ON DELETE SET NULL`) | 채택 |
-| [0013](adr/ADR-0013-dashboard-agent-queue.md) | 대시보드 에이전트 작업 큐 (향후 확장) | **제안** |
+| [0013](adr/ADR-0013-dashboard-agent-queue.md) | 대시보드 에이전트 작업 큐 (향후 확장) | **제안** — 단, P7 "지금 실행" = 파일 플래그 (2026-09-08, PO-9) |
 | [0014](adr/ADR-0014-dashboard-diagram-viewer.md) | 대시보드 다이어그램 뷰어 (mermaid 클라이언트 렌더 + `/api/diagrams`) | 채택 |
 | [0015](adr/ADR-0015-local-first-architecture.md) | 아키텍처 스타일 — 로컬 우선 + 프로세스 분리 | **제안** |
 | [0016](adr/ADR-0016-desktop-process-topology.md) | 데스크톱 프로세스 토폴로지 (백엔드 실행 주체) | **제안** |
@@ -54,8 +54,8 @@
 | [0027](adr/ADR-0027-light-theme-default.md) | 라이트 테마 기본 전환 + 디자인 토큰 v2 (US-1 종결: 강조색 파랑) | 채택 — P3 구현 (2026-09-07) |
 | [0028](adr/ADR-0028-single-client-cache.md) | 단일 클라이언트 캐시 (`byId`) — 뷰는 파생만, 칸반은 tasks 위젯 내 리스트/보드 토글 | 채택 (2026-09-08, P5) |
 | [0029](adr/ADR-0029-task-auto-category.md) | 할 일 자동 분류 — 자유 태그·다중(`task_tags`), 에이전트 배치 | 채택 (2026-09-08, P6) |
-| [0030](adr/ADR-0030-okr-data-model.md) | OKR 데이터 모델 (`objectives`/`key_results`/`kr_snapshots`) + 주간 플래너 | 제안 — 개인 OS P1 |
-| [0031](adr/ADR-0031-safe-markdown-render.md) | 안전 마크다운 렌더 + 파일 트리 API (`GET /api/tree`, 파서 없음) | 제안 — 개인 OS P1 |
+| [0030](adr/ADR-0030-okr-data-model.md) | OKR 데이터 모델 (`objectives`/`key_results`/`kr_snapshots`) + 주간 플래너 | 채택 — 개인 OS P8 (2026-09-08, 초안대로) |
+| [0031](adr/ADR-0031-safe-markdown-render.md) | 안전 마크다운 렌더 + 파일 트리 API (`GET /api/tree`, 파서 없음) | 채택 — 개인 OS P9 (2026-09-08, `docs/`+루트 `.md` 만·소스 제외·리사이즈) |
 | [0032](adr/ADR-0032-sidebar-shell-per-topic-layouts.md) | 사이드바 셸 + 주제별 위젯 레이아웃 (`activeTopic` state, 라우터 없음, 레이아웃 v1→v2) | 채택 — 개인 OS P4.5 (2026-09-08) |
 
 > 🆕 **대시보드 OS 전환 (2026-09-03)** — 고정 패널 → 위젯 셸. 개념: [../vision/DASHBOARD_OS.md](../vision/DASHBOARD_OS.md),
