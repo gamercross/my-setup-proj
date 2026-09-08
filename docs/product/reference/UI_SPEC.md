@@ -257,6 +257,21 @@ stateDiagram-v2
 | 관련 FR | FR-AGENT-04, [ADR-0025](../architecture/adr/ADR-0025-brief-empty-response.md) |
 | 상태 | 에러 → `ErrorBanner(onRetry)` / 로딩(`loading && !loaded`) → "불러오는 중…" / 빈(`loaded && !brief`, 서버 200+`{brief:null}`) → "오늘 브리핑이 아직 없습니다" / 정상 → `BriefCard` |
 
+### 3.5b 에이전트 활동 위젯 ✅ P7 (FR-AGENT-08, 2026-09-08)
+
+| 항목 | 내용 |
+|---|---|
+| 목적 | 에이전트 최근 실행 이력·연결 상태·다음 예약을 보여주고 "지금 실행"을 요청 |
+| 주제 | `activity` 주제의 기본 위젯(타입 `agent`, `defaultLayout.js`) |
+| 뷰 | `widgets/views/AgentActivityWidgetView` — 스토어 구독·effect·4상태 소유. **자동 폴링 없음** (최초 1회 조회) |
+| 프레젠테이션 | 새 컴포넌트 없음 — `StatTile`·`Chip`·`ErrorBanner` 재사용 + 인라인 스타일/CSS 변수 |
+| 레이아웃 | 상단 StatTile 3행(최근 성공/최근 실패/다음 실행) → Chip 배지(Supabase 상태·요청 대기 중) → [지금 실행] 버튼 + `requestMessage` → 로그 `ul/li`(Chip service + HH:MM + 에러 1줄 말줄임, `title` 도 200자 절단) |
+| 버튼 | `disabled = requesting || !runNow.available`. 라벨 "지금 실행" / "요청 중…" |
+| config | `maxLogs`(number 5~50 step5 기본 10), `showHealth`(bool 기본 true) |
+| 데이터 출처 | `GET /api/agent/activity?limit=` → `store/useAgentStore` · `POST /api/agent/run-now` |
+| 관련 FR | FR-AGENT-08, [ADR-0011](../architecture/adr/ADR-0011-agent-backend-db-access.md), [ADR-0013](../architecture/adr/ADR-0013-dashboard-agent-queue.md) |
+| 상태 | 에러 → `ErrorBanner(onRetry)` / 로딩(`loading && !loaded`) → "불러오는 중…" / 정상 → 위 레이아웃. 빈 상태(`logs` 없음)는 **로그 영역만** "아직 에이전트 실행 기록이 없습니다" 로 대체하고 StatTile 행·health 배지·[지금 실행] 버튼·다음 실행 시각은 그대로 표시 (최초 설치 직후에도 "지금 실행" 가능) |
+
 ### 3.6 ErrorBanner / ErrorBoundary ✅ B3 (FR-UI-04, 2026-09-03)
 
 | 항목 | 내용 |
@@ -376,6 +391,7 @@ stateDiagram-v2
 | `CalendarWidget` | `events: Event[]` | — | — | ✅ C3 |
 | `BriefCard` | `brief: Brief \| null`, `showMeta: bool` | `copied` (복사 피드백) | — | ✅ D3 (순수 프레젠테이션, plain text pre-wrap, Notion 링크 복사 버튼) |
 | `BriefWidgetView` | `config`, `configSchema` | `useBriefStore` 구독 + `useEffect(fetchBrief)` | — | ✅ D3 (4상태 소유) |
+| `AgentActivityWidgetView` | `config`, `configSchema` | `useAgentStore` 구독 + `useEffect(fetchActivity)` | — | ✅ P7 (4상태 소유, StatTile·Chip·ErrorBanner 재사용, 폴링 없음) |
 | `DiagramPanel` | — (props 없음) | `diagrams`, `activeDoc`, `loading`, `error`, `rendered` | — | ✅ C4 (자체 fetch·4상태 소유, 스토어 없음) |
 
 ### 4.1 공통 프레젠테이션 컴포넌트 ✅ P4 (2026-09-07, `frontend/src/components/`, design-p2/Components.dc.html 기준)
@@ -449,7 +465,19 @@ stateDiagram-v2
 - `useProjectStore` 패턴 복제. 읽기 전용(쓰기 액션 없음). 필드명 snake_case 유지(`start_time`, `event_id`, `synced_at`).
 - C3 는 더미 데이터. D2 에서 백엔드가 `calendar_events` 캐시로 교체해도 스토어·계약 불변.
 
-- 위 **도메인 스토어**(`useTaskStore`/`useProjectStore`/`useCalendarStore`)의 모든 액션은 `api/client.js`(fetch 래퍼) 경유. 에러는 문자열로 정규화해 `error` 에 저장 (NFR-REL-02).
+### `useAgentStore` ✅ P7 (2026-09-08, `frontend/src/store/useAgentStore.js`) — 에이전트 활동
+```
+상태:   activity: object | null   loading   loaded   error: string|null
+        requesting: boolean       requestMessage: string|null
+        lastLimit: number         (fetchActivity 가 마지막으로 쓴 limit — requestRun 재조회에 사용, 축소 방지)
+액션:   fetchActivity(limit=10)   → GET /api/agent/activity?limit=  (실패해도 activity 보존)
+        requestRun()              → POST /api/agent/run-now → 성공 시 fetchActivity 재호출
+                                    (requesting 중이면 즉시 반환 — 재진입 방어. throw 안 함)
+        clearError()
+```
+- `useBriefStore` 패턴 복제(P5 `commit()` 아님). 읽기 + 트리거 요청만. 위젯 뷰는 필드별 개별 셀렉터로 구독.
+
+- 위 **도메인 스토어**(`useTaskStore`/`useProjectStore`/`useCalendarStore`/`useAgentStore`)의 모든 액션은 `api/client.js`(fetch 래퍼) 경유. 에러는 문자열로 정규화해 `error` 에 저장 (NFR-REL-02).
 
 > 방향: `useAppStore` 단일 스토어 대신 도메인별 스토어(`useTaskStore`/`useProjectStore`/`useCalendarStore`/…)로 분리한다. 브리핑용 스토어는 D3 에서 별도 신설.
 

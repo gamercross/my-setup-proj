@@ -16,5 +16,6 @@ router.use('/mail', require('./mail'));
 router.use('/brief', require('./brief'));
 router.use('/diagrams', require('./diagrams'));
 router.use('/sync', require('./sync'));
+router.use('/agent', require('./agent'));
 
 module.exports = router;

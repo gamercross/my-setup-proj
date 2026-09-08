@@ -105,5 +105,32 @@ export function createDataset() {
     },
   ];
 
-  return { projects, tasks, calendar_events, brief, diagrams, _seq: 100 };
+  // 동기화 이력 — 에이전트 활동 위젯(P7, FR-AGENT-08) 시연용. 성공·실패 혼합.
+  const sl = (id, service, status, minsAgo, error_message = null) => ({
+    id,
+    service,
+    status,
+    last_sync: iso(new Date(now.getTime() - minsAgo * 60 * 1000)),
+    error_message,
+  });
+  const sync_logs = [
+    sl(1, 'gmail', 'success', 1400),
+    sl(2, 'calendar', 'success', 1398),
+    sl(3, 'notion', 'failed', 1396, '401 Unauthorized'),
+    sl(4, 'classify', 'success', 1395),
+    sl(5, 'gmail', 'success', 90),
+    sl(6, 'calendar', 'success', 88),
+    sl(7, 'classify', 'success', 86),
+  ];
+
+  return {
+    projects,
+    tasks,
+    calendar_events,
+    brief,
+    diagrams,
+    sync_logs,
+    _runNowPending: false,
+    _seq: 100,
+  };
 }

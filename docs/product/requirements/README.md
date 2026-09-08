@@ -17,7 +17,7 @@
 | [TRACEABILITY.md](TRACEABILITY.md) | 갭 G → FR/NFR → 설계/ADR → Phase → 테스트 TC → 코드 위치 → **상태** 한 줄 매트릭스, 추적 사슬 다이어그램 | 작업 시작 시 해당 행, finisher 가 상태 갱신 | **finisher 가 기능 완료 시 상태·코드 위치를 갱신**(GIT_WORKFLOW). "착수 전 결정할 사항" 표 포함 |
 | [TASK.md](TASK.md) | 할일 도메인 상세 — 사용자 스토리·Given/When/Then·입력 규칙·오류 시나리오 (P0 완료) | FR-TASK-* 구현/리뷰 | — |
 | [UI.md](UI.md) | 대시보드 공통 UI 상세 (FR-UI-01·04 의 "영역별 4상태·격리" 원칙) | FR-UI-* 및 위젯 격리(FR-WIDGET-07) | 위젯 셸이 이 원칙을 위젯 단위로 계승 |
-| [AGENT.md](AGENT.md) | Daily Brief 에이전트 상세 (수집·Claude·실패 격리) (P0 완료, P1 초안) | Phase D 착수 시 | FR-AGENT-08(작업 큐)는 [ADR-0013](../architecture/adr/ADR-0013-dashboard-agent-queue.md) 제안 상태 |
+| [AGENT.md](AGENT.md) | Daily Brief 에이전트 상세 (수집·Claude·실패 격리) (P0 완료, P1 초안) + FR-AGENT-08 활동 위젯·트리거 (P7 완료) | Phase D 착수 시 | FR-AGENT-09(전체 작업 큐)는 [ADR-0013](../architecture/adr/ADR-0013-dashboard-agent-queue.md) 제안 상태 |
 | [PROJ.md](PROJ.md) | 프로젝트 도메인 상세 (P0 완료, C2) | FR-PROJ-* | `tasks.project_id` 는 [ADR-0012](../architecture/adr/ADR-0012-task-project-link.md) |
 | [CAL.md](CAL.md) | 캘린더/일정 도메인 상세 — FR-CAL-01~03 (조회 API·날짜 배지·캐시) (C3 — 더미 데이터) | FR-CAL-* 구현/리뷰 | C3 는 `services/calendar.js` 더미, 실 데이터는 D2 ([ADR-0011](../architecture/adr/ADR-0011-agent-backend-db-access.md)); `from > to` 는 400 아닌 200 |
 | [MAIL.md](MAIL.md) | 이메일 도메인 상세 — FR-MAIL-01 (Gmail 미읽은 메일 수집·캐시) (D2-b — agent 측 완료) | FR-MAIL-* 구현/리뷰 | 조회 API `GET /api/mail/unread` 는 아직 미구현 (별도 Phase). 캐시는 `emails` — 에이전트 소유([ADR-0011](../architecture/adr/ADR-0011-agent-backend-db-access.md)) |

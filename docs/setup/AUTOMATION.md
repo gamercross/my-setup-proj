@@ -128,9 +128,11 @@ bash scripts/install-worklog-launchd.sh --uninstall
 
 ## 3.5 일일 브리핑 자동 실행 (FR-AGENT-05)
 
-매일 아침 **07:30**(기본) 에 `scripts/daily-brief-run.sh` 가 `agent/sync.py` → `agent/daily_brief.py`
-순으로 실행된다. sync 가 실패해도 캐시된 데이터로 브리핑은 시도한다.
+매일 아침 **07:30**(기본) 에 `scripts/daily-brief-run.sh` 가 `agent/trigger.py`(밀린 "지금 실행" 플래그 소비 폴백)
+→ `agent/sync.py` → `agent/daily_brief.py` 순으로 실행된다. sync 가 실패해도 캐시된 데이터로 브리핑은 시도한다.
 
+- **시각을 바꿀 때는 install 스크립트 인자와 `.env` 의 `DAILY_BRIEF_HOUR`/`DAILY_BRIEF_MINUTE` 를 함께 고친다.**
+  전자는 launchd 예약 시각을, 후자는 활동 위젯의 "다음 실행" 표시를 결정한다(백엔드는 plist 를 파싱하지 않음).
 - 로그: `scripts/daily-brief.log` (1MB 초과 시 `.log.1` 로 1회 회전, `.gitignore` 대상)
 - 래퍼가 `agent/venv` 활성화 + `.env` 명시 로딩(launchd 는 셸 프로파일 미로딩)
 - 실패해도 재시도하지 않는다 (`KeepAlive` 없음) — 다음 날 스케줄까지 대기
@@ -151,6 +153,27 @@ bash scripts/install-dailybrief-launchd.sh --uninstall
 
 > `scripts/com.aicomputeros.dailybrief.plist` 는 `__REPO_ROOT__` 플레이스홀더 템플릿이다.
 > 직접 복사하지 말고 install 스크립트를 쓴다.
+
+---
+
+## 3.6 에이전트 "지금 실행" 트리거 (FR-AGENT-08, P7)
+
+대시보드 활동 위젯의 **"지금 실행"** 버튼이 `POST /api/agent/run-now` 를 호출하면 백엔드는
+`agent/.triggers/run-now` 플래그 파일만 쓴다(파이썬 spawn 없음 — ADR-0011). launchd `WatchPaths` 가
+그 디렉터리 변경을 감지해 `scripts/agent-run-now.sh` → `agent/trigger.py` → `sync.sync_all()` 을 1회 실행하고
+플래그를 삭제한다. `daily-brief-run.sh` 도 시작 시 밀린 플래그를 소비한다(폴백).
+
+**macOS (launchd):**
+
+```bash
+bash scripts/install-runnow-launchd.sh              # 설치/재설치 (WatchPaths = agent/.triggers)
+bash scripts/install-runnow-launchd.sh --uninstall
+```
+
+- 로그: `scripts/run-now.log` (1MB 초과 시 1회 회전, `.gitignore` 대상)
+- `scripts/com.aicomputeros.runnow.plist` 는 `__REPO_ROOT__` 템플릿 — 직접 복사 금지, install 스크립트 사용
+- Ubuntu 는 launchd 가 없다 → 파일 감시 도구(inotifywait)로 대체하거나 정기 sync 폴백에 의존
+- **WatchPaths 실제 감지는 로컬 launchd 환경이 필요해 개발/CI 머신에서 미검증**
 
 ---
 
@@ -205,10 +228,11 @@ scripts/
   worklog-eod.sh             # 23:50: 커밋·푸시·슬랙
   slack-notify.sh            # 슬랙 Incoming Webhook 전송
   render-diagrams.sh         # docs/ 의 Mermaid 블록 → SVG (docs/setup/DIAGRAMS.md)
-  daily-brief-run.sh         # 07:30: sync → daily_brief 래퍼 (FR-AGENT-05)
+  daily-brief-run.sh         # 07:30: trigger → sync → daily_brief 래퍼 (FR-AGENT-05)
+  agent-run-now.sh           # "지금 실행" 트리거 래퍼 → trigger.py (FR-AGENT-08, P7)
   seed-demo.js               # 데모/프로토타입용 샘플 데이터 시드 (node scripts/seed-demo.js [--reset])
-  install-worklog-launchd.sh / install-dailybrief-launchd.sh  # launchd 설치(경로 자동)
-  com.aicomputeros.worklog.plist / com.aicomputeros.dailybrief.plist  # launchd 템플릿
+  install-worklog-launchd.sh / install-dailybrief-launchd.sh / install-runnow-launchd.sh  # launchd 설치(경로 자동)
+  com.aicomputeros.worklog.plist / com.aicomputeros.dailybrief.plist / com.aicomputeros.runnow.plist  # launchd 템플릿
 .github/workflows/test.yml   # 문법 검사 CI
 setup.sh / verify.sh         # 로컬 환경 구축·점검
 ```

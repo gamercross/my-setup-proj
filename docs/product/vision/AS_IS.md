@@ -112,9 +112,10 @@ flowchart TB
   subgraph BE["backend/src"]
     SRV["server.js"] --> AR["routes/api.js"]
     SRV --> LC["lifecycle.js"]
-    AR --> RT["routes/<br/>tasks · projects · calendar · diagrams · sync"]
-    RT --> SVC["services/<br/>tasks · projects · calendar · diagrams"]
+    AR --> RT["routes/<br/>tasks · projects · calendar · diagrams · sync · agent"]
+    RT --> SVC["services/<br/>tasks · projects · calendar · diagrams · agent"]
     RT -.->|"sync: 읽기 전용 직접 조회"| DBJS
+    SVC -.->|"agent: run-now 플래그 write"| FLAG["agent/.triggers/run-now"]
     SVC --> DBJS["db.js<br/>(better-sqlite3)"]
     DBJS --> DBIDX["db/index.js<br/>(커넥션 싱글턴)"]
     DBIDX --> SCHEMA["db/schema.sql"]
@@ -122,6 +123,9 @@ flowchart TB
   end
 
   subgraph AGT["agent"]
+    TRG["trigger.py"] --> SYNC
+    LAUNCHD["launchd WatchPaths"] -. "감지" .-> TRG
+    FLAG -. "감지" .-> LAUNCHD
     SYNC["sync.py"] --> SGM["services/gmail.py"]
     SYNC --> SCA["services/calendar.py"]
     SGM --> ADB["agent/db.py"]

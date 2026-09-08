@@ -404,6 +404,45 @@ fake service 주입, 네트워크 0회. 재시도 테스트는 `services.retry.s
 
 > TC-SYNC-06/07 은 `agent/tests/test_db.py`(pytest), TC-SYNC-08~11 은 `backend/test/sync.test.js`(`supertest` + `node --test`, `:memory:` DB). `/api/sync/logs` 는 읽기 전용 조회 — 쓰기 주체는 에이전트(`db.log_sync`).
 
+### 3.5g 에이전트 활동 위젯 — `backend/test/agent.test.js` · `agent/tests/test_trigger.py` · `frontend/test/*` (P7, FR-AGENT-08)
+
+**백엔드 (`backend/test/agent.test.js`, `supertest` + `node --test`, 임시 `AGENT_PATH`)**
+
+| ID | 대상 | 전제 | 입력 | 기대 결과 | 우선 |
+|---|---|---|---|---|:---:|
+| TC-ACT-01 | FR-AGENT-08 AC-1/7 | `sync_logs` 몇 행 | `GET /api/agent/activity` | 200, `logs`(5필드)·`health`·`nextRun{at,hour,minute,source}`·`runNow{pending,requestedAt,available}`·`checkedAt` | P1 |
+| TC-ACT-02 | FR-AGENT-08 | 60행 | `?limit=abc`·`?limit=0` / `?limit=999` | 400 한국어 / 50건으로 잘림 | P1 |
+| TC-ACT-03 | FR-AGENT-08 AC-7 | — | `computeNextRun(now, h, m)` (순수) | 시각 지났으면 다음날, 안 지났으면 당일 | P1 |
+| TC-ACT-04 | FR-AGENT-08 AC-7 | `.env` 주입 | `getScheduleTime()` | 유효값 반영, 범위 밖·비정수면 07:30 | P1 |
+| TC-ACT-05 | FR-AGENT-08 AC-2 | 임시 agent 루트 | `POST /api/agent/run-now` | 200 `{ok,pending:true,alreadyPending:false,requestedAt,note}` + 플래그 파일 생성, activity 에 `pending:true` | P1 |
+| TC-ACT-06 | FR-AGENT-08 AC-3 | 플래그 이미 존재 | `POST /api/agent/run-now` ×2 | 2번째 `alreadyPending:true` + 같은 `requestedAt` | P1 |
+| TC-ACT-07 | FR-AGENT-08 AC-4 / ADR-0011 | — | `routes/agent.js`·`services/agent.js` 소스 스캔 | `child_process`/`spawn(`/`exec(` 문자열 없음 | P1 |
+| TC-ACT-08 | FR-AGENT-08 AC-6 | `AGENT_PATH` 가 없는 경로 | `POST /run-now` / `GET /activity` | run-now 503 한국어, activity 200 `runNow.available:false` | P1 |
+| TC-ACT-09 | FR-AGENT-08 AC-5 | `supabase.checkConnection` 이 throw | `GET /api/agent/activity` | 200 + `health.supabase:'error'` + `logs` 정상 반환 | P1 |
+
+**에이전트 (`agent/tests/test_trigger.py`, 파일 IO 만 — network 마커 불필요)**
+
+| ID | 대상 | 입력 | 기대 결과 | 우선 |
+|---|---|---|---|:---:|
+| TC-AGENT-41 | `trigger.consume` | 플래그 없음 | `False` | P1 |
+| TC-AGENT-42 | `trigger.consume` | 플래그 존재 | `True` + 파일 삭제 | P1 |
+| TC-AGENT-43 | `trigger.main` | 플래그 없음 | `sync.sync_all` 미호출, 반환 0 | P1 |
+| TC-AGENT-44 | `trigger.main` | 플래그 존재 | `sync_all` **호출 시점에 플래그 이미 없음**(삭제가 먼저), 전부 성공 0 / 하나라도 실패 1 | P1 |
+| TC-AGENT-45 | `trigger.main` | 플래그 존재 + `sync_all` 예외 | 예외 전파/반환값 무관하게 플래그는 삭제돼 남지 않음 (재실행 루프 방지) | P1 |
+
+**프론트 (`frontend/test/agentStore.test.mjs`, `frontend/test/demoClient.test.mjs`)**
+
+| ID | 대상 | 기대 결과 | 우선 |
+|---|---|---|:---:|
+| TC-P7-01 | `useAgentStore.fetchActivity` 성공 | `activity`·`loaded` 설정, `error=null` | P1 |
+| TC-P7-02 | `fetchActivity` 실패 | `error` 문자열, 기존 `activity` 보존 | P1 |
+| TC-P7-03 | `requestRun` 성공 | `requestMessage` 설정 + `fetchActivity` 재호출 | P1 |
+| TC-P7-04 | `requestRun` 재진입 | `requesting` 중이면 즉시 반환(no-op) | P1 |
+| TC-P7-05 | 데모 `GET /agent/activity` | `logs·health·nextRun·runNow·checkedAt` 스키마, `/sync/logs` 목도 샘플 반환 | P2 |
+| TC-P7-06 | 데모 `POST /agent/run-now` | 즉시 성공 + `sync_logs` 1건 추가 | P2 |
+
+**수동 확인 (로컬 GUI, launchd)**: ① `activity` 주제에서 위젯이 최근 이력·다음 실행을 표시 → "지금 실행" 클릭 시 버튼 라벨 전이·`requestMessage` 표시. ② `bash scripts/install-runnow-launchd.sh` 후 `POST /api/agent/run-now` → `scripts/run-now.log` 에 trigger 실행 기록. **WatchPaths 실제 감지는 로컬 launchd 환경이 필요해 CI/개발 머신에서 미검증.**
+
 ### 3.5e 서비스 계층 — `backend/test/services.test.js` (fix/ai-results-cleanup)
 
 > 앱 없이 `backend/src/services/*` 를 직접 호출, `:memory:` 격리 (`loadService` 헬퍼). 오류 타입은 `name`/`status` 로 판정.

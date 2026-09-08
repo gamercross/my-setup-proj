@@ -77,6 +77,8 @@ C 세부: C1 미들웨어(CORS·로깅·에러) ✅(2026-09-03) → C2 프로젝
 | FR-AGENT-05 | — | [ADR-0007](../architecture/adr/ADR-0007-schedule-launchd-cron.md) | D3 | TC-SCHED-01~06 | `scripts/daily-brief-run.sh`, `scripts/install-dailybrief-launchd.sh`, `scripts/com.aicomputeros.dailybrief.plist` | ✅ |
 | FR-AGENT-06 | — | DESIGN §7, NFR-REL-02 | D1, D2-a | TC-AGENT-03,14,16,17,18 | `agent/daily_brief.py`, `agent/services/retry.py`, `agent/services/claude.py` | 🚧 (AC-1/2/4 완료, AC-3 재시도·지수 백오프 D2-a 완료 / **AC-5 는 D3 `/api/brief/today` 대기**) |
 | FR-AGENT-07 | — | requirements/AGENT.md | E (W11) | — | `agent/schedule_advisor.py`(신규) | ⏳ |
+| FR-AGENT-08 | — | API_REFERENCE `/agent/*`, [ADR-0011](../architecture/adr/ADR-0011-agent-backend-db-access.md), [ADR-0013](../architecture/adr/ADR-0013-dashboard-agent-queue.md), UI_SPEC (에이전트 활동 위젯) | P7 | TC-ACT-01~08, TC-AGENT-41~44, TC-P7-01~06 | `backend/src/routes/agent.js`, `backend/src/services/agent.js`, `agent/trigger.py`, `scripts/agent-run-now.sh`, `scripts/install-runnow-launchd.sh`, `frontend/src/widgets/views/AgentActivityWidgetView.jsx`, `frontend/src/store/useAgentStore.js` | ✅ (P7, 2026-09-08) |
+| FR-AGENT-09 | — | requirements/AGENT.md, [ADR-0013](../architecture/adr/ADR-0013-dashboard-agent-queue.md) | E (W11+) | — | `agent/runner.py`(신규), `agent_jobs` 테이블(신규) | ⏳ |
 | FR-SYNC-01 | G8 | [ADR-0008](../architecture/adr/ADR-0008-supabase-deferred.md) | E2 | — | 신규 동기화 모듈 (선행: `backend/src/supabase.js`) | ⏳ |
 | FR-SYNC-02 | G8 | [ADR-0008](../architecture/adr/ADR-0008-supabase-deferred.md) | E2 | — | 동상 (선행: `backend/src/supabase.js`) | ⏳ |
 | FR-SYNC-03 | G7 | API_REFERENCE `/sync/logs`, DATA_DICTIONARY `sync_logs` | D2-a·D2-b | TC-SYNC-06~10, TC-MAIL-03,06, TC-CAL-10,12 | `agent/db.py`, `agent/services/gmail.py`, `agent/services/calendar.py`, `backend/src/routes/sync.js`, `backend/src/db.js` | ✅ (D2-a: `log_sync` + `GET /sync/logs` / D2-b: Gmail·Calendar 수집 경로 배선) |
@@ -141,7 +143,7 @@ Phase A~D 를 막던 제안 ADR 4건은 **2026-09-02 채택** → `/build-next` 
 | [ADR-0010](../architecture/adr/ADR-0010-vite-dev-vs-build.md) Vite 로드 방식 | FR-UI-02 | ✅ 채택 |
 | [ADR-0011](../architecture/adr/ADR-0011-agent-backend-db-access.md) DB 동시 접근 | FR-AGENT-01 | ✅ 채택 |
 | [ADR-0012](../architecture/adr/ADR-0012-task-project-link.md) `tasks.project_id` | FR-PROJ-01/02 | ✅ 채택 + ✅ C2 구현 (2026-09-03) — POST/PUT `/api/tasks` 검증·API 응답 노출. `?project_id=` 필터·TaskForm 드롭다운은 이월 |
-| [ADR-0013](../architecture/adr/ADR-0013-dashboard-agent-queue.md) 에이전트 작업 큐 | FR-AGENT-08 | 제안 — 핵심 4기능 완성 후 |
+| [ADR-0013](../architecture/adr/ADR-0013-dashboard-agent-queue.md) 에이전트 작업 큐 | FR-AGENT-08(활동 위젯·트리거) / FR-AGENT-09(전체 큐) | 부분 채택 — P7 "지금 실행" 파일 플래그 채택(2026-09-08) / 전체 큐는 제안 |
 | [ADR-0018](../architecture/adr/ADR-0018-schema-migration-strategy.md) 스키마 마이그레이션 전략 | FR-TASK-08 | 채택 (2026-09-08, 개인 OS P6) — 최소안: `PRAGMA user_version` + `db/index.js` 인라인, forward-only, 실행 전 `.bak-<ts>` |
 | [ADR-0014](../architecture/adr/ADR-0014-dashboard-diagram-viewer.md) 다이어그램 뷰어 | FR-UI-05 | ✅ 채택 (2026-09-06) + C4 구현 — `GET /api/diagrams`(`services/diagrams.js` 가 `docs/` 를 의존성 없이 재귀 파싱) + `DiagramPanel.jsx`(`mermaid@11.17.2` 동적 import, 별도 청크). prod `docs/` 동봉(electron-builder `extraResources`)은 Phase E3 로 이월 — 미동봉 시 빈 배열 200 |
 | [ADR-0020](../architecture/adr/ADR-0020-widget-shell-architecture.md) 위젯 셸 아키텍처 (react-grid-layout) | FR-WIDGET | ✅ 채택 (2026-09-06) + C5 골격 구현 — RGL 2.2.4 `/legacy`(WidthProvider), 단일 lg 브레이크포인트, `widgets/registry.js` 계약 |
