@@ -1,0 +1,333 @@
+# 🔄 역 계획서 — 왜 만들었고, 어떻게 지었고, 무엇을 썼는가
+
+> 이미 만들어진 시스템을 거꾸로 되짚어 기반을 세우는 문서.
+> **원초적 고민 → 의사결정 문제 → 문제해결방법 → 설계 → 서비스** 순서로 읽는다.
+>
+> **📂 이동:** [⬆ vision/](README.md) · [VISION.md](VISION.md) · [AS_IS.md](AS_IS.md) · [PERSONAL_OS.md](PERSONAL_OS.md) · [DASHBOARD_OS.md](DASHBOARD_OS.md) · [../../progress/PROGRESS.md](../../progress/PROGRESS.md)
+>
+> **단일 원천:** 실제 진행 상태는 [PROGRESS.md](../../progress/PROGRESS.md) · [TRACEABILITY.md](../requirements/TRACEABILITY.md) · `git log`.
+> 결정의 원천은 [adr/](../architecture/adr/). 이 문서는 그것들을 하나의 서사로 엮은 상위 뷰이며,
+> 세부와 어긋나면 원천 문서가 맞다.
+
+- 작성: 2026-09-09 (P0~P9 완료, P9 PR 대기 시점의 회고)
+- 배경: 우송대학교 2026-2학기 3개 강의(AI 컴퓨터 운영체제 실습 / AI시대 소프트웨어공학 /
+  AITool 기반 소프트웨어공학)의 공통 실습 환경이자 제출 산출물. 강의별 렌즈는
+  [../../progress/COURSE_MAPPING.md](../../progress/COURSE_MAPPING.md).
+
+---
+
+## 1. 원초적 고민 — 무엇이 문제였나
+
+### 1-0. 중심 줄기: "내가 뭐가 진척되는지 감이 안 온다"
+
+문서를 역추론하면 "도구가 흩어져 있다" 가 먼저 나오지만, 사용자에게 직접 물었을 때
+발단이 된 장면은 그게 아니었다 (2026-09-09 인터뷰):
+
+> **"내가 뭐가 진척되는지 감이 안 와서."**
+
+그리고 이 감각은 **세 영역에서 같이** 나타났다 — 같은 불편의 여러 얼굴이다:
+
+1. **개인 삶·일 전반** — 이번 주에 내가 뭘 했는지, 목표에 얼마나 가까워졌는지.
+2. **공부·강의 진도** — 3개 강의의 주차와 과제 마감을 따라가는 감각.
+3. **이 프로젝트 자체의 개발 진도** — P0~P9 중 어디까지 왔고 다음이 뭔지.
+
+그래서 이 프로젝트의 메타 문장이 성립한다:
+**"이 저장소의 `PROGRESS.md` 가 프로젝트에 해 주는 일을, 앱이 사용자에게 해 준다"**
+([PERSONAL_OS.md](PERSONAL_OS.md) T3·T6 메타). OKR·주간 플래너는 삶의 진척을,
+진행 현황·파일 탐색 뷰는 프로젝트 자신의 진척을 같은 방식으로 보여 준다.
+
+### 1-1. 파생 고민
+
+`VISION.md` 의 최종 그림 — "흩어진 생산성 도구를 한 앱으로 통합하고, 매일 아침
+AI 에이전트가 우선순위를 정리해 주는 데스크톱 셸" — 은 아래 불편들에서 나왔다.
+사용자 확인 결과 **8개 모두 실제 고민과 부합**하며, 중심 줄기(진척 가시성) 아래로
+Q3·Q4·Q5·Q7 이 묶인다.
+
+| # | 원초적 고민 | 구체적 증상 | 묶임 | 출처 |
+|---|---|---|---|---|
+| Q1 | 생산성 도구가 흩어져 있다 | 할일·프로젝트·일정·메일·브리핑을 앱마다 따로 확인한다 | 통합 | [VISION.md](VISION.md) §목표 |
+| Q2 | 아침마다 우선순위 정리를 수동으로 한다 | "오늘 뭐부터 하지?" 를 매번 사람이 판단한다 | 자동 정리 | [VISION.md](VISION.md) 핵심기능 1 |
+| Q3 | 같은 할 일이 여러 뷰에 중복되고 따로 논다 | 한 곳에서 완료해도 나머지 뷰가 안 따라온다 | **진척 가시성** | [PERSONAL_OS.md](PERSONAL_OS.md) §1-1 |
+| Q4 | 정리가 전부 수동이다 | 카테고리·주간 버킷·OKR 대비 진행률을 손으로 만들어야 보인다 | **진척 가시성** | [PERSONAL_OS.md](PERSONAL_OS.md) §1-2 |
+| Q5 | 에이전트가 일하는 게 안 보인다 | sync·브리핑·Notion 저장이 `sync_logs` 와 로그 파일에만 남는다 | **진척 가시성** | [PERSONAL_OS.md](PERSONAL_OS.md) §1-3 |
+| Q6 | 화면 배치가 고정이다 | 사용자마다 중요한 정보가 다른데 `Dashboard.jsx` 에 하드코딩돼 있다 | 개인화 | [DASHBOARD_OS.md](DASHBOARD_OS.md) §1 |
+| Q7 | 프로젝트 구조·진행을 앱 안에서 못 본다 | 다이어그램·진행 본문이 저장소에만 있어 IDE 를 열어야 확인된다 | **진척 가시성** | [AS_IS.md](AS_IS.md) G9 |
+| Q8 | 룩이 임시다 | 대부분 인라인 스타일 + 슬레이트 다크. 참조 틀이 있었지만 구현이 못 따라갔다 | 완성도 | [PERSONAL_OS.md](PERSONAL_OS.md) §1-4 |
+
+**갈망 신호 (사용자 진술).** "실제로 쓰면 가장 갈망할 기능" 을 물었을 때 고른 넷 —
+**Daily Brief · 칸반+단일 완료 · OKR·주간 플래너 · 진행 현황·파일 탐색 뷰** — 은
+전부 "정리·진척을 대신 보여 주는" 축에 있다. 위젯 커스터마이즈·태그·캘린더는
+갈망 목록에 없었다. 즉 개인화(Q6)·완성도(Q8)는 필요조건이지 목적이 아니다.
+
+**원하는 최종 느낌 (사용자 진술).** Sunsama / Akiflow / 개인용 Linear 계열 —
+차분하고 다듬어진, "내가 아무것도 안 해도 정리돼 있는" 생산성 도구.
+
+**출발점의 현실 (AS-IS, 2026-09-02).** 한 줄 요약은
+*"자동화 인프라(에이전트 팀·작업로그·CI)는 동작하지만, 제품 기능(프론트·백엔드·DB·에이전트)은
+전부 골격 단계이며 서로 연결돼 있지 않다"* 였다. 이때 정리한 갭이 G1(React 미연결)~G9(앱 내
+구조 확인 불가)이며, 이 역 계획서의 §5 서비스 목록은 그 갭을 하나씩 메운 기록이다.
+
+**제약 조건 (`CONSTRAINTS.md`).** 개발자 1인(C-1), 마감 2026-11-30(C-2), 강의 A 진도 종속(C-3),
+비용 0 목표(C-4), 학습·발표 산출물(C-5), GitHub 공개 저장소라 시크릿·개인정보 커밋 금지(C-6).
+개발 머신은 macOS(Apple Silicon), 배포 목표는 Win/mac/Linux 3-OS, 오프라인 조회 동작 필수.
+이 제약들이 아래 모든 의사결정의 배경이다.
+
+---
+
+## 2. 의사결정 문제 — 어떤 갈림길을 어떻게 골랐나
+
+모든 아키텍처 결정은 **하나의 결정 = 하나의 ADR 파일** 로 남겼다(현재 33건). 각 ADR 은
+`맥락 / 결정 / 근거 / 대안 / 결과·트레이드오프` 5필드를 갖는다. 여기서는 묶어서 서술한다.
+
+### 2-1. 기반 스택 (ADR-0001~0012, 0018) — "무엇으로 짓나"
+
+| 결정 | 선택 | 대안(기각) | ADR |
+|---|---|---|---|
+| 프론트 렌더링 | React + Vite 로 통일 | 바닐라 `renderer.js` 유지 | [0001](../architecture/adr/ADR-0001-frontend-react-vite.md) |
+| 로컬 DB | better-sqlite3 (동기 API, WAL) | `node:sqlite`, 순수 JS, 인메모리 | [0002](../architecture/adr/ADR-0002-local-db-better-sqlite3.md) |
+| 스키마 관리 | `schema.sql` 1파일 + `IF NOT EXISTS` | 마이그레이션 도구, ORM | [0003](../architecture/adr/ADR-0003-schema-single-file.md) |
+| 프론트 ↔ 백엔드 | 로컬 HTTP REST (`:3000/api`) | Electron IPC 직결, GraphQL | [0004](../architecture/adr/ADR-0004-front-back-http-rest.md) |
+| 상태관리 | zustand, 도메인별 스토어 분리 | Redux, Context | [0005](../architecture/adr/ADR-0005-state-zustand.md) |
+| 외부 API 소유 | Python 에이전트가 전담(읽기 전용) | 백엔드가 직접 호출 | [0006](../architecture/adr/ADR-0006-agent-owns-external-apis.md) |
+| 스케줄러 | launchd(mac) / cron(Linux) | APScheduler 상주, 백엔드 타이머 | [0007](../architecture/adr/ADR-0007-schedule-launchd-cron.md) |
+| 클라우드 동기화 | Week 10 이후로 연기 | 처음부터 Supabase 우선 | [0008](../architecture/adr/ADR-0008-supabase-deferred.md) |
+| DB 파일 위치 | `DATABASE_PATH` 주입(기본 `backend/data/app.db`) | 코드 상수 | [0009](../architecture/adr/ADR-0009-sqlite-file-location.md) |
+| 에이전트–백엔드 DB | 같은 SQLite + WAL, **쓰기 주체 분리** | 에이전트가 백엔드 API 경유 | [0011](../architecture/adr/ADR-0011-agent-backend-db-access.md) |
+| 할일–프로젝트 링크 | `tasks.project_id` FK `ON DELETE SET NULL` | 조인 테이블, 링크 없음 | [0012](../architecture/adr/ADR-0012-task-project-link.md) |
+| 스키마 마이그레이션 | 최소안: `PRAGMA user_version` + 인라인 러너 | 별도 마이그레이션 프레임워크 | [0018](../architecture/adr/ADR-0018-schema-migration-strategy.md) |
+
+**툴 애착 (사용자 진술).** 스택 대부분은 강의 A 진도와 무난한 기본값을 따랐지만, **Electron**
+(데스크톱 크로스플랫폼)은 사용자가 의식적으로 고른 지점이다 — 산출물은 **웹이 아니라 "앱"**
+이어야 한다. 웹 데모([0026](../architecture/adr/ADR-0026-web-demo-mode.md))는 어디까지나 미리보기이며, 이 구분은
+[NEXT_SESSION.md](../../progress/NEXT_SESSION.md) §4-3 "웹 데모 ≠ 앱" 으로 이어진다.
+
+핵심 원칙은 **로컬 우선 + 프로세스 분리**(제안 [0015](../architecture/adr/ADR-0015-local-first-architecture.md)):
+로컬 SQLite 가 진실의 원천이고, 외부 API 는 그 위에 얹는 캐시이며, 렌더러는 시크릿·Node 에
+접근하지 못하고(`contextIsolation`) 모든 데이터는 REST 로만 흐른다.
+
+### 2-2. 대시보드 OS 전환 (ADR-0020~0022, DO-1~6) — "고정 패널을 왜 버렸나"
+
+Q6 에 대한 답. `Dashboard.jsx` 한 컴포넌트가 모든 패널을 하드코딩하면서 비대해졌고
+([DESIGN.md](../architecture/DESIGN.md) §1 우려), 사용자별 배치도 불가능했다. 그래서:
+
+- **위젯 셸 아키텍처** — `react-grid-layout` 기반 그리드에 위젯 인스턴스를 배치·이동·리사이즈.
+  새 기능 = `widgets/registry.js` 에 항목 추가(플러그인 유사). ([0020](../architecture/adr/ADR-0020-widget-shell-architecture.md))
+- **레이아웃 영속화** — `localStorage`(`dashboard.layout.v1`, 300ms 디바운스) → 나중에 SQLite → 사용자별. ([0021](../architecture/adr/ADR-0021-widget-layout-persistence.md))
+- **위젯별 테마** — 스코프된 CSS 커스텀 프로퍼티(`--w-*`) + 화이트리스트 config. 외부 코드 실행 없음(NFR-SEC-04). ([0022](../architecture/adr/ADR-0022-per-widget-theming.md))
+- 착수 전 6개 질문(DO-1~6): 그리드 스냅(DO-1), 타입당 1인스턴스(DO-2), `localStorage` 1차(DO-3),
+  config 검증은 프론트만(DO-4), 편집 토글 필요(DO-5), 다이어그램도 위젯화(DO-6).
+
+강의 A 정합도 근거였다 — 과목명이 "AI **컴퓨터 운영체제** 실습" 이고, 위젯 셸은
+미니 윈도우 매니저(창 생명주기·z-order·포커스·레이아웃 영속화)의 실습 대상이 된다.
+
+### 2-3. 개인 생산성 OS 방향 (ADR-0027~0033, PO-1~14) — "다듬기 단계에서 정한 것"
+
+Phase D 완료 후 사용자가 제시한 방향([PERSONAL_OS.md](PERSONAL_OS.md)). 열린 질문 PO-1~14 를
+먼저 닫고 ADR 로 못박은 뒤 빌드했다.
+
+| 결정 | 선택 | 대안(기각) | ADR / PO |
+|---|---|---|---|
+| 기본 테마 | 라이트 오프화이트 기본, 다크는 `[data-theme=dark]` 프리셋 | 다크 유지 | [0027](../architecture/adr/ADR-0027-light-theme-default.md) / PO-1·2 |
+| 강조색 | 차분한 파랑 `#2f6feb` | 참조 화면의 보라 | 0027 / PO-2 |
+| 뷰 데이터 일관성 | 단일 클라이언트 캐시(`id` 키잉), 뷰는 파생만 | 뷰마다 재 fetch | [0028](../architecture/adr/ADR-0028-single-client-cache.md) / PO-7 |
+| 칸반 | `tasks` 위젯 안의 리스트/보드 토글(`config.display.view`) | 별도 위젯 타입 | 0028 §결정4 / PO-7 |
+| 자동 분류 taxonomy | 자유 태그·다중(`task_tags` 조인), `tasks.category` 폐기 | 고정 카테고리 집합 | [0029](../architecture/adr/ADR-0029-task-auto-category.md) / PO-3 |
+| 분류 시점·주체 | 에이전트 배치(일일 브리핑 시 1회 Claude 호출). 백엔드 POST 경로엔 Claude 없음 | 저장 시마다 분류 | 0029 / PO-4 |
+| OKR 모델 | 1급 엔티티 `objectives`/`key_results`/`kr_snapshots` 3테이블 | `projects` 재해석 | [0030](../architecture/adr/ADR-0030-okr-data-model.md) / PO-5 |
+| 주간 요약 | 순수 SQL 집계(`due_date` ISO 주 3버킷) | Claude "Weekly Brief" | 0030 / PO-6 |
+| 차트 라이브러리 | 인라인 SVG (`dataviz` 스킬) | Recharts 도입 | PO-8 |
+| 마크다운 렌더 | 서버에서 의존성 0 토큰화 → JSON. 파서·`dangerouslySetInnerHTML` 없음 | 마크다운 파서 + HTML 주입 | [0031](../architecture/adr/ADR-0031-safe-markdown-render.md) / PO-11 |
+| 파일 트리 범위 | 허용 루트 = `docs/` + 루트 `*.md`. `.md` 만 렌더, 소스 제외 | 전 소스 트리 노출 | 0031 / PO-12 |
+| 셸 형태 | 왼쪽 사이드바 + 주제별 위젯 레이아웃(`activeTopic`) | 단일 그리드 유지 | [0032](../architecture/adr/ADR-0032-sidebar-shell-per-topic-layouts.md) / PO-13·14 |
+| 에이전트 "지금 실행" | 전용 디렉터리 파일 플래그 + launchd WatchPaths. subprocess 없음 | 백엔드가 python 직접 spawn | [0013](../architecture/adr/ADR-0013-dashboard-agent-queue.md) 부분채택 / PO-9 |
+
+### 2-4. 아직 안 정한 것 (제안 상태)
+
+- [0013](../architecture/adr/ADR-0013-dashboard-agent-queue.md) 전체 작업 큐(FR-AGENT-09) — "지금 실행" 트리거만 채택, 큐는 미결
+- [0015](../architecture/adr/ADR-0015-local-first-architecture.md) 아키텍처 스타일 명문화 · [0016](../architecture/adr/ADR-0016-desktop-process-topology.md) 데스크톱 프로세스 토폴로지(백엔드 실행 주체) · [0017](../architecture/adr/ADR-0017-rest-error-contract.md) REST 오류 계약(RFC 9457) · [0019](../architecture/adr/ADR-0019-architecture-fitness-functions.md) 피트니스 함수
+- [0033](../architecture/adr/ADR-0033-standalone-widget-windows.md) 독립 위젯 창 — 방향만 유지, 구현 보류
+- PO-10 — 개인 OS 방향(P8~P9)과 Phase E(다중 사용자·Supabase)의 순서
+
+---
+
+## 3. 문제해결방법 — 어떤 절차로 일했나
+
+### 3-1. 문서 우선 순서: 문제 → 요구사항 → 결정 → 디자인 → 빌드
+
+각 역량 테마(개인 OS 의 T1~T6)는 P0(문서) → P1(ADR·요구사항) → P2(디자인 캔버스) → P3~P9(빌드)
+순서로 진행했다. "왜·무엇" 은 vision 문서가, "어떻게" 는 ADR·요구사항이, 목표 화면은
+Claude Design 캔버스(6 아트보드)가 담당한다.
+
+### 3-2. 에이전트 파이프라인 (`/feature`)
+
+**의도 (사용자 진술).** 개발자가 1인(C-1)이라 **혼자서 내지 못하는 속도를 보완**하려고
+파이프라인을 세웠다. 부수 효과로 강의 B(AI 지원 개발 프로세스) 실습과 품질 게이트(자기검열
+강제)를 겸한다.
+
+모든 코드 작업은 4역할 에이전트 파이프라인 1회로 완성한다. 오케스트레이터는 직접 코딩하지 않는다.
+
+```
+planner → developer → supervisor (최대 2회) → finisher
+ 계획      구현         리뷰 + 테스트 PASS/FAIL    검증·커밋·푸시
+```
+
+- 명시적 **상태 그래프**로 정의([ORCHESTRATION.md](../../setup/ORCHESTRATION.md) §2): `SELECT→GATE→PLAN→BUILD→REVIEW→FINISH→REPORT`
+  + 정지 상태 6종(`STOP_DECISION` 등). 사람 결정이 필요한 지점에서만 멈춘다.
+- 불변 규칙: 한 번에 한 에이전트만 활성 · REVISE 최대 2회 · **커밋은 finisher 만** ·
+  실행돼 FAIL 난 검사가 있으면 커밋 금지 · 정지 상태에서 임의 진행 금지 · 각 전이마다 Slack 한 줄.
+- `/build-next` 는 이 파이프라인을 로드맵 위에서 반복 실행(다음 스텝 자동 선택).
+
+### 3-3. 가드레일 (Claude Code 훅 — `.claude/settings.json`)
+
+| 훅 | 시점 | 동작 | 스크립트 |
+|---|---|---|---|
+| SessionStart | 세션 시작 | 병합된 로컬 브랜치 자동 정리 | `scripts/prune-merged-branches.sh` |
+| Stop | 매 턴 종료 | `작업로그.md` 오늘 커밋 섹션 재생성 | `scripts/worklog.sh` |
+| PreToolUse (Edit\|Write) | 파일 편집 직전 | `main` 브랜치에서 코드 소스 편집 시 승인 프롬프트 | `scripts/hook-code-branch-guard.sh` |
+
+### 3-4. 검증 게이트
+
+`verify.sh`(45/0/0) · `verify.sh --code-only`(37/0/0) · `check-docs.sh`(문서 정합 11/0/0) ·
+backend `npm test`(142) · frontend `node --test`(103) · agent `pytest -m "not network"`(80) ·
+`npm run build` / `build:demo`. FAIL 하나라도 있으면 커밋하지 않고, SKIP 은 커밋 메시지에 명시.
+
+### 3-5. 브랜치·PR
+
+`feature/<주제> → PR → main`. Git Flow·`develop` 미채택([0023](../architecture/adr/ADR-0023-branch-model.md), 1인 프로젝트라 오버헤드 대비 이득 없음).
+`main` 직접 커밋·force push 금지. **PR 병합은 사람이** 한다.
+
+### 3-6. 설계 문서 방법론
+
+C4/arc42 방식으로 뷰를 나눈다 — 드라이버 / 컨텍스트·컨테이너 / 컴포넌트 / 런타임 /
+데이터 / 횡단 관심사 / 배포 / 진화 / 결정 이력. 요구사항은 FR·NFR·TRACEABILITY·TEST_PLAN 으로,
+강의 대응은 COURSE_MAPPING 으로 추적한다.
+
+---
+
+## 4. 설계 — 결과 구조
+
+### 4-1. 컨테이너 3개 + 저장소
+
+```mermaid
+flowchart TB
+  U([사용자 · Win/mac/Linux])
+  U --> EL["Electron + React 셸<br/>(위젯 셸 · 사이드바)"]
+  EL -->|HTTP REST :3000/api| API["Node.js + Express<br/>routes → services → db"]
+  API --> SQLITE[("로컬 SQLite (WAL)<br/>진실의 원천")]
+  API -. 연결 배선만 .-> SUPA[("Supabase (Week 10+)")]
+  AGENT["Python 에이전트<br/>sync · classify · daily_brief"] --> SQLITE
+  AGENT -. OAuth/HTTPS 읽기전용 .-> EXT["Gmail · Google Calendar"]
+  AGENT -. Token/HTTPS .-> NO["Notion REST"]
+  AGENT -. API Key .-> CL["Claude API"]
+  LAUNCHD["launchd (07:30 · WatchPaths)"] -. 트리거 .-> AGENT
+```
+
+### 4-2. 레이어
+
+- **프론트**: `widgets/views/*WidgetView.jsx` → 도메인 store(zustand: `useTaskStore`·`useProjectStore`·
+  `useCalendarStore`·`useOkrStore`·`useAgentStore`·`useLayoutStore`·`useUiStore`) → `api/client.js`.
+  셸: `AppShell → Sidebar / TopicView → WidgetShell → WidgetHost(react-grid-layout) → WidgetFrame → 뷰`.
+- **백엔드**: `server.js → routes/api.js → routes/* → services/* → db.js → db/index.js(커넥션 싱글턴) → schema.sql`.
+  수명주기 핸들러(`lifecycle.js`) — 미처리 예외 로그 후 안전 종료, SIGTERM/SIGINT graceful shutdown + WAL 체크포인트.
+- **에이전트**: `trigger.py → sync.py → services/{gmail,calendar}.py → agent/db.py`,
+  `daily_brief.py → classify.py → services/{claude,notion}.py`.
+
+### 4-3. 데이터 모델
+
+초기 6테이블 — `projects` · `tasks` · `calendar_events` · `emails` · `briefs` · `sync_logs`
+(날짜는 전부 `TEXT` + ISO8601). 개인 OS 에서 추가 — `task_tags`(source ∈ {user,agent}) ·
+`objectives` · `key_results` · `kr_snapshots`. 마이그레이션은 `PRAGMA user_version` 인라인 러너.
+스키마의 단일 원천은 [`backend/db/schema.sql`](../../../backend/db/schema.sql), 필드 설명은
+[DATA_DICTIONARY.md](../reference/DATA_DICTIONARY.md).
+
+### 4-4. 경계·횡단 관심사
+
+- **에이전트 경계**: 외부 API 는 읽기 전용(ACL). 브리핑 저장만 Notion 에 씀. 백엔드와 SQLite 를
+  공유하되 에이전트는 `task_tags` 쓰기만 예외 허용([0029](../architecture/adr/ADR-0029-task-auto-category.md)).
+- **보안**: 렌더러에 시크릿·Node 노출 없음(`contextIsolation`). OAuth 토큰은 Fernet 암호화 JSON
+  파일(`TOKEN_ENCRYPTION_KEY`, [0024](../architecture/adr/ADR-0024-oauth-token-storage.md)). 마크다운은 서버 토큰화 후 렌더 —
+  파서·HTML 주입 없음([0031](../architecture/adr/ADR-0031-safe-markdown-render.md)).
+- **오류**: `errors.js` — `ValidationError`/`NotFoundError` + SQLite 제약 위반 → 400/404/500 한국어.
+- **웹 데모**: `VITE_DEMO` 빌드에서 `demoClient.js` 인메모리 목이 백엔드를 대체([0026](../architecture/adr/ADR-0026-web-demo-mode.md)), GitHub Pages 배포.
+- **빈 결과**: 브리핑 없음은 404 가 아니라 `200 + { brief: null }`([0025](../architecture/adr/ADR-0025-brief-empty-response.md)).
+
+---
+
+## 5. 서비스 — 무엇을 만들었나
+
+각 기능을 **왜(원초 고민) / 어떻게(핵심 구현·결정) / 툴 / 상태** 로 정리한다.
+빌드 단계 명칭: B·C = 대시보드 OS 단계, D = 에이전트 단계, P = 개인 생산성 OS 단계.
+
+| 기능 | 왜 (Q#) | 핵심 구현 | 툴·플러그인 | 단계 · 상태 |
+|---|---|---|---|---|
+| 할일 CRUD + `project_id` 링크 | Q1 | `routes/services/tasks.js`, `useTaskStore`, 낙관적 갱신+롤백 | Express, better-sqlite3, zustand | B3·C2 ✅ |
+| 프로젝트 추적 + 진행바 | Q1 | `ProjectCard`·`ProjectForm`, 슬라이더 편집, `status ∈ {active,done,on_hold}` | zustand | C2 ✅ |
+| 캘린더 위젯 | Q1 | `CalendarWidget`, `useCalendarStore`, `calendar_events` 캐시 | — | C3 ✅ |
+| 다이어그램 뷰어 | Q7 | `DiagramPanel` + `GET /api/diagrams`(`docs/**/*.md` mermaid 파싱, 읽기 전용) | mermaid 11 (동적 import) | C4 ✅ |
+| 위젯 셸 (배치·이동·리사이즈·레이아웃 저장) | Q6 | `WidgetShell/Host/Frame/Picker`, `useLayoutStore`, localStorage 영속(훼손 시 폴백), 위젯별 `ErrorBoundary` | react-grid-layout 2.2.4(`/legacy`), react-resizable | C5 ✅ |
+| 위젯별 테마·표시 옵션 | Q8 | `WidgetSettings` 모달(createPortal), `themeToVars` 화이트리스트, `themePresets.js`, `configSchema` 자동 폼 | 스코프 CSS 변수 | C6 ✅ |
+| 사이드바 셸 + 주제별 레이아웃 | Q6, Q8 | `AppShell`·`Sidebar`·`TopicView`, `useUiStore.activeTopic`, 레이아웃 v1→v2 마이그레이션(기존 배치는 `overview`) | — | P4.5 ✅ (#45) |
+| 라이트 비주얼 시스템 | Q8 | `styles.css` `:root` 팔레트 다크→라이트 + `[data-theme=dark]` 블록, 하드코딩 hex→`var(--*)` 치환(10파일) | — | P3 ✅ |
+| 공통 컴포넌트 | Q8 | `StatTile`·`DotProgress`(+순수 `dotFill.js`)·`Chip`, `--card-radius` 16·`--shadow-card` | 인라인 SVG | P4 ✅ (#42) |
+| 단일 캐시 + 칸반 뷰 | Q3 | `taskCache.js`, `useTaskStore` `byId`/`order` 정본 + `tasks` 파생 미러, `TaskBoard` 리스트/보드 토글 | zustand | P5 ✅ (#47) |
+| 할일 자동 분류 (자유 태그) | Q4 | `task_tags` 테이블, `POST/DELETE /api/tasks/:id/tags`, `agent/classify.py` 배치, 태그 칩 + 필터 바 | Claude API (배치 1회/일) | P6 ✅ (#52) |
+| 에이전트 활동 위젯 + "지금 실행" | Q5 | `GET/POST /api/agent/*`, `AgentActivityWidgetView`, `useAgentStore`, `agent/trigger.py`, `agent/.triggers/run-now` 플래그 | launchd WatchPaths, 파일 플래그 | P7 ✅ (#55) |
+| OKR + 주간 플래너 + 라인차트 | Q4 | `objectives`/`key_results`/`kr_snapshots`, `GET /api/okr`·`/api/okr/trend`·CRUD·`GET /api/planner/weekly`, `kr_snapshots` 월별 적재는 백엔드 자체 | 인라인 SVG `LineChart`(`linePath.js`) | P8 ✅ (#58) |
+| 진행 현황 · 파일 탐색 뷰 | Q7 | `GET /api/tree` + `GET /api/docs/:path`(의존성 0 토크나이저, `.md` 만, 상한 깊이 8·항목 2000·1MB, 심링크 스킵), `progress` 위젯(좌 트리/우 본문, 분할선 드래그·패널 접기·섹션 접기) | 파서·`dangerouslySetInnerHTML` 없음 | P9 ✅ (PR 대기) |
+| Daily Brief 에이전트 | Q1, Q2 | `sync.py`(수집) → `daily_brief.py`(생성) → Claude → `briefs`(date upsert) → Notion, `GET /api/brief/today` | anthropic SDK(`claude-sonnet-5`, thinking adaptive), launchd | D3 ✅ |
+| Gmail·Calendar 실 수집 | Q1 | `agent/services/{gmail,calendar}.py`, OAuth 최초 로그인 → `emails`·`calendar_events` upsert 캐시 | google-api-python-client 2.200, google-auth-oauthlib 1.4, cryptography 50 (Fernet) | D2-b ✅ |
+| Notion 브리핑 저장 | Q1 | `services/notion.py` REST 직접 호출, 미설정 시 스킵 | requests (`Notion-Version: 2022-06-28`) | D3 ✅ |
+| 웹 데모 모드 | C-5 (발표) | `demoClient.js`/`demoData.js` 인메모리 목 어댑터, 새 엔드포인트마다 목도 같이 갱신 | Vite `VITE_DEMO`, GitHub Pages 자동 재배포 | ✅ ([0026](../architecture/adr/ADR-0026-web-demo-mode.md)) |
+| 개발 파이프라인 (메타 기능) | C-1 (1인) | `.claude/agents/{planner,developer,supervisor,finisher}.md`, `/feature`·`/build-next`, 훅 3종, `worklog`·`slack-notify` | Claude Code, GitHub Actions CI, launchd, Slack webhook | Phase A ✅ |
+
+### 5-1. 도구·플러그인 총목록
+
+| 영역 | 스택 |
+|---|---|
+| 프론트 | Electron 27, React 18, Vite 7 + `@vitejs/plugin-react`, zustand 4, react-grid-layout 2.2.4, react-resizable 3.2, mermaid 11, concurrently · cross-env · wait-on, electron-builder |
+| 백엔드 | Node (CI 22), Express 4, better-sqlite3 13, `@supabase/supabase-js` 2(연결 배선만), supertest, nodemon |
+| 에이전트 | Python (CI 3.12 / 로컬 3.14), anthropic SDK ≥0.49, python-dotenv, google-api-python-client 2.200, google-auth-oauthlib 1.4, google-auth-httplib2, cryptography 50 (Fernet), requests (Notion REST), apscheduler, pytest |
+| 자동화·운영 | Claude Code (서브에이전트 팀 + slash commands + hooks), GitHub Actions (`test.yml`: 문법 + `npm test` + `pytest -m "not network"`), launchd plist 3종(`dailybrief`·`runnow`·`worklog`), Slack incoming webhook, `verify.sh` · `check-docs.sh` |
+| 디자인 | Claude Design 캔버스 — `design-p2/*.dc.html` 6 아트보드 (개요·할일·OKR·에이전트 활동·진행 현황·공통 컴포넌트) |
+| 문서 방법론 | C4/arc42 뷰, ADR (결정 1개 = 파일 1개), FR/NFR/TRACEABILITY/TEST_PLAN, COURSE_MAPPING |
+
+---
+
+## 6. 타임라인과 다음 단계
+
+### 6-1. 진행 순서
+
+```
+Phase A (환경·자동화 인프라)
+  → Phase B (Vite+React 마운트 B1, better-sqlite3 B2, 할일 배선 B3)
+  → Phase C (CORS·로깅 C1, 프로젝트 C2, 캘린더 C3, 다이어그램 C4, 위젯 셸 C5, 위젯 커스터마이즈 C6)
+  → Phase D (Google OAuth·실 수집 D2-b, Daily Brief·Notion D3)
+  → 웹 데모 배포 (ADR-0026)
+  → 개인 생산성 OS: P0 문서 → P1 ADR → P2 디자인 → P3 라이트 테마 → P4 공통 컴포넌트
+     → P4.5 사이드바 셸 → P5 단일 캐시·칸반 → P6 자동 분류 → P7 에이전트 활동
+     → P8 OKR·주간 플래너 → P9 진행 현황·파일 탐색 (PR 대기)
+```
+
+일정 근거는 [ROADMAP.md](../ROADMAP.md), Phase↔Week↔강의 대응은 [../../progress/COURSE_MAPPING.md](../../progress/COURSE_MAPPING.md).
+
+### 6-2. 남은 일
+
+- **P9 PR 병합** (사람) → 이 문서·`PROGRESS.md`·`NEXT_SESSION.md` 갱신
+- **앱 통합** ([NEXT_SESSION.md](../../progress/NEXT_SESSION.md) §4-3) — 통합 실행 스크립트(`npm run app`),
+  [ADR-0016](../architecture/adr/ADR-0016-desktop-process-topology.md) 결정(백엔드 실행 주체·다중 `BrowserWindow`), 데모↔실서버 패리티 감사
+- **로컬 수동 검증 백로그** — TC-P3~P9-M 을 실제 Electron 앱에서 확인해 `PROGRESS.md`·`TEST_PLAN.md` 반영
+- **미결 결정** — 제안 ADR 5건(0015·0016·0017·0019·0033) + PO-10(개인 OS ↔ Phase E 순서)
+
+---
+
+## 7. 관련 문서
+
+- [VISION.md](VISION.md) · [PERSONAL_OS.md](PERSONAL_OS.md) · [DASHBOARD_OS.md](DASHBOARD_OS.md) — 제품 방향
+- [AS_IS.md](AS_IS.md) · [CONSTRAINTS.md](CONSTRAINTS.md) · [RISKS.md](RISKS.md) — 출발점·제약·리스크
+- [../architecture/ARCHITECTURE.md](../architecture/ARCHITECTURE.md) · [../architecture/DESIGN.md](../architecture/DESIGN.md) · [../architecture/adr/README.md](../architecture/adr/README.md) — 구조·결정
+- [../../setup/ORCHESTRATION.md](../../setup/ORCHESTRATION.md) · [../../setup/AUTOMATION.md](../../setup/AUTOMATION.md) — 개발 방법론
+- [../../progress/PROGRESS.md](../../progress/PROGRESS.md) · [../requirements/TRACEABILITY.md](../requirements/TRACEABILITY.md) — 진행 상태 (단일 원천)
+
+---
+
+**작성:** 2026-09-09

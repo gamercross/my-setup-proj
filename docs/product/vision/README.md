@@ -19,6 +19,7 @@
 | [CONSTRAINTS.md](CONSTRAINTS.md) | 기술·자원 제약(T-*), 가정(A-*), 규모·비용 추정 | 새 의존성·서비스 도입 검토 시 | A-1(사용자 1명, Week 9까지), A-6(better-sqlite3 3-OS 빌드) 등 재검토 조건 명시됨 |
 | [RISKS.md](RISKS.md) | 리스크 레지스터 R-1~R-16 (확률×영향×완화), Phase 축 타임라인 | 일정 계획, 무엇을 먼저 할지 | R-1(1인+시험기간 시간부족)이 🔴. 완화 = P0 우선 + Phase D 앞당김 |
 | [USE_SCENARIOS.md](USE_SCENARIOS.md) | 이해관계자, 사용 여정 S-1~S-6 | 기능이 실제 흐름에 맞는지, UX 판단 | 각 시나리오에 관련 FR·ADR 링크 |
+| [REVERSE_PLAN.md](REVERSE_PLAN.md) | 역 계획서 — 완성된 시스템을 **원초적 고민 → 의사결정 → 문제해결방법 → 설계 → 서비스** 순으로 되짚는 회고. 기능별 왜·어떻게·툴 인벤토리 | 발표·회고 자료, "이 결정 왜 했더라" 확인, 다음 방향 논의 기반 | 상위 서사일 뿐 세부와 어긋나면 [PROGRESS.md](../../progress/PROGRESS.md)·ADR·`git log` 가 맞다. §1 중심 줄기 = "진척이 감이 안 온다" |
 
 ---
 
