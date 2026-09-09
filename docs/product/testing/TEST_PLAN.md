@@ -625,6 +625,16 @@ fake service 주입, 네트워크 0회. 재시도 테스트는 `services.retry.s
 | TC-UI-19 | FR-CAL-01 AC-5 / FR-UI-01 AC-2 | 캘린더 API 중단 후 앱 실행 | 일정 패널만 `ErrorBanner` + 재시도, "일정이 없습니다" 문구 미표시, 할일·프로젝트 패널 정상 렌더. 상태: C3 완료, 로컬 수동 확인 대기 |
 | TC-P9-M | FR-UI-06 AC-1~6 | `progress` 주제 진입 (기존 저장 레이아웃 사용자는 "레이아웃 초기화" 필요 — R7) → 왼쪽 트리 탐색 → `PROGRESS.md` 클릭 | 본문 렌더 + heading 섹션 접기 동작, 분할선 드래그 후 새로고침 시 비율 유지, 각 패널 접기/펼치기, mermaid 블록 SVG 렌더, 인라인 링크는 복사 버튼(외부 브라우저로 안 튐), 상단 브레드크럼에 파일 경로. 상태: P9 완료, 로컬 수동 확인 대기 |
 
+### 3.6a 개발 통합 실행 스크립트 — `scripts/dev.sh` (ADR-0016 1항)
+
+| ID | 유형 | 절차 | 통과 조건 |
+|---|---|---|---|
+| TC-DEV-01 | 자동 | `bash -n scripts/dev.sh` + `bash scripts/dev.sh --dry-run` | 문법 오류 0. dry-run 이 backend/vite/electron 3개 명령을 출력하고 `exit 0` |
+| TC-DEV-02 | 반자동(수동 재현) | `frontend/node_modules` 를 임시로 옮긴 뒤 `bash scripts/dev.sh --dry-run` | `frontend/node_modules 가 없습니다` + `bash setup.sh` 안내, `exit 1`, 아무 프로세스 안 띄움 |
+| TC-DEV-M1 | 수동 | `bash scripts/dev.sh` | Electron 창이 뜨고 위젯이 로딩됨(연결 배너 없음). 로그에 `[backend] [vite] [electron]` 프리픽스 3개 |
+| TC-DEV-M2 | 수동 | 실행 중 Ctrl+C (또는 Electron 창 닫기) | backend·vite·electron 3개 모두 종료 — `ps` 로 잔존 프로세스 0 |
+| TC-DEV-M3 | 수동 | 백엔드를 따로 띄운 뒤 `bash scripts/dev.sh` | "3000 포트가 사용 중" 메시지 + 즉시 종료(비0), 새 프로세스 안 띄움 |
+
 ### 3.7 위젯 셸 수동 체크리스트 (Phase C5, FR-WIDGET)
 
 자동화 러너가 프론트에 없어 수동 확인. `npm run dev`(또는 `build && start`) 로 실행.

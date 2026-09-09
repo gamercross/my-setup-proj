@@ -101,7 +101,17 @@ bash verify.sh    # 환경·문법 점검
 
 ### 앱 실행 (개발 모드)
 
-현재는 **백엔드와 프론트를 각각 실행**한다 (한 번에 띄우는 통합 스크립트는 없음 — 아래 "미정" 참고).
+**통합 실행 (권장):** 명령 하나로 backend(:3000) + Vite(:5173) + Electron 을 함께 띄운다 ([ADR-0016](docs/product/architecture/adr/ADR-0016-desktop-process-topology.md) 1항 채택).
+
+```bash
+bash scripts/dev.sh    # Ctrl+C 또는 Electron 창 닫기로 3개 모두 종료
+```
+
+- 전제 미충족(`node` 없음 / `node_modules` 없음)이면 한국어 안내 후 즉시 종료 — `bash setup.sh` 를 먼저 실행.
+- 3000 또는 5173 포트가 이미 사용 중이면 명확한 메시지로 즉시 종료한다 (포트 폴백은 미정 항목).
+- Windows 는 Git Bash 에서 실행 (`setup.sh`/`verify.sh` 와 동일).
+
+<details><summary>폴백 — 터미널 2개로 분리 실행</summary>
 
 ```bash
 # 터미널 A — 백엔드 API (:3000)
@@ -110,10 +120,11 @@ cd backend && npm start
 # 터미널 B — Vite dev + Electron (:5173)
 cd frontend && npm run dev
 ```
+</details>
 
 - `frontend/` 의 `npm run dev` 는 Vite 와 Electron 만 띄운다. 백엔드가 안 떠 있으면 대시보드는 `ErrorBanner`("백엔드에 연결할 수 없습니다") 를 보여주고, 앱 자체는 죽지 않는다 (FR-UI-04).
 - CORS 는 C1(2026-09-03)에서 처리됨 — dev 오리진 `localhost:5173`, prod Electron `file://`(`Origin: null`) 허용.
-- **미정 (Week 5~ / 패키징 전 결정):** ① Electron 이 백엔드 프로세스를 자동 기동할지(`child_process`) vs 계속 분리. ② 패키징된 앱에서 백엔드 실행 주체. ③ 백엔드 비정상 종료 시 앱의 재연결 정책. → 결정 시 ADR + [DESIGN.md](docs/product/architecture/DESIGN.md) §실행 구조에 반영.
+- **미정 (Week 5~ / 패키징 전 결정):** ① 패키징된 앱에서 백엔드 실행 주체(`child_process.fork`). ② 백엔드 비정상 종료 시 재기동(지수 백오프)·배너 정책. ③ 포트 충돌(3000/5173) 폴백. → 결정 시 ADR + [DESIGN.md](docs/product/architecture/DESIGN.md) §실행 구조에 반영. (dev 통합 실행은 [ADR-0016](docs/product/architecture/adr/ADR-0016-desktop-process-topology.md) 1항으로 결정됨.)
 
 ### 웹 데모 (프로토타입, 백엔드 없이)
 
@@ -291,7 +302,7 @@ planner(계획) → developer(구현) → supervisor(리뷰·검증) → finishe
 - 상태 그래프·정지 조건: [ORCHESTRATION.md](docs/setup/ORCHESTRATION.md)
 - 규칙: [CONVENTIONS.md](docs/setup/CONVENTIONS.md) · 커밋·푸시: [GIT_WORKFLOW.md](docs/setup/GIT_WORKFLOW.md) · 전체: [AUTOMATION.md](docs/setup/AUTOMATION.md)
 - 브랜치: `feature/* → PR → main` ([ADR-0023](docs/product/architecture/adr/ADR-0023-branch-model.md)). `main` 직접 커밋·`develop`·Git Flow 안 씀.
-- 미결정 설계는 **제안** 상태 ADR ([목록·상태](docs/product/architecture/adr/README.md)) — 관련 Phase 착수 전 사용자 결정. 현재 제안: 0013(전체 작업 큐)·0015·0016·0017·0019. 나머지 0001~0012·0014·0018·0020~0032 는 채택.
+- 미결정 설계는 **제안** 상태 ADR ([목록·상태](docs/product/architecture/adr/README.md)) — 관련 Phase 착수 전 사용자 결정. 현재 제안: 0013(전체 작업 큐)·0015·0016(패키징·재기동·포트 — 1항 dev 통합 실행은 채택)·0017·0019. 나머지 0001~0012·0014·0018·0020~0032 는 채택.
 
 ---
 

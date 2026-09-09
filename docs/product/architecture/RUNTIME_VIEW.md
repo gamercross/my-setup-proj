@@ -49,6 +49,8 @@ flowchart TB
 
 ## 2. 시작 순서 (개발 모드, 현재)
 
+> 통합 실행 시 `bash scripts/dev.sh` 가 아래 터미널 A/B 두 역할을 대신한다 ([ADR-0016](adr/ADR-0016-desktop-process-topology.md) 1항).
+
 ```mermaid
 sequenceDiagram
   actor Dev as 개발자
@@ -120,13 +122,14 @@ README "앱 실행" 의 미정 항목을 런타임 관점에서 정리. → [ADR
 
 | # | 질문 | 선택지 | 결정 시점 |
 |---|---|---|---|
-| RT-1 | dev 에서 백엔드를 `frontend` 명령이 같이 띄우나? | (a) `concurrently` 로 3개 동시 (b) 계속 분리 | 지금 (C 단계 전) |
+| RT-1 | dev 에서 백엔드를 `frontend` 명령이 같이 띄우나? | (a) `concurrently` 로 3개 동시 (b) 계속 분리 | ✅ 결정 (2026-09-09) — (a) concurrently, `scripts/dev.sh` |
 | RT-2 | 패키징된 앱에서 백엔드 실행 주체 | (a) main 이 `child_process.fork` (b) Electron 에 Express 를 인프로세스로 임베드 (c) 별도 서비스 | Week 5, 패키징 전 |
 | RT-3 | 백엔드 비정상 종료 시 | (a) main 이 자식이면 재기동(최대 N회) (b) 배너 + 수동 재시도만 | RT-2 와 함께 |
 | RT-4 | 포트 충돌(3000/5173 사용 중) | (a) 고정 실패 (b) 다음 빈 포트 + preload 로 전달 | Week 5 |
 | RT-5 | 에이전트 실행 중 앱이 같은 행을 편집 | WAL + busy_timeout 로 충분한지, 아니면 짧은 락 | D 단계에서 부하 확인 |
 
-**잠정 권고:** RT-1 = (a) `concurrently` (실수 방지), RT-2 = (a) main 이 fork + 헬스체크 후 창 표시, RT-3 = (a) 재기동 3회 후 배너. Week 5 에 ADR 로 확정.
+**RT-1 확정 (2026-09-09):** (a) `concurrently` — 루트 `bash scripts/dev.sh` 가 backend + Vite + Electron 을 `concurrently -k` 로 동시 기동 ([ADR-0016](adr/ADR-0016-desktop-process-topology.md) 1항). 터미널 2개는 폴백.
+**잠정 권고 (RT-2~4, 미결):** RT-2 = (a) main 이 fork + 헬스체크 후 창 표시, RT-3 = (a) 재기동 3회 후 배너. Week 5 에 ADR 로 확정.
 
 ---
 

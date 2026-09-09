@@ -24,8 +24,8 @@ supervisor PASS + 비차단 후속 2건 정리, PR 대기(병합은 사용자). 
 
 **PR 상태:** #52~#58 전부 병합됨. **P9 PR(`feature/p9-progress-file-explorer`) 만 열림 — 병합 대기(사용자).**
 
-**다음 세션은 §4-3 앱 통합** — 통합 실행 스크립트(`npm run app`), ADR-0016 프로세스 토폴로지 결정,
-데모↔실서버 패리티, 독립 위젯 창(ADR-0033) 규범 유지. 그리고 P7·P8·P9 로컬 수동 검증 백로그
+**다음 세션은 §4-3 앱 통합** — 통합 실행 스크립트 `bash scripts/dev.sh` ✅ (ADR-0016 1항 채택 2026-09-09).
+남은 것: ADR-0016 2~4항(패키징·재기동·포트), 데모↔실서버 패리티, 독립 위젯 창(ADR-0033) 규범 유지. 그리고 P7·P8·P9 로컬 수동 검증 백로그
 (TC-ACT-M/TC-AGENT-M, TC-OKR-M/TC-PLAN-M, TC-P9-M). P9 PR 병합 확인 먼저. 상세는 §4.
 
 ---
@@ -46,13 +46,13 @@ supervisor PASS + 비차단 후속 2건 정리, PR 대기(병합은 사용자). 
 **다음 세션 첫 작업:**
 1. `git checkout main && git pull` (SessionStart 훅이 병합된 로컬 브랜치를 자동 정리).
 2. P9 PR 병합 확인.
-3. **로컬 수동 검증 백로그** — 아래를 실제 Electron 앱(`cd backend && npm start` + `cd frontend && npm run dev`)에서 확인하고 `PROGRESS.md`·`TEST_PLAN.md` 에 반영:
+3. **로컬 수동 검증 백로그** — 아래를 실제 Electron 앱(`bash scripts/dev.sh`)에서 확인하고 `PROGRESS.md`·`TEST_PLAN.md` 에 반영:
    - TC-P3-M(라이트 테마) · TC-P4-M(공통 컴포넌트) · TC-SHELL-M1~6(사이드바 셸)
    - TC-P5-M1~4(칸반 리스트/보드) · TC-P6-M1~4(태그 칩·필터)
    - TC-ACT-M / TC-AGENT-M(P7 — `bash scripts/install-runnow-launchd.sh` 후 "지금 실행" → 플래그 감지)
    - TC-OKR-M / TC-PLAN-M(P8 — OKR CRUD·주간 플래너·인라인 SVG 라인차트 실제 앱 확인)
    - **TC-P9-M(P9 — `progress` 주제 진입: 기존 저장 레이아웃 사용자는 "레이아웃 초기화" 필요(R7) → 트리 탐색 → `PROGRESS.md` 렌더/섹션 접기 → 분할선 드래그 후 새로고침 비율 유지 → 패널 접기 → mermaid 렌더 → 링크 복사 버튼 & 외부 브라우저로 안 튐)**
-4. **→ 앱 통합(§4-3): 통합 실행 스크립트 `npm run app` + ADR-0016 결정 + 데모↔실서버 패리티.**
+4. **→ 앱 통합(§4-3): 통합 실행 스크립트 `bash scripts/dev.sh` ✅ (ADR-0016 1항). 남은 것: ADR-0016 2~4항 + 데모↔실서버 패리티.**
 
 ### P4.5 구현 요약 (PR #45, 커밋 `1c5ee54`)
 - 신규: `components/{AppShell,Sidebar,TopicView,TopicIcons}.jsx`, `widgets/topics.js`(11주제/4그룹),
@@ -109,7 +109,7 @@ supervisor PASS + 비차단 후속 2건 정리, PR 대기(병합은 사용자). 
 | **P7** | T4 에이전트 활동 위젯 — `sync_logs`/`health`/다음 실행 + "지금 실행" 파일 플래그 | ✅ **#55 병합됨** (ADR-0013 부분 채택, FR-AGENT-08/09), launchd WatchPaths 수동 검증 대기 |
 | **P8** | T3 OKR Phase — `objectives`/`key_results`/`kr_snapshots` + OKR 대시보드 + 주간 플래너 + 인라인 SVG 라인차트 | ✅ **#58 병합됨** (ADR-0030 채택, FR-OKR-01~06). backend 126/126, frontend 98/98. 수동 검증 TC-OKR-M / TC-PLAN-M 대기 |
 | **P9** | T6 진행 현황 · 파일 탐색 뷰 — `GET /api/tree` + `GET /api/docs/:path`(안전 토큰화) + `progress` 위젯(좌 폴더 트리 / 우 본문) | ✅ **완료, PR 대기** (`feature/p9-progress-file-explorer`, ADR-0031 채택·구현, FR-UI-06). backend 142/142, frontend 103/103. 수동 검증 TC-P9-M 대기. R7: 기존 저장 레이아웃 사용자는 레이아웃 초기화 필요 |
-| (별도) | **앱 통합** — 통합 실행 스크립트 + Electron↔백엔드 프로세스 토폴로지([ADR-0016](../product/architecture/adr/ADR-0016-desktop-process-topology.md) 결정) + 독립 위젯 창([ADR-0033](../product/architecture/adr/ADR-0033-standalone-widget-windows.md)) | ⏳ P9 전후 / 패키징 전. §4-3 |
+| (별도) | **앱 통합** — 통합 실행 스크립트 `scripts/dev.sh` ✅ ([ADR-0016](../product/architecture/adr/ADR-0016-desktop-process-topology.md) 1항 채택 2026-09-09) · Electron↔백엔드 패키징 토폴로지(2~4항)·독립 위젯 창([ADR-0033](../product/architecture/adr/ADR-0033-standalone-widget-windows.md)) | ⏳ 2~4항은 패키징 전. §4-3 |
 
 ---
 
@@ -133,10 +133,10 @@ supervisor PASS + 비차단 후속 2건 정리, PR 대기(병합은 사용자). 
 GitHub Pages)는 `demoClient.js` 인메모리 목으로 도는 **미리보기 전용**이다. P3~P7 매 단계가 "TC-*-M
 로컬 GUI 대기" 로 남으면서 실제 창에서의 통합 실행이 오래 밀렸다. P9 전후 또는 패키징 전에 정리:
 
-- **통합 실행 스크립트** — 지금은 백엔드·프론트를 각각 띄운다(README "앱 실행"). `npm run app`
-  또는 `scripts/dev.sh` 하나로 backend + frontend 동시 기동.
-- **[ADR-0016](../product/architecture/adr/ADR-0016-desktop-process-topology.md) 결정** (제안) — Electron 이 백엔드를 자동 기동할지, 패키징된 앱의 백엔드 실행 주체,
-  백엔드 비정상 종료 시 재연결. 여기에 **다중 `BrowserWindow`**(ADR-0033 독립 위젯 창)도 함께.
+- **통합 실행 스크립트** — ✅ `bash scripts/dev.sh` 하나로 backend(:3000) + Vite(:5173) + Electron 동시 기동
+  (`concurrently -k`, Ctrl+C 로 전부 종료). [ADR-0016](../product/architecture/adr/ADR-0016-desktop-process-topology.md) 1항 채택 (2026-09-09).
+- **[ADR-0016](../product/architecture/adr/ADR-0016-desktop-process-topology.md) 2~4항** (제안 유지) — 패키징된 앱의 백엔드 실행 주체(`child_process.fork`),
+  백엔드 비정상 종료 시 재기동·배너, 포트 폴백. 여기에 **다중 `BrowserWindow`**(ADR-0033 독립 위젯 창)도 함께.
 - **[ADR-0033](../product/architecture/adr/ADR-0033-standalone-widget-windows.md) 규범 유지** — 새 위젯 뷰(`widgets/views/*WidgetView.jsx`)가 `WidgetShell`·
   `react-grid-layout`·`useLayoutStore` 를 import 하지 않는지 리뷰에서 확인. 독립 창 구현 전제.
 - **데모↔실서버 패리티** — `demoClient.js` 가 목으로 두는 엔드포인트가 전부 `backend/` 에 실재하는지

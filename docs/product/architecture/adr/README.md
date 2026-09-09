@@ -6,7 +6,7 @@
 **📂 이동:** [⬆ architecture/](../README.md) · [product/](../../README.md) · [docs/](../../../README.md) · [🚀 ONBOARDING](../../../ONBOARDING.md)
 **형제 뷰:** [DESIGN](../DESIGN.md) · [ARCHITECTURE_DRIVERS](../ARCHITECTURE_DRIVERS.md) · [RUNTIME_VIEW](../RUNTIME_VIEW.md) · [DATA_ARCHITECTURE](../DATA_ARCHITECTURE.md) · [CROSSCUTTING](../CROSSCUTTING.md) · [ARCHITECTURE_EVOLUTION](../ARCHITECTURE_EVOLUTION.md)
 
-> **상태 요약:** 0001~0012 채택 · **0013·0015·0016·0017·0019 제안**(착수 전 결정 — 0013 은 전체 작업 큐(FR-AGENT-09) 부분만 미결, P7 "지금 실행" 트리거(FR-AGENT-08)=전용 디렉터리 파일 플래그 + launchd WatchPaths 로 채택됨 (2026-09-08)) · 0014·0020~0026 채택 (0022 는 C6, 0024 는 D2-b, 0025 는 D3, 0026 은 웹 데모) · **0027 채택(P3)** · **0032 채택(P4.5 — 사이드바 셸)** · **0028 채택(P5 — 단일 캐시·칸반)** · **0018·0029 채택(P6 — 최소 마이그레이션·태그 자동 분류)** · **0030 채택(P8 — OKR 모델)** · **0031 채택(P9 — 안전 마크다운·파일 트리)** · **0033 제안·보류(독립 위젯 창 — 방향만 유지)** (개인 생산성 OS 방향 — [PERSONAL_OS.md](../../vision/PERSONAL_OS.md) §7~8). 제안 ADR 은 관련 Phase 착수 전에 사용자가 결정한다.
+> **상태 요약:** 0001~0012 채택 · **0013·0015·0017·0019 제안**(착수 전 결정 — 0013 은 전체 작업 큐(FR-AGENT-09) 부분만 미결, P7 "지금 실행" 트리거(FR-AGENT-08)=전용 디렉터리 파일 플래그 + launchd WatchPaths 로 채택됨 (2026-09-08)) · **0016 은 1항(dev 통합 실행 — `scripts/dev.sh`) 채택 (2026-09-09) / 2~4항(패키징·재기동·포트) 제안 유지** · 0014·0020~0026 채택 (0022 는 C6, 0024 는 D2-b, 0025 는 D3, 0026 은 웹 데모) · **0027 채택(P3)** · **0032 채택(P4.5 — 사이드바 셸)** · **0028 채택(P5 — 단일 캐시·칸반)** · **0018·0029 채택(P6 — 최소 마이그레이션·태그 자동 분류)** · **0030 채택(P8 — OKR 모델)** · **0031 채택(P9 — 안전 마크다운·파일 트리)** · **0033 제안·보류(독립 위젯 창 — 방향만 유지)** (개인 생산성 OS 방향 — [PERSONAL_OS.md](../../vision/PERSONAL_OS.md) §7~8). 제안 ADR 은 관련 Phase 착수 전에 사용자가 결정한다.
 >
 > **강의 열:** 각 ADR 이 3개 강의([COURSE_MAPPING.md](../../../progress/COURSE_MAPPING.md)) 중 어느 주차의 렌즈로 읽히는지. 값의 단일 원천(SSOT) = COURSE_MAPPING §4. 대응 없으면 `—`.
 
@@ -53,7 +53,7 @@
 | [0013](ADR-0013-dashboard-agent-queue.md) | 대시보드 기반 에이전트 작업 큐 | 전체 큐 제안 / P7 "지금 실행" 트리거 채택 (2026-09-08) | FR-AGENT-08 · FR-AGENT-09 | B-W5 |
 | [0014](ADR-0014-dashboard-diagram-viewer.md) | 대시보드 다이어그램 뷰어 (mermaid 클라이언트 렌더 + `/api/diagrams`) | 채택 | FR-UI-05 | C-W7 |
 | [0015](ADR-0015-local-first-architecture.md) | 아키텍처 스타일 — 로컬 우선 + 프로세스 분리 | 제안 | ASR-1~3, NFR-REL | C-W3·C-W6 |
-| [0016](ADR-0016-desktop-process-topology.md) | 데스크톱 프로세스 토폴로지 (백엔드 실행 주체) | 제안 | RUNTIME_VIEW §5 | A-W6·A-W9 |
+| [0016](ADR-0016-desktop-process-topology.md) | 데스크톱 프로세스 토폴로지 (백엔드 실행 주체) | 1항(dev 통합 실행) 채택 (2026-09-09) / 2~4항 제안 | RUNTIME_VIEW §5 | A-W6·A-W9 |
 | [0017](ADR-0017-rest-error-contract.md) | REST 오류 응답 계약 (RFC 9457 스타일) | 제안 | NFR-SEC-07 | C-W4 |
 | [0018](ADR-0018-schema-migration-strategy.md) | 스키마 마이그레이션 전략 (최소안: `PRAGMA user_version` + 인라인 러너) | 채택 (2026-09-08, P6) | ADR-0003, NFR-MAINT-03 | A-W5, C-W4 |
 | [0019](ADR-0019-architecture-fitness-functions.md) | 아키텍처 피트니스 함수 | 제안 | NFR-MAINT-02 | B-W6 |

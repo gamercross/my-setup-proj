@@ -32,6 +32,7 @@
 | 브랜치 정책 | [CONVENTIONS.md](CONVENTIONS.md) §6 · [ADR-0023](../product/architecture/adr/ADR-0023-branch-model.md) |
 | 기능 하나 개발 | `/feature <설명>` → [ORCHESTRATION.md](ORCHESTRATION.md) |
 | 작업 착수 전 필요한 문서 모으기 | `bash scripts/check-docs.sh --bundle <FR-ID>` → [DOC_HEALTH.md](DOC_HEALTH.md) §3 |
+| 앱 실행(개발) | `bash scripts/dev.sh` (backend+Vite+Electron 동시 기동) |
 | 문서 정합 확인 | `bash scripts/check-docs.sh` (verify.sh·CI 에 포함) |
 | backend 가 실제로 뜨는지 | `bash scripts/smoke.sh` (verify.sh "▶ 서비스 확인"·CI 에 포함) |
 | 작업로그 launchd 등록 (macOS) | `bash scripts/install-worklog-launchd.sh` (경로 자동 생성) |
