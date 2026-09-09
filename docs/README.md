@@ -19,6 +19,7 @@
 |---|---|
 | [ONBOARDING.md](ONBOARDING.md) | 15분 온보딩 — 3문장 요약, 읽는 순서, 절대 규칙, 자주 쓰는 명령, **폴더 문서 지도(Mermaid)** |
 | [STUDY_GUIDE.md](STUDY_GUIDE.md) | 아키텍처를 더 공부하려면 — 부족분 진단 + 도서·표준 목록 (C4/arc42, SA in Practice, Release It!, DDIA, RFC 9457 …) |
+| [REVERSE_PLAN.md](REVERSE_PLAN.md) | 역 계획서 — 완성된 시스템(P0~P9)을 **원초적 고민 → 의사결정 → 문제해결방법 → 설계 → 서비스** 순으로 되짚는 회고. §2 PO-3 결정 서사, §5 기능 인벤토리 + 재검토 노트. 발표·회고·다음 방향 논의 기반 |
 
 ---
 
