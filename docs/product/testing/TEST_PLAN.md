@@ -365,6 +365,15 @@ fake service 주입, 네트워크 0회. 재시도 테스트는 `services.retry.s
 
 `agent/tests/test_claude.py` (이동 완료): `ANTHROPIC_API_KEY` 없으면 `skip`, 있으면 1회 실호출 성공 확인.
 
+### 3.4b 데모↔실서버 경로 패리티 — `scripts/check-demo-parity.mjs` · `frontend/test/demoClient.test.mjs` (ADR-0026 부록)
+
+| ID | 대상 | 전제 | 입력 | 기대 결과 | 우선 |
+|---|---|---|---|---|:---:|
+| TC-PARITY-01 | ADR-0026 부록 | `backend/node_modules` 존재 | `node scripts/check-demo-parity.mjs` | 백엔드 라우터 introspection ↔ `DEMO_ROUTES` 대조. 불일치·미등록·썩은 예외 시 exit 1, 통과 시 exit 0. `node_modules` 없으면 exit 2(SKIP) | P1 |
+| TC-PARITY-02 | `DEMO_ROUTES` 테이블 | — | `demoClient` import | `method+spec` 조합 중복 0·모든 `spec` 이 `/` 시작. `POST /tasks/:id/tags` 는 태그 추가(PUT 아님)·`GET /okr/trend` 는 trend(대시보드 아님)·미등록 경로 404 | P2 |
+
+> shape 패리티(응답 필드·상태코드)는 범위 밖 — 후속. `verify.sh` "▶ 데모 패리티 확인" 에 편입.
+
 ### 3.5 다이어그램 API — `backend/test/diagrams.test.js` (Phase C4)
 
 | ID | 대상 | 전제 | 입력 | 기대 결과 | 우선 |

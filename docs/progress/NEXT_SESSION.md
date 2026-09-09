@@ -25,7 +25,8 @@ supervisor PASS + 비차단 후속 2건 정리, PR 대기(병합은 사용자). 
 **PR 상태:** #52~#58 전부 병합됨. **P9 PR(`feature/p9-progress-file-explorer`) 만 열림 — 병합 대기(사용자).**
 
 **다음 세션은 §4-3 앱 통합** — 통합 실행 스크립트 `bash scripts/dev.sh` ✅ (ADR-0016 1항 채택 2026-09-09).
-남은 것: ADR-0016 2~4항(패키징·재기동·포트), 데모↔실서버 패리티, 독립 위젯 창(ADR-0033) 규범 유지. 그리고 P7·P8·P9 로컬 수동 검증 백로그
+남은 것: ADR-0016 2~4항(패키징·재기동·포트), 독립 위젯 창(ADR-0033) 규범 유지. 그리고 P7·P8·P9 로컬 수동 검증 백로그
+(데모↔실서버 **경로** 패리티는 감사·자동검사 완료 ✅ 2026-09-09 — 후속은 shape 패리티).
 (TC-ACT-M/TC-AGENT-M, TC-OKR-M/TC-PLAN-M, TC-P9-M). P9 PR 병합 확인 먼저. 상세는 §4.
 
 ---
@@ -52,7 +53,7 @@ supervisor PASS + 비차단 후속 2건 정리, PR 대기(병합은 사용자). 
    - TC-ACT-M / TC-AGENT-M(P7 — `bash scripts/install-runnow-launchd.sh` 후 "지금 실행" → 플래그 감지)
    - TC-OKR-M / TC-PLAN-M(P8 — OKR CRUD·주간 플래너·인라인 SVG 라인차트 실제 앱 확인)
    - **TC-P9-M(P9 — `progress` 주제 진입: 기존 저장 레이아웃 사용자는 "레이아웃 초기화" 필요(R7) → 트리 탐색 → `PROGRESS.md` 렌더/섹션 접기 → 분할선 드래그 후 새로고침 비율 유지 → 패널 접기 → mermaid 렌더 → 링크 복사 버튼 & 외부 브라우저로 안 튐)**
-4. **→ 앱 통합(§4-3): 통합 실행 스크립트 `bash scripts/dev.sh` ✅ (ADR-0016 1항). 남은 것: ADR-0016 2~4항 + 데모↔실서버 패리티.**
+4. **→ 앱 통합(§4-3): 통합 실행 스크립트 `bash scripts/dev.sh` ✅ (ADR-0016 1항). 데모↔실서버 경로 패리티 감사·자동검사 ✅. 남은 것: ADR-0016 2~4항.**
 
 ### P4.5 구현 요약 (PR #45, 커밋 `1c5ee54`)
 - 신규: `components/{AppShell,Sidebar,TopicView,TopicIcons}.jsx`, `widgets/topics.js`(11주제/4그룹),
@@ -139,8 +140,11 @@ GitHub Pages)는 `demoClient.js` 인메모리 목으로 도는 **미리보기 �
   백엔드 비정상 종료 시 재기동·배너, 포트 폴백. 여기에 **다중 `BrowserWindow`**(ADR-0033 독립 위젯 창)도 함께.
 - **[ADR-0033](../product/architecture/adr/ADR-0033-standalone-widget-windows.md) 규범 유지** — 새 위젯 뷰(`widgets/views/*WidgetView.jsx`)가 `WidgetShell`·
   `react-grid-layout`·`useLayoutStore` 를 import 하지 않는지 리뷰에서 확인. 독립 창 구현 전제.
-- **데모↔실서버 패리티** — `demoClient.js` 가 목으로 두는 엔드포인트가 전부 `backend/` 에 실재하는지
-  (`/api/tasks/:id/tags`, `/api/agent/activity` 등). 데모만 green 인 건 "완료" 아님.
+- **데모↔실서버 경로 패리티** — ✅ 감사 완료 (2026-09-09): B(데모 과잉) 0건 / C(백엔드-only) 4건은
+  프런트 미사용 정당 예외. `demoClient.DEMO_ROUTES` 테이블화 + `scripts/check-demo-parity.mjs`
+  (백엔드 라우터 introspection ↔ 데모 테이블 대조, `verify.sh` 편입) 상시화. 새 백엔드 라우트 없음.
+  - 후속: **데모↔실서버 shape 패리티**(응답 필드·상태코드) — 범위 밖. 알려진 차이: `GET /health`
+    가 백엔드 `{ ok: true }` vs 데모 `{ status: 'ok', demo: true }`.
 
 ### 4-4. 이후 로드맵 파생 작업
 - **PO-10** — 개인 OS 방향(P8~P9)과 Phase E(다중 사용자·Supabase 동기화)의 순서: 미결. `PROGRESS.md` 에 기록.
