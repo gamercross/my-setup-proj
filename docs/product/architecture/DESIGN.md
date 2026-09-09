@@ -40,7 +40,7 @@
 | [0013](adr/ADR-0013-dashboard-agent-queue.md) | 대시보드 에이전트 작업 큐 (향후 확장) | 전체 큐(FR-AGENT-09) **제안** / P7 "지금 실행"(FR-AGENT-08) = 전용 디렉터리 파일 플래그 + launchd WatchPaths **채택** (2026-09-08, PO-9) |
 | [0014](adr/ADR-0014-dashboard-diagram-viewer.md) | 대시보드 다이어그램 뷰어 (mermaid 클라이언트 렌더 + `/api/diagrams`) | 채택 |
 | [0015](adr/ADR-0015-local-first-architecture.md) | 아키텍처 스타일 — 로컬 우선 + 프로세스 분리 | **제안** |
-| [0016](adr/ADR-0016-desktop-process-topology.md) | 데스크톱 프로세스 토폴로지 (백엔드 실행 주체) | **제안** |
+| [0016](adr/ADR-0016-desktop-process-topology.md) | 데스크톱 프로세스 토폴로지 (백엔드 실행 주체) | dev 통합 실행(1항) **채택** (2026-09-09) / 패키징·재기동·포트(2~4항) **제안** |
 | [0017](adr/ADR-0017-rest-error-contract.md) | REST 오류 응답 계약 (RFC 9457) | **제안** |
 | [0018](adr/ADR-0018-schema-migration-strategy.md) | 스키마 마이그레이션 전략 (최소안: `PRAGMA user_version` + `db/index.js` 인라인) | 채택 (2026-09-08, P6) |
 | [0019](adr/ADR-0019-architecture-fitness-functions.md) | 아키텍처 피트니스 함수 | **제안** |

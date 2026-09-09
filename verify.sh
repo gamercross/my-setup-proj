@@ -96,6 +96,9 @@ syntax_check "backend middleware/cors.js 문법"          node node -c backend/s
 syntax_check "backend middleware/requestLogger.js 문법" node node -c backend/src/middleware/requestLogger.js
 syntax_check "backend middleware/errorHandler.js 문법"  node node -c backend/src/middleware/errorHandler.js
 syntax_check "agent 파이썬 문법"        python3 python3 -m compileall -q agent
+syntax_check "scripts/dev.sh 문법"      bash    bash -n scripts/dev.sh
+# CI 편입 시 이 줄은 `npm ci`(backend·frontend) 이후에 배치할 것 — --dry-run 이 node_modules/concurrently 전제를 검사한다
+syntax_check "scripts/dev.sh --dry-run (TC-DEV-01)" bash bash scripts/dev.sh --dry-run
 
 echo "▶ 문서 정합 확인"
 # 문서·오케스트레이션 정합 (링크·ADR표·FR추적·README커버리지·드리프트) — docs/setup/DOC_HEALTH.md

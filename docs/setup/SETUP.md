@@ -92,7 +92,17 @@ gh auth login          # HTTPS + 브라우저 인증 권장
 
 ## 5. 앱 실행
 
-**개발 모드는 backend 와 frontend 를 각각 실행한다** (통합 스크립트 없음 — [RUNTIME_VIEW.md](../product/architecture/RUNTIME_VIEW.md), [ADR-0016](../product/architecture/adr/ADR-0016-desktop-process-topology.md) 미결).
+**통합 실행 (권장):** 명령 하나로 backend + Vite + Electron 을 함께 띄운다 ([ADR-0016](../product/architecture/adr/ADR-0016-desktop-process-topology.md) 1항 채택).
+
+```bash
+bash scripts/dev.sh    # backend :3000 + Vite :5173 + Electron. Ctrl+C 로 전부 종료
+```
+
+- 전제(`node`·`backend/node_modules`·`frontend/node_modules`) 미충족 시 안내 후 종료 — `bash setup.sh` 먼저.
+- `dev.sh` 도 `.env` 를 읽지 않는다 (아래 표 참고 — `PORT` 등은 셸 환경변수).
+- Windows 는 Git Bash 에서 실행.
+
+**폴백 — 터미널 2개로 분리:**
 
 ```bash
 # 터미널 A — 백엔드 API
@@ -128,6 +138,7 @@ bash scripts/smoke.sh    # 임시 포트+임시 DB 로 backend 기동 → /api/h
 | `command not found: node` | OS별 §2/§3 로 설치. `which node` |
 | `better-sqlite3` 빌드 실패 | macOS: `xcode-select --install` / Ubuntu: `sudo apt install build-essential`. Node 버전이 22 계열인지 |
 | 대시보드가 전부 "백엔드에 연결할 수 없습니다" | 터미널 A 에서 `cd backend && npm start` 를 안 띄웠거나 3000 포트 충돌 |
+| `bash scripts/dev.sh` 가 즉시 종료됨 | 3000/5173 포트 점유 시 명확한 메시지 후 즉시 실패한다 — 기존 backend/Vite 프로세스를 먼저 종료 (`lsof -i :3000`) |
 | `DATABASE_PATH` 를 바꿨는데 DB 가 여전히 `backend/data/app.db` | `.env` 가 아니라 셸 환경변수로 export 해야 함 (위 §5 표) |
 | Slack 알림이 안 옴 | `.env`(`.env.example` 아님)의 `SLACK_WEBHOOK_URL` 확인 → `bash scripts/slack-notify.sh "✅" "test" "hi"` |
 | WSL 에서 Electron 창이 안 뜸 | WSLg 확인 (`wsl --version`), 없으면 X 서버·`DISPLAY` 필요. E2E 는 다른 환경에서 |

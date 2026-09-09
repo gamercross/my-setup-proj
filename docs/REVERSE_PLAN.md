@@ -185,7 +185,7 @@ ADR 표에서는 한 줄이지만, 실제로 가장 오래 붙잡은 갈림길�
 ### 2-4. 아직 안 정한 것 (제안 상태)
 
 - [0013](product/architecture/adr/ADR-0013-dashboard-agent-queue.md) 전체 작업 큐(FR-AGENT-09) — "지금 실행" 트리거만 채택, 큐는 미결
-- [0015](product/architecture/adr/ADR-0015-local-first-architecture.md) 아키텍처 스타일 명문화 · [0016](product/architecture/adr/ADR-0016-desktop-process-topology.md) 데스크톱 프로세스 토폴로지(백엔드 실행 주체) · [0017](product/architecture/adr/ADR-0017-rest-error-contract.md) REST 오류 계약(RFC 9457) · [0019](product/architecture/adr/ADR-0019-architecture-fitness-functions.md) 피트니스 함수
+- [0015](product/architecture/adr/ADR-0015-local-first-architecture.md) 아키텍처 스타일 명문화 · [0016](product/architecture/adr/ADR-0016-desktop-process-topology.md) 2~4항 — 데스크톱 프로세스 토폴로지(패키징 시 백엔드 실행 주체·재기동·포트 폴백) · [0017](product/architecture/adr/ADR-0017-rest-error-contract.md) REST 오류 계약(RFC 9457) · [0019](product/architecture/adr/ADR-0019-architecture-fitness-functions.md) 피트니스 함수
 - [0033](product/architecture/adr/ADR-0033-standalone-widget-windows.md) 독립 위젯 창 — 방향만 유지, 구현 보류
 - PO-10 — 개인 OS 방향(P8~P9)과 Phase E(다중 사용자·Supabase)의 순서
 
@@ -363,10 +363,10 @@ Phase A (환경·자동화 인프라)
 
 ### 6-2. 남은 일
 
-- **앱 통합** ([NEXT_SESSION.md](progress/NEXT_SESSION.md) §4-3) — 통합 실행 스크립트(`npm run app`),
-  [ADR-0016](product/architecture/adr/ADR-0016-desktop-process-topology.md) 결정(백엔드 실행 주체·다중 `BrowserWindow`), 데모↔실서버 패리티 감사
+- **앱 통합** ([NEXT_SESSION.md](progress/NEXT_SESSION.md) §4-3) — 통합 실행 스크립트 `bash scripts/dev.sh` ✅ ([ADR-0016](product/architecture/adr/ADR-0016-desktop-process-topology.md) 1항 채택 2026-09-09).
+  남은 것: ADR-0016 2~4항(패키징 시 백엔드 실행 주체·재기동·포트)·다중 `BrowserWindow`, 데모↔실서버 패리티 감사
 - **로컬 수동 검증 백로그** — TC-P3~P9-M 을 실제 Electron 앱에서 확인해 `PROGRESS.md`·`TEST_PLAN.md` 반영
-- **미결 결정** — 제안 ADR 5건(0015·0016·0017·0019·0033) + PO-10(개인 OS ↔ Phase E 순서)
+- **미결 결정** — 제안 ADR(0015·0016 2~4항·0017·0019·0033) + PO-10(개인 OS ↔ Phase E 순서)
 
 ---
 
