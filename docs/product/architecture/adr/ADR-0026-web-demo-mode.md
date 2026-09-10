@@ -45,3 +45,25 @@
 - 데모에는 다이어그램·메일·동기화 로그가 비어 있다(`{ diagrams: [] }` 등) — 해당 위젯은
   "없음" 상태로 표시된다. 필요 시 나중에 채운다.
 - Pages 활성화(저장소 Settings → Pages → Source: GitHub Actions)는 **1회 수동 설정**이 필요하다.
+
+## 부록: 경로 패리티 감사 (2026-09-09)
+
+데모 목 어댑터(`demoClient.DEMO_ROUTES`)와 백엔드 라우터(`backend/src/routes/api.js`)의
+**경로(method + path) 대조** 결과.
+
+- **(A) 양쪽 존재:** 29건 — 정상.
+- **(B) 데모에만 있음:** 0건.
+- **(C) 백엔드에만 있음:** 4건 — 전부 프런트 미사용, 예외로 등록.
+
+  | 경로 | 사유 |
+  | --- | --- |
+  | `GET /tasks/:id` | 프런트 미사용 (`useTaskStore` 는 목록만 조회) |
+  | `GET /projects/:id` | 프런트 미사용 |
+  | `GET /sync/health` | 프런트 미사용 (UI 는 `/agent/activity` 사용) |
+  | `GET /docs` | 경로 누락 400 스텁 — 목 대상 아님 |
+
+자동 검사 `scripts/check-demo-parity.mjs` 가 이 대조를 수행하고 `verify.sh`(▶ 데모 패리티 확인)에
+편입되어 있다. 예외 목록(`BACKEND_ONLY_ALLOW`)이 실제와 어긋나면(썩은 예외 포함) 실패한다.
+
+**shape 패리티(응답 필드·상태코드)는 이 검사의 범위 밖** — 후속 과제.
+알려진 차이: `GET /health` 가 백엔드는 `{ ok: true }`, 데모는 `{ status: 'ok', demo: true }`.

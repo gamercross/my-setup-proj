@@ -364,70 +364,110 @@ function plannerWeekly() {
   };
 }
 
+// ── 라우트 디스패치 테이블 (ADR-0026 부록: 경로 패리티) ──────────────────
+// - spec 은 백엔드 express 경로 문자열과 "문자 그대로" 동일하게 맞춘다
+//   (scripts/check-demo-parity.mjs 가 이 배열과 백엔드 라우터를 대조한다).
+// - 매칭 우선순위 = 배열 순서. 구체 경로(/tasks/:id/tags, /okr/trend 등)를
+//   포괄 경로(/tasks/:id, /okr)보다 반드시 앞에 둔다.
+// - handler(p, q, body) 는 기존 분기 본문을 그대로 옮긴 것 (동작 무변경).
+export const DEMO_ROUTES = [
+  { method: 'GET', spec: '/health', match: (p) => p === '/health', handler: () => ({ status: 'ok', demo: true }) },
+
+  { method: 'GET', spec: '/tasks', match: (p) => p === '/tasks', handler: (p, q) => listTasks(q) },
+  { method: 'POST', spec: '/tasks', match: (p) => p === '/tasks', handler: (p, q, body) => createTask(body) },
+  // 태그 분기는 반드시 일반 /tasks/:id PUT·DELETE 분기보다 먼저 (경로 매칭 순서).
+  {
+    method: 'POST',
+    spec: '/tasks/:id/tags',
+    match: (p) => /^\/tasks\/\d+\/tags$/.test(p),
+    handler: (p, q, body) => addTag(p.split('/')[2], body),
+  },
+  {
+    method: 'DELETE',
+    spec: '/tasks/:id/tags/:tag',
+    match: (p) => /^\/tasks\/\d+\/tags\/.+$/.test(p),
+    handler: (p) => {
+      const parts = p.split('/');
+      return removeTag(parts[2], decodeURIComponent(parts.slice(4).join('/')));
+    },
+  },
+  { method: 'PUT', spec: '/tasks/:id', match: (p) => p.startsWith('/tasks/'), handler: (p, q, body) => updateTask(p.slice(7), body) },
+  {
+    method: 'DELETE',
+    spec: '/tasks/:id',
+    match: (p) => p.startsWith('/tasks/'),
+    handler: (p) => {
+      store.tasks = store.tasks.filter((t) => t.id !== Number(p.slice(7)));
+      return { ok: true };
+    },
+  },
+
+  { method: 'GET', spec: '/projects', match: (p) => p === '/projects', handler: () => ({ projects: store.projects }) },
+  { method: 'POST', spec: '/projects', match: (p) => p === '/projects', handler: (p, q, body) => createProject(body) },
+  { method: 'PUT', spec: '/projects/:id', match: (p) => p.startsWith('/projects/'), handler: (p, q, body) => updateProject(p.slice(10), body) },
+  {
+    method: 'DELETE',
+    spec: '/projects/:id',
+    match: (p) => p.startsWith('/projects/'),
+    handler: (p) => {
+      const id = Number(p.slice(10));
+      store.projects = store.projects.filter((x) => x.id !== id);
+      store.tasks.forEach((t) => {
+        if (t.project_id === id) t.project_id = null;
+      });
+      return { ok: true };
+    },
+  },
+
+  { method: 'GET', spec: '/calendar/events', match: (p) => p === '/calendar/events', handler: (p, q) => listEvents(q) },
+  { method: 'GET', spec: '/mail/unread', match: (p) => p === '/mail/unread', handler: () => ({ emails: [] }) },
+  { method: 'GET', spec: '/brief/today', match: (p) => p === '/brief/today', handler: () => ({ brief: store.brief }) },
+  { method: 'GET', spec: '/diagrams', match: (p) => p === '/diagrams', handler: () => ({ diagrams: store.diagrams ?? [] }) },
+
+  // 진행 현황 위젯(P9, FR-UI-06) — 목 트리·목 토큰. GET 만.
+  { method: 'GET', spec: '/tree', match: (p) => p === '/tree', handler: () => ({ tree: store.docTree, truncated: false }) },
+  {
+    method: 'GET',
+    spec: '/docs/*',
+    match: (p) => p.startsWith('/docs/'),
+    handler: (p) => {
+      const rel = decodeURIComponent(p.slice('/docs/'.length));
+      const tokens = store.docTokens[rel];
+      if (!tokens) throw err(404, '문서를 찾을 수 없습니다.');
+      return { path: rel, tokens };
+    },
+  },
+  {
+    method: 'GET',
+    spec: '/sync/logs',
+    match: (p) => p === '/sync/logs',
+    handler: (p, q) => {
+      const lim = Number(q.limit) > 0 ? Number(q.limit) : 50;
+      return { logs: store.sync_logs.slice().reverse().slice(0, lim) };
+    },
+  },
+  { method: 'GET', spec: '/agent/activity', match: (p) => p === '/agent/activity', handler: (p, q) => agentActivity(q) },
+  { method: 'POST', spec: '/agent/run-now', match: (p) => p === '/agent/run-now', handler: () => agentRunNow() },
+
+  // OKR — 구체 경로를 /okr 보다 먼저 매칭한다.
+  { method: 'GET', spec: '/okr/trend', match: (p) => p === '/okr/trend', handler: () => okrTrend() },
+  { method: 'POST', spec: '/okr/objectives', match: (p) => p === '/okr/objectives', handler: (p, q, body) => createObjective(body) },
+  { method: 'PUT', spec: '/okr/objectives/:id', match: (p) => p.startsWith('/okr/objectives/'), handler: (p, q, body) => updateObjective(p.slice(16), body) },
+  { method: 'DELETE', spec: '/okr/objectives/:id', match: (p) => p.startsWith('/okr/objectives/'), handler: (p) => deleteObjective(p.slice(16)) },
+  { method: 'POST', spec: '/okr/key-results', match: (p) => p === '/okr/key-results', handler: (p, q, body) => createKeyResult(body) },
+  { method: 'PUT', spec: '/okr/key-results/:id', match: (p) => p.startsWith('/okr/key-results/'), handler: (p, q, body) => updateKeyResult(p.slice(17), body) },
+  { method: 'DELETE', spec: '/okr/key-results/:id', match: (p) => p.startsWith('/okr/key-results/'), handler: (p) => deleteKeyResult(p.slice(17)) },
+  { method: 'GET', spec: '/okr', match: (p) => p === '/okr', handler: (p, q) => okrDashboard(q) },
+
+  { method: 'GET', spec: '/planner/weekly', match: (p) => p === '/planner/weekly', handler: () => plannerWeekly() },
+];
+
 // method+path 를 받아 백엔드와 같은 형태의 객체를 반환한다 (실패 시 throw).
 export async function demoRequest(method, path, body) {
   const { p, q } = parse(path);
-
-  if (method === 'GET' && p === '/health') return { status: 'ok', demo: true };
-
-  if (p === '/tasks' && method === 'GET') return listTasks(q);
-  if (p === '/tasks' && method === 'POST') return createTask(body);
-  // 태그 분기는 반드시 일반 /tasks/ PUT·DELETE 분기보다 먼저 (경로 매칭 순서).
-  if (method === 'POST' && /^\/tasks\/\d+\/tags$/.test(p)) return addTag(p.split('/')[2], body);
-  if (method === 'DELETE' && /^\/tasks\/\d+\/tags\/.+$/.test(p)) {
-    const parts = p.split('/');
-    return removeTag(parts[2], decodeURIComponent(parts.slice(4).join('/')));
-  }
-  if (p.startsWith('/tasks/') && method === 'PUT') return updateTask(p.slice(7), body);
-  if (p.startsWith('/tasks/') && method === 'DELETE') {
-    store.tasks = store.tasks.filter((t) => t.id !== Number(p.slice(7)));
-    return { ok: true };
-  }
-
-  if (p === '/projects' && method === 'GET') return { projects: store.projects };
-  if (p === '/projects' && method === 'POST') return createProject(body);
-  if (p.startsWith('/projects/') && method === 'PUT') return updateProject(p.slice(10), body);
-  if (p.startsWith('/projects/') && method === 'DELETE') {
-    const id = Number(p.slice(10));
-    store.projects = store.projects.filter((x) => x.id !== id);
-    store.tasks.forEach((t) => {
-      if (t.project_id === id) t.project_id = null;
-    });
-    return { ok: true };
-  }
-
-  if (p === '/calendar/events' && method === 'GET') return listEvents(q);
-  if (p === '/mail/unread' && method === 'GET') return { emails: [] };
-  if (p === '/brief/today' && method === 'GET') return { brief: store.brief };
-  if (p === '/diagrams' && method === 'GET') return { diagrams: store.diagrams ?? [] };
-
-  // 진행 현황 위젯(P9, FR-UI-06) — 목 트리·목 토큰. GET 만.
-  if (p === '/tree' && method === 'GET') return { tree: store.docTree, truncated: false };
-  if (p.startsWith('/docs/') && method === 'GET') {
-    const rel = decodeURIComponent(p.slice('/docs/'.length));
-    const tokens = store.docTokens[rel];
-    if (!tokens) throw err(404, '문서를 찾을 수 없습니다.');
-    return { path: rel, tokens };
-  }
-  if (p === '/sync/logs' && method === 'GET') {
-    const lim = Number(q.limit) > 0 ? Number(q.limit) : 50;
-    return { logs: store.sync_logs.slice().reverse().slice(0, lim) };
-  }
-  if (p === '/agent/activity' && method === 'GET') return agentActivity(q);
-  if (p === '/agent/run-now' && method === 'POST') return agentRunNow();
-
-  // OKR — 구체 경로를 /okr 보다 먼저 매칭한다.
-  if (p === '/okr/trend' && method === 'GET') return okrTrend();
-  if (p === '/okr/objectives' && method === 'POST') return createObjective(body);
-  if (p.startsWith('/okr/objectives/') && method === 'PUT') return updateObjective(p.slice(16), body);
-  if (p.startsWith('/okr/objectives/') && method === 'DELETE') return deleteObjective(p.slice(16));
-  if (p === '/okr/key-results' && method === 'POST') return createKeyResult(body);
-  if (p.startsWith('/okr/key-results/') && method === 'PUT') return updateKeyResult(p.slice(17), body);
-  if (p.startsWith('/okr/key-results/') && method === 'DELETE') return deleteKeyResult(p.slice(17));
-  if (p === '/okr' && method === 'GET') return okrDashboard(q);
-  if (p === '/planner/weekly' && method === 'GET') return plannerWeekly();
-
-  throw err(404, '요청을 처리하지 못했습니다.');
+  const route = DEMO_ROUTES.find((r) => r.method === method && r.match(p));
+  if (!route) throw err(404, '요청을 처리하지 못했습니다.');
+  return route.handler(p, q, body);
 }
 
 // 테스트·리셋용

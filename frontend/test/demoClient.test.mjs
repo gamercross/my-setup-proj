@@ -4,7 +4,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { demoRequest, _resetDemoStore } from '../src/api/demoClient.js';
+import { demoRequest, _resetDemoStore, DEMO_ROUTES } from '../src/api/demoClient.js';
 
 test.beforeEach(() => _resetDemoStore());
 
@@ -164,6 +164,23 @@ test('TC-P7-06: POST /agent/run-now 는 즉시 성공 + 이력 1건 추가', asy
   assert.ok(typeof res.requestedAt === 'string');
   const after = (await demoRequest('GET', '/agent/activity')).logs.length;
   assert.equal(after, before + 1);
+});
+
+test('TC-PARITY-02: DEMO_ROUTES 는 method+spec 중복 없고 모든 spec 이 "/" 로 시작', () => {
+  const keys = DEMO_ROUTES.map((r) => `${r.method} ${r.spec}`);
+  assert.equal(new Set(keys).size, keys.length, '중복 항목: ' + keys.filter((k, i) => keys.indexOf(k) !== i));
+  for (const r of DEMO_ROUTES) assert.ok(r.spec.startsWith('/'), `spec 형식 오류: ${r.spec}`);
+});
+
+test('TC-PARITY-02: 매칭 우선순위 — 구체 경로가 포괄 경로보다 먼저', async () => {
+  // POST /tasks/:id/tags 가 PUT /tasks/:id 가 아니라 태그 추가로 동작
+  const add = await demoRequest('POST', '/tasks/3/tags', { tag: 'x' });
+  assert.deepEqual(add.task.tags, ['x']);
+  // GET /okr/trend 가 대시보드가 아니라 trend(points) 반환
+  const trend = await demoRequest('GET', '/okr/trend');
+  assert.ok(Array.isArray(trend.points) && !('objectives' in trend));
+  // 미등록 경로는 여전히 404
+  await assert.rejects(() => demoRequest('GET', '/nope'), (e) => e.status === 404);
 });
 
 test('TC-P9-DEMO-01: GET /tree 는 노드 배열, GET /docs/<존재> 는 tokens, <없음> 은 404', async () => {

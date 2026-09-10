@@ -99,6 +99,7 @@ syntax_check "agent 파이썬 문법"        python3 python3 -m compileall -q ag
 syntax_check "scripts/dev.sh 문법"      bash    bash -n scripts/dev.sh
 # CI 편입 시 이 줄은 `npm ci`(backend·frontend) 이후에 배치할 것 — --dry-run 이 node_modules/concurrently 전제를 검사한다
 syntax_check "scripts/dev.sh --dry-run (TC-DEV-01)" bash bash scripts/dev.sh --dry-run
+syntax_check "scripts/check-demo-parity.mjs 문법" node node --check scripts/check-demo-parity.mjs
 
 echo "▶ 문서 정합 확인"
 # 문서·오케스트레이션 정합 (링크·ADR표·FR추적·README커버리지·드리프트) — docs/setup/DOC_HEALTH.md
@@ -108,6 +109,24 @@ elif bash scripts/check-docs.sh; then
   echo "✅ 문서 정합"; PASS=$((PASS + 1))
 else
   echo "❌ 문서 정합 (위 [XREF]/[STRUCT]/[DRIFT] 항목 참고)"; FAIL=$((FAIL + 1))
+fi
+
+# 데모↔실서버 경로 패리티 — demoClient.DEMO_ROUTES 와 백엔드 라우터를 대조 (ADR-0026 부록).
+# CI 편입 시 이 블록은 `npm ci`(backend) 이후에 배치할 것 — introspection 이 backend/node_modules 를 전제한다.
+echo "▶ 데모 패리티 확인"
+if command -v node >/dev/null 2>&1; then
+  if node scripts/check-demo-parity.mjs; then
+    echo "✅ 데모↔실서버 경로 패리티"; PASS=$((PASS + 1))
+  else
+    rc=$?
+    if [ "$rc" -eq 2 ]; then
+      echo "⏭️  데모 패리티 — SKIP (backend/node_modules 없음)"; SKIP=$((SKIP + 1))
+    else
+      echo "❌ 데모↔실서버 경로 패리티 (위 로그 참고)"; FAIL=$((FAIL + 1))
+    fi
+  fi
+else
+  echo "⏭️  데모 패리티 — SKIP (node 없음)"; SKIP=$((SKIP + 1))
 fi
 
 # 서비스 스모크 — backend 가 실제로 뜨고 응답하고 SQLite 에 쓰는가.
