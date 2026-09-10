@@ -49,12 +49,12 @@ Q3·Q4·Q5·Q7 이 묶인다.
 |---|---|---|---|---|
 | Q1 | 생산성 도구가 흩어져 있다 | 할일·프로젝트·일정·메일·브리핑을 앱마다 따로 확인한다 | 통합 | [VISION.md](product/vision/VISION.md) §목표 |
 | Q2 | 아침마다 우선순위 정리를 수동으로 한다 | "오늘 뭐부터 하지?" 를 매번 사람이 판단한다 | 자동 정리 | [VISION.md](product/vision/VISION.md) 핵심기능 1 |
-| Q3 | 같은 할 일이 여러 뷰에 중복되고 따로 논다 | 한 곳에서 완료해도 나머지 뷰가 안 따라온다 | **진척 가시성** | [PERSONAL_OS.md](product/vision/PERSONAL_OS.md) §1-1 |
-| Q4 | 정리가 전부 수동이다 | 카테고리·주간 버킷·OKR 대비 진행률을 손으로 만들어야 보인다 | **진척 가시성** | [PERSONAL_OS.md](product/vision/PERSONAL_OS.md) §1-2 |
-| Q5 | 에이전트가 일하는 게 안 보인다 | sync·브리핑·Notion 저장이 `sync_logs` 와 로그 파일에만 남는다 | **진척 가시성** | [PERSONAL_OS.md](product/vision/PERSONAL_OS.md) §1-3 |
+| Q3 | 같은 할 일이 여러 뷰에 중복되고 따로 논다 | 한 곳에서 완료해도 나머지 뷰가 안 따라온다 | **진척 가시성** | [PERSONAL_OS.md](product/vision/PERSONAL_OS.md) §1 배경 1 |
+| Q4 | 정리가 전부 수동이다 | 카테고리·주간 버킷·OKR 대비 진행률을 손으로 만들어야 보인다 | **진척 가시성** | [PERSONAL_OS.md](product/vision/PERSONAL_OS.md) §1 배경 2 |
+| Q5 | 에이전트가 일하는 게 안 보인다 | sync·브리핑·Notion 저장이 `sync_logs` 와 로그 파일에만 남는다 | **진척 가시성** | [PERSONAL_OS.md](product/vision/PERSONAL_OS.md) §1 배경 3 |
 | Q6 | 화면 배치가 고정이다 | 사용자마다 중요한 정보가 다른데 `Dashboard.jsx` 에 하드코딩돼 있다 | 개인화 | [DASHBOARD_OS.md](product/vision/DASHBOARD_OS.md) §1 |
 | Q7 | 프로젝트 구조·진행을 앱 안에서 못 본다 | 다이어그램·진행 본문이 저장소에만 있어 IDE 를 열어야 확인된다 | **진척 가시성** | [AS_IS.md](product/vision/AS_IS.md) G9 |
-| Q8 | 룩이 임시다 | 대부분 인라인 스타일 + 슬레이트 다크. 참조 틀이 있었지만 구현이 못 따라갔다 | 완성도 | [PERSONAL_OS.md](product/vision/PERSONAL_OS.md) §1-4 |
+| Q8 | 룩이 임시다 | 대부분 인라인 스타일 + 슬레이트 다크. 참조 틀이 있었지만 구현이 못 따라갔다 | 완성도 | [PERSONAL_OS.md](product/vision/PERSONAL_OS.md) §1 배경 4 |
 
 **갈망 신호 (사용자 진술).** "실제로 쓰면 가장 갈망할 기능" 을 물었을 때 고른 넷 —
 **Daily Brief · 칸반+단일 완료 · OKR·주간 플래너 · 진행 현황·파일 탐색 뷰** — 은
@@ -81,7 +81,7 @@ Q3·Q4·Q5·Q7 이 묶인다.
 모든 아키텍처 결정은 **하나의 결정 = 하나의 ADR 파일** 로 남겼다(현재 33건). 각 ADR 은
 `맥락 / 결정 / 근거 / 대안 / 결과·트레이드오프` 5필드를 갖는다. 여기서는 묶어서 서술한다.
 
-### 2-1. 기반 스택 (ADR-0001~0012, 0018) — "무엇으로 짓나"
+### 2-1. 기반 스택 (ADR-0001~0009·0011·0012·0018) — "무엇으로 짓나"
 
 | 결정 | 선택 | 대안(기각) | ADR |
 |---|---|---|---|
@@ -136,7 +136,7 @@ Q6 에 대한 답. `Dashboard.jsx` 한 컴포넌트가 모든 패널을 하드�
 - 반대로 다른 개인 OS 결정(라이트 테마·OKR 모델·마크다운 렌더)은 오래 고민하지 않았다.
   PO 질문으로 갈래를 좁힌 뒤 초안대로 갔다. 유일하게 며칠 붙잡은 건 PO-3(아래)이다.
 
-### 2-3. 개인 생산성 OS 방향 (ADR-0027~0033, PO-1~14) — "다듬기 단계에서 정한 것"
+### 2-3. 개인 생산성 OS 방향 (ADR-0027~0032, PO-1~14) — "다듬기 단계에서 정한 것"
 
 Phase D 완료 후 사용자가 제시한 방향([PERSONAL_OS.md](product/vision/PERSONAL_OS.md)). 열린 질문 PO-1~14 를
 먼저 닫고 ADR 로 못박은 뒤 빌드했다.
@@ -177,8 +177,10 @@ ADR 표에서는 한 줄이지만, 실제로 가장 오래 붙잡은 갈림길�
 - **부수 결정.** 기존 스키마·코드에 있던 `tasks.category` 단일 컬럼을 **폐기**하고 조인으로
   옮겼다(다중 태그를 위해). 이건 [ADR-0018](product/architecture/adr/ADR-0018-schema-migration-strategy.md) 최소 마이그레이션
   전략(`PRAGMA user_version` 인라인 러너)을 처음으로 실제로 쓴 사례가 됐다.
-- **트레이드오프.** 태그별 통계·자동완성은 아직 없다(후속). `source` 를 신뢰하는 한 침범은
-  구조적으로 불가능하지만, 그 불변식을 지키는 책임이 `agent/classify.py` 에 있다.
+- **트레이드오프.** 태그별 통계·자동완성은 아직 없다(후속). `source` 값은 스키마 CHECK 로
+  강제되지만, "사용자 태그가 붙은 할 일은 에이전트가 안 건드린다" 는 행 단위 불변식을
+  지키는 책임은 `agent/db.py:add_agent_tags` + `classify.py` 에 있다 — 트리거가 아니라
+  코드 가드라는 점은 §4-5 S3 로 이어진다.
 
 결정: [ADR-0029](product/architecture/adr/ADR-0029-task-auto-category.md) 채택 (2026-09-08, P6). 요구사항 FR-TASK-08.
 
@@ -228,8 +230,8 @@ planner → developer → supervisor (최대 2회) → finisher
 
 ### 3-4. 검증 게이트
 
-`verify.sh`(45/0/0) · `verify.sh --code-only`(37/0/0) · `check-docs.sh`(문서 정합) ·
-backend `npm test`(142) · frontend `node --test`(103) · agent `pytest -m "not network"`(80) ·
+`verify.sh`(49/0/0) · `verify.sh --code-only`(41/0/0) · `check-docs.sh`(문서 정합 11/0/0) ·
+backend `npm test`(142) · frontend `node --test`(106) · agent `pytest -m "not network"`(80) ·
 `npm run build` / `build:demo`. FAIL 하나라도 있으면 커밋하지 않고, SKIP 은 커밋 메시지에 명시.
 
 ### 3-5. 브랜치·PR
@@ -291,6 +293,92 @@ flowchart TB
 - **오류**: `errors.js` — `ValidationError`/`NotFoundError` + SQLite 제약 위반 → 400/404/500 한국어.
 - **웹 데모**: `VITE_DEMO` 빌드에서 `demoClient.js` 인메모리 목이 백엔드를 대체([0026](product/architecture/adr/ADR-0026-web-demo-mode.md)), GitHub Pages 배포.
 - **빈 결과**: 브리핑 없음은 404 가 아니라 `200 + { brief: null }`([0025](product/architecture/adr/ADR-0025-brief-empty-response.md)).
+
+### 4-5. 구조가 아직 감당 못 하는 지점
+
+§4-1~4-4 는 지금 구조를 **있는 그대로** 그렸다. 이 절은 그 구조가 아직 감당하지 못하는
+지점을 모은다 — 각 항목을 **원인(거슬러 올라가면 어느 §1 제약·§2 결정에서 왔나) →
+영향(지금 무엇이 위험하거나 불편한가) → 설계 보완(구조를 어떻게 바꾸나)** 순으로 읽는다.
+공통 원인은 하나다: **로컬 단일 사용자·1인 개발·마감(C-1·C-2)** 가정 아래에서
+"지금은 안 해도 되는 것" 으로 미룬 것들이 대부분이며(로컬 우선 원칙 자체는 [0015](product/architecture/adr/ADR-0015-local-first-architecture.md) 로
+제안만 됐고 미명문화 상태), 다중 사용자(Phase E)·패키징 배포로 가면 되짚어야 한다.
+이 절은 §4-1~4-4 스냅샷에 대한 주석이며, 실행 항목은 §6-2 가 추적한다. 2026-09-10 코드
+리뷰 시점 판단이고, 해소되면 여기서 지운다.
+
+**대조군 — 잘 막힌 곳.** 외부에 노출되는 유일한 "경로를 받는" 표면인 파일 트리·문서
+뷰(§5 P9, [0031](product/architecture/adr/ADR-0031-safe-markdown-render.md))는 `services/{tree,docs}.js` 에서 심링크 스킵·세그먼트별 `..` 검사·route
+레이어 재디코드 금지(`%252e` 우회 차단)·`realpathSync` 루트 이탈 재확인·깊이·항목·1MB
+상한으로 다층 방어한다 — 같은 마감 압박 아래에서도 여기는 미루지 않았다.
+
+#### 보안 · 안전성
+
+**S1 — 백엔드가 로컬 네트워크에 열려 있다.**
+- *원인:* 프론트↔백엔드를 로컬 HTTP REST 로 잇고([0004](product/architecture/adr/ADR-0004-front-back-http-rest.md)) 인증을 두지 않은 건
+  로컬 단일 사용자 가정([0015](product/architecture/adr/ADR-0015-local-first-architecture.md)) 아래 **의도한** 결정이다. 다만 `server.js` 의
+  `app.listen(PORT, cb)` 가 host 인자 없이 전 인터페이스(`0.0.0.0`)에 바인딩되는 건 Express
+  기본값을 그냥 둔 것이고, 되짚은 적 없다.
+- *영향:* 같은 머신의 다른 프로세스뿐 아니라 **같은 Wi-Fi 의 다른 기기**가 `:3000/api` 로
+  전체 데이터를 읽고 쓸 수 있다.
+- *설계 보완:* `app.listen(PORT, '127.0.0.1')` 로 루프백 고정. 패키징 시 백엔드 실행 주체·포트와
+  함께 [ADR-0016](product/architecture/adr/ADR-0016-desktop-process-topology.md) 2항에서 못박는다.
+
+**S2 — CORS 가 `Origin: null` 을 모든 빌드에서 허용한다.**
+- *원인:* 패키징된 Electron 이 `file://` 에서 렌더러를 로드해(데스크톱 프로세스 토폴로지,
+  [0016](product/architecture/adr/ADR-0016-desktop-process-topology.md) 영역) `fetch` 가 `Origin: null` 을 보낸다. 이 예외를 `middleware/cors.js` 에
+  환경 분기 없이 넣어서, 웹 데모([0026](product/architecture/adr/ADR-0026-web-demo-mode.md))·개발 빌드까지 그대로 상속했다.
+- *영향:* 브라우저에서 열린 샌드박스 iframe·로컬 HTML 파일도 동일한
+  `Access-Control-Allow-Origin` 을 받는다.
+- *설계 보완:* `null` 허용을 prod 패키지 빌드로 한정하는 환경 분기.
+
+**S3 — 에이전트의 사용자 태그 비침범이 트리거가 아닌 코드로만 지켜진다.**
+- *원인:* PO-3([0029](product/architecture/adr/ADR-0029-task-auto-category.md), §2-3 서사)에서 "에이전트는 `source='user'` 행을 안 건드린다" 를
+  정했다. `source` 값 자체는 스키마 CHECK(`source IN ('user','agent')`, `schema.sql`)로 강제되지만,
+  "이미 사용자 태그가 붙은 할 일에는 에이전트가 손대지 않는다" 는 **행 단위 불변식**은
+  최소 마이그레이션 전략([0018](product/architecture/adr/ADR-0018-schema-migration-strategy.md))이 트리거를 피하는 방향이라 애플리케이션 층에 남았다.
+- *영향:* `agent/db.py:add_agent_tags`(태그 0개인 할 일만 대상) + `classify.py`(환각 id 방어) +
+  `get_untagged_tasks`(`NOT EXISTS` 필터)의 3중 가드가 뚫리거나 새 쓰기 경로가 생기면,
+  자동화가 사용자 태그를 조용히 훼손하는 §2-3 이 우려하던 상황이 다시 열린다.
+- *설계 보완:* "이미 `source='user'` 태그가 있으면 `source='agent'` INSERT 를 무시" 트리거를
+  마이그레이션으로 추가. 침범 시도 회귀 테스트를 `agent` 스위트에 고정.
+
+**S4 — OAuth 토큰 암호화 키에 회전 절차가 없다.**
+- *원인:* 비용 0 목표(C-4) 아래 토큰을 Fernet 대칭키 1개로 암호화한 파일에 뒀다([0024](product/architecture/adr/ADR-0024-oauth-token-storage.md)).
+  키 회전·유출 대응은 학습·발표 산출물 범위(C-5)에서 빠졌다.
+- *영향:* `TOKEN_ENCRYPTION_KEY` 하나가 유출되면 Gmail·Calendar 읽기 토큰 전부가 풀린다.
+- *설계 보완:* 키 회전 런북, 유출 시 재인증 경로 문서화. (토큰 파일 권한 `0600` 은 이미
+  `google_oauth.py` 에서 `chmod` 로 설정 중 — 회전만 남았다.)
+
+**S5 — 시크릿 커밋 방지가 `.gitignore` 한 겹뿐이다.**
+- *원인:* 공개 저장소라 시크릿·개인정보 커밋 금지(C-6)인데, 실제 방어는 `.gitignore` 와
+  브랜치 가드 훅(`hook-code-branch-guard.sh`)뿐이다. 훅은 `main` 편집을 막는 용도지
+  시크릿 스캐너가 아니다.
+- *영향:* `.env` 는 무시되지만(확인됨), 패턴에서 벗어난 새 시크릿 파일은 그대로 커밋될 수 있다.
+- *설계 보완:* pre-commit 시크릿 스캔(gitleaks 등) 훅 추가.
+
+#### 기술 부채 · 품질
+
+**D1 — 데모↔실서버 패리티가 "경로 존재" 까지만 자동화됐다.**
+- *원인:* 웹 데모가 인메모리 목으로 백엔드를 대체하고([0026](product/architecture/adr/ADR-0026-web-demo-mode.md)) "새 엔드포인트마다 목도
+  같이 갱신" 을 수작업 규율로 뒀다. 커밋 `0a1435c` 가 그중 라우트 목록 집합 비교만 자동화했다.
+- *영향:* 응답 스키마·상태코드·에러 봉투가 목과 실서버 사이에서 드리프트해도 CI 가 못 잡는다.
+- *설계 보완:* 대표 엔드포인트 응답 형태를 스냅샷 비교하는 2단계를 `check-demo-parity.mjs` 에 추가.
+
+**D2 — REST 오류가 단일 봉투(`{ error: "한국어" }`)다.**
+- *원인:* 오류 계약(RFC 9457)을 [ADR-0017](product/architecture/adr/ADR-0017-rest-error-contract.md) 로 제안만 하고, 마감(C-2) 앞에서 채택을 미뤘다.
+- *영향:* 클라이언트가 검증 실패·미존재·서버 오류를 코드로 구분하지 못하고 메시지 문자열에 의존한다.
+- *설계 보완:* [ADR-0017](product/architecture/adr/ADR-0017-rest-error-contract.md) 채택 — problem+json 으로 `type`/`status` 분리.
+
+**D3 — 레이어·경계 규칙에 자동 검사가 없다.**
+- *원인:* 1인 개발(C-1)이라 "렌더러는 REST 로만", "에이전트는 외부 API 읽기 전용",
+  "쓰기 주체 분리" 를 코드 리뷰로 갈음해 왔다.
+- *영향:* 위 경계 중 하나가 리팩터링에서 깨져도 테스트가 통과할 수 있다 (S3 이 그 구체 사례).
+- *설계 보완:* 피트니스 함수([0019](product/architecture/adr/ADR-0019-architecture-fitness-functions.md), 제안 상태) 채택 — import 방향·금지 의존성을 CI 검사로.
+
+**D4 — 수동 검증 백로그(TC-P3~P9-M)가 실행되지 않았다.**
+- *원인:* 1인 개발(C-1)이라 수동 QA 시간이 빌드 시간과 경쟁한다. 자동 테스트는 유지했지만
+  실제 Electron 앱 확인은 밀렸다.
+- *영향:* P3~P9 기능이 자동 테스트는 통과하나, 통합된 앱에서 동작을 눈으로 확인한 기록이 없다.
+- *설계 보완:* §6-2 로컬 수동 검증 백로그 — 통합 실행 스크립트(`scripts/dev.sh`) 위에서 일괄 소화.
 
 ---
 
@@ -364,9 +452,12 @@ Phase A (환경·자동화 인프라)
 ### 6-2. 남은 일
 
 - **앱 통합** ([NEXT_SESSION.md](progress/NEXT_SESSION.md) §4-3) — 통합 실행 스크립트 `bash scripts/dev.sh` ✅ ([ADR-0016](product/architecture/adr/ADR-0016-desktop-process-topology.md) 1항 채택 2026-09-09).
-  남은 것: ADR-0016 2~4항(패키징 시 백엔드 실행 주체·재기동·포트)·다중 `BrowserWindow`, 데모↔실서버 패리티 감사
-- **로컬 수동 검증 백로그** — TC-P3~P9-M 을 실제 Electron 앱에서 확인해 `PROGRESS.md`·`TEST_PLAN.md` 반영
-- **미결 결정** — 제안 ADR(0015·0016 2~4항·0017·0019·0033) + PO-10(개인 OS ↔ Phase E 순서)
+  남은 것: ADR-0016 2~4항(패키징 시 백엔드 실행 주체·재기동·포트·**루프백 바인딩 §4-5 S1**)·다중 `BrowserWindow`
+- **데모↔실서버 패리티** — 경로 집합 비교는 `scripts/check-demo-parity.mjs` 로 자동화됨(커밋 `0a1435c`).
+  남은 것: 응답 스키마·상태코드 드리프트 검사(§4-5 D1)
+- **로컬 수동 검증 백로그** — TC-P3~P9-M 을 실제 Electron 앱에서 확인해 `PROGRESS.md`·`TEST_PLAN.md` 반영(§4-5 D4)
+- **보안 보완** — §4-5 S1~S5: 루프백 바인딩·CORS 환경 분기·태그 불변식 DB 제약·토큰 키 회전 런북·pre-commit 시크릿 스캔
+- **미결 결정** — §2-4 참조 (제안 ADR 0015·0016 2~4항·0017·0019·0033 + PO-10)
 
 ---
 
@@ -377,7 +468,9 @@ Phase A (환경·자동화 인프라)
 - [product/architecture/ARCHITECTURE.md](product/architecture/ARCHITECTURE.md) · [DESIGN.md](product/architecture/DESIGN.md) · [adr/README.md](product/architecture/adr/README.md) — 구조·결정
 - [setup/ORCHESTRATION.md](setup/ORCHESTRATION.md) · [setup/AUTOMATION.md](setup/AUTOMATION.md) — 개발 방법론
 - [progress/PROGRESS.md](progress/PROGRESS.md) · [product/requirements/TRACEABILITY.md](product/requirements/TRACEABILITY.md) — 진행 상태 (단일 원천)
+- [progress/NEXT_SESSION.md](progress/NEXT_SESSION.md) · [product/ROADMAP.md](product/ROADMAP.md) · [progress/COURSE_MAPPING.md](progress/COURSE_MAPPING.md) — 다음 작업·일정·강의 대응
+- [product/testing/TEST_PLAN.md](product/testing/TEST_PLAN.md) — 테스트 계획 (수동 검증 백로그 포함)
 
 ---
 
-**작성:** 2026-09-09
+**작성:** 2026-09-09 · **개정:** 2026-09-10 (§4-5 알려진 약점·보완 과제 추가)
