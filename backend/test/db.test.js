@@ -233,10 +233,11 @@ describe('DB 계층', () => {
     assert.equal(baks.length, 0, '신규 DB 는 .bak-* 를 만들지 않는다');
   });
 
-  it('TC-DB-06: 기존 파일 DB(v1) 재오픈 시 OKR 3테이블이 생성되고 user_version 이 2 로 상향된다', () => {
+  it('TC-DB-06: 신규 파일 DB 재오픈 시 OKR 3테이블이 유지되고 user_version 이 2 로 상향된다', () => {
     const dbPath = path.join(tmpDir, 'okr-tables.db');
 
     // 1) 신규 파일 DB 를 만든다 (schema.sql 이 이미 OKR 3테이블·kind 컬럼을 포함).
+    //    기존 v1 파일(kind 컬럼 없음)을 여는 마이그레이션 경로는 TC-DB-06b 가 담당한다.
     let db = loadDb(dbPath);
     db.addTask({ title: '기존 데이터' });
     let conn = require('../db').getDb();
