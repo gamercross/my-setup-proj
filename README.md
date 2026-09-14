@@ -26,25 +26,28 @@
 
 ## 🖥️ 대시보드 주요 기능
 
-앱은 **"대시보드 OS"** 다 — 아래 기능들이 각각 **위젯**으로 셸에 올라가 이동·리사이즈되고, 위젯마다 사용자가 색·밀도·표시 옵션을 꾸민다 ([DASHBOARD_OS.md](docs/product/vision/DASHBOARD_OS.md) · [UI_SPEC.md](docs/product/reference/UI_SPEC.md) · [requirements/WIDGET.md](docs/product/requirements/WIDGET.md)). 위젯 셸(배치·이동·리사이즈·최소화·레이아웃 영속·위젯별 격리)은 C5(2026-09-06), 위젯별 테마·표시 옵션은 C6(2026-09-06)에서 구현됐고 `Dashboard.jsx` 는 제거됐다.
+앱은 **"대시보드 OS"** 다 — 아래 기능들이 각각 **위젯**으로 셸에 올라가 이동·리사이즈되고, 위젯마다 사용자가 색·밀도·표시 옵션을 꾸민다 ([DASHBOARD_OS.md](docs/product/vision/DASHBOARD_OS.md) · [UI_SPEC.md](docs/product/reference/UI_SPEC.md) · [requirements/WIDGET.md](docs/product/requirements/WIDGET.md)).
 
-**2026-09-07~08 — "개인 생산성 OS" 방향** ([PERSONAL_OS.md](docs/product/vision/PERSONAL_OS.md)): 라이트 테마(P3) + 공통 컴포넌트(P4, `StatTile`·`DotProgress`·`Chip`) + 왼쪽 그룹형 사이드바 셸(P4.5, 주제별 레이아웃) + 단일 클라이언트 캐시와 칸반 뷰(P5) + 할 일 자유 태그·에이전트 자동 태깅(P6)까지 완료. 남은 로드맵은 P7(에이전트 활동 위젯)·P8(OKR)·P9(진행 현황·파일 탐색).
+**핵심 서사 (2026-09-15):** OKR은 단독 화면이 아니라 **프로젝트 카드 안에** 있다 — 기대정렬
+7질문 체크인의 답이 그 프로젝트 Objective·Key Result의 기초 데이터가 되고, 진행은 같은
+카드 안에서 GitHub 최근 커밋과 함께 추적된다. 왜 이 구조인지는
+[REVERSE_PLAN.md §1-0](docs/REVERSE_PLAN.md) 참고.
 
-| 기능 | 설명 | 요구사항 | 상태 |
-|---|---|---|---|
-| **위젯 셸 (대시보드 OS)** | 각 기능을 위젯으로 배치·이동·리사이즈·최소화, 레이아웃 저장/복원, 위젯별 테마·표시 옵션 | FR-WIDGET-01~08 | ✅ C5 (배치·영속·격리) / ✅ C6 (테마·표시 옵션) ([ADR-0020~0022](docs/product/architecture/adr/) 채택) |
-| **사이드바 셸 + 주제별 레이아웃** | 왼쪽 그룹형 사이드바(COMMAND/PLAN/AGENT/SYSTEM)로 주제 전환, 주제마다 독립된 위젯 그리드. 라이트 테마 + 공통 컴포넌트(`StatTile`·`DotProgress`·`Chip`) | FR-UI-01, FR-WIDGET-04~06 | ✅ P3~P4.5 ([ADR-0027](docs/product/architecture/adr/ADR-0027-light-theme-default.md)·[0032](docs/product/architecture/adr/ADR-0032-sidebar-shell-per-topic-layouts.md) 채택 — GUI 확인 로컬 대기) |
-| **할 일 관리** | 할일 추가·수정·완료·삭제. 우선순위·마감일. 로컬 SQLite 영속 | FR-TASK-01~05 | ✅ B3 (코드·자동 테스트 — 브라우저 E2E 로컬 대기) |
-| **단일 캐시 + 칸반** | `useTaskStore` `byId`/`order` 정본화 → 모든 뷰 파생. 할 일 위젯 안에서 리스트↔보드(우선순위 3열) 세그먼티드 전환 | FR-TASK-02/03/09, FR-UI-01 | ✅ P5 ([ADR-0028](docs/product/architecture/adr/ADR-0028-single-client-cache.md) 채택 — GUI 확인 로컬 대기) |
-| **할 일 자유 태그·자동 분류** | 자유 태그(다중) + 칩 필터. 에이전트가 `daily_brief` 실행 시 태그 없는 할 일을 Claude 배치 호출로 자동 태깅 | FR-TASK-08 | ✅ P6 ([ADR-0018](docs/product/architecture/adr/ADR-0018-schema-migration-strategy.md)·[0029](docs/product/architecture/adr/ADR-0029-task-auto-category.md) 채택 — GUI 확인 로컬 대기) |
-| **프로젝트 진행도 추적** | 프로젝트 카드 + 0–100% 진행 바, 상태(active/done/on_hold). Notion 연동(읽기) | FR-PROJ-01~04 | ✅ C2 (코드·자동 테스트 — 브라우저 E2E 로컬 대기) |
-| **캘린더 일정** | 오늘/내일 일정 위젯. Google Calendar 를 에이전트가 로컬 캐시에 동기화 | FR-CAL-01~03 | ✅ C3 위젯 + D2-b 수집 + D-마무리 (백엔드가 `calendar_events` 캐시 조회) |
-| **Daily Brief 브리핑** | 매일 아침 Claude 가 할일·메일·일정을 모아 우선순위 브리핑 생성 → 로컬 + Notion 저장, launchd 07:30 자동 | FR-AGENT-01~06 | ✅ D1~D3 (실 API end-to-end 검증 2026-09-07) |
-| **이메일 통합** | 여러 계정의 미읽은 메일을 한 곳에서 확인·요약 | FR-MAIL-01~03 | 🚧 D2-b 수집 + D-마무리 `GET /api/mail/unread` ✅ / 메일 UI 는 E |
-| **프로젝트 다이어그램 뷰어** | `docs/**/*.md` 의 Mermaid(아키텍처·로드맵·오케스트레이션·모듈 의존)를 대시보드에서 렌더 — 저장소를 열지 않고 구조·진행 파악 | FR-UI-05 | ✅ C4 ([ADR-0014](docs/product/architecture/adr/ADR-0014-dashboard-diagram-viewer.md) 채택 — 브라우저 확인 로컬 대기) |
-| 공통 | 모든 위젯은 로딩/비어있음/정상/에러 4상태를 독립 렌더. 한 위젯 실패가 셸·다른 위젯을 가리지 않음 | FR-UI-01·04, FR-WIDGET-07 | ✅ C5 (위젯별 ErrorBoundary) |
+| 위젯 | 한 줄 | 상태 |
+|---|---|---|
+| **할 일** | 리스트↔칸반, 자유 태그(다중) + 에이전트 자동 태깅(사용자 태그는 절대 안 건드림) | ✅ |
+| **프로젝트** | 진행 바 + 기대정렬 체크인(시작 근거) → 내장 OKR(진행) → GitHub 최근 커밋(작업물 위치) | ✅ |
+| **일정** | 오늘·내일 일정. Google Calendar를 에이전트가 로컬 캐시에 동기화 | ✅ |
+| **기대정렬 체크인** | 뭘·왜·언제까지·목표·전략·구체적으로·상태 — 7질문 자기 점검을 시간순으로 기록 | ✅ P10 |
+| **주간 플래너** | 지난주·이번주·다음주 버킷, 기대정렬 키워드에서 뽑은 카테고리 태그와 연동 | ✅ |
+| **에이전트 활동** | sync·분류·브리핑 실행 로그 + "지금 실행" 즉시 트리거 | ✅ |
+| **진행 현황 · 파일 탐색** | 저장소를 열지 않고 앱 안에서 문서·ADR·결정 과정을 그대로 읽음 | ✅ P9 |
+| **다이어그램 뷰어** | `docs/**/*.md`의 mermaid 구조도를 읽기 전용으로 렌더 | ✅ |
+| **Daily Brief** | 매일 아침 Claude가 메일·일정·할일을 요약, Notion에도 저장 | ✅ |
+| **위젯 셸** | 배치·이동·리사이즈, 위젯별 테마·표시 옵션, 레이아웃 영속 | ✅ |
 
 > 데이터 흐름: React 대시보드 ↔ Express REST(`:3000/api`) ↔ 로컬 SQLite. 외부 API(Gmail·Calendar·Notion·Claude)는 Python 에이전트가 전담해 SQLite 캐시에 쓴다 ([DESIGN.md](docs/product/architecture/DESIGN.md) §3, [ADR-0006](docs/product/architecture/adr/ADR-0006-agent-owns-external-apis.md)).
+> 전체 기능-근거-구현 매핑은 [REVERSE_PLAN.md §5](docs/REVERSE_PLAN.md).
 
 ---
 
@@ -193,15 +196,24 @@ my-setup-proj/
 
 ---
 
-## 📊 현재 상태 (2026-09-08)
+## 📊 현재 상태 (2026-09-15)
 
-Phase **A~D 전체 완료** + "개인 생산성 OS" 방향 **P0~P6 완료**.
-Daily Brief 에이전트가 실 데이터·실 API 로 end-to-end 동작하고, 대시보드는 라이트 테마 +
-왼쪽 그룹형 사이드바 셸로 다듬어졌으며, 할 일은 단일 클라이언트 캐시에서 리스트/칸반으로
-파생되고 에이전트가 자유 태그를 자동으로 붙인다. 전부 **브라우저 웹 데모**에도 반영된다.
+개인 생산성 OS **P0~P10 전부 완료** — 위젯 셸·할일·프로젝트·캘린더·다이어그램·OKR·
+에이전트 활동·진행 현황·기대정렬 체크인까지 실 코드로 동작하고, 전부 **브라우저 웹
+데모**에도 반영된다. 2026-09-14~15에 목적을 재정의하고(§1-0) 기존 기능을 전부 그 기준으로
+다시 검토했다(§5-3 정합성 감사) — 결과: 강함 2·보통 2·인프라 3(정상)·약함 2·공백 1
+(레퍼런스 요약 절차 추적, 다음 세션 최우선).
 
-남은 로드맵: **P7**(에이전트 활동 위젯) · **P8**(OKR + 주간 플래너) · **P9**(진행 현황·파일 탐색).
-자세한 단계·상태는 [PERSONAL_OS.md §7](docs/product/vision/PERSONAL_OS.md) · [NEXT_SESSION.md](docs/progress/NEXT_SESSION.md).
+| 지표 | 값 |
+|---|---|
+| 채택된 ADR | 35건 |
+| 자동 테스트 | 351건 — backend 157 · frontend 115 · agent 79 |
+| `verify.sh` / `check-docs.sh` | 49/0/0 · 11/0/0 |
+| 완료된 빌드 페이즈 | P0–P9 (10/10) + P10(OKR 등급·기대정렬 체크인) |
+
+지금 무엇을 해야 하는지는 **[NEXT_SESSION.md §A·§B](docs/progress/NEXT_SESSION.md)**
+(마무리된 것 / 다음 세션 할 일 두 구간으로 정리돼 있다) 를 가장 먼저 본다.
+왜 만들었고 어떻게 지었는지 전체 서사는 [REVERSE_PLAN.md](docs/REVERSE_PLAN.md).
 
 ### 지금 무엇이 어떻게 연결돼 있나
 
@@ -254,41 +266,16 @@ flowchart TB
 
 | 영역 | 상태 |
 |---|---|
-| 개념 설계 · 요구사항 · 아키텍처 문서 (뷰별 심화 + ADR-0001~0033, 채택 27 / 제안·보류 6) | ✅ (`docs/product/`) |
-| 자동화 인프라 (에이전트 팀 · 작업로그 · CI · GIT_WORKFLOW · DOC_HEALTH · 병합 브랜치 자동 정리) | ✅ 동작 |
-| 로컬 개발 환경 (node 26 · python 3.14 · venv) | ✅ Phase A2 |
-| 자동화 테스트 | ✅ backend 97 · frontend 68 · agent 75, `verify.sh` 35/0/0 (서비스 스모크 포함), DOC_HEALTH 11/0/0, CI 초록 |
-| 프론트엔드 React (Vite 마운트) · DB (SQLite · WAL · `DATABASE_PATH`) | ✅ Phase B1 · B2 |
-| 백엔드 CRUD + 미들웨어(CORS·로깅·에러) + 안전 종료 + 서비스 계층 | ✅ B2·C1·C2 + 감사 후속 정리 |
-| 위젯 셸 (배치·리사이즈·최소화 · localStorage 영속 · 위젯별 격리 · 테마·표시 옵션) | ✅ C5·C6 |
-| 캘린더 · 메일 조회 API — `calendar_events` / `emails` 캐시에서 SELECT | ✅ **D-마무리 (2026-09-07)** — 더미 제거 |
-| 다이어그램 뷰어 `/api/diagrams` | ✅ C4 |
-| **Daily Brief 에이전트** — 실 데이터 수집 → Claude → 로컬 저장 + Notion 페이지 | ✅ **D1~D3** — 실 API end-to-end 검증 (2026-09-07) |
-| **launchd 자동 실행** — 매일 07:30 `daily-brief-run.sh` | ✅ **D3** — 로컬 등록·실행 검증 |
-| Google OAuth (Fernet 암호화 토큰) · Gmail/Calendar 수집 | ✅ D2-b — 사용자 최초 로그인만 남음 |
-| **웹 데모 프로토타입** — `VITE_DEMO` 목 어댑터 + GitHub Pages | ✅ **ADR-0026 (2026-09-07)** — 라이브 배포 중 |
-| **P3 라이트 테마** — `styles.css` 토큰 v2 + `[data-theme=dark]` 분기 | ✅ [ADR-0027](docs/product/architecture/adr/ADR-0027-light-theme-default.md) 채택 (2026-09-07) |
-| **P4 공통 컴포넌트** — `StatTile` · `DotProgress`(+순수 `dotFill`) · `Chip` | ✅ (2026-09-07) — GUI 확인 로컬 대기 |
-| **P4.5 사이드바 셸** — `AppShell`·`Sidebar` + 주제 스코프 레이아웃(v1→v2 마이그레이션) | ✅ [ADR-0032](docs/product/architecture/adr/ADR-0032-sidebar-shell-per-topic-layouts.md) 채택 (2026-09-08) — GUI 확인 로컬 대기 |
-| **P5 단일 캐시 + 칸반** — `useTaskStore` `byId`/`order` 정본, 리스트/보드 토글 | ✅ [ADR-0028](docs/product/architecture/adr/ADR-0028-single-client-cache.md) 채택 (2026-09-08) — GUI 확인 로컬 대기 |
-| **P6 자유 태그 + 자동 분류** — `task_tags` 조인 테이블 + `backend/db` 최소 마이그레이션 + `agent/classify.py` 배치 태깅 | ✅ [ADR-0018](docs/product/architecture/adr/ADR-0018-schema-migration-strategy.md)·[0029](docs/product/architecture/adr/ADR-0029-task-auto-category.md) 채택 (2026-09-08) — GUI 확인·실 Claude 스모크 로컬 대기 |
-| 프론트↔백엔드 브라우저 E2E (TC-UI-10~19 · TC-WIDGET-01~08 · TC-SHELL-M · TC-P4~P6-M) | ⏳ 로컬 수동 확인 대기 (샌드박스 GUI 불가) — 웹 데모로 대체 시각 검증 가능 |
+| 개념 설계 · 요구사항 · 아키텍처 문서 (ADR-0001~0036, 진행 중 1건 제외 채택 다수) | ✅ (`docs/product/`) |
+| 자동화 인프라 (에이전트 팀 · `/feature` 파이프라인 · 작업로그 · CI · 병합 브랜치 자동 정리) | ✅ 동작 |
+| 프론트 (위젯 셸·11개 위젯) · 백엔드 (routes→services→db) · DB (SQLite·WAL) | ✅ |
+| Python 에이전트 (Daily Brief · Gmail/Calendar 수집 · 자동 분류 · Notion 저장) | ✅ 실 API end-to-end 검증됨 |
+| 웹 데모 (`VITE_DEMO` 목 어댑터 + GitHub Pages 자동 재배포) | ✅ |
+| 프론트↔백엔드 브라우저 E2E 수동 검증 백로그 (TC-P3~P11-M) | ⏳ 로컬 수동 확인 대기 — 웹 데모로 대체 시각 검증 가능 |
+| "지식 축적 추세·역량 지도" 위젯 (§5-3 공백 항목) | 🚧 구현 중 — [NEXT_SESSION.md §A](docs/progress/NEXT_SESSION.md) 참고 |
 
-정확한 최신은 [AS_IS.md](docs/product/vision/AS_IS.md) · [TRACEABILITY.md](docs/product/requirements/TRACEABILITY.md) · `git log`. 다음 할 일은 [PROGRESS.md](docs/progress/PROGRESS.md).
-
-### 최근 마무리한 작업 (2026-09-07 ~ 09-08) — "개인 생산성 OS" 방향
-
-| 단계 | 한 일 | PR |
-|---|---|---|
-| **P3 라이트 테마** | `styles.css` `:root` 팔레트를 라이트로 전환 + `[data-theme=dark]` 블록 + 하드코딩 hex→`var(--*)` 치환. [ADR-0027](docs/product/architecture/adr/ADR-0027-light-theme-default.md) 채택 | [#36](https://github.com/gamercross/my-setup-proj/pull/36)·[#37](https://github.com/gamercross/my-setup-proj/pull/37) |
-| **P4 공통 컴포넌트** | `StatTile`·`DotProgress`(+순수 `dotFill.js`)·`Chip` + 카드 토큰 v2(`--card-radius` 16·`--shadow-card`). `ProjectCard` 진행바 → `DotProgress` | [#42](https://github.com/gamercross/my-setup-proj/pull/42) |
-| **P4.5 사이드바 셸** | `AppShell`·`Sidebar`·`TopicView` + `useUiStore.activeTopic` + 레이아웃 저장 v1→v2 마이그레이션(주제별 그리드). [ADR-0032](docs/product/architecture/adr/ADR-0032-sidebar-shell-per-topic-layouts.md) 채택. UI_STYLE v2 + P2 캔버스 v2 | [#43](https://github.com/gamercross/my-setup-proj/pull/43)·[#44](https://github.com/gamercross/my-setup-proj/pull/44)·[#45](https://github.com/gamercross/my-setup-proj/pull/45) |
-| **P5 단일 캐시 + 칸반** | `useTaskStore` `byId`/`order` 정본 + `tasks` 파생 미러(`taskCache.js`). 할 일 위젯 안에서 `config.display.view` 리스트/보드 토글. [ADR-0028](docs/product/architecture/adr/ADR-0028-single-client-cache.md) 채택 | [#46](https://github.com/gamercross/my-setup-proj/pull/46)·[#47](https://github.com/gamercross/my-setup-proj/pull/47)·[#49](https://github.com/gamercross/my-setup-proj/pull/49) |
-| **ADR 결정 세션** | ADR-0013(P7 트리거=파일 플래그)·0030(OKR 모델)·0031(안전 마크다운+파일 트리) 채택, PO-3~6·9·11·12 종결 | [#51](https://github.com/gamercross/my-setup-proj/pull/51) |
-| **P6 자유 태그 + 자동 분류** | `task_tags` 조인 테이블 + `backend/db/index.js` 최소 마이그레이션(`PRAGMA user_version`) + `agent/classify.py` 배치 태깅 + 위젯 칩 필터. [ADR-0018](docs/product/architecture/adr/ADR-0018-schema-migration-strategy.md)·[0029](docs/product/architecture/adr/ADR-0029-task-auto-category.md) 채택 | [#52](https://github.com/gamercross/my-setup-proj/pull/52) |
-| **자동화** | 병합된 로컬 브랜치 자동 정리(`SessionStart` 훅 + `scripts/prune-merged-branches.sh`) · 코드를 `main` 에서 직접 편집 시 승인 프롬프트 훅 | [#38](https://github.com/gamercross/my-setup-proj/pull/38)·[#48](https://github.com/gamercross/my-setup-proj/pull/48) |
-
-검증: `backend npm test` 97/0 · `frontend npm test` 68/0 · `agent pytest -m "not network"` 75/0 · `verify.sh` 35/0/0 · `check-docs.sh` 11/0/0 · Electron·웹 데모 빌드 모두 성공.
+정확한 최신은 [TRACEABILITY.md](docs/product/requirements/TRACEABILITY.md) · `git log`.
+날짜별 작업 이력은 [PROGRESS.md](docs/progress/PROGRESS.md) · [작업로그.md](작업로그.md).
 
 ---
 
