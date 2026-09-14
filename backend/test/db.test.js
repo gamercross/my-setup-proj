@@ -130,6 +130,7 @@ describe('DB 계층', () => {
       'briefs',
       'calendar_events',
       'emails',
+      'expectation_checkins',
       'key_results',
       'kr_snapshots',
       'objectives',
@@ -322,6 +323,44 @@ describe('DB 계층', () => {
     const objective = db.addObjective({ title: 'o', period: '2026' });
     const kr = db.addKeyResult({ objective_id: objective.id, title: 'x', target: 1 });
     assert.equal(kr.kind, 'committed');
+
+    require('../db').closeDatabase();
+  });
+
+  it('TC-DB-07: 기대정렬 체크인(expectation_checkins) prepared statement 왕복 + action 인용 + FK NULL', () => {
+    const db = loadDb(':memory:');
+
+    // action 은 SQLite 키워드 — insert/select 왕복 후 응답 키가 action 이어야 한다.
+    const checkin = db.addCheckin({ what: '뭔가 했다.', action: '구체적으로 이렇게 했다.' });
+    assert.equal(checkin.action, '구체적으로 이렇게 했다.');
+    assert.deepEqual(
+      Object.keys(checkin).sort(),
+      [
+        'id', 'period', 'what', 'why', 'until', 'goal', 'strategy', 'action', 'status',
+        'project_id', 'objective_id', 'created_at', 'updated_at',
+      ].sort()
+    );
+
+    const fetched = db.getCheckin(checkin.id);
+    assert.equal(fetched.action, '구체적으로 이렇게 했다.');
+
+    const updated = db.updateCheckin(checkin.id, { action: '수정된 액션' });
+    assert.equal(updated.action, '수정된 액션');
+
+    // 프로젝트/objective 삭제 시 체크인은 생존하고 FK 는 NULL 이 된다.
+    const project = db.addProject({ name: 'p' });
+    const objective = db.addObjective({ title: 'o', period: '2026' });
+    const linked = db.addCheckin({ what: 'x', project_id: project.id, objective_id: objective.id });
+    db.deleteProject(project.id);
+    db.deleteObjective(objective.id);
+    const survived = db.getCheckin(linked.id);
+    assert.ok(survived, '체크인은 삭제되지 않는다');
+    assert.equal(survived.project_id, null);
+    assert.equal(survived.objective_id, null);
+
+    assert.equal(db.deleteCheckin(checkin.id), true);
+    assert.equal(db.getCheckin(checkin.id), undefined);
+    assert.equal(db.deleteCheckin(9999), false);
 
     require('../db').closeDatabase();
   });

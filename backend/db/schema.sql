@@ -134,6 +134,27 @@ CREATE TABLE IF NOT EXISTS kr_snapshots (
   UNIQUE (key_result_id, month)
 );
 
+-- ── 기대정렬 체크인 (개인 OS P10 — ADR-0035) ───────────
+-- 7개 질문 답변은 전부 자유 서술 TEXT·nullable. 최소 1개는 채워야 한다(API 검증).
+CREATE TABLE IF NOT EXISTS expectation_checkins (
+  id           INTEGER PRIMARY KEY AUTOINCREMENT,
+  period       TEXT,     -- 자유 라벨 '1주차' 등. 날짜 강제 안 함 (종료 조건이 상태 기반)
+  what         TEXT,     -- 내가 뭘 하고 있지
+  why          TEXT,     -- 이걸 왜 하지
+  until        TEXT,     -- 언제까지 할 것인지
+  goal         TEXT,     -- 어떤 목표지
+  strategy     TEXT,     -- 어떤 전략이지
+  "action"     TEXT,     -- 무엇을 구체적으로 할 것인지 (SQLite 키워드라 항상 인용)
+  status       TEXT,     -- 어떤 상태인지 — 자유 서술. 다른 테이블의 enum status 와 무관 (CHECK 없음)
+  project_id   INTEGER REFERENCES projects(id)   ON DELETE SET NULL,
+  objective_id INTEGER REFERENCES objectives(id) ON DELETE SET NULL,
+  created_at   TEXT NOT NULL,
+  updated_at   TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_checkins_created   ON expectation_checkins(created_at);
+CREATE INDEX IF NOT EXISTS idx_checkins_project   ON expectation_checkins(project_id);
+CREATE INDEX IF NOT EXISTS idx_checkins_objective ON expectation_checkins(objective_id);
+
 -- ── (향후) Supabase 동기화용 확장 ──────────────────────
 -- ALTER TABLE tasks    ADD COLUMN user_id    TEXT;
 -- ALTER TABLE tasks    ADD COLUMN is_synced  INTEGER NOT NULL DEFAULT 0;

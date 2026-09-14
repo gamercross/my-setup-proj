@@ -32,6 +32,24 @@ const KR_COLS =
 const OBJECTIVE_FIELDS = ['title', 'period', 'status'];
 const KR_FIELDS = ['title', 'target', 'current', 'unit', 'kind', 'project_id'];
 
+// ── 기대정렬 체크인 (expectation_checkins — 개인 OS P10, ADR-0035) ─────────
+// action 은 SQLite 키워드라 DDL·SQL 에서 항상 "action" 으로 인용한다.
+// SELECT 는 "action" AS action 으로 되돌려 응답 키는 action 을 유지한다 (KR_COLS current 선례).
+const CHECKIN_COLS =
+  'id, period, what, why, until, goal, strategy, "action" AS action, status, project_id, objective_id, created_at, updated_at';
+const CHECKIN_FIELDS = [
+  'period',
+  'what',
+  'why',
+  'until',
+  'goal',
+  'strategy',
+  'action',
+  'status',
+  'project_id',
+  'objective_id',
+];
+
 // prepared statement 는 모듈 로드 시 준비한다.
 const stmts = {
   listTasks: db.prepare(`SELECT ${TASK_COLS} FROM tasks ORDER BY id`),
@@ -159,6 +177,31 @@ const stmts = {
      WHERE due_date >= @from AND due_date < @afterEnd
      ORDER BY due_date, id LIMIT @limit`
   ),
+
+  // ── 기대정렬 체크인(expectation_checkins) ────────────
+  // projectMode/objectiveMode: 'all' 전체 | 'none' IS NULL | 'id' 특정값(project_id/objective_id 바인딩).
+  // 최신순(created_at DESC, id DESC) — GET /api/checkins 계약.
+  listCheckins: db.prepare(
+    `SELECT ${CHECKIN_COLS} FROM expectation_checkins
+     WHERE (@projectMode = 'all' OR (@projectMode = 'none' AND project_id IS NULL) OR (@projectMode = 'id' AND project_id = @projectId))
+       AND (@objectiveMode = 'all' OR (@objectiveMode = 'none' AND objective_id IS NULL) OR (@objectiveMode = 'id' AND objective_id = @objectiveId))
+     ORDER BY created_at DESC, id DESC
+     LIMIT @limit`
+  ),
+  getCheckin: db.prepare(`SELECT ${CHECKIN_COLS} FROM expectation_checkins WHERE id = ?`),
+  insertCheckin: db.prepare(
+    `INSERT INTO expectation_checkins
+       (period, what, why, until, goal, strategy, "action", status, project_id, objective_id, created_at, updated_at)
+     VALUES (@period, @what, @why, @until, @goal, @strategy, @action, @status, @project_id, @objective_id, @created_at, @updated_at)`
+  ),
+  updateCheckin: db.prepare(
+    `UPDATE expectation_checkins SET
+       period = @period, what = @what, why = @why, until = @until, goal = @goal,
+       strategy = @strategy, "action" = @action, status = @status,
+       project_id = @project_id, objective_id = @objective_id, updated_at = @updated_at
+     WHERE id = @id`
+  ),
+  deleteCheckin: db.prepare('DELETE FROM expectation_checkins WHERE id = ?'),
 };
 
 // 동기화 서비스 화이트리스트 (schema.sql 의 CHECK 와 일치)
@@ -484,6 +527,70 @@ function transaction(fn) {
   return db.transaction(fn)();
 }
 
+// ── 기대정렬 체크인(expectation_checkins) ─────────────────────────
+
+// filter.projectId / filter.objectiveId: undefined=전체, null=미연결(IS NULL), 정수=그 값.
+// filter.limit: 기본 50.
+function getCheckins(filter = {}) {
+  const projectMode = filter.projectId === undefined ? 'all' : filter.projectId === null ? 'none' : 'id';
+  const objectiveMode =
+    filter.objectiveId === undefined ? 'all' : filter.objectiveId === null ? 'none' : 'id';
+  const lim = Number.isInteger(filter.limit) && filter.limit > 0 ? filter.limit : 50;
+  return stmts.listCheckins.all({
+    projectMode,
+    projectId: projectMode === 'id' ? toId(filter.projectId) : null,
+    objectiveMode,
+    objectiveId: objectiveMode === 'id' ? toId(filter.objectiveId) : null,
+    limit: lim,
+  });
+}
+
+function getCheckin(id) {
+  const nid = toId(id);
+  if (nid === null) return undefined;
+  return stmts.getCheckin.get(nid);
+}
+
+function addCheckin(c) {
+  const now = new Date().toISOString();
+  const row = {
+    period: c.period ?? null,
+    what: c.what ?? null,
+    why: c.why ?? null,
+    until: c.until ?? null,
+    goal: c.goal ?? null,
+    strategy: c.strategy ?? null,
+    action: c.action ?? null,
+    status: c.status ?? null,
+    project_id: c.project_id ?? null,
+    objective_id: c.objective_id ?? null,
+    created_at: now,
+    updated_at: now,
+  };
+  const info = stmts.insertCheckin.run(row);
+  return getCheckin(info.lastInsertRowid);
+}
+
+// 체크인 수정 (없으면 undefined, 허용 필드만 병합)
+function updateCheckin(id, patch) {
+  const row = getCheckin(id);
+  if (!row) return undefined;
+  for (const key of CHECKIN_FIELDS) {
+    if (patch && patch[key] !== undefined) {
+      row[key] = patch[key];
+    }
+  }
+  row.updated_at = new Date().toISOString();
+  stmts.updateCheckin.run(row);
+  return getCheckin(row.id);
+}
+
+function deleteCheckin(id) {
+  const nid = toId(id);
+  if (nid === null) return false;
+  return stmts.deleteCheckin.run(nid).changes > 0;
+}
+
 // ── 주간 플래너 (읽기 전용 집계) ──────────────────────
 
 // [from, to] 구간(둘 다 'YYYY-MM-DD')의 마감 할 일 통계 { total, done }.
@@ -524,6 +631,11 @@ module.exports = {
   upsertKrSnapshot,
   getKrTrend,
   transaction,
+  getCheckins,
+  getCheckin,
+  addCheckin,
+  updateCheckin,
+  deleteCheckin,
   getTaskStatsInRange,
   getTasksInRange,
   getSyncLogs,

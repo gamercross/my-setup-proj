@@ -24,6 +24,7 @@
 | [AUTH.md](AUTH.md) | 인증 도메인 상세 — FR-AUTH-01 (Google OAuth 데스크톱 흐름 + 암호화 토큰 저장) (D2-b 완료) | Phase D·E 착수 시 | 토큰 저장은 [ADR-0024](../architecture/adr/ADR-0024-oauth-token-storage.md) (Fernet). `GOOGLE_REDIRECT_URI` 는 미사용 |
 | [WIDGET.md](WIDGET.md) | 🆕 위젯 셸 상세 — FR-WIDGET-01~08 (배치·생명주기·z-order·영속화·위젯별 테마·표시 옵션·격리·레지스트리) | Phase C5~C6 착수 시 | 전부 **제안** — 착수 전 [../vision/DASHBOARD_OS.md](../vision/DASHBOARD_OS.md) §8 DO-1~6 결정 |
 | [OKR.md](OKR.md) | 🆕 OKR + 주간 플래너 상세 — FR-OKR-01~06 (Objective/KR CRUD·대시보드·월별 추이·주간 버킷·위젯) | 개인 OS P8 착수 시 | [ADR-0030](../architecture/adr/ADR-0030-okr-data-model.md) 채택(2026-09-08). Weekly Brief(Claude)는 범위 밖 후속. `kr_snapshots` 적재 주체는 P8 planner 결정 |
+| [CHECKIN.md](CHECKIN.md) | 🆕 기대정렬 체크인 상세 — FR-CHECKIN-01~05 (7질문 자유 서술 CRUD·목록/필터·위젯·선택 연결) | 개인 OS P10 완료 | [ADR-0035](../architecture/adr/ADR-0035-expectation-checkin.md) 채택(2026-09-14). 전용 테이블 1개, `SCHEMA_VERSION` 미상향, 채점·완성도 점수 없음 |
 
 ---
 

@@ -182,7 +182,33 @@
 
 ---
 
-## 10. `widget_instances` — 위젯 레이아웃 (🔶 제안, C5 단계 2)
+## 10. `expectation_checkins` — 기대정렬 체크인 (FR-CHECKIN-01, ADR-0035)
+
+7개 질문 답변은 전부 자유 서술 TEXT·nullable — 최소 1개는 API 검증에서 채우도록 요구한다.
+`action` 은 SQLite 예약어라 DDL·SQL 에서 항상 인용(`"action"`)하지만 응답 JSON 키는 `action` 이다.
+
+| 컬럼 | 타입 | 제약 | 의미 | 예시 |
+|---|---|---|---|---|
+| `id` | INTEGER | PK, auto | 식별자 | `1` |
+| `period` | TEXT | nullable | 자유 라벨(날짜 형식 강제 안 함) | `"1주차"` |
+| `what` | TEXT | nullable | 내가 뭘 하고 있지 | `"위젯 셸을 만들었다."` |
+| `why` | TEXT | nullable | 이걸 왜 하지 | `"..."` |
+| `until` | TEXT | nullable | 언제까지 할 것인지 | `"..."` |
+| `goal` | TEXT | nullable | 어떤 목표지 | `"..."` |
+| `strategy` | TEXT | nullable | 어떤 전략이지 | `"..."` |
+| `"action"` | TEXT | nullable, SQLite 예약어라 항상 인용 | 무엇을 구체적으로 할 것인지 | `"..."` |
+| `status` | TEXT | nullable, 자유 서술(다른 테이블의 enum `status` 와 무관, CHECK 없음) | 어떤 상태인지 | `"동작은 한다."` |
+| `project_id` | INTEGER | FK → `projects(id)` `ON DELETE SET NULL` (느슨, ADR-0012) | 선택 연결 | `1` |
+| `objective_id` | INTEGER | FK → `objectives(id)` `ON DELETE SET NULL` (느슨) | 선택 연결 | `null` |
+| `created_at` `updated_at` | TEXT | NOT NULL | ISO8601 | — |
+
+- 인덱스: `idx_checkins_created(created_at)`, `idx_checkins_project(project_id)`, `idx_checkins_objective(objective_id)`.
+- `SCHEMA_VERSION` 을 올리지 않고 `CREATE TABLE IF NOT EXISTS` 로 반영한다 (OKR 3테이블 선례, ADR-0035 §4).
+- 파생값(답변 개수·완성도 점수)은 저장하지 않는다 — 위젯이 표시하는 진행 표시는 프런트 전용 계산.
+
+---
+
+## 11. `widget_instances` — 위젯 레이아웃 (🔶 제안, C5 단계 2)
 
 > UI 상태다(도메인 데이터 아님). **1차는 SQLite 가 아니라 브라우저 `localStorage`** 에 `dashboard.layout.v1` 키로 저장한다.
 > SQLite 이관은 재설치·다기기 요구가 생길 때 ([ADR-0021](../architecture/adr/ADR-0021-widget-layout-persistence.md)). 아직 `schema.sql` 에 없다.
@@ -211,6 +237,8 @@ tasks (1) ──< (N) task_tags       PK(task_id, tag), ON DELETE CASCADE (ADR-0
 objectives (1) ──< (N) key_results     ON DELETE CASCADE (ADR-0030)
 key_results (1) ──< (N) kr_snapshots   UNIQUE(key_result_id, month), ON DELETE CASCADE
 projects (0..1) ──< (N) key_results    key_results.project_id FK, ON DELETE SET NULL (느슨, ADR-0012)
+projects (0..1) ──< (N) expectation_checkins    project_id FK, ON DELETE SET NULL (느슨, ADR-0035)
+objectives (0..1) ──< (N) expectation_checkins  objective_id FK, ON DELETE SET NULL (느슨, ADR-0035)
 briefs          독립 (날짜별 1건)
 calendar_events 독립 (외부 캐시)
 emails          독립 (외부 캐시)

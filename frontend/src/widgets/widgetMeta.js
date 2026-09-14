@@ -122,6 +122,19 @@ export const WIDGET_META = {
       autoExpandSections: { type: 'bool', default: true, label: '주요 섹션 자동 펼침' },
     },
   },
+  checkin: {
+    type: 'checkin',
+    name: '기대정렬',
+    icon: '🧭',
+    description: '7개 질문으로 남기는 자기 점검 체크인',
+    defaultSize: { w: 8, h: 10 },
+    minSize: { w: 4, h: 6 },
+    maxSize: { w: 12, h: 24 },
+    configSchema: {
+      maxItems: { type: 'number', min: 5, max: 50, step: 5, default: 10, label: '최대 표시 개수' },
+      showForm: { type: 'bool', default: true, label: '새 체크인 폼 표시' },
+    },
+  },
   // "준비 중" 자리표시자 — 전용 위젯이 아직 없는 주제의 기본 인스턴스 (ADR-0032).
   // hidden: true 는 옵셔널 신규 필드. 피커 목록에서 제외한다 (다른 메타엔 넣지 않는다).
   placeholder: {

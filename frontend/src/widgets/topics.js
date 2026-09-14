@@ -20,6 +20,7 @@ export const TOPICS = [
   { id: 'projects', label: '프로젝트', group: 'command', icon: 'projects', subtitle: '진행 중인 일' },
   { id: 'calendar', label: '일정', group: 'command', icon: 'calendar', subtitle: '오늘 일정' },
   { id: 'okr', label: 'OKR', group: 'plan', icon: 'okr', subtitle: '목표와 핵심 결과' },
+  { id: 'checkin', label: '기대정렬', group: 'plan', icon: 'checkin', subtitle: '7개 질문 자기 점검' },
   { id: 'weekly', label: '주간 플래너', group: 'plan', icon: 'weekly', subtitle: '지난주·이번주·다음주' },
   { id: 'activity', label: '활동', group: 'agent', icon: 'activity', subtitle: '에이전트 실행 기록' },
   { id: 'progress', label: '진행 현황', group: 'agent', icon: 'progress', subtitle: '진행 현황과 파일' },

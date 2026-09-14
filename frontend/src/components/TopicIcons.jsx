@@ -51,6 +51,12 @@ const ICONS = {
       <path d="M8 4v16M13 4v16M18 4v16" {...P} />
     </>
   ),
+  checkin: (
+    <>
+      <path d="M9 11l2 2 4-4" {...P} />
+      <circle cx="12" cy="12" r="9" {...P} />
+    </>
+  ),
   activity: (
     <>
       <path d="M3 12h4l3 7 4-14 3 7h4" {...P} />

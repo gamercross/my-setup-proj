@@ -76,3 +76,19 @@ test('TC-P8-REG-02: PLAN 주제 기본 레이아웃이 okr·weekly 전용 위젯
     }
   }
 });
+
+test('TC-P10-REG-01: checkin 위젯 메타·기본 레이아웃 (ADR-0035)', () => {
+  const c = WIDGET_META.checkin;
+  assert.ok(c, 'checkin 메타 누락');
+  assert.equal(c.type, 'checkin');
+  assert.equal(c.configSchema.maxItems.type, 'number');
+  assert.equal(c.configSchema.maxItems.default, 10);
+  assert.equal(c.configSchema.showForm.type, 'bool');
+  assert.equal(c.configSchema.showForm.default, true);
+
+  assert.deepEqual(DEFAULT_LAYOUTS.checkin.map((i) => i.type), ['checkin']);
+  for (const inst of DEFAULT_LAYOUTS.checkin) {
+    assert.ok(inst.w <= 12);
+    assert.ok(inst.w >= c.minSize.w && inst.h >= c.minSize.h);
+  }
+});

@@ -15,7 +15,7 @@
 flowchart TB
   APP["App.jsx"] --> ERRB["ErrorBoundary (전역)"]
   ERRB --> ASHELL["AppShell.jsx<br/>health 폴링 · 좌 Sidebar + 우 TopicView"]
-  ASHELL --> SB["Sidebar.jsx<br/>4그룹 11항목 · useUiStore.setActiveTopic"]
+  ASHELL --> SB["Sidebar.jsx<br/>4그룹 12항목 · useUiStore.setActiveTopic"]
   ASHELL --> TV["TopicView.jsx<br/>페이지 헤더(편집·+위젯·초기화·health)"]
   TV --> SHELL["WidgetShell.jsx topicId 별<br/>위젯 피커 · useLayoutStore.setTopic"]
   SHELL --> HOST["WidgetHost.jsx<br/>react-grid-layout · onLayoutChange"]
@@ -37,7 +37,7 @@ flowchart TB
   REG["widgets/registry.js"] --> HOST
 ```
 
-> 🆕 **P4.5 사이드바 셸** (2026-09-08, [ADR-0032](../architecture/adr/ADR-0032-sidebar-shell-per-topic-layouts.md)): `App.jsx` 가 `ErrorBoundary > AppShell` 을 렌더. `AppShell` 이 좌측 고정 `Sidebar`(4그룹 11항목) + 우측 `TopicView`(페이지 헤더 + 주제별 `WidgetShell`) 를 배치한다. 주제 전환 = 본문 그리드 교체(라우팅·새로고침 없음). 레이아웃은 **주제별로** `dashboard.layout.v2` 에 저장. 기존 v1 은 최초 로드 시 `overview` 주제로 1회 마이그레이션 후 v1 키 삭제.
+> 🆕 **P4.5 사이드바 셸** (2026-09-08, [ADR-0032](../architecture/adr/ADR-0032-sidebar-shell-per-topic-layouts.md)): `App.jsx` 가 `ErrorBoundary > AppShell` 을 렌더. `AppShell` 이 좌측 고정 `Sidebar`(4그룹 12항목) + 우측 `TopicView`(페이지 헤더 + 주제별 `WidgetShell`) 를 배치한다. 주제 전환 = 본문 그리드 교체(라우팅·새로고침 없음). 레이아웃은 **주제별로** `dashboard.layout.v2` 에 저장. 기존 v1 은 최초 로드 시 `overview` 주제로 1회 마이그레이션 후 v1 키 삭제.
 
 **모든 위젯의 4상태** (FR-UI-01·04 → FR-WIDGET-07): 각 위젯은 독립적으로 렌더하며 한 위젯 실패가 셸·다른 위젯을 막지 않는다.
 
@@ -62,7 +62,7 @@ stateDiagram-v2
 | 항목 | 값 (전환 후) |
 |---|---|
 | 화면 수 | **1개 (사이드바 셸 데스크톱).** 라우팅 없음 — 사이드바 주제 전환 = 본문 그리드 교체 |
-| 화면 구성 | 좌측 고정 `Sidebar`(4그룹 11항목) + `TopicView`(페이지 헤더 + 주제별 `WidgetShell` 위에 위젯 인스턴스 N개, 그리드 배치·이동·리사이즈·최소화) |
+| 화면 구성 | 좌측 고정 `Sidebar`(4그룹 12항목) + `TopicView`(페이지 헤더 + 주제별 `WidgetShell` 위에 위젯 인스턴스 N개, 그리드 배치·이동·리사이즈·최소화) |
 | 창 크기 | 기본 800×600, 최소 800×600 (`main.js`) — 셸은 반응형 그리드(lg/md/sm) |
 | 렌더 방식 | ✅ React + Vite (FR-UI-02 / B1). `renderer.jsx` → `createRoot(#root).render(<App/>)` |
 | 마운트 지점 | `index.html` 의 `<div id="root">` |
@@ -139,7 +139,7 @@ stateDiagram-v2
 - **위젯 프레임:** 타이틀바(아이콘·이름·⚙ 설정(C6, WidgetSettings 열기)·─ 최소화·✕ 제거) + 본문(레지스트리 뷰) + 리사이즈 핸들(편집 모드).
 - **격리:** 위젯마다 `ErrorBanner`/`ErrorBoundary` (FR-WIDGET-07). 전역 연결 오류(백엔드 다운)는 **App 헤더**의 헬스 표시(셸에서 중복 안 함).
 - **기본 레이아웃 (첫 실행):** 할일·오늘 브리핑·프로젝트·캘린더 4개. 다이어그램은 피커로만 추가.
-- 레지스트리 등록 위젯: tasks/projects/calendar/diagrams/brief (D3) · agent (P7) · okr·weekly (P8). 메타는 `widgets/widgetMeta.js`(순수), view 배선은 `widgets/registry.js`.
+- 레지스트리 등록 위젯: tasks/projects/calendar/diagrams/brief (D3) · agent (P7) · okr·weekly (P8) · checkin (P10). 메타는 `widgets/widgetMeta.js`(순수), view 배선은 `widgets/registry.js`.
 - 기존 사용자는 레이아웃 마이그레이션이 없으므로(SCHEMA_VERSION 불변) brief 위젯이 자동으로 나타나지 않는다 — 피커로 추가하거나 "초기화" 한다.
 
 ### 2.3 현재 (사이드바 셸 — P4.5, 2026-09-08, ADR-0032)
@@ -158,6 +158,7 @@ stateDiagram-v2
 │  ▤ 일정        │                                                  │
 │ PLAN          │                                                  │
 │  ▤ OKR         │                                                  │
+│  ▤ 기대정렬     │                                                  │
 │  ▤ 주간 플래너  │                                                  │
 │ AGENT         │                                                  │
 │  ▤ 활동 / 진행 현황 / 다이어그램                                       │
@@ -168,7 +169,7 @@ stateDiagram-v2
 └───────────────┴──────────────────────────────────────────────────┘
 ```
 
-- **사이드바(§3.11):** 브랜드 블록 + 검색(자리표시) + 4그룹 11항목 네비 + 하단 사용자 블록. 항목 클릭 → `useUiStore.setActiveTopic` → 본문만 교체.
+- **사이드바(§3.11):** 브랜드 블록 + 검색(자리표시) + 4그룹 12항목 네비 + 하단 사용자 블록. 항목 클릭 → `useUiStore.setActiveTopic` → 본문만 교체.
 - **페이지 헤더(§3.12):** 주제 아이콘·제목·부제(좌) / 데모·버전 · health(`● {message}`) · `✎ 편집` · `+ 위젯` · `초기화`(우). 셸 바는 폐지되고 여기로 통합.
 - **주제별 레이아웃:** 각 주제가 자기 위젯 세트를 가진다. 주제 A 편집이 B 에 영향 없음. 전용 위젯이 없는 주제(OKR·주간·활동·진행·설정)는 "준비 중" 플레이스홀더 1개.
 
@@ -299,6 +300,20 @@ stateDiagram-v2
 | 관련 FR | FR-OKR-05·06 · 백엔드 병행 API `GET /api/planner/weekly`(데모·외부용, 위젯은 미사용) |
 | 상태 | 에러 → `ErrorBanner` / 로딩 → "불러오는 중…" / 빈 → 버킷별 "없음" / 정상 → StatTile 3 + 이번주·다음주 리스트 |
 
+### 3.5e 기대정렬 체크인 위젯 ✅ P10 (FR-CHECKIN-01~05, 2026-09-14, ADR-0035)
+
+| 항목 | 내용 |
+|---|---|
+| 목적 | 7개 질문(뭘 하고 있지/왜/언제까지/목표/전략/구체적 행동/상태)에 자유 서술로 답한 체크인을 시점별로 남기고 카드로 훑어본다 |
+| 주제 | `checkin` 주제의 기본 위젯(타입 `checkin`, `defaultLayout.js` — 8×10). 아이콘 🧭 |
+| 뷰 | `widgets/views/CheckinWidgetView.jsx` — 스토어 구독·effect·4상태 소유 |
+| 프레젠테이션 | 새 공용 컴포넌트 없음 — `Chip`·`DotProgress`·`ErrorBanner` 재사용. 카드·폼은 뷰 로컬 컴포넌트. 인라인 스타일 + CSS 변수만(`styles.css` 무변경) |
+| 레이아웃 | "+ 새 체크인" 버튼(기본 접힘 폼) → 카드 목록: 시기 라벨(`period` 또는 날짜) + 연결 프로젝트/목표 칩 + 답변 개수 `DotProgress`(프런트 전용 계산) + 삭제 버튼 + 답변한 질문만 라벨과 함께 표시 |
+| config | `maxItems`(number 5~50 step5 기본 10), `showForm`(bool 기본 true) |
+| 데이터 출처 | `GET/POST/PUT/DELETE /api/checkins` → `store/useCheckinStore.js`(낙관적 갱신 + 실패 롤백, `useOkrStore`·`useProjectStore` 관례와 동일) |
+| 관련 FR | FR-CHECKIN-01~05 · [ADR-0035](../architecture/adr/ADR-0035-expectation-checkin.md) |
+| 상태 | 에러 → `ErrorBanner(onRetry)` / 로딩 → "불러오는 중…" / 빈(체크인 0) → 안내 문구 + 추가 폼 / 정상 → 위 레이아웃 |
+
 ### 3.6 ErrorBanner / ErrorBoundary ✅ B3 (FR-UI-04, 2026-09-03)
 
 | 항목 | 내용 |
@@ -374,7 +389,7 @@ stateDiagram-v2
 | 항목 | `<button>` (a 태그·라우팅 금지). `<TopicIcon name={t.icon}/>` + 라벨. 클릭 → `useUiStore.setActiveTopic(id)`. 활성: `aria-current="page"` + `--nav-active-bg` 알약 + 좌측 3px `--accent` 바(inset box-shadow). 강한 색 채움 금지 |
 | 데이터 출처 | `widgets/topics.js`(`TOPIC_GROUPS`·`TOPICS`·`getTopicsByGroup`) + `useUiStore.activeTopic` |
 | 스크롤 | 네비 영역만 `overflow-y:auto`. 브랜드·검색·사용자 블록은 고정 |
-| 주제 목록 | overview(개요)·tasks(할 일)·brief(브리핑)·projects(프로젝트)·calendar(일정) [COMMAND] / okr(OKR)·weekly(주간 플래너) [PLAN] / activity(활동)·progress(진행 현황)·diagrams(다이어그램) [AGENT] / settings(설정) [SYSTEM] |
+| 주제 목록 | overview(개요)·tasks(할 일)·brief(브리핑)·projects(프로젝트)·calendar(일정) [COMMAND] / okr(OKR)·checkin(기대정렬)·weekly(주간 플래너) [PLAN] / activity(활동)·progress(진행 현황)·diagrams(다이어그램) [AGENT] / settings(설정) [SYSTEM] |
 
 ### 3.12 페이지 헤더 (`TopicView` 헤더) ✅ P4.5 (2026-09-08, ADR-0032)
 
@@ -394,7 +409,7 @@ stateDiagram-v2
 |---|---|---|---|:---:|
 | `App` | — | — | — | ✅ `<ErrorBoundary><AppShell/></ErrorBoundary>` (P4.5 — health 로직은 `AppShell` 로 이동) |
 | `AppShell` | — | `health` (loading/ok/error) · `useUiStore.activeTopic` 구독 | — | ✅ P4.5 (좌 `Sidebar` + 우 `TopicView`, `/health` 폴링 소유, `getTopic(activeTopic) ?? getTopic(DEFAULT_TOPIC_ID)`) |
-| `Sidebar` | `demo`, `version` | `useUiStore`(activeTopic, setActiveTopic) 구독 | (스토어 액션 직접 호출) | ✅ P4.5 (4그룹 11항목 `<button>` 네비) |
+| `Sidebar` | `demo`, `version` | `useUiStore`(activeTopic, setActiveTopic) 구독 | (스토어 액션 직접 호출) | ✅ P4.5 (4그룹 12항목 `<button>` 네비) |
 | `TopicView` | `topic`, `demo`, `info`, `health`, `statusColor` | `useLayoutStore`(editMode)·`useUiStore` 구독 | (스토어 액션 직접 호출) | ✅ P4.5 (페이지 헤더 + `<WidgetShell topicId>`) |
 | `TopicIcon` | `name`, `size?` (기본 16) | — | — | ✅ P4.5 (`components/TopicIcons.jsx` 인라인 SVG, 미등록 키 폴백) |
 | `Dashboard` (삭제됨) | — | — | — | ❌ C5 에서 삭제 — 섹션 로직은 `widgets/views/*WidgetView.jsx` 로 이관 |

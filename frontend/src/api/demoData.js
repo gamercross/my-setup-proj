@@ -192,6 +192,29 @@ export function createDataset() {
     { id: 6, key_result_id: 3, month: ym(1), pct: 0.85 },
   ];
 
+  // 기대정렬 체크인(개인 OS P10, ADR-0035) 시연용 — 1~3주차 실제 진술 기반 3건 (최신순 반환은 demoClient 가 정렬).
+  const expectation_checkins = [
+    { id: 1, period: '1주차',
+      what: '대시보드 프로토타입을 만들었다.', why: null, until: null, goal: null, strategy: null,
+      action: '위젯 셸과 할 일 CRUD 를 먼저 붙여 화면이 도는 것부터 확인했다.',
+      status: '프로토타입은 동작하지만 실제 데이터가 비어 있다.',
+      project_id: 1, objective_id: null, created_at: iso(at(-21, 10, 0)), updated_at: iso(at(-21, 10, 0)) },
+    { id: 2, period: '2주차',
+      what: null,
+      why: '지금까지의 공부 내용을 모아 성장할 발판을 만들고, 프로젝트를 풀어가며 받은 능력 피드백을 정리하고 싶었다.',
+      until: null, goal: null, strategy: null, action: null,
+      status: '개발 역량과 지식 역량을 확인받고 피드백을 수용하는 중이다.',
+      project_id: 1, objective_id: 2, created_at: iso(at(-14, 10, 0)), updated_at: iso(at(-14, 10, 0)) },
+    { id: 3, period: '3주차',
+      what: '기획서를 작성하고 지금까지의 작업을 소개하는 중이다.',
+      why: null,
+      until: '내가 작업하는 모든 내용이 정리될 때까지.',
+      goal: null, strategy: null,
+      action: '역 계획서와 요구사항 문서를 정리해 발표 가능한 형태로 만든다.',
+      status: null,
+      project_id: 1, objective_id: 2, created_at: iso(at(-7, 10, 0)), updated_at: iso(at(-7, 10, 0)) },
+  ];
+
   // 문서 트리·본문 — 진행 현황 위젯(P9, FR-UI-06) 시연용. 실제 파일이 없으므로 목 토큰을 쓴다.
   const docTree = [
     {
@@ -302,6 +325,7 @@ export function createDataset() {
     objectives,
     key_results,
     kr_snapshots,
+    expectation_checkins,
     docTree,
     docTokens,
     _runNowPending: false,
