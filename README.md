@@ -1,9 +1,13 @@
-# 🤖 my-setup-proj
+# 🤖 my-setup-proj — 대시보드 OS
 
-> Windows / macOS / Linux 어디서든 켜는 생산성 대시보드 + Claude AI 에이전트.
+> **목적은 진척률이 아니라 지식이다.** 흩어진 프로젝트·경험을 시각화·도식화해 지식의
+> 가치를 올리고, 그 지식이 쌓여 역량이 느는 방향을 한눈에 보이게 하는 개인 생산성
+> 대시보드 — Windows / macOS / Linux 어디서든 켜는 Electron 앱 + Claude AI 에이전트.
+> 자세한 "왜"는 [docs/REVERSE_PLAN.md](docs/REVERSE_PLAN.md) §1-0·§6-0.
+>
 > 우송대학교 2026-2학기 3개 강의(AI 컴퓨터 운영체제 실습 / AI시대소프트웨어공학 / AITool기반소프트웨어공학)의 공통 실습 환경이자 제출 산출물이다. 각 강의가 보는 층이 다르다 — 런타임·환경(A) / AI 활용 개발 프로세스(B) / SW공학 산출물(C). 상세: [docs/progress/COURSE_MAPPING.md](docs/progress/COURSE_MAPPING.md).
 
-**시작** 2026-09-02 · **목표 완성** 2026-11-30
+**시작** 2026-09-02 · **목표 완성** 2026-11-30 · **공개 쇼케이스** [gamercross.github.io/my-setup-proj-story](https://gamercross.github.io/my-setup-proj-story/)
 
 ---
 
