@@ -1,43 +1,141 @@
 {
   "artboards": [
-    { "file": "Main.dc.html",       "x": 0,   "y": 0,    "w": 1440, "h": 900,  "title": "대시보드 전체" },
-    { "file": "Components.dc.html",  "x": 0,   "y": 1020, "w": 1200, "h": 1100, "title": "공통 컴포넌트" },
-    { "file": "Okr.dc.html",        "x": 0,   "y": 2240, "w": 940,  "h": 560,  "title": "OKR 위젯" },
-    { "file": "Kanban.dc.html",     "x": 0,   "y": 2920, "w": 1416, "h": 720,  "title": "칸반 위젯" },
-    { "file": "Agent.dc.html",      "x": 0,   "y": 3760, "w": 464,  "h": 620,  "title": "에이전트 활동 위젯" },
-    { "file": "Progress.dc.html",   "x": 584, "y": 3760, "w": 702,  "h": 620,  "title": "진행 현황 위젯" }
+    {
+      "file": "Main.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 1120,
+      "title": "개요 대시보드"
+    },
+    {
+      "file": "Tasks.dc.html",
+      "x": 1560,
+      "y": 0,
+      "w": 1440,
+      "h": 1120,
+      "title": "할 일 — 리스트 + 칸반"
+    },
+    {
+      "file": "Okr.dc.html",
+      "x": 3120,
+      "y": 0,
+      "w": 1440,
+      "h": 1120,
+      "title": "OKR 대시보드"
+    },
+    {
+      "file": "Agent.dc.html",
+      "x": 0,
+      "y": 1300,
+      "w": 1440,
+      "h": 1120,
+      "title": "에이전트 활동"
+    },
+    {
+      "file": "Progress.dc.html",
+      "x": 1560,
+      "y": 1300,
+      "w": 1440,
+      "h": 1120,
+      "title": "진행 현황 · 파일 탐색"
+    },
+    {
+      "file": "Components.dc.html",
+      "x": 3120,
+      "y": 1300,
+      "w": 1240,
+      "h": 1720,
+      "title": "공통 컴포넌트 시트"
+    },
+    {
+      "file": "Checkin.dc.html",
+      "x": 0,
+      "y": 2600,
+      "w": 1440,
+      "h": 1120,
+      "title": "기대정렬 — 자기 점검 체크인"
+    },
+    {
+      "file": "Github.dc.html",
+      "x": 1560,
+      "y": 2600,
+      "w": 1440,
+      "h": 1120,
+      "title": "GitHub 연동 (방향 목업)"
+    },
+    {
+      "file": "Calendar.dc.html",
+      "x": 4680,
+      "y": 2600,
+      "w": 1440,
+      "h": 1120,
+      "title": "일정 (캘린더 위젯, C3 실제 기능)"
+    },
+    {
+      "file": "Projects.dc.html",
+      "x": 0,
+      "y": 3840,
+      "w": 1440,
+      "h": 1000,
+      "title": "프로젝트 (실제 위젯)"
+    },
+    {
+      "file": "Diagrams.dc.html",
+      "x": 1560,
+      "y": 3840,
+      "w": 1440,
+      "h": 1000,
+      "title": "다이어그램 뷰어 (실제 위젯)"
+    },
+    {
+      "file": "Brief.dc.html",
+      "x": 3120,
+      "y": 3840,
+      "w": 1200,
+      "h": 1000,
+      "title": "Daily Brief (실제 위젯)"
+    },
+    {
+      "file": "Planner.dc.html",
+      "x": 4440,
+      "y": 3840,
+      "w": 1200,
+      "h": 1000,
+      "title": "주간 플래너 (실제 위젯)"
+    }
   ],
   "annotations": [
     {
-      "id": "intro",
-      "x": -520, "y": 0, "w": 460,
-      "kind": "title1",
-      "text": "개인 생산성 OS — 디자인 캔버스 (P2)\n엔트리: 대시보드 전체. 색 리터럴은 전부 frontend/src/styles.css :root 토큰(ADR-0027 / UI_SPEC §1)과 1:1이며 임의 hex는 없다. UI 문자열 한국어, 아이콘 인라인 SVG."
+      "id": "note-north-star",
+      "x": 0,
+      "y": -160,
+      "w": 640,
+      "text": "P2 UI 캔버스 v2 — UI_STYLE.md v2 기준.\n라이트 + 왼쪽 그룹형 사이드바 + 부드러운 흰 카드(라운드 16) + 차분한 파랑 #2f6feb + 델타 칩 스탯 타일.\n제품 방향(개인 생산성 OS)·강조색·위젯 셸 커스터마이즈는 불변."
     },
     {
-      "id": "tokens",
-      "x": -520, "y": 1020, "w": 460,
-      "color": "blue",
-      "text": "공통 컴포넌트 시트가 P4 계약의 시각 기준이다. 아직 토큰이 아닌 값(배지 soft 배경, --shadow-card, --card-radius 16px 등)은 시트 하단 \"P4 신규 토큰 제안\" 표에 텍스트로만 모아 둔다."
+      "id": "note-p10-addition",
+      "x": 0,
+      "y": 2440,
+      "w": 680,
+      "text": "개인 OS P10 추가안 (2026-09-14) — RAW_STORIES.md 원료 기반.\n기대정렬: 프로젝트 방법론(ADR)과 짝을 이루는, 나 자신을 향한 방법론.\nGitHub 연동: 아직 방향만 — 실제 API 연동은 §4-5 뒤를 잇는 별도 기능으로 분리."
     },
     {
-      "id": "card-radius",
-      "x": -520, "y": 300, "w": 460,
-      "color": "orange",
-      "text": "--card-radius 이중값: 코드 현재 10px, 캔버스는 P4 목표값 16px. 6개 아트보드 전부 하단 캡션에 \"P4 목표값\"으로 표기."
+      "id": "note-full-coverage",
+      "x": 0,
+      "y": 3720,
+      "w": 760,
+      "text": "실제 위젯 10종 전체 커버리지 (2026-09-14).\n할일·OKR·에이전트 활동·진행 현황·일정·기대정렬은 이미 전용 화면. 여기 4개(프로젝트·다이어그램·Daily Brief·주간 플래너)를 더해 개요 화면 안 미니 카드였던 것들을 전용 화면으로 승격.\n더미 데이터는 실제 demoData.js 시드값을 그대로 옮김."
     },
     {
-      "id": "open-questions",
-      "x": -520, "y": 2920, "w": 460,
-      "color": "orange",
-      "text": "미결 사항: PO-7(칸반이 할 일 위젯 대체 vs 추가 뷰 — 현재 \"추가\" 전제) · PO-8(차트 라이브러리 Recharts vs 인라인 SVG — 인라인 SVG로 그림) · PO-9/ADR-0013(에이전트 \"지금 실행\" 버튼 — 미노출) · OKR/칸반 defaultSize는 widgetMeta.js 미등록(w=8·h=10 제안)."
-    },
-    {
-      "id": "scope",
-      "x": -520, "y": 3760, "w": 460,
-      "color": "green",
-      "text": "P2 범위: 디자인 캔버스만. frontend/backend/agent 코드 변경 0건."
+      "id": "note-keyword-categories",
+      "x": 0,
+      "y": 4900,
+      "w": 760,
+      "text": "키워드 → 카테고리 자동 태깅 (2026-09-15).\n기대정렬 체크인 답변에서 뽑은 키워드를 개발·공부·콘텐츠·기획·문서·자기점검 5개 카테고리로 분류. 같은 색 체계(칩)가 기대정렬·주간 플래너·할 일 세 화면에 공통으로 보여서, 지금 하는 일이 어느 지식 영역에 쌓이는지 한눈에 이어 보이게 한다.\n지식 축적 추세 뷰(§5-3 공백 항목)로 가기 전 단계의 방향 목업."
     }
   ],
-  "launch": { "view": "focused", "file": "Main.dc.html" }
+  "launch": {
+    "view": "canvas"
+  }
 }
