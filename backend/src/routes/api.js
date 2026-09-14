@@ -22,5 +22,6 @@ router.use('/agent', require('./agent'));
 router.use('/okr', require('./okr'));
 router.use('/planner', require('./planner'));
 router.use('/checkins', require('./checkins'));
+router.use('/knowledge-trend', require('./knowledgeTrend'));
 
 module.exports = router;

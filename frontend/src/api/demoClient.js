@@ -5,7 +5,7 @@
 
 import { createDataset } from './demoData.js';
 import { krPct, objectivePct, summarize, round3, krGrade, objectiveGrade } from '../store/okrMath.js';
-import { bucketTasks } from '../widgets/weekBuckets.js';
+import { bucketTasks, toDateKey, startOfIsoWeek } from '../widgets/weekBuckets.js';
 
 let store = createDataset();
 const nowIso = () => new Date().toISOString();
@@ -483,6 +483,69 @@ function plannerWeekly() {
   };
 }
 
+// ── 지식 축적 추세(개인 OS P11, ADR-0036) — 백엔드 services/knowledgeTrend.js 최소 흉내 ──
+function addDaysLocal(d, n) {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+}
+
+function knowledgeTrend(query) {
+  const raw = query.weeks;
+  let weeks = 8;
+  if (raw !== undefined) {
+    if (!/^\d+$/.test(String(raw))) throw err(400, 'weeks 는 1~26 사이 정수여야 합니다.');
+    weeks = Number(raw);
+    if (weeks < 1 || weeks > 26) throw err(400, 'weeks 는 1~26 사이 정수여야 합니다.');
+  }
+
+  const now = new Date();
+  const thisMon = startOfIsoWeek(now);
+  const firstMon = addDaysLocal(thisMon, -(weeks - 1) * 7);
+  const lastSun = addDaysLocal(thisMon, 6);
+
+  // 체크인 — 주차별 빈도 (created_at 을 주 버킷에 배분, 시드는 -21/-14/-7 일이라 최근 4주에 분포).
+  let checkinTotal = 0;
+  const checkinPoints = [];
+  for (let i = 0; i < weeks; i += 1) {
+    const mon = addDaysLocal(firstMon, i * 7);
+    const sun = addDaysLocal(mon, 6);
+    const fromKey = toDateKey(mon);
+    const toKey = toDateKey(sun);
+    const count = store.expectation_checkins.filter((c) => {
+      const key = String(c.created_at).slice(0, 10);
+      return key >= fromKey && key <= toKey;
+    }).length;
+    checkinTotal += count;
+    checkinPoints.push({ week: fromKey, label: fromKey.slice(5), count });
+  }
+  const checkinWeeks = checkinPoints.filter((p) => p.count > 0).length;
+
+  // OKR — 창과 겹치는 달만 (okrTrend() 의 월평균을 재사용).
+  const fromMonth = toDateKey(firstMon).slice(0, 7);
+  const okrPoints = okrTrend().points.filter((p) => p.month >= fromMonth);
+  const latestPct = okrPoints.length ? okrPoints[okrPoints.length - 1].krAvgPct : 0;
+
+  // 태그 — 데모 태스크에는 태그별 부착 시각이 없으므로 전부 창 안으로 간주한다 (ADR-0026, "보여주기" 목적).
+  const counts = new Map();
+  for (const t of store.tasks) {
+    for (const tag of t.tags || []) {
+      counts.set(tag, (counts.get(tag) || 0) + 1);
+    }
+  }
+  const sorted = [...counts.entries()].sort((a, b) => (b[1] - a[1]) || (a[0] < b[0] ? -1 : 1));
+  const tagTotal = sorted.reduce((acc, [, cnt]) => acc + cnt, 0);
+  const items = sorted.slice(0, 12).map(([tag, count]) => ({ tag, count }));
+  const otherCount = sorted.slice(12).reduce((acc, [, cnt]) => acc + cnt, 0);
+  const topTag = items.length ? items[0].tag : null;
+
+  return {
+    window: { weeks, from: toDateKey(firstMon), to: toDateKey(lastSun) },
+    checkins: { total: checkinTotal, points: checkinPoints },
+    okr: { points: okrPoints, latestPct },
+    tags: { total: tagTotal, distinct: sorted.length, otherCount, items },
+    summary: { checkinWeeks, activeWeeks: weeks, topTag },
+  };
+}
+
 // ── 라우트 디스패치 테이블 (ADR-0026 부록: 경로 패리티) ──────────────────
 // - spec 은 백엔드 express 경로 문자열과 "문자 그대로" 동일하게 맞춘다
 //   (scripts/check-demo-parity.mjs 가 이 배열과 백엔드 라우터를 대조한다).
@@ -579,6 +642,7 @@ export const DEMO_ROUTES = [
   { method: 'GET', spec: '/okr', match: (p) => p === '/okr', handler: (p, q) => okrDashboard(q) },
 
   { method: 'GET', spec: '/planner/weekly', match: (p) => p === '/planner/weekly', handler: () => plannerWeekly() },
+  { method: 'GET', spec: '/knowledge-trend', match: (p) => p === '/knowledge-trend', handler: (p, q) => knowledgeTrend(q) },
 
   // 기대정렬 체크인(P10, ADR-0035) — 구체 경로(/checkins)를 /checkins/:id 보다 먼저 매칭.
   { method: 'GET', spec: '/checkins', match: (p) => p === '/checkins', handler: (p, q) => listCheckins(q) },

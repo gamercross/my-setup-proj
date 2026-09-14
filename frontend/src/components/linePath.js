@@ -1,8 +1,12 @@
 // 라인차트 경로 계산 (순수 함수). 인라인 SVG 로 그린다 (PO-8 — 차트 라이브러리 미도입).
-// points: [{ month: 'YYYY-MM', krAvgPct: 0~1 }] (월 오름차순)
-// 반환: { d, dots:[{x,y,month,pct}], yTicks:[{y,label}] } — points 0개면 null.
+// points: [{ [labelKey]: 'YYYY-MM', [valueKey]: 0~1 }] (오름차순)
+// valueKey/labelKey 는 하위 호환 옵션 — 기본값은 기존 OKR 추이(month/krAvgPct)와 동일하다.
+// 반환: { d, dots:[{x,y,month,label,pct}], yTicks:[{y,label}] } — points 0개면 null.
 
-export function buildLinePath(points, { width = 320, height = 120, padding = 24 } = {}) {
+export function buildLinePath(
+  points,
+  { width = 320, height = 120, padding = 24, valueKey = 'krAvgPct', labelKey = 'month' } = {}
+) {
   const pts = Array.isArray(points) ? points : [];
   if (pts.length === 0) return null;
 
@@ -16,9 +20,10 @@ export function buildLinePath(points, { width = 320, height = 120, padding = 24 
 
   const dots = pts.map((p, i) => ({
     x: xFor(i),
-    y: yFor(p.krAvgPct),
+    y: yFor(p[valueKey]),
     month: p.month,
-    pct: Number(p.krAvgPct) || 0,
+    label: p[labelKey],
+    pct: Number(p[valueKey]) || 0,
   }));
 
   // 점 1개면 선 없이 점만.

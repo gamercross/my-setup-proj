@@ -77,6 +77,24 @@ test('TC-P8-REG-02: PLAN 주제 기본 레이아웃이 okr·weekly 전용 위젯
   }
 });
 
+test('TC-P11-REG-01: knowledge 위젯 메타·기본 레이아웃 (ADR-0036)', () => {
+  const k = WIDGET_META.knowledge;
+  assert.ok(k, 'knowledge 메타 누락');
+  assert.equal(k.type, 'knowledge');
+  assert.equal(k.configSchema.weeks.type, 'number');
+  assert.equal(k.configSchema.weeks.default, 8);
+  assert.equal(k.configSchema.weeks.min, 4);
+  assert.equal(k.configSchema.weeks.max, 26);
+  assert.equal(k.configSchema.showTags.type, 'bool');
+  assert.equal(k.configSchema.showTags.default, true);
+
+  assert.deepEqual(DEFAULT_LAYOUTS.knowledge.map((i) => i.type), ['knowledge']);
+  for (const inst of DEFAULT_LAYOUTS.knowledge) {
+    assert.ok(inst.w <= 12);
+    assert.ok(inst.w >= k.minSize.w && inst.h >= k.minSize.h);
+  }
+});
+
 test('TC-P10-REG-01: checkin 위젯 메타·기본 레이아웃 (ADR-0035)', () => {
   const c = WIDGET_META.checkin;
   assert.ok(c, 'checkin 메타 누락');
