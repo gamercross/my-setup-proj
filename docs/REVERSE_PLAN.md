@@ -1,5 +1,11 @@
 # 🔄 역 계획서 — 왜 만들었고, 어떻게 지었고, 무엇을 썼는가
 
+> **공개 버전:** 발표·공유용으로는 별도 저장소 [gamercross/my-setup-proj-story](https://github.com/gamercross/my-setup-proj-story) 에
+> 이 문서의 사본 + 읽기용 페이지 + 쇼케이스 랜딩페이지가 있다 —
+> [쇼케이스](https://gamercross.github.io/my-setup-proj-story/) ·
+> [역 계획서 읽기](https://gamercross.github.io/my-setup-proj-story/reverse-plan.html).
+> **이 파일이 여전히 원본이다** — 수정은 여기서 하고 필요하면 저 저장소로 다시 반영한다.
+>
 > 이미 만들어진 시스템을 거꾸로 되짚어 기반을 세우는 문서.
 > **원초적 고민 → 의사결정 문제 → 문제해결방법 → 설계 → 서비스** 순서로 읽는다.
 >
