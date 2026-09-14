@@ -13,6 +13,11 @@
       --text:#1a1a1a;--muted:#8a8a8a;--accent:#2f6feb;--accent-soft:rgba(47,111,235,.12);
       --ok:#2e7d5b;--warn:#c2691f;--bad:#c23b3b;
       --p-high:#ef4444;--p-med:#f59e0b;--p-low:#64748b;
+      --cat-dev:#2f6feb;--cat-dev-soft:rgba(47,111,235,.12);
+      --cat-study:#6d5bd0;--cat-study-soft:rgba(109,91,208,.12);
+      --cat-content:#c2691f;--cat-content-soft:rgba(194,105,31,.14);
+      --cat-plan:#5a6472;--cat-plan-soft:rgba(90,100,114,.12);
+      --cat-self:#2e7d5b;--cat-self-soft:rgba(46,125,91,.12);
       --card-radius:16px;--shadow-card:0 1px 2px rgba(16,24,40,.04), 0 5px 14px rgba(16,24,40,.06);
     }
     *{box-sizing:border-box}
@@ -58,6 +63,14 @@
     .c-ok{background:rgba(46,125,91,.12);color:var(--ok)}
     .c-warn{background:rgba(194,105,31,.14);color:var(--warn)}
     .c-muted{background:var(--panel-2);color:#5a6472}
+    .chip.cat-dev{background:var(--cat-dev-soft);color:var(--cat-dev)}
+    .chip.cat-study{background:var(--cat-study-soft);color:var(--cat-study)}
+    .chip.cat-content{background:var(--cat-content-soft);color:var(--cat-content)}
+    .chip.cat-plan{background:var(--cat-plan-soft);color:var(--cat-plan)}
+    .chip.cat-self{background:var(--cat-self-soft);color:var(--cat-self)}
+    .catlegend{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:-8px 0 16px;padding:10px 12px;background:var(--panel);border:1px solid var(--border);border-radius:11px}
+    .catlegend .lab{font-size:11px;color:var(--muted);font-weight:650;margin-right:2px}
+    .catlegend .chip{padding:2px 9px}
     .li{display:flex;align-items:center;gap:11px;padding:11px 0;border-top:1px solid var(--border);font-size:13px}
     .li:first-of-type{border-top:0}
     .cbx{width:16px;height:16px;border:1.6px solid #c7ccd4;border-radius:5px;flex-shrink:0}
@@ -105,11 +118,16 @@
   <main class="main">
     <div class="phead">
       <svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="3.5"/><path d="m8 12 3 3 5-6"/></svg>
-      <div><h1>할 일</h1><div class="sub">12개 미완료 · 우선순위 높음 3</div></div>
+      <div><h1>할 일</h1><div class="sub">12개 미완료 · 우선순위 높음 3 · 기대정렬 키워드에서 이어진 카테고리로 색 구분</div></div>
       <div class="right">
         <div class="seg"><span>리스트</span><span class="on">보드</span></div>
         <span class="btn pri">+ 할 일</span>
       </div>
+    </div>
+
+    <div class="catlegend">
+      <span class="lab">카테고리 (기대정렬 키워드 자동 추출)</span>
+      <span class="chip cat-dev">개발</span><span class="chip cat-study">공부</span><span class="chip cat-content">콘텐츠</span><span class="chip cat-plan">기획·문서</span><span class="chip cat-self">자기점검</span>
     </div>
 
     <div class="card">
@@ -120,19 +138,19 @@
       <div class="board">
         <div class="col">
           <h4><span class="pri" style="background:var(--p-high)"></span>높음 <span class="n">3</span></h4>
-          <div class="kc"><div class="kt"><span class="kb"></span>ADR-0032 채택 결정 반영</div><div class="meta"><span class="chip c-warn">오늘</span><span class="chip c-muted">문서</span></div></div>
-          <div class="kc"><div class="kt"><span class="kb"></span>P4.5 planner 브리핑 작성</div><div class="meta"><span class="chip c-muted">내일</span><span class="chip c-muted">개발</span></div></div>
-          <div class="kc"><div class="kt"><span class="kb"></span>PR #43 리뷰 반영</div><div class="meta"><span class="chip c-warn">오늘</span></div></div>
+          <div class="kc"><div class="kt"><span class="kb"></span>ADR-0032 채택 결정 반영</div><div class="meta"><span class="chip c-warn">오늘</span><span class="chip cat-plan">기획·문서</span></div></div>
+          <div class="kc"><div class="kt"><span class="kb"></span>P4.5 planner 브리핑 작성</div><div class="meta"><span class="chip c-muted">내일</span><span class="chip cat-dev">개발</span></div></div>
+          <div class="kc"><div class="kt"><span class="kb"></span>PR #43 리뷰 반영</div><div class="meta"><span class="chip c-warn">오늘</span><span class="chip cat-dev">개발</span></div></div>
         </div>
         <div class="col">
           <h4><span class="pri" style="background:var(--p-med)"></span>보통 <span class="n">2</span></h4>
-          <div class="kc"><div class="kt"><span class="kb"></span>데모 D-4 진행바 재확인</div><div class="meta"><span class="chip c-muted">이번주</span><span class="chip c-muted">데모</span></div></div>
-          <div class="kc"><div class="kt"><span class="kb"></span>OKR 요구사항 초안</div><div class="meta"><span class="chip c-muted">이번주</span></div></div>
+          <div class="kc"><div class="kt"><span class="kb"></span>데모 D-4 진행바 재확인</div><div class="meta"><span class="chip c-muted">이번주</span><span class="chip cat-dev">개발</span></div></div>
+          <div class="kc"><div class="kt"><span class="kb"></span>OKR 요구사항 초안</div><div class="meta"><span class="chip c-muted">이번주</span><span class="chip cat-plan">기획·문서</span></div></div>
         </div>
         <div class="col">
           <h4><span class="pri" style="background:var(--p-low)"></span>낮음 <span class="n">2</span></h4>
-          <div class="kc"><div class="kt"><span class="kb"></span>UI_STYLE 캡처 assets 정리</div><div class="meta"><span class="chip c-muted">언젠가</span></div></div>
-          <div class="kc"><div class="kt"><span class="kb"></span>작업로그 훅 점검</div><div class="meta"><span class="chip c-muted">언젠가</span></div></div>
+          <div class="kc"><div class="kt"><span class="kb"></span>UI_STYLE 캡처 assets 정리</div><div class="meta"><span class="chip c-muted">언젠가</span><span class="chip cat-content">콘텐츠</span></div></div>
+          <div class="kc"><div class="kt"><span class="kb"></span>작업로그 훅 점검</div><div class="meta"><span class="chip c-muted">언젠가</span><span class="chip cat-dev">개발</span></div></div>
         </div>
       </div>
     </div>
@@ -142,10 +160,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
         <h3>리스트 뷰 (같은 데이터)</h3><span class="act">전체 보기</span>
       </header>
-      <div class="li"><span class="cbx d"></span><span class="pri" style="background:var(--p-med)"></span><span class="t done">P4 공통 컴포넌트 PR 병합</span><span class="chip c-ok">완료</span></div>
-      <div class="li"><span class="cbx"></span><span class="pri" style="background:var(--p-high)"></span><span class="t">ADR-0032 채택 결정 반영</span><span class="chip c-warn">오늘</span></div>
-      <div class="li"><span class="cbx"></span><span class="pri" style="background:var(--p-high)"></span><span class="t">P4.5 planner 브리핑 작성</span><span class="chip c-muted">내일</span></div>
-      <div class="li"><span class="cbx"></span><span class="pri" style="background:var(--p-med)"></span><span class="t">데모 D-4 진행바 재확인</span><span class="chip c-muted">이번주</span></div>
+      <div class="li"><span class="cbx d"></span><span class="pri" style="background:var(--p-med)"></span><span class="t done">P4 공통 컴포넌트 PR 병합</span><span class="chip cat-dev">개발</span><span class="chip c-ok">완료</span></div>
+      <div class="li"><span class="cbx"></span><span class="pri" style="background:var(--p-high)"></span><span class="t">ADR-0032 채택 결정 반영</span><span class="chip cat-plan">기획·문서</span><span class="chip c-warn">오늘</span></div>
+      <div class="li"><span class="cbx"></span><span class="pri" style="background:var(--p-high)"></span><span class="t">P4.5 planner 브리핑 작성</span><span class="chip cat-dev">개발</span><span class="chip c-muted">내일</span></div>
+      <div class="li"><span class="cbx"></span><span class="pri" style="background:var(--p-med)"></span><span class="t">데모 D-4 진행바 재확인</span><span class="chip cat-dev">개발</span><span class="chip c-muted">이번주</span></div>
     </div>
   </main>
 </div>

@@ -12,6 +12,11 @@
       --bg:#f7f7f5;--panel:#fff;--panel-2:#f2f2ef;--border:#ececec;
       --text:#1a1a1a;--muted:#8a8a8a;--accent:#2f6feb;--accent-soft:rgba(47,111,235,.12);
       --ok:#2e7d5b;--warn:#c2691f;--bad:#c23b3b;
+      --cat-dev:#2f6feb;--cat-dev-soft:rgba(47,111,235,.12);
+      --cat-study:#6d5bd0;--cat-study-soft:rgba(109,91,208,.12);
+      --cat-content:#c2691f;--cat-content-soft:rgba(194,105,31,.14);
+      --cat-plan:#5a6472;--cat-plan-soft:rgba(90,100,114,.12);
+      --cat-self:#2e7d5b;--cat-self-soft:rgba(46,125,91,.12);
       --card-radius:16px;--shadow-card:0 1px 2px rgba(16,24,40,.04), 0 5px 14px rgba(16,24,40,.06);
     }
     *{box-sizing:border-box}
@@ -51,8 +56,16 @@
     .titem.done .box::after{content:"";position:absolute;left:3px;top:1px;width:5px;height:8px;border:solid #fff;border-width:0 1.6px 1.6px 0;transform:rotate(45deg)}
     .titem .t{font-size:12.5px;line-height:1.4}
     .titem.done .t{color:var(--muted);text-decoration:line-through}
-    .titem .tags{display:flex;gap:4px;margin-top:4px}
+    .titem .tags{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap}
     .titem .tag{font-size:9.5px;background:var(--panel-2);color:var(--muted);border-radius:5px;padding:1px 6px}
+    .titem .tag.cat-dev{background:var(--cat-dev-soft);color:var(--cat-dev);font-weight:650}
+    .titem .tag.cat-study{background:var(--cat-study-soft);color:var(--cat-study);font-weight:650}
+    .titem .tag.cat-content{background:var(--cat-content-soft);color:var(--cat-content);font-weight:650}
+    .titem .tag.cat-plan{background:var(--cat-plan-soft);color:var(--cat-plan);font-weight:650}
+    .titem .tag.cat-self{background:var(--cat-self-soft);color:var(--cat-self);font-weight:650}
+    .catlegend{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:-8px 0 18px;padding:10px 12px;background:var(--panel);border:1px solid var(--border);border-radius:11px}
+    .catlegend .lab{font-size:11px;color:var(--muted);font-weight:650;margin-right:2px}
+    .catlegend .tag{font-size:10.5px;padding:2px 8px;border-radius:6px}
   </style>
 </helmet>
 
@@ -89,28 +102,33 @@
   <main class="main">
     <div class="phead">
       <svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></svg>
-      <div><h1>주간 플래너</h1><div class="sub">ISO 주(월~일) 기준 지난주·이번주·다음주 — 순수 SQL 집계</div></div>
+      <div><h1>주간 플래너</h1><div class="sub">ISO 주(월~일) 기준 지난주·이번주·다음주 — 순수 SQL 집계 · 기대정렬 키워드에서 이어진 카테고리로 색 구분</div></div>
+    </div>
+
+    <div class="catlegend">
+      <span class="lab">카테고리 (기대정렬 키워드 자동 추출)</span>
+      <span class="tag cat-dev">개발</span><span class="tag cat-study">공부</span><span class="tag cat-content">콘텐츠</span><span class="tag cat-plan">기획·문서</span><span class="tag cat-self">자기점검</span>
     </div>
 
     <div class="cols3">
       <div class="wk">
         <header><h3>지난주</h3><span class="cnt">1 / 2 완료</span></header>
-        <div class="titem done"><div class="box"></div><div class="t">지난주 스프린트 데모 준비</div></div>
-        <div class="titem"><div class="box"></div><div class="t">지난주 코드리뷰 피드백 반영</div></div>
+        <div class="titem done"><div class="box"></div><div><div class="t">지난주 스프린트 데모 준비</div><div class="tags"><span class="tag cat-dev">개발</span></div></div></div>
+        <div class="titem"><div class="box"></div><div><div class="t">지난주 코드리뷰 피드백 반영</div><div class="tags"><span class="tag cat-dev">개발</span></div></div></div>
       </div>
       <div class="wk">
         <header><h3>이번주</h3><span class="cnt">2 / 5 완료</span></header>
-        <div class="titem"><div class="box"></div><div><div class="t">위젯 셸 레이아웃 저장 버그 재현</div><div class="tags"><span class="tag">개발</span><span class="tag">버그</span></div></div></div>
-        <div class="titem"><div class="box"></div><div><div class="t">Notion 저장 실패 시 재시도 로그 확인</div><div class="tags"><span class="tag">개발</span></div></div></div>
-        <div class="titem"><div class="box"></div><div><div class="t">프로세스 스케줄링 과제 3번 풀이</div><div class="tags"><span class="tag">공부</span></div></div></div>
-        <div class="titem done"><div class="box"></div><div class="t">페이지 교체 알고리즘 정리 노트</div></div>
-        <div class="titem done"><div class="box"></div><div class="t">기대정렬 3주차 체크인 작성</div></div>
+        <div class="titem"><div class="box"></div><div><div class="t">위젯 셸 레이아웃 저장 버그 재현</div><div class="tags"><span class="tag cat-dev">개발</span><span class="tag">버그</span></div></div></div>
+        <div class="titem"><div class="box"></div><div><div class="t">Notion 저장 실패 시 재시도 로그 확인</div><div class="tags"><span class="tag cat-dev">개발</span></div></div></div>
+        <div class="titem"><div class="box"></div><div><div class="t">프로세스 스케줄링 과제 3번 풀이</div><div class="tags"><span class="tag cat-study">공부</span></div></div></div>
+        <div class="titem done"><div class="box"></div><div><div class="t">페이지 교체 알고리즘 정리 노트</div><div class="tags"><span class="tag cat-study">공부</span></div></div></div>
+        <div class="titem done"><div class="box"></div><div><div class="t">기대정렬 3주차 체크인 작성</div><div class="tags"><span class="tag cat-self">자기점검</span></div></div></div>
       </div>
       <div class="wk">
         <header><h3>다음주</h3><span class="cnt">3건 예정</span></header>
-        <div class="titem"><div class="box"></div><div><div class="t">릴스 썸네일 5개 시안</div></div></div>
-        <div class="titem"><div class="box"></div><div class="t">주간 회고 작성</div></div>
-        <div class="titem"><div class="box"></div><div class="t">ADR-0016 2~4항 패키징 결정</div></div>
+        <div class="titem"><div class="box"></div><div><div class="t">릴스 썸네일 5개 시안</div><div class="tags"><span class="tag cat-content">콘텐츠</span></div></div></div>
+        <div class="titem"><div class="box"></div><div><div class="t">주간 회고 작성</div><div class="tags"><span class="tag cat-self">자기점검</span></div></div></div>
+        <div class="titem"><div class="box"></div><div><div class="t">ADR-0016 2~4항 패키징 결정</div><div class="tags"><span class="tag cat-dev">개발</span><span class="tag cat-plan">기획·문서</span></div></div></div>
       </div>
     </div>
   </main>

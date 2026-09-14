@@ -12,6 +12,11 @@
       --bg:#f7f7f5;--panel:#fff;--panel-2:#f2f2ef;--border:#ececec;
       --text:#1a1a1a;--muted:#8a8a8a;--accent:#2f6feb;--accent-soft:rgba(47,111,235,.12);
       --ok:#2e7d5b;--warn:#c2691f;--bad:#c23b3b;
+      --cat-dev:#2f6feb;--cat-dev-soft:rgba(47,111,235,.12);
+      --cat-study:#6d5bd0;--cat-study-soft:rgba(109,91,208,.12);
+      --cat-content:#c2691f;--cat-content-soft:rgba(194,105,31,.14);
+      --cat-plan:#5a6472;--cat-plan-soft:rgba(90,100,114,.12);
+      --cat-self:#2e7d5b;--cat-self-soft:rgba(46,125,91,.12);
       --card-radius:16px;--shadow-card:0 1px 2px rgba(16,24,40,.04), 0 5px 14px rgba(16,24,40,.06);
     }
     *{box-sizing:border-box}
@@ -68,6 +73,18 @@
     .qa .row{display:flex;gap:10px}
     .qa .q{flex:0 0 84px;font-size:11px;color:var(--muted);font-weight:600;padding-top:1px}
     .qa .a{flex:1;font-size:12.5px;line-height:1.5;color:var(--text)}
+    /* 키워드 → 카테고리 자동 태깅 */
+    .chip.cat-dev{background:var(--cat-dev-soft);color:var(--cat-dev)}
+    .chip.cat-study{background:var(--cat-study-soft);color:var(--cat-study)}
+    .chip.cat-content{background:var(--cat-content-soft);color:var(--cat-content)}
+    .chip.cat-plan{background:var(--cat-plan-soft);color:var(--cat-plan)}
+    .chip.cat-self{background:var(--cat-self-soft);color:var(--cat-self)}
+    .cats{display:flex;align-items:center;flex-wrap:wrap;gap:5px;margin-top:10px}
+    .kw{font-size:10.5px;color:var(--muted);background:var(--panel-2);border-radius:6px;padding:2px 7px}
+    .kw::before{content:"#"}
+    .legend{display:flex;flex-direction:column;gap:7px}
+    .legend .lrow{display:flex;align-items:center;gap:8px;font-size:12px}
+    .legend .lrow .n{margin-left:auto;font-family:ui-monospace,monospace;font-size:11.5px;color:var(--muted)}
     /* 새 체크인 폼 */
     .field{margin-bottom:12px}
     .field label{display:block;font-size:11.5px;font-weight:650;color:#3a4048;margin-bottom:5px}
@@ -113,7 +130,7 @@
   <main class="main">
     <div class="phead">
       <svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-      <div><h1>기대정렬</h1><div class="sub">뭘 하고 있는지, 왜 하는지 — 7질문으로 스스로 점검한다 · 마지막 기록 3주차</div></div>
+      <div><h1>기대정렬</h1><div class="sub">뭘 하고 있는지, 왜 하는지 — 7질문으로 스스로 점검한다 · 답변 키워드는 카테고리로 분류되어 주간 플래너·할 일에도 이어진다</div></div>
       <div class="right"><button class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>새 체크인</button></div>
     </div>
 
@@ -134,6 +151,7 @@
               <div class="row"><span class="q">뭘 하고 있지</span><span class="a">이 결과에 대한 피드백을 받기 위해 기획서를 쓰고, 내 작업을 소개하는 중이다.</span></div>
               <div class="row"><span class="q">왜 하지</span><span class="a">지금까지 쌓은 걸 남에게 보여줄 수 있는 형태로 만들어야, 다음 단계의 피드백을 받을 수 있으니까.</span></div>
             </div>
+            <div class="cats"><span class="chip cat-plan">기획·문서</span><span class="kw">기획서</span><span class="kw">소개</span></div>
           </div>
 
           <div class="ci">
@@ -142,6 +160,7 @@
               <div class="row"><span class="q">뭘 하고 있지</span><span class="a">내 개발·지식 역량을 확인하고, 뭘 놓쳤는지·어디를 더 넓게 봐야 하는지에 대한 피드백을 받는 중이다.</span></div>
               <div class="row"><span class="q">어떤 상태</span><span class="a">피드백을 수용하는 단계 — 아직 반영은 시작 전.</span></div>
             </div>
+            <div class="cats"><span class="chip cat-study">공부</span><span class="chip cat-self">자기점검</span><span class="kw">역량 점검</span><span class="kw">피드백 수용</span></div>
           </div>
 
           <div class="ci">
@@ -150,6 +169,19 @@
               <div class="row"><span class="q">구체적으로</span><span class="a">위젯 셸 뼈대와 핵심 화면 배치를 잡았다.</span></div>
               <div class="row"><span class="q">어떤 상태</span><span class="a">프로토타입 완성.</span></div>
             </div>
+            <div class="cats"><span class="chip cat-dev">개발</span><span class="kw">위젯 셸</span><span class="kw">프로토타입</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <header><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h10"/></svg><h3>카테고리 분포</h3><span class="act">키워드 자동 추출</span></header>
+          <div class="hint" style="margin-top:-2px">각 체크인 답변에서 키워드를 뽑아 5개 카테고리로 분류한다 — 같은 분류가 주간 플래너·할 일에도 그대로 보인다.</div>
+          <div class="legend">
+            <div class="lrow"><span class="chip cat-dev">개발</span><span class="n">1건</span></div>
+            <div class="lrow"><span class="chip cat-study">공부</span><span class="n">1건</span></div>
+            <div class="lrow"><span class="chip cat-content">콘텐츠</span><span class="n">0건</span></div>
+            <div class="lrow"><span class="chip cat-plan">기획·문서</span><span class="n">1건</span></div>
+            <div class="lrow"><span class="chip cat-self">자기점검</span><span class="n">1건</span></div>
           </div>
         </div>
       </div>
@@ -159,6 +191,7 @@
           <header><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg><h3>새 체크인</h3></header>
           <div class="hint">7개 질문 중 채운 것만 저장된다 — 매번 다 답할 필요는 없다.</div>
           <div class="field"><label>기간 라벨</label><textarea style="height:32px">4주차</textarea></div>
+          <div class="field"><label>키워드<span class="n">쉼표로 구분 — 카테고리 자동 매핑</span></label><textarea style="height:32px" placeholder="예: 배포, 회고"></textarea></div>
           <div class="field"><label>내가 뭘 하고 있지<span class="n">what</span></label><textarea></textarea></div>
           <div class="field"><label>이걸 왜 하지<span class="n">why</span></label><textarea></textarea></div>
           <div class="field"><label>언제까지 할 것인지<span class="n">until</span></label><textarea></textarea></div>
