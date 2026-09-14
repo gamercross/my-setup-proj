@@ -94,6 +94,7 @@ API `POST/PUT/DELETE /api/okr/objectives` · 데이터 `objectives` · UI OKR �
 | `target` | ✅ | number | ≥ 0 |
 | `current` | — | number | 기본 0 |
 | `unit` | — | string\|null | 트림 후 길이 0~12, 빈 값은 `null` |
+| `kind` | — | string | `committed`\|`aspirational`, 기본 `committed` (ADR-0034, FR-OKR-07) |
 | `project_id` | — | int\|null | 존재하는 프로젝트 또는 `null` (느슨 FK) |
 
 ### 관련
@@ -110,7 +111,8 @@ API `POST/PUT/DELETE /api/okr/key-results` · 데이터 `key_results` · [ADR-00
 
 ### 수용 기준
 - **AC-1** Given objective 2개(각 KR 2·1개), When `GET /api/okr`, Then 200 과
-  `{ objectives: [ { id, title, period, status, pct, keyResults: [ { id, title, target, current, unit, pct, project_id } ] } ], summary: {...} }`.
+  `{ objectives: [ { id, title, period, status, pct, grade, keyResults: [ { id, title, target, current, unit, pct, kind, grade, project_id } ] } ], summary: {...} }`.
+  `grade`("red"\|"yellow"\|"green") 계산 규칙은 FR-OKR-07(ADR-0034).
 - **AC-2** `summary` 는 다음을 포함한다 (전부 서버 계산):
   - `krAvgPct` — 모든 key result pct 의 평균 (0~1). KR 0개면 0.
   - `objectiveCount` · `keyResultCount`
@@ -209,7 +211,42 @@ UI `OkrWidgetView` · `PlannerWidgetView` · 스토어 `useOkrStore` · 컴포�
 
 ---
 
-## 데이터 계약 (ADR-0030 발췌 — 착수 시 DATA_DICTIONARY 로 이관)
+## FR-OKR-07 — 구글식 등급 (committed/aspirational + 색상 밴드)
+
+**사용자 스토리:** 사용자로서 나는 핵심 결과를 "반드시 달성"(committed)과 "도전적 목표"
+(aspirational)로 구분하고, 숫자 pct 대신 빨강/노랑/초록 등급으로 한눈에 상태를 보고 싶다.
+
+**우선순위** P2 · **목표 주차** 개인 OS P8 후속 · **상태** ⏳ · **근거** [ADR-0034](../architecture/adr/ADR-0034-okr-google-grading.md)
+
+### 수용 기준
+- **AC-1** Given key result 생성 시 `kind` 미지정, When `POST /api/okr/key-results`, Then 201 이고
+  `kind="committed"` 가 기본으로 저장된다.
+- **AC-2** Given `kind` 가 `committed`\|`aspirational` 이 아님, When 생성/수정, Then 400
+  `{error:"kind 는 committed·aspirational 중 하나여야 합니다."}` 이고 저장되지 않는다.
+- **AC-3** Given `PUT /api/okr/key-results/:id {kind:"aspirational"}`, Then `kind` 만 갱신되고
+  `updated_at` 이 바뀐다.
+- **AC-4** `GET /api/okr` 의 각 key result 에 `grade`(`"red"`\|`"yellow"`\|`"green"`)를 포함한다.
+  `round3(pct)` 값 기준(경계 포함): `committed` 는 `pct < 0.4` red, `0.4 ≤ pct < 0.9` yellow,
+  `pct ≥ 0.9` green. `aspirational` 은 `pct < 0.4` red, `0.4 ≤ pct < 0.7` yellow, `pct ≥ 0.7` green.
+- **AC-5** 각 objective 에도 `grade` 를 포함한다. 하위 key result 가 **전부** `aspirational` 이면
+  aspirational 밴드, 그 외(혼합·전부 committed·key result 0개)는 committed 밴드로 계산한다.
+  key result 0개면 `pct=0, grade="red"`.
+- **AC-6** 기존 `summary.bucket`(0.9/0.4 경계, kind 무관) 은 이 FR 로 변경하지 않는다 — 스탯
+  타일 전용, `grade` 와 별개 체계.
+- **AC-7** 위젯에서 objective/KR 추가·수정 폼에 `kind` 선택(약속형/문샷형)을 제공한다. KR 행에
+  kind 라벨(muted 텍스트)과 등급 칩을 표시한다.
+- **AC-8** 위젯에서 objective 를 펼쳤을 때 하위 key result 개수가 2 미만이거나 5 초과이면
+  "Key Result 는 2~5개를 권장합니다" 안내를 보여준다(입력은 막지 않는다).
+- **AC-9** 데모 모드(`demoClient.js`/`demoData.js`)도 `kind`·`grade` 를 동일하게 반환하고,
+  시드 데이터에 aspirational KR 을 최소 1건 포함한다.
+
+### 관련
+API `GET /api/okr`·`POST/PUT /api/okr/key-results` · 데이터 `key_results.kind` · UI OKR 위젯 등급 칩 ·
+[ADR-0034](../architecture/adr/ADR-0034-okr-google-grading.md)
+
+---
+
+## 데이터 계약 (ADR-0030/ADR-0034 발췌 — 착수 시 DATA_DICTIONARY 로 이관)
 
 ```sql
 CREATE TABLE objectives (
@@ -226,6 +263,7 @@ CREATE TABLE key_results (
   target REAL NOT NULL,
   current REAL NOT NULL DEFAULT 0,
   unit TEXT,
+  kind TEXT NOT NULL DEFAULT 'committed' CHECK (kind IN ('committed','aspirational')),  -- ADR-0034
   project_id INTEGER REFERENCES projects(id) ON DELETE SET NULL,
   created_at TEXT NOT NULL, updated_at TEXT NOT NULL
 );

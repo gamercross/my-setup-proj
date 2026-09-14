@@ -4,7 +4,7 @@
 //   (새로고침 = 초기화). 목적은 "보여주기"이지 정합성 테스트가 아니다.
 
 import { createDataset } from './demoData.js';
-import { krPct, objectivePct, summarize, round3 } from '../store/okrMath.js';
+import { krPct, objectivePct, summarize, round3, krGrade, objectiveGrade } from '../store/okrMath.js';
 import { bucketTasks } from '../widgets/weekBuckets.js';
 
 let store = createDataset();
@@ -202,22 +202,27 @@ function okrDashboard(query) {
     const krs = krsByObj.get(o.id) || [];
     const keyResults = krs.map((kr) => {
       included.push(kr);
+      const pct = round3(krPct(kr));
       return {
         id: kr.id,
         title: kr.title,
         target: kr.target,
         current: kr.current,
         unit: kr.unit,
-        pct: round3(krPct(kr)),
+        pct,
+        kind: kr.kind,
+        grade: krGrade(pct, kr.kind),
         project_id: kr.project_id,
       };
     });
+    const objPct = round3(objectivePct(krs));
     return {
       id: o.id,
       title: o.title,
       period: o.period,
       status: o.status,
-      pct: round3(objectivePct(krs)),
+      pct: objPct,
+      grade: objectiveGrade(objPct, krs),
       keyResults,
     };
   });
@@ -302,6 +307,9 @@ function createKeyResult(body) {
   if (!title) throw err(400, 'title 은 필수입니다.');
   const target = Number(b.target);
   if (!Number.isFinite(target) || target < 0) throw err(400, 'target 은 0 이상의 숫자여야 합니다.');
+  if (b.kind !== undefined && !['committed', 'aspirational'].includes(b.kind)) {
+    throw err(400, 'kind 는 committed·aspirational 중 하나여야 합니다.');
+  }
   const now = nowIso();
   const keyResult = {
     id: nextId(),
@@ -310,6 +318,7 @@ function createKeyResult(body) {
     target,
     current: b.current === undefined ? 0 : Number(b.current),
     unit: b.unit && String(b.unit).trim() ? String(b.unit).trim() : null,
+    kind: b.kind === undefined ? 'committed' : b.kind,
     project_id: b.project_id ?? null,
     created_at: now,
     updated_at: now,
@@ -334,6 +343,12 @@ function updateKeyResult(id, body) {
   }
   if (b.current !== undefined) keyResult.current = Number(b.current);
   if (b.unit !== undefined) keyResult.unit = b.unit && String(b.unit).trim() ? String(b.unit).trim() : null;
+  if (b.kind !== undefined) {
+    if (!['committed', 'aspirational'].includes(b.kind)) {
+      throw err(400, 'kind 는 committed·aspirational 중 하나여야 합니다.');
+    }
+    keyResult.kind = b.kind;
+  }
   if (b.project_id !== undefined) keyResult.project_id = b.project_id;
   keyResult.updated_at = nowIso();
   return { keyResult };

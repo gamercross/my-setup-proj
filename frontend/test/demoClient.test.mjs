@@ -143,6 +143,40 @@ test('TC-P8-DEMO-04: key-result 검증 — objective 미존재 400, target 음�
   );
 });
 
+test('TC-P8-DEMO-06: (ADR-0034) GET /okr 는 모든 KR 에 kind·grade, aspirational 최소 1건, 잘못된 kind → 400', async () => {
+  const res = await demoRequest('GET', '/okr');
+  const allKrs = res.objectives.flatMap((o) => o.keyResults);
+  assert.ok(allKrs.length > 0);
+  for (const kr of allKrs) {
+    assert.ok(['committed', 'aspirational'].includes(kr.kind));
+    assert.ok(['green', 'yellow', 'red'].includes(kr.grade));
+  }
+  assert.ok(allKrs.some((kr) => kr.kind === 'aspirational'), 'aspirational KR 최소 1건 시드');
+  for (const o of res.objectives) {
+    assert.ok(['green', 'yellow', 'red'].includes(o.grade));
+  }
+
+  await assert.rejects(
+    () => demoRequest('POST', '/okr/key-results', { objective_id: 1, title: 'x', target: 1, kind: 'moonshot' }),
+    (e) => e.status === 400 && /kind/.test(e.message)
+  );
+
+  const { objective } = await demoRequest('POST', '/okr/objectives', { title: 'o', period: '2026' });
+  const { keyResult } = await demoRequest('POST', '/okr/key-results', {
+    objective_id: objective.id,
+    title: 'kr',
+    target: 4,
+  });
+  assert.equal(keyResult.kind, 'committed');
+
+  await assert.rejects(
+    () => demoRequest('PUT', `/okr/key-results/${keyResult.id}`, { kind: 'moonshot' }),
+    (e) => e.status === 400 && /kind/.test(e.message)
+  );
+  const put = await demoRequest('PUT', `/okr/key-results/${keyResult.id}`, { kind: 'aspirational' });
+  assert.equal(put.keyResult.kind, 'aspirational');
+});
+
 test('TC-P8-DEMO-05: GET /planner/weekly 는 3버킷 계약', async () => {
   const w = await demoRequest('GET', '/planner/weekly');
   assert.deepEqual(Object.keys(w).sort(), ['lastWeek', 'nextWeek', 'thisWeek']);

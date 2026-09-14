@@ -116,6 +116,7 @@ CREATE TABLE IF NOT EXISTS key_results (
   target       REAL    NOT NULL,
   "current"    REAL    NOT NULL DEFAULT 0,              -- SQL 예약어라 항상 인용
   unit         TEXT,                                    -- NULL = 단위 없음
+  kind TEXT NOT NULL DEFAULT 'committed' CHECK (kind IN ('committed','aspirational')),  -- 구글 OKR 유형 (ADR-0034)
   project_id   INTEGER REFERENCES projects(id) ON DELETE SET NULL,  -- 느슨 FK (ADR-0012)
   created_at   TEXT    NOT NULL,
   updated_at   TEXT    NOT NULL

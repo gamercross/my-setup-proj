@@ -28,9 +28,9 @@ const PROJECT_FIELDS = ['name', 'progress', 'status', 'notion_id'];
 // SELECT 는 "current" AS current 로 되돌려 응답 키는 current 를 유지한다 (P8 주의점 1).
 const OBJECTIVE_COLS = 'id, title, period, status, created_at, updated_at';
 const KR_COLS =
-  'id, objective_id, title, target, "current" AS current, unit, project_id, created_at, updated_at';
+  'id, objective_id, title, target, "current" AS current, unit, kind, project_id, created_at, updated_at';
 const OBJECTIVE_FIELDS = ['title', 'period', 'status'];
-const KR_FIELDS = ['title', 'target', 'current', 'unit', 'project_id'];
+const KR_FIELDS = ['title', 'target', 'current', 'unit', 'kind', 'project_id'];
 
 // prepared statement 는 모듈 로드 시 준비한다.
 const stmts = {
@@ -129,12 +129,12 @@ const stmts = {
   ),
   getKeyResult: db.prepare(`SELECT ${KR_COLS} FROM key_results WHERE id = ?`),
   insertKeyResult: db.prepare(
-    `INSERT INTO key_results (objective_id, title, target, "current", unit, project_id, created_at, updated_at)
-     VALUES (@objective_id, @title, @target, @current, @unit, @project_id, @created_at, @updated_at)`
+    `INSERT INTO key_results (objective_id, title, target, "current", unit, kind, project_id, created_at, updated_at)
+     VALUES (@objective_id, @title, @target, @current, @unit, @kind, @project_id, @created_at, @updated_at)`
   ),
   updateKeyResult: db.prepare(
     `UPDATE key_results SET title = @title, target = @target, "current" = @current,
-       unit = @unit, project_id = @project_id, updated_at = @updated_at
+       unit = @unit, kind = @kind, project_id = @project_id, updated_at = @updated_at
      WHERE id = @id`
   ),
   deleteKeyResult: db.prepare('DELETE FROM key_results WHERE id = ?'),
@@ -441,6 +441,7 @@ function addKeyResult(kr) {
     target: kr.target,
     current: kr.current === undefined ? 0 : kr.current,
     unit: kr.unit ?? null,
+    kind: kr.kind || 'committed',
     project_id: kr.project_id ?? null,
     created_at: now,
     updated_at: now,

@@ -127,7 +127,10 @@ describe('OKR API', () => {
     const res = await request(app).get('/api/okr');
     assert.equal(res.status, 200);
     const o = res.body.objectives[0];
-    assert.deepEqual(Object.keys(o).sort(), ['id', 'keyResults', 'pct', 'period', 'status', 'title'].sort());
+    assert.deepEqual(
+      Object.keys(o).sort(),
+      ['id', 'keyResults', 'pct', 'grade', 'period', 'status', 'title'].sort()
+    );
     assert.deepEqual(res.body.summary.bucket, { high: 1, mid: 1, low: 2 });
     assert.equal(res.body.summary.objectiveCount, 1);
     assert.equal(res.body.summary.keyResultCount, 4);
@@ -233,5 +236,94 @@ describe('OKR API', () => {
     const kr = dash.body.objectives[0].keyResults.find((k) => k.id === krId);
     assert.equal(kr.current, 999);
     assert.equal(kr.pct, 1);
+  });
+
+  it('TC-OKR-15: (ADR-0034) POST key-results kind 미지정 → 201, kind="committed"', async () => {
+    const objId = await seed(app, []);
+    const res = await request(app)
+      .post('/api/okr/key-results')
+      .send({ objective_id: objId, title: 'kr', target: 10 });
+    assert.equal(res.status, 201);
+    assert.equal(res.body.keyResult.kind, 'committed');
+  });
+
+  it('TC-OKR-16: (ADR-0034) kind 검증 — 허용값 밖 400, PUT 으로 병합 200', async () => {
+    const objId = await seed(app, []);
+
+    const bad = await request(app)
+      .post('/api/okr/key-results')
+      .send({ objective_id: objId, title: 'kr', target: 10, kind: 'moonshot' });
+    assert.equal(bad.status, 400);
+    assert.equal(bad.body.error, 'kind 는 committed·aspirational 중 하나여야 합니다.');
+
+    // 저장 안 됨 확인
+    const dashAfterBad = await request(app).get('/api/okr');
+    assert.equal(dashAfterBad.body.objectives[0].keyResults.length, 0);
+
+    const created = await request(app)
+      .post('/api/okr/key-results')
+      .send({ objective_id: objId, title: 'kr', target: 10 });
+    const krId = created.body.keyResult.id;
+
+    const badPut = await request(app)
+      .put(`/api/okr/key-results/${krId}`)
+      .send({ kind: 'moonshot' });
+    assert.equal(badPut.status, 400);
+
+    const put = await request(app)
+      .put(`/api/okr/key-results/${krId}`)
+      .send({ kind: 'aspirational' });
+    assert.equal(put.status, 200);
+    assert.equal(put.body.keyResult.kind, 'aspirational');
+  });
+
+  it('TC-OKR-17: (ADR-0034) GET /api/okr 등급 경계 — pct 0.7/0.9/0.4/0.399 × kind 조합', async () => {
+    const objId = await seed(app, [
+      { title: 'c-0.9', target: 10, current: 9, kind: 'committed' }, // green
+      { title: 'c-0.4', target: 10, current: 4, kind: 'committed' }, // yellow
+      { title: 'c-0.399', target: 1000, current: 399, kind: 'committed' }, // red
+      { title: 'a-0.7', target: 10, current: 7, kind: 'aspirational' }, // green
+      { title: 'a-0.4', target: 10, current: 4, kind: 'aspirational' }, // yellow
+      { title: 'a-0.399', target: 1000, current: 399, kind: 'aspirational' }, // red
+    ]);
+    const dash = await request(app).get('/api/okr');
+    const krs = dash.body.objectives[0].keyResults;
+    const byTitle = (t) => krs.find((k) => k.title === t);
+
+    assert.equal(byTitle('c-0.9').grade, 'green');
+    assert.equal(byTitle('c-0.4').grade, 'yellow');
+    assert.equal(byTitle('c-0.399').grade, 'red');
+    assert.equal(byTitle('a-0.7').grade, 'green');
+    assert.equal(byTitle('a-0.4').grade, 'yellow');
+    assert.equal(byTitle('a-0.399').grade, 'red');
+  });
+
+  it('TC-OKR-18: (ADR-0034) objective.grade — 전부 aspirational / 혼합 / KR 0개', async () => {
+    // 전부 aspirational, pct 0.75 → aspirational 밴드에서는 green(>=0.7), committed 밴드였으면 yellow
+    const objAllAsp = await seed(app, [
+      { title: 'a1', target: 10, current: 8, kind: 'aspirational' },
+      { title: 'a2', target: 10, current: 7, kind: 'aspirational' },
+    ]);
+    let dash = await request(app).get('/api/okr');
+    let o = dash.body.objectives.find((x) => x.id === objAllAsp);
+    assert.equal(o.pct, 0.75);
+    assert.equal(o.grade, 'green');
+
+    // 혼합(committed 1 + aspirational 1) → committed 밴드로 폴백, pct 0.75 → yellow(<0.9)
+    const objMixed = await seed(app, [
+      { title: 'm1', target: 10, current: 8, kind: 'committed' },
+      { title: 'm2', target: 10, current: 7, kind: 'aspirational' },
+    ]);
+    dash = await request(app).get('/api/okr');
+    o = dash.body.objectives.find((x) => x.id === objMixed);
+    assert.equal(o.pct, 0.75);
+    assert.equal(o.grade, 'yellow');
+
+    // KR 0개 → pct 0, grade red
+    const objEmpty = await seed(app, []);
+    dash = await request(app).get('/api/okr');
+    o = dash.body.objectives.find((x) => x.id === objEmpty);
+    assert.equal(o.pct, 0);
+    assert.equal(o.grade, 'red');
   });
 });

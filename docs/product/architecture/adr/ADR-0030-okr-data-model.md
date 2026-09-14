@@ -69,3 +69,6 @@ CREATE TABLE kr_snapshots (               -- 월별 라인차트용
 `backend/db/schema.sql`(+3 테이블), `backend/db/index.js`(멱등), `backend/src/{db,routes,services}`(okr·planner),
 `agent/`(월별 스냅샷 — 선택), `requirements/OKR.md`(신규 + FR-OKR-*), `TRACEABILITY.md`, `DATA_DICTIONARY.md`,
 `frontend`(OkrWidgetView·PlannerWidgetView·스탯 타일·라인차트), `DESIGN.md`.
+
+## 후속
+[ADR-0034](ADR-0034-okr-google-grading.md) — `key_results.kind`(committed/aspirational) + 등급 밴드(`krGrade`/`objectiveGrade`) 추가.

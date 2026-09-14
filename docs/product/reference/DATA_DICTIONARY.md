@@ -156,11 +156,15 @@
 | `target` | REAL | NOT NULL | 목표치. 0 이상 | `80` |
 | `current` | REAL | NOT NULL, 기본 `0` | 현재치. SQL 예약어라 DDL 에서 항상 인용(`"current"`) | `50` |
 | `unit` | TEXT | NULL 허용 | 단위. 트림 후 `''`→NULL, 12자 이하 | `"%"` / `null` |
+| `kind` | TEXT | NOT NULL, 기본 `committed`, CHECK | `committed`(약속형)\|`aspirational`(문샷형) — 구글 OKR 유형 (ADR-0034) | `"committed"` |
 | `project_id` | INTEGER | NULL 허용, FK → `projects(id)` `ON DELETE SET NULL` | 연결 프로젝트 (느슨 FK, ADR-0012) | `2` / `null` |
 | `created_at` `updated_at` | TEXT | NOT NULL | ISO8601 | — |
 
 - 인덱스: `idx_key_results_objective(objective_id)`, `idx_key_results_project(project_id)`.
 - 달성률 `pct` 는 저장하지 않는다 — 조회 시 `target > 0 ? clamp(current/target,0,1) : 0` 으로 계산.
+- `grade`(`red`\|`yellow`\|`green`)도 저장하지 않는다 — 조회 시 `pct`·`kind` 로 계산(ADR-0034,
+  `krGrade`). `kind` 컬럼은 `SCHEMA_VERSION` 1→2 마이그레이션(`backend/db/index.js`)으로
+  기존 파일 DB 에 `ALTER TABLE ... ADD COLUMN` 추가된다.
 
 ## 9. `kr_snapshots` — 월별 달성률 스냅샷 (FR-OKR-04)
 
