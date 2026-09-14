@@ -563,12 +563,23 @@ FR-UI-06 · [ADR-0031](../architecture/adr/ADR-0031-safe-markdown-render.md) · 
 
 ---
 
-## OKR (okr) ✅ 구현 — P8 (2026-09-08)
+## OKR (okr) ✅ 구현 — P8 (2026-09-08) · 등급 ✅ ADR-0034 (2026-09-14)
 
-FR-OKR-01~04 · [ADR-0030](../architecture/adr/ADR-0030-okr-data-model.md) · 서비스 `backend/src/services/okr.js`
+FR-OKR-01~04·07 · [ADR-0030](../architecture/adr/ADR-0030-okr-data-model.md) ·
+[ADR-0034](../architecture/adr/ADR-0034-okr-google-grading.md) · 서비스 `backend/src/services/okr.js`
 
 달성률 공식: `krPct = target > 0 ? clamp(current/target, 0, 1) : 0`,
 `objectivePct = 하위 KR pct 산술 평균`. 소수 셋째 자리 반올림. 버킷: `pct ≥ 0.9 high` · `≥ 0.4 mid` · 그 외 `low`.
+
+등급(`grade`, ADR-0034) — `round3(pct)` 값 기준, 경계 포함:
+
+| kind | red | yellow | green |
+|---|---|---|---|
+| `committed` | `pct < 0.4` | `0.4 ≤ pct < 0.9` | `pct ≥ 0.9` |
+| `aspirational` | `pct < 0.4` | `0.4 ≤ pct < 0.7` | `pct ≥ 0.7` |
+
+objective 등급은 하위 KR 이 전부 `aspirational` 이면 aspirational 밴드, 그 외는 committed 밴드
+(KR 0개면 `pct=0, grade="red"`). `summary.bucket`(위 0.9/0.4 경계)과는 별개 체계 — 건드리지 않는다.
 
 ### `GET /api/okr` — 대시보드 ✅
 
@@ -580,8 +591,10 @@ FR-OKR-01~04 · [ADR-0030](../architecture/adr/ADR-0030-okr-data-model.md) · �
 ```json
 {
   "objectives": [ { "id": 1, "title": "...", "period": "2026-Q1", "status": "active", "pct": 0.62,
+                    "grade": "yellow",
                     "keyResults": [ { "id": 3, "title": "...", "target": 100, "current": 62,
-                                     "unit": "건", "pct": 0.62, "project_id": null } ] } ],
+                                     "unit": "건", "pct": 0.62, "kind": "committed", "grade": "yellow",
+                                     "project_id": null } ] } ],
   "summary": { "krAvgPct": 0.62, "objectiveCount": 2, "keyResultCount": 4,
                "bucket": { "high": 1, "mid": 2, "low": 1 } }
 }
@@ -613,9 +626,11 @@ FR-OKR-01~04 · [ADR-0030](../architecture/adr/ADR-0030-okr-data-model.md) · �
 | `target` | 0 이상의 숫자 (생성 시 필수) |
 | `current` | 숫자 (기본 0) |
 | `unit` | 선택, 트림 후 `''`→null, 12자 이하 |
+| `kind` | 선택, `committed`\|`aspirational`, 기본 `committed` (ADR-0034). 허용값 밖이면 400 `{"error":"kind 는 committed·aspirational 중 하나여야 합니다."}` |
 | `project_id` | 선택, 느슨 FK (없는 프로젝트면 400) |
 
 - POST → `201 { "keyResult": {...} }`. PUT 부분 수정 → `200 { "keyResult": {...} }`. DELETE → `200 { "ok": true }` (하위 스냅샷 CASCADE).
+  `keyResult` 는 행 그대로 반환 — `kind` 는 포함되지만 `grade`·`pct` 는 CRUD 응답에 없다(조회는 `GET /api/okr`).
 
 ---
 

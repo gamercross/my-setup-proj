@@ -17,7 +17,7 @@ const Database = require('better-sqlite3');
 let conn = null;
 
 // 스키마 마이그레이션 버전 (PRAGMA user_version 과 비교). forward-only, down 없음 — ADR-0018.
-const SCHEMA_VERSION = 1;
+const SCHEMA_VERSION = 2;
 
 // 마이그레이션 직전 1회 백업한다.
 // ':memory:' · 신규 파일(부팅 시 새로 만들어진 빈 DB, isNew)은 스킵.
@@ -64,6 +64,16 @@ function applyMigrations(db, dbPath, isNew) {
     CREATE INDEX IF NOT EXISTS idx_sync_service ON sync_logs(service, last_sync);
     COMMIT;
   `);
+
+  // v2: key_results.kind 추가 (ADR-0034). 신규 DB·:memory: 는 schema.sql 이 이미 만들었으므로 건너뛴다.
+  // 컬럼 존재 여부를 먼저 확인한다 — 없으면 "duplicate column name" 으로 마이그레이션 전체가 깨진다.
+  const hasKind = db.pragma('table_info(key_results)').some((c) => c.name === 'kind');
+  if (!hasKind) {
+    db.exec(
+      `ALTER TABLE key_results ADD COLUMN kind TEXT NOT NULL DEFAULT 'committed' CHECK (kind IN ('committed','aspirational'))`
+    );
+  }
+
   db.pragma(`user_version = ${SCHEMA_VERSION}`);
 }
 

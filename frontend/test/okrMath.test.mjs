@@ -3,7 +3,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { krPct, objectivePct, summarize, formatPct, round3 } from '../src/store/okrMath.js';
+import {
+  krPct,
+  objectivePct,
+  summarize,
+  formatPct,
+  round3,
+  krGrade,
+  objectiveGrade,
+} from '../src/store/okrMath.js';
 
 test('TC-P8-MATH-01: krPct — 클램프 + target 0', () => {
   assert.equal(krPct({ target: 10, current: 5 }), 0.5);
@@ -41,4 +49,25 @@ test('TC-P8-MATH-05: formatPct — 소수 한 자리 % 문자열', () => {
   assert.equal(formatPct(0.844), '84.4%');
   assert.equal(formatPct(1), '100%');
   assert.equal(formatPct(0), '0%');
+});
+
+test('TC-P8-MATH-GRADE: krGrade/objectiveGrade — 백엔드와 동일 경계 (ADR-0034)', () => {
+  // committed: <0.4 red, 0.4~0.9 yellow, >=0.9 green
+  assert.equal(krGrade(0.9, 'committed'), 'green');
+  assert.equal(krGrade(0.4, 'committed'), 'yellow');
+  assert.equal(krGrade(0.399, 'committed'), 'red');
+  // aspirational: <0.4 red, 0.4~0.7 yellow, >=0.7 green
+  assert.equal(krGrade(0.7, 'aspirational'), 'green');
+  assert.equal(krGrade(0.4, 'aspirational'), 'yellow');
+  assert.equal(krGrade(0.399, 'aspirational'), 'red');
+  // kind 미상이면 committed 밴드로 폴백
+  assert.equal(krGrade(0.9, undefined), 'green');
+  assert.equal(krGrade(0.7, undefined), 'yellow');
+
+  // objectiveGrade — 전부 aspirational 이면 aspirational 밴드, 그 외는 committed 밴드
+  const allAsp = [{ kind: 'aspirational' }, { kind: 'aspirational' }];
+  assert.equal(objectiveGrade(0.75, allAsp), 'green'); // aspirational 밴드 0.75>=0.7
+  const mixed = [{ kind: 'committed' }, { kind: 'aspirational' }];
+  assert.equal(objectiveGrade(0.75, mixed), 'yellow'); // committed 밴드 0.75<0.9
+  assert.equal(objectiveGrade(0, []), 'red'); // KR 0개
 });

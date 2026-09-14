@@ -272,18 +272,19 @@ stateDiagram-v2
 | 관련 FR | FR-AGENT-08, [ADR-0011](../architecture/adr/ADR-0011-agent-backend-db-access.md), [ADR-0013](../architecture/adr/ADR-0013-dashboard-agent-queue.md) |
 | 상태 | 에러 → `ErrorBanner(onRetry)` / 로딩(`loading && !loaded`) → "불러오는 중…" / 정상 → 위 레이아웃. 빈 상태(`logs` 없음)는 **로그 영역만** "아직 에이전트 실행 기록이 없습니다" 로 대체하고 StatTile 행·health 배지·[지금 실행] 버튼·다음 실행 시각은 그대로 표시 (최초 설치 직후에도 "지금 실행" 가능) |
 
-### 3.5c OKR 위젯 ✅ P8 (FR-OKR-01~04·06, 2026-09-08)
+### 3.5c OKR 위젯 ✅ P8 (FR-OKR-01~04·06~07, 2026-09-08, 등급 ADR-0034 2026-09-14)
 
 | 항목 | 내용 |
 |---|---|
-| 목적 | Objective·Key Result 달성률 대시보드 + 월별 KR 평균 달성률 추이 + 인라인 편집 |
+| 목적 | Objective·Key Result 달성률 대시보드 + 월별 KR 평균 달성률 추이 + 인라인 편집 + 구글식 등급(committed/aspirational) |
 | 주제 | `okr` 주제의 기본 위젯(타입 `okr`, `defaultLayout.js` — 8×10). 아이콘 🎯 |
 | 뷰 | `widgets/views/OkrWidgetView.jsx` — 스토어 구독·effect·4상태 소유 |
 | 프레젠테이션 | 새 공용 컴포넌트 없음 — `StatTile`·`DotProgress`·`Chip`·`ErrorBanner` 재사용 + `LineChart.jsx`(신규, 인라인 SVG — Recharts 미도입 PO-8). 폼·행은 뷰 로컬 컴포넌트. 인라인 스타일 + CSS 변수만(`styles.css` 무변경) |
-| 레이아웃 | StatTile 6(KR 평균 달성률·Objective 수·KR 수·90%+/40–90%/<40% 구간) → objective 카드 목록(각 `DotProgress` + KR 행 인라인 현재치 수정) → objective/KR 추가 폼 → (`showTrend`) `LineChart` |
+| 레이아웃 | StatTile 6(KR 평균 달성률·Objective 수·KR 수·90%+/40–90%/<40% 구간) → objective 카드 목록(상태 칩 + 등급 칩 + `DotProgress` + KR 행: kind muted 라벨·인라인 현재치/kind 수정·등급 `Chip`) → KR 2~5개 권장 안내(범위 밖일 때) → objective/KR 추가 폼(kind 선택 포함) → (`showTrend`) `LineChart` |
 | config | `showTrend`(bool 기본 true), `includeArchived`(bool 기본 false → `GET /api/okr?includeArchived=1`) |
-| 데이터 출처 | `GET /api/okr`·`GET /api/okr/trend` + objectives/key-results CRUD → `store/useOkrStore.js`(낙관적 갱신 + 실패 롤백, `summary` 재계산). 달성률 공식은 `store/okrMath.js` — **백엔드 `services/okr.js` 와 일치** |
-| 관련 FR | FR-OKR-01~04·06 · [ADR-0030](../architecture/adr/ADR-0030-okr-data-model.md) |
+| 데이터 출처 | `GET /api/okr`·`GET /api/okr/trend` + objectives/key-results CRUD → `store/useOkrStore.js`(낙관적 갱신 + 실패 롤백, `summary`·`grade` 재계산). 달성률·등급 공식은 `store/okrMath.js` — **백엔드 `services/okr.js` 와 일치** |
+| 등급 칩 | `Chip variant={gradeChipVariant(grade)}` — green→`ok`, yellow→`warn`, red→`bad`. 라벨은 `gradeLabel`(달성/진행중/미달), 색 하드코딩 없음(ADR-0027) |
+| 관련 FR | FR-OKR-01~04·06~07 · [ADR-0030](../architecture/adr/ADR-0030-okr-data-model.md) · [ADR-0034](../architecture/adr/ADR-0034-okr-google-grading.md) |
 | 상태 | 에러 → `ErrorBanner(onRetry)` / 로딩 → "불러오는 중…" / 빈(objective 0) → 안내 문구 + 추가 폼 / 정상 → 위 레이아웃 |
 
 ### 3.5d 주간 플래너 위젯 ✅ P8 (FR-OKR-05·06, 2026-09-08)

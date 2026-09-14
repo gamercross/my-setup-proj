@@ -407,7 +407,7 @@ flowchart TB
 | 단일 캐시 + 칸반 뷰 | Q3 | `taskCache.js`, `useTaskStore` `byId`/`order` 정본 + `tasks` 파생 미러, `TaskBoard` 리스트/보드 토글 | zustand | P5 ✅ (#47) |
 | 할일 자동 분류 (자유 태그) | Q4 | `task_tags` 테이블(`source ∈ {user,agent}`), `POST/DELETE /api/tasks/:id/tags`, `agent/classify.py` 배치, 태그 칩 + 필터 바 | Claude API (배치 1회/일) | P6 ✅ (#52) · 서사 §2-3 |
 | 에이전트 활동 위젯 + "지금 실행" | Q5 | `GET/POST /api/agent/*`, `AgentActivityWidgetView`, `useAgentStore`, `agent/trigger.py`, `agent/.triggers/run-now` 플래그 | launchd WatchPaths, 파일 플래그 | P7 ✅ (#55) |
-| OKR + 주간 플래너 + 라인차트 | Q4 | `objectives`/`key_results`/`kr_snapshots`, `GET /api/okr`·`/api/okr/trend`·CRUD·`GET /api/planner/weekly`, `kr_snapshots` 월별 적재는 백엔드 자체 | 인라인 SVG `LineChart`(`linePath.js`) | P8 ✅ (#58) |
+| OKR + 주간 플래너 + 라인차트 | Q4 | `objectives`/`key_results`/`kr_snapshots`, `GET /api/okr`·`/api/okr/trend`·CRUD·`GET /api/planner/weekly`, `kr_snapshots` 월별 적재는 백엔드 자체, 구글식 등급(`key_results.kind` committed/aspirational + `krGrade`/`objectiveGrade` 색상 밴드, ADR-0034) | 인라인 SVG `LineChart`(`linePath.js`) | P8 ✅ (#58) · 등급 ✅ (ADR-0034) |
 | 진행 현황 · 파일 탐색 뷰 | Q7 | `GET /api/tree` + `GET /api/docs/:path`(의존성 0 토크나이저, `.md` 만, 상한 깊이 8·항목 2000·1MB, 심링크 스킵), `progress` 위젯(좌 트리/우 본문, 분할선 드래그·패널 접기·섹션 접기) | 파서·`dangerouslySetInnerHTML` 없음 | P9 ✅ (#59) |
 | Daily Brief 에이전트 | Q1, Q2 | `sync.py`(수집) → `daily_brief.py`(생성) → Claude → `briefs`(date upsert) → Notion, `GET /api/brief/today` | anthropic SDK(`claude-sonnet-5`, thinking adaptive), launchd | D3 ✅ |
 | Gmail·Calendar 실 수집 | Q1 | `agent/services/{gmail,calendar}.py`, OAuth 최초 로그인 → `emails`·`calendar_events` upsert 캐시 | google-api-python-client 2.200, google-auth-oauthlib 1.4, cryptography 50 (Fernet) | D2-b ✅ |

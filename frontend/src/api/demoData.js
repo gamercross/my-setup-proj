@@ -168,11 +168,12 @@ export function createDataset() {
     { id: 1, title: '3분기 건강 회복', period: '2026-Q3', status: 'active', created_at: nowIso, updated_at: nowIso },
     { id: 2, title: '사이드 프로젝트 출시', period: '2026', status: 'active', created_at: nowIso, updated_at: nowIso },
   ];
+  // kind — 구글 OKR 유형(ADR-0034). id 3·4 는 aspirational(문샷형)로 등급 밴드 차이를 화면에서 바로 보여준다.
   const key_results = [
-    { id: 1, objective_id: 1, title: '주 3회 운동', target: 36, current: 30, unit: '회', project_id: null, created_at: nowIso, updated_at: nowIso },
-    { id: 2, objective_id: 1, title: '평균 수면 7시간', target: 7, current: 6.5, unit: '시간', project_id: null, created_at: nowIso, updated_at: nowIso },
-    { id: 3, objective_id: 2, title: 'MVP 기능 완성', target: 10, current: 9, unit: null, project_id: 1, created_at: nowIso, updated_at: nowIso },
-    { id: 4, objective_id: 2, title: '베타 테스터 모집', target: 20, current: 15, unit: '명', project_id: null, created_at: nowIso, updated_at: nowIso },
+    { id: 1, objective_id: 1, title: '주 3회 운동', target: 36, current: 30, unit: '회', kind: 'committed', project_id: null, created_at: nowIso, updated_at: nowIso },
+    { id: 2, objective_id: 1, title: '평균 수면 7시간', target: 7, current: 6.5, unit: '시간', kind: 'committed', project_id: null, created_at: nowIso, updated_at: nowIso },
+    { id: 3, objective_id: 2, title: 'MVP 기능 완성', target: 10, current: 9, unit: null, kind: 'aspirational', project_id: 1, created_at: nowIso, updated_at: nowIso },
+    { id: 4, objective_id: 2, title: '베타 테스터 모집', target: 20, current: 15, unit: '명', kind: 'aspirational', project_id: null, created_at: nowIso, updated_at: nowIso },
   ];
   // 최근 4개월치 KR 평균 달성률 스냅샷 (오름차순).
   const ym = (back) => {

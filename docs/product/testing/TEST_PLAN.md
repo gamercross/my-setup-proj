@@ -485,7 +485,7 @@ fake service 주입, 네트워크 0회. 재시도 테스트는 `services.retry.s
 
 **수동 확인 (로컬 GUI, launchd)**: ① `activity` 주제에서 위젯이 최근 이력·다음 실행을 표시 → "지금 실행" 클릭 시 버튼 라벨 전이·`requestMessage` 표시. ② `bash scripts/install-runnow-launchd.sh` 후 `POST /api/agent/run-now` → `scripts/run-now.log` 에 trigger 실행 기록. **WatchPaths 실제 감지는 로컬 launchd 환경이 필요해 CI/개발 머신에서 미검증.**
 
-### 3.5g OKR + 주간 플래너 (P8, FR-OKR-01~06, ADR-0030)
+### 3.5g OKR + 주간 플래너 (P8, FR-OKR-01~07, ADR-0030·ADR-0034)
 
 **백엔드 OKR — `backend/test/okr.test.js`** (`:memory:` 격리, supertest)
 
@@ -505,6 +505,10 @@ fake service 주입, 네트워크 0회. 재시도 테스트는 `services.retry.s
 | TC-OKR-12 | `snapshotCurrentMonth` 멱등 | 같은 달 재실행은 덮어쓰기 | P1 |
 | TC-OKR-13 | FR-OKR-02 AC-6 | 프로젝트 삭제 시 KR 생존 + `project_id` null | P1 |
 | TC-OKR-14 | FR-OKR-02 AC-4 | `current > target` 허용, `pct` 는 1 로 클램프 | P1 |
+| TC-OKR-15 | (ADR-0034) POST kind 기본값 | 미지정 → 201, `kind="committed"` | P2 |
+| TC-OKR-16 | (ADR-0034) kind 검증 | 허용값 밖 → 400·미저장, `PUT {kind:'aspirational'}` → 200 병합 | P2 |
+| TC-OKR-17 | (ADR-0034) `GET /api/okr` 등급 경계 | `pct` 0.7/0.9/0.4/0.399 × committed·aspirational 조합의 `grade` | P2 |
+| TC-OKR-18 | (ADR-0034) `objective.grade` | 전부 aspirational → aspirational 밴드, 혼합 → committed 밴드, KR 0개 → red | P2 |
 
 **백엔드 주간 플래너 — `backend/test/planner.test.js`**
 
@@ -515,13 +519,15 @@ fake service 주입, 네트워크 0회. 재시도 테스트는 `services.retry.s
 | TC-PLAN-03 | items | 필드셋(`id,title,due_date,priority,status,tags`)·정렬·상한 50 | P1 |
 | TC-PLAN-04 | 빈 데이터 | 모든 카운트 0, `items: []` | P1 |
 
-**저장소 회귀 — `backend/test/db.test.js`**: TC-DB-06 (OKR 3테이블 prepared statement CRUD · CASCADE).
+**저장소 회귀 — `backend/test/db.test.js`**: TC-DB-06(확장, OKR 3테이블 prepared statement CRUD · CASCADE ·
+`key_results.kind` 왕복+기본값), TC-DB-06b(기존 파일 DB 에 `kind` 컬럼 없을 때 `ALTER TABLE` 로 추가 — 컬럼 존재 가드 회귀).
 
 **프론트 순수 로직 — `frontend/test/{okrMath,weekBuckets,linePath}.test.mjs`**
 
 | ID | 대상 | 기대 결과 |
 |---|---|---|
 | TC-P8-MATH-01~05 | `store/okrMath.js` | `krPct` 클램프·target 0, `objectivePct` 평균, `summarize` 버킷 경계, 소수 3자리 반올림, `formatPct` — **백엔드 공식과 일치** |
+| TC-P8-MATH-GRADE | `store/okrMath.js:krGrade`·`objectiveGrade` | committed·aspirational 밴드 경계(0.4/0.9, 0.4/0.7), kind 미상 폴백, objective 전부/혼합/0개 — **백엔드와 동일 경계** (ADR-0034) |
 | TC-P8-WEEK-01~03 | `widgets/weekBuckets.js` | `startOfIsoWeek` 월요일, 3버킷 분리 + done 카운트, null 제외·경계일 포함·정렬 |
 | TC-P8-LINE-01~03 | `components/linePath.js` | 0점 → null, 1점 → 점만, N점 → `M…L` 경로 + 좌표 단조 증가 |
 
@@ -533,8 +539,11 @@ fake service 주입, 네트워크 0회. 재시도 테스트는 `services.retry.s
 | TC-P8-STORE-02 | `fetchOkr` 실패 | `error` 문자열, 기존 데이터 보존 |
 | TC-P8-STORE-03 | `updateKeyResult` 낙관적 갱신 | 즉시 반영 + `summary` 재계산 |
 | TC-P8-STORE-04 | `updateKeyResult` 실패 | 롤백 |
+| TC-P8-STORE-GRADE | `updateKeyResult({kind})` 낙관적 갱신 | grade 가 서버 왕복 전에 새 밴드로 즉시 바뀜, 실패 시 kind·grade 모두 롤백 (ADR-0034) |
 
 **데모 패리티 — `frontend/test/demoClient.test.mjs`**: `/api/okr`·`/api/okr/trend`·objectives/key-results CRUD·`/api/planner/weekly` 6개 목 어댑터가 실서버와 같은 스키마 반환.
+
+| TC-P8-DEMO-06 | `GET /okr` | 모든 KR 에 `kind`·`grade`, 시드에 aspirational 최소 1건, `kind` 허용값 밖 POST/PUT → 400 (ADR-0034) |
 
 **수동 확인 (로컬 GUI) — 백로그**
 

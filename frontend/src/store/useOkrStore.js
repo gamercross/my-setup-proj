@@ -5,13 +5,18 @@
 
 import { create } from 'zustand';
 import { apiGet, apiPost, apiPut, apiDelete } from '../api/client.js';
-import { krPct, objectivePct, summarize, round3 } from './okrMath.js';
+import { krPct, objectivePct, summarize, round3, krGrade, objectiveGrade } from './okrMath.js';
 
-// objectives 트리에 pct 를 다시 채우고 summary 를 재계산한다.
+// objectives 트리에 pct·grade 를 다시 채우고 summary 를 재계산한다.
+// kind 를 낙관적으로 바꿨을 때도 서버 왕복 전에 등급 칩이 즉시 따라가야 한다.
 function recompute(objectives) {
   const shaped = objectives.map((o) => {
-    const keyResults = (o.keyResults || []).map((kr) => ({ ...kr, pct: round3(krPct(kr)) }));
-    return { ...o, keyResults, pct: round3(objectivePct(keyResults)) };
+    const keyResults = (o.keyResults || []).map((kr) => {
+      const pct = round3(krPct(kr));
+      return { ...kr, pct, grade: krGrade(pct, kr.kind) };
+    });
+    const objPct = round3(objectivePct(keyResults));
+    return { ...o, keyResults, pct: objPct, grade: objectiveGrade(objPct, keyResults) };
   });
   const allKrs = shaped.flatMap((o) => o.keyResults);
   return { objectives: shaped, summary: summarize(allKrs, shaped.length) };

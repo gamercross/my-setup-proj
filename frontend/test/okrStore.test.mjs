@@ -94,3 +94,36 @@ test('TC-P8-STORE-04: updateKeyResult 실패 시 롤백', async () => {
   assert.equal(s.objectives[0].keyResults[0].pct, 0.5);
   assert.equal(s.error, '수정 실패');
 });
+
+test('TC-P8-STORE-GRADE: updateKeyResult({kind}) 낙관적 갱신 직후 grade 가 새 밴드로 바뀌고, 실패 시 롤백된다', async () => {
+  fetchImpl = () => jsonRes(DASH);
+  const store = await freshStore();
+  await store.getState().fetchOkr();
+  // DASH 의 KR(10)은 kind 미지정 → committed 밴드 폴백, pct=0.5 → yellow
+  let s = store.getState();
+  assert.equal(s.objectives[0].keyResults[0].grade, 'yellow');
+
+  // kind 를 aspirational 로 바꾸면 pct=0.5 는 committed·aspirational 둘 다 yellow 이므로
+  // current 도 같이 올려 pct=0.7 로 만들어 밴드 차이를 드러낸다(aspirational 이면 green, committed 면 yellow).
+  let resolveFn;
+  fetchImpl = () =>
+    new Promise((r) => {
+      resolveFn = () =>
+        r({ ok: true, status: 200, json: async () => ({ keyResult: { id: 10, current: 7, kind: 'aspirational' } }) });
+    });
+  const p = store.getState().updateKeyResult(10, { current: 7, kind: 'aspirational' });
+  s = store.getState();
+  assert.equal(s.objectives[0].keyResults[0].grade, 'green', '낙관적 갱신 직후 즉시 aspirational 밴드 적용');
+  resolveFn();
+  await p;
+  s = store.getState();
+  assert.equal(s.objectives[0].keyResults[0].kind, 'aspirational');
+  assert.equal(s.objectives[0].keyResults[0].grade, 'green');
+
+  // 실패 시 롤백 — kind·grade 모두 원상 복구
+  fetchImpl = () => jsonRes({ error: '수정 실패' }, false, 400);
+  await store.getState().updateKeyResult(10, { current: 1, kind: 'aspirational' });
+  s = store.getState();
+  assert.equal(s.objectives[0].keyResults[0].current, 7, '롤백됨');
+  assert.equal(s.objectives[0].keyResults[0].grade, 'green', '롤백 후 이전 등급 유지');
+});

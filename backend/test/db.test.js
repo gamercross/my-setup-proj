@@ -163,7 +163,8 @@ describe('DB 계층', () => {
     // 2) 앱 커넥션으로 재오픈 → applyMigrations 가 CHECK 를 확장해야 한다
     const db = loadDb(dbPath);
     const conn = require('../db').getDb();
-    assert.equal(conn.pragma('user_version', { simple: true }), 1);
+    // v1(sync_logs CHECK)·v2(key_results.kind) 를 순서대로 모두 적용 → SCHEMA_VERSION(2)
+    assert.equal(conn.pragma('user_version', { simple: true }), 2);
 
     // 기존 행 보존
     const rows = conn.prepare('SELECT service, status FROM sync_logs').all();
@@ -232,14 +233,15 @@ describe('DB 계층', () => {
     assert.equal(baks.length, 0, '신규 DB 는 .bak-* 를 만들지 않는다');
   });
 
-  it('TC-DB-06: 기존 파일 DB(v1) 재오픈 시 OKR 3테이블이 생성되고 user_version 은 1 유지', () => {
+  it('TC-DB-06: 기존 파일 DB(v1) 재오픈 시 OKR 3테이블이 생성되고 user_version 이 2 로 상향된다', () => {
     const dbPath = path.join(tmpDir, 'okr-tables.db');
 
-    // 1) v1 상태 파일 DB 를 만든다 (OKR 테이블 없음).
+    // 1) 신규 파일 DB 를 만든다 (schema.sql 이 이미 OKR 3테이블·kind 컬럼을 포함).
     let db = loadDb(dbPath);
     db.addTask({ title: '기존 데이터' });
     let conn = require('../db').getDb();
-    assert.equal(conn.pragma('user_version', { simple: true }), 1);
+    // v1(sync_logs CHECK)·v2(key_results.kind 컬럼 존재 가드) 가 모두 적용된다.
+    assert.equal(conn.pragma('user_version', { simple: true }), 2);
     require('../db').closeDatabase();
 
     // 2) 재오픈 — schema.sql 의 CREATE TABLE IF NOT EXISTS 가 신규 테이블만 추가한다.
@@ -252,14 +254,74 @@ describe('DB 계층', () => {
     for (const t of ['objectives', 'key_results', 'kr_snapshots']) {
       assert.ok(tables.includes(t), `${t} 테이블이 생성돼야 한다`);
     }
-    // 버전 상향 없음 (결정 C)
-    assert.equal(conn.pragma('user_version', { simple: true }), 1);
+    // 이미 v2 이므로 재오픈해도 버전은 그대로 (멱등)
+    assert.equal(conn.pragma('user_version', { simple: true }), 2);
     // 기존 데이터 보존
     assert.equal(db.getTasks().length, 1);
 
     // OKR 함수도 노출된다
     assert.equal(typeof db.getObjectives, 'function');
     assert.deepEqual(db.getObjectives(), []);
+
+    // key_results.kind — prepared statement 왕복 + 기본값
+    const objective = db.addObjective({ title: 'o', period: '2026' });
+    const kr = db.addKeyResult({ objective_id: objective.id, title: 'kr', target: 10, current: 3 });
+    assert.equal(kr.kind, 'committed', 'kind 미지정 시 기본값 committed');
+    const krAspirational = db.addKeyResult({
+      objective_id: objective.id,
+      title: 'kr2',
+      target: 10,
+      current: 3,
+      kind: 'aspirational',
+    });
+    assert.equal(krAspirational.kind, 'aspirational');
+    const updated = db.updateKeyResult(krAspirational.id, { kind: 'committed' });
+    assert.equal(updated.kind, 'committed');
+
+    require('../db').closeDatabase();
+  });
+
+  it('TC-DB-06b: 기존 파일 DB(kind 컬럼 없음) 재오픈 시 ALTER TABLE 로 kind 가 추가된다 (duplicate column 가드)', () => {
+    const dbPath = path.join(tmpDir, 'okr-kind-migration.db');
+
+    // 1) kind 컬럼이 없는 v1 key_results 테이블을 수동으로 만든다.
+    const Database = require('better-sqlite3');
+    const seed = new Database(dbPath);
+    seed.exec(`
+      CREATE TABLE objectives (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        period TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'active',
+        created_at TEXT NOT NULL, updated_at TEXT NOT NULL
+      );
+      CREATE TABLE key_results (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        objective_id INTEGER NOT NULL REFERENCES objectives(id) ON DELETE CASCADE,
+        title TEXT NOT NULL,
+        target REAL NOT NULL,
+        "current" REAL NOT NULL DEFAULT 0,
+        unit TEXT,
+        project_id INTEGER,
+        created_at TEXT NOT NULL, updated_at TEXT NOT NULL
+      );
+      PRAGMA user_version = 1;
+    `);
+    seed.close();
+
+    // 2) 앱 커넥션으로 재오픈 → v2 마이그레이션이 kind 컬럼을 ALTER TABLE 로 추가해야 한다.
+    //    (컬럼 존재 가드가 없으면 "duplicate column name: kind" 로 전체가 깨진다.)
+    const db = loadDb(dbPath);
+    const conn = require('../db').getDb();
+    assert.equal(conn.pragma('user_version', { simple: true }), 2);
+    const cols = conn.pragma('table_info(key_results)').map((c) => c.name);
+    assert.ok(cols.includes('kind'), 'kind 컬럼이 ALTER TABLE 로 추가돼야 한다');
+
+    // ALTER TABLE 직후에도 정상적으로 기본값이 채워지는지 확인
+    const objective = db.addObjective({ title: 'o', period: '2026' });
+    const kr = db.addKeyResult({ objective_id: objective.id, title: 'x', target: 1 });
+    assert.equal(kr.kind, 'committed');
+
     require('../db').closeDatabase();
   });
 

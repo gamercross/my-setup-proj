@@ -10,10 +10,11 @@ import Chip from '../../components/Chip.jsx';
 import ErrorBanner from '../../components/ErrorBanner.jsx';
 import LineChart from '../../components/LineChart.jsx';
 import { useOkrStore } from '../../store/useOkrStore.js';
-import { formatPct } from '../../store/okrMath.js';
+import { formatPct, gradeLabel, gradeChipVariant } from '../../store/okrMath.js';
 import { resolveDisplay } from '../displayConfig.js';
 
 const STATUS_LABEL = { active: '진행', done: '완료', archived: '보관' };
+const KIND_LABEL = { committed: '약속', aspirational: '도전' };
 
 const inputStyle = {
   padding: '5px 8px',
@@ -71,6 +72,7 @@ function KeyResultForm({ objectiveId, onSubmit }) {
   const [target, setTarget] = useState('');
   const [current, setCurrent] = useState('');
   const [unit, setUnit] = useState('');
+  const [kind, setKind] = useState('committed');
 
   const submit = async (e) => {
     e.preventDefault();
@@ -81,6 +83,7 @@ function KeyResultForm({ objectiveId, onSubmit }) {
       title: title.trim(),
       target: t,
       current: current === '' ? 0 : Number(current),
+      kind,
     };
     if (unit.trim()) payload.unit = unit.trim();
     const ok = await onSubmit(payload);
@@ -89,6 +92,7 @@ function KeyResultForm({ objectiveId, onSubmit }) {
       setTarget('');
       setCurrent('');
       setUnit('');
+      setKind('committed');
     }
   };
 
@@ -98,6 +102,10 @@ function KeyResultForm({ objectiveId, onSubmit }) {
       <input style={{ ...inputStyle, width: '70px' }} type="number" placeholder="목표" value={target} onChange={(e) => setTarget(e.target.value)} />
       <input style={{ ...inputStyle, width: '70px' }} type="number" placeholder="현재" value={current} onChange={(e) => setCurrent(e.target.value)} />
       <input style={{ ...inputStyle, width: '60px' }} placeholder="단위" value={unit} onChange={(e) => setUnit(e.target.value)} />
+      <select style={inputStyle} value={kind} onChange={(e) => setKind(e.target.value)}>
+        <option value="committed">약속형</option>
+        <option value="aspirational">문샷형</option>
+      </select>
       <button type="submit" style={btnStyle}>KR 추가</button>
     </form>
   );
@@ -107,16 +115,24 @@ function KeyResultForm({ objectiveId, onSubmit }) {
 function KeyResultRow({ kr, onUpdate, onRemove }) {
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState(String(kr.current));
+  const [kind, setKind] = useState(kr.kind || 'committed');
 
   const save = async () => {
     const n = Number(value);
-    if (Number.isFinite(n)) await onUpdate(kr.id, { current: n });
+    if (Number.isFinite(n)) await onUpdate(kr.id, { current: n, kind });
     setEditing(false);
   };
 
   return (
-    <li style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', padding: '4px 0' }}>
-      <span style={{ flex: 1 }}>{kr.title}</span>
+    <li style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', padding: '4px 0', flexWrap: 'wrap' }}>
+      <span style={{ flex: 1, minWidth: '80px' }}>
+        {kr.title}
+        {!editing && (
+          <span style={{ marginLeft: '6px', fontSize: '11px', color: 'var(--muted)' }}>
+            {KIND_LABEL[kr.kind] || kr.kind}
+          </span>
+        )}
+      </span>
       {editing ? (
         <>
           <input
@@ -125,6 +141,10 @@ function KeyResultRow({ kr, onUpdate, onRemove }) {
             value={value}
             onChange={(e) => setValue(e.target.value)}
           />
+          <select style={inputStyle} value={kind} onChange={(e) => setKind(e.target.value)}>
+            <option value="committed">약속형</option>
+            <option value="aspirational">문샷형</option>
+          </select>
           <button type="button" style={btnStyle} onClick={save}>저장</button>
         </>
       ) : (
@@ -132,6 +152,7 @@ function KeyResultRow({ kr, onUpdate, onRemove }) {
           type="button"
           onClick={() => {
             setValue(String(kr.current));
+            setKind(kr.kind || 'committed');
             setEditing(true);
           }}
           style={{ ...inputStyle, cursor: 'pointer' }}
@@ -145,6 +166,7 @@ function KeyResultRow({ kr, onUpdate, onRemove }) {
         <DotProgress pct={(kr.pct || 0) * 100} total={10} showPercent={false} />
       </span>
       <span style={{ color: 'var(--muted)', width: '48px', textAlign: 'right' }}>{formatPct(kr.pct)}</span>
+      <Chip variant={gradeChipVariant(kr.grade)}>{gradeLabel(kr.grade)}</Chip>
       <button
         type="button"
         onClick={() => onRemove(kr.id)}
@@ -233,6 +255,7 @@ export default function OkrWidgetView({ config, configSchema }) {
               <Chip variant={o.status === 'done' ? 'ok' : o.status === 'archived' ? 'neutral' : 'active'}>
                 {STATUS_LABEL[o.status] || o.status}
               </Chip>
+              <Chip variant={gradeChipVariant(o.grade)} title="등급">{gradeLabel(o.grade)}</Chip>
               <span style={{ color: 'var(--muted)', fontSize: '13px' }}>{o.period}</span>
               <button
                 type="button"
@@ -255,6 +278,9 @@ export default function OkrWidgetView({ config, configSchema }) {
                     <KeyResultRow key={kr.id} kr={kr} onUpdate={updateKeyResult} onRemove={removeKeyResult} />
                   ))}
                 </ul>
+                {((o.keyResults || []).length < 2 || (o.keyResults || []).length > 5) && (
+                  <p style={{ fontSize: '11px', color: 'var(--muted)' }}>Key Result 는 2~5개를 권장합니다</p>
+                )}
                 <KeyResultForm objectiveId={o.id} onSubmit={addKeyResult} />
               </div>
             )}

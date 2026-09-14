@@ -5,6 +5,12 @@
 //   krPct = target > 0 ? clamp(current / target, 0, 1) : 0
 //   objectivePct = 하위 KR pct 의 산술 평균 (하위 0개면 0)
 //   버킷 경계: 반올림(round3) 후 값으로 pct >= 0.9 → high, >= 0.4 → mid, 그 외 low
+//   (이 summary.bucket 경계는 스탯 타일용으로 고정, 아래 등급 밴드와 별개 — ADR-0034)
+//
+// 등급 밴드(구글 OKR — ADR-0034). round3(pct) 값 기준, 경계 포함:
+//   committed:    pct < 0.4 → red, 0.4 ≤ pct < 0.9 → yellow, pct ≥ 0.9 → green
+//   aspirational: pct < 0.4 → red, 0.4 ≤ pct < 0.7 → yellow, pct ≥ 0.7 → green
+//   objective 등급: 하위 KR 전부 aspirational 이면 aspirational 밴드, 그 외(혼합·전부 committed·KR 0개)는 committed 밴드.
 
 const db = require('../db');
 const { ValidationError, NotFoundError } = require('../errors');
@@ -32,6 +38,28 @@ function objectivePct(krs) {
   if (!Array.isArray(krs) || krs.length === 0) return 0;
   const sum = krs.reduce((acc, kr) => acc + krPct(kr), 0);
   return sum / krs.length;
+}
+
+// ── 등급 밴드 (ADR-0034) ──────────────────────────────
+const GRADE_BANDS = {
+  committed: { green: 0.9, yellow: 0.4 },
+  aspirational: { green: 0.7, yellow: 0.4 },
+};
+
+// pct(0~1) + kind → 'green'|'yellow'|'red'. round3(pct) 기준, kind 미상이면 committed 밴드로 폴백.
+function krGrade(pct, kind) {
+  const band = GRADE_BANDS[kind] || GRADE_BANDS.committed;
+  const p = round3(pct);
+  if (p >= band.green) return 'green';
+  if (p >= band.yellow) return 'yellow';
+  return 'red';
+}
+
+// objective 등급: 하위 KR 이 전부 aspirational 이면 aspirational 밴드, 그 외(혼합·전부 committed·KR 0개)는 committed 밴드.
+function objectiveGrade(pct, krs) {
+  const allAspirational =
+    Array.isArray(krs) && krs.length > 0 && krs.every((kr) => kr.kind === 'aspirational');
+  return krGrade(pct, allAspirational ? 'aspirational' : 'committed');
 }
 
 // 응답에 포함된 KR 배열로 요약 스탯을 만든다.
@@ -70,6 +98,13 @@ function assertPeriod(raw) {
 function assertStatus(raw) {
   if (!['active', 'done', 'archived'].includes(raw)) {
     throw new ValidationError('status 는 active·done·archived 중 하나여야 합니다.');
+  }
+  return raw;
+}
+
+function assertKind(raw) {
+  if (!['committed', 'aspirational'].includes(raw)) {
+    throw new ValidationError('kind 는 committed·aspirational 중 하나여야 합니다.');
   }
   return raw;
 }
@@ -134,6 +169,7 @@ function createKeyResult(input) {
     target: assertNumber(body.target, 'target', { min: 0 }),
     current: body.current === undefined ? 0 : assertNumber(body.current, 'current'),
     unit: normalizeUnit(body.unit),
+    kind: body.kind === undefined ? 'committed' : assertKind(body.kind),
     project_id: body.project_id ?? null,
   };
   if ('project_id' in body) assertProjectId(body.project_id);
@@ -149,6 +185,7 @@ function updateKeyResult(id, patch) {
   if (body.target !== undefined) next.target = assertNumber(body.target, 'target', { min: 0 });
   if (body.current !== undefined) next.current = assertNumber(body.current, 'current');
   if (body.unit !== undefined) next.unit = normalizeUnit(body.unit);
+  if (body.kind !== undefined) next.kind = assertKind(body.kind);
   if (body.project_id !== undefined) {
     assertProjectId(body.project_id);
     next.project_id = body.project_id;
@@ -178,22 +215,27 @@ function getDashboard({ includeArchived } = {}) {
     const krs = byObjective.get(o.id) || [];
     const keyResults = krs.map((kr) => {
       includedKrs.push(kr);
+      const pct = round3(krPct(kr));
       return {
         id: kr.id,
         title: kr.title,
         target: kr.target,
         current: kr.current,
         unit: kr.unit,
-        pct: round3(krPct(kr)),
+        pct,
+        kind: kr.kind,
+        grade: krGrade(pct, kr.kind),
         project_id: kr.project_id,
       };
     });
+    const objPct = round3(objectivePct(krs));
     return {
       id: o.id,
       title: o.title,
       period: o.period,
       status: o.status,
-      pct: round3(objectivePct(krs)),
+      pct: objPct,
+      grade: objectiveGrade(objPct, krs),
       keyResults,
     };
   });
@@ -253,6 +295,8 @@ module.exports = {
   round3,
   objectivePct,
   summarize,
+  krGrade,
+  objectiveGrade,
   createObjective,
   updateObjective,
   deleteObjective,

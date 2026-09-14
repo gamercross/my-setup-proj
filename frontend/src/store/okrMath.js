@@ -1,7 +1,11 @@
-// OKR 달성률 계산 (순수 함수). 백엔드 backend/src/services/okr.js 와 같은 공식을 유지한다.
+// OKR 달성률 계산 (순수 함수). 백엔드 backend/src/services/okr.js 와 같은 공식·밴드를 유지한다.
 //   krPct = target > 0 ? clamp(current / target, 0, 1) : 0
 //   objectivePct = 하위 KR pct 의 산술 평균 (하위 0개면 0)
 //   버킷 경계: round3 후 값으로 pct >= 0.9 → high, >= 0.4 → mid, 그 외 low
+//
+// 등급 밴드(구글 OKR — ADR-0034). round3(pct) 값 기준, 경계 포함:
+//   committed:    pct < 0.4 → red, 0.4 ≤ pct < 0.9 → yellow, pct ≥ 0.9 → green
+//   aspirational: pct < 0.4 → red, 0.4 ≤ pct < 0.7 → yellow, pct ≥ 0.7 → green
 
 function clamp01(v) {
   return Math.max(0, Math.min(1, v));
@@ -47,4 +51,40 @@ export function formatPct(v) {
   const n = Number(v);
   if (!Number.isFinite(n)) return '0%';
   return `${Math.round(n * 1000) / 10}%`;
+}
+
+// ── 등급 밴드 (ADR-0034, 백엔드 services/okr.js 와 같은 밴드를 유지한다) ────
+export const GRADE_BANDS = {
+  committed: { green: 0.9, yellow: 0.4 },
+  aspirational: { green: 0.7, yellow: 0.4 },
+};
+
+// pct(0~1) + kind → 'green'|'yellow'|'red'. round3(pct) 기준, kind 미상이면 committed 밴드로 폴백.
+export function krGrade(pct, kind) {
+  const band = GRADE_BANDS[kind] || GRADE_BANDS.committed;
+  const p = round3(pct);
+  if (p >= band.green) return 'green';
+  if (p >= band.yellow) return 'yellow';
+  return 'red';
+}
+
+// objective 등급: 하위 KR 이 전부 aspirational 이면 aspirational 밴드, 그 외는 committed 밴드.
+export function objectiveGrade(pct, krs) {
+  const allAspirational =
+    Array.isArray(krs) && krs.length > 0 && krs.every((kr) => kr.kind === 'aspirational');
+  return krGrade(pct, allAspirational ? 'aspirational' : 'committed');
+}
+
+// grade → 한국어 라벨 (UI 전용)
+export function gradeLabel(grade) {
+  if (grade === 'green') return '달성';
+  if (grade === 'yellow') return '진행중';
+  return '미달';
+}
+
+// grade → Chip variant (색은 Chip 컴포넌트가 CSS 변수로 결정)
+export function gradeChipVariant(grade) {
+  if (grade === 'green') return 'ok';
+  if (grade === 'yellow') return 'warn';
+  return 'bad';
 }
