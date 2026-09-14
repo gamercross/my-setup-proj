@@ -543,6 +543,8 @@ fake service 주입, 네트워크 0회. 재시도 테스트는 `services.retry.s
 
 **데모 패리티 — `frontend/test/demoClient.test.mjs`**: `/api/okr`·`/api/okr/trend`·objectives/key-results CRUD·`/api/planner/weekly` 6개 목 어댑터가 실서버와 같은 스키마 반환.
 
+| ID | 대상 | 기대 결과 |
+|---|---|---|
 | TC-P8-DEMO-06 | `GET /okr` | 모든 KR 에 `kind`·`grade`, 시드에 aspirational 최소 1건, `kind` 허용값 밖 POST/PUT → 400 (ADR-0034) |
 
 **수동 확인 (로컬 GUI) — 백로그**
