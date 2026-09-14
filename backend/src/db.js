@@ -202,6 +202,26 @@ const stmts = {
      WHERE id = @id`
   ),
   deleteCheckin: db.prepare('DELETE FROM expectation_checkins WHERE id = ?'),
+
+  // ── 지식 추세(읽기 전용 집계 — 개인 OS P11, ADR-0036) ────────
+  // created_at 은 UTC ISO 저장이므로 'localtime' 으로 로컬 주와 정렬을 맞춘다 (planner.js 규약).
+  // wk 는 창 시작일(origin) 기준 주 인덱스(0..weeks-1). 주차 채우기는 서비스가 한다.
+  countCheckinsByWeek: db.prepare(
+    `SELECT CAST((julianday(date(created_at,'localtime')) - julianday(@origin)) / 7 AS INTEGER) AS wk,
+            COUNT(*) AS cnt
+       FROM expectation_checkins
+      WHERE date(created_at,'localtime') >= @origin AND date(created_at,'localtime') < @afterEnd
+      GROUP BY wk`
+  ),
+  countTagsInRange: db.prepare(
+    `SELECT tag, COUNT(*) AS cnt FROM task_tags
+      WHERE date(created_at,'localtime') >= @from AND date(created_at,'localtime') < @afterEnd
+      GROUP BY tag ORDER BY cnt DESC, tag ASC`
+  ),
+  listTrendFrom: db.prepare(
+    `SELECT month, AVG(pct) AS avg FROM kr_snapshots
+      WHERE month >= @fromMonth GROUP BY month ORDER BY month ASC`
+  ),
 };
 
 // 동기화 서비스 화이트리스트 (schema.sql 의 CHECK 와 일치)
@@ -616,6 +636,24 @@ function addOneDay(dateKey) {
   ).padStart(2, '0')}`;
 }
 
+// ── 지식 추세 (읽기 전용 집계 — 개인 OS P11, ADR-0036) ────────
+
+// originDateKey(창 시작, 'YYYY-MM-DD') 기준 주 인덱스별 체크인 건수. [origin, afterEnd) 반개구간.
+function getCheckinCountsByWeek(originDateKey, afterEndDateKey) {
+  return stmts.countCheckinsByWeek.all({ origin: originDateKey, afterEnd: afterEndDateKey });
+}
+
+// [from, to] 구간(둘 다 'YYYY-MM-DD')의 태그 부착 건수 (tag ASC, count DESC).
+function getTagCountsInRange(from, to) {
+  const afterEnd = addOneDay(to);
+  return stmts.countTagsInRange.all({ from, afterEnd });
+}
+
+// fromMonth('YYYY-MM') 이후 월별 KR 평균 달성률 (오름차순). getKrTrend 와 별개 — 창 기반 조회.
+function getKrTrendFrom(fromMonth) {
+  return stmts.listTrendFrom.all({ fromMonth });
+}
+
 module.exports = {
   SYNC_SERVICES,
   getObjectives,
@@ -654,4 +692,7 @@ module.exports = {
   addProject,
   updateProject,
   deleteProject,
+  getCheckinCountsByWeek,
+  getTagCountsInRange,
+  getKrTrendFrom,
 };

@@ -19,6 +19,7 @@ flowchart LR
     WIDGET["WIDGET 01~08<br/>위젯 셸·커스터마이즈<br/>(대시보드 OS)"]
     OKR["OKR 01~06<br/>목표·핵심결과·주간 플래너<br/>(개인 OS P8)"]
     CHECKIN["CHECKIN 01~05<br/>기대정렬 체크인<br/>(개인 OS P10)"]
+    KNOW["KNOW 01~04<br/>지식 축적 추세·역량 지도<br/>(개인 OS P11)"]
   end
   TASK & UI --> B["Phase B (완료)"]
   PROJ --> C2["Phase C2 (완료)"]
@@ -27,9 +28,10 @@ flowchart LR
   WIDGET --> C5["Phase C5~C6 (위젯 셸·테마)"]
   OKR --> P8["개인 OS P8"]
   CHECKIN --> P10["개인 OS P10"]
+  KNOW --> P11["개인 OS P11"]
   AGENT & MAIL --> D["Phase D (Week 6~7)"]
   AUTH & SYNC --> E["Phase E (Week 9~)"]
-  B & C2 & C3 & C4 & C5 & P8 & P10 & D & E --> TR["TRACEABILITY.md<br/>+ TEST_PLAN.md (TC-*)"]
+  B & C2 & C3 & C4 & C5 & P8 & P10 & P11 & D & E --> TR["TRACEABILITY.md<br/>+ TEST_PLAN.md (TC-*)"]
 ```
 
 > 🆕 **대시보드 OS 전환** (2026-09-03) — 고정 패널 대시보드를 **위젯이 움직이고 위젯마다 디자인하는 데스크톱 OS** 형태로 확장. 개념 [../vision/DASHBOARD_OS.md](../vision/DASHBOARD_OS.md), 상세 [WIDGET.md](WIDGET.md), 결정 [ADR-0020~0022](../architecture/adr/).
@@ -58,6 +60,7 @@ flowchart LR
 | WIDGET | [requirements/WIDGET.md](WIDGET.md) | 초안 (제안 — 착수 전 DASHBOARD_OS §8 결정) |
 | OKR | [requirements/OKR.md](OKR.md) | P8 착수 전 상세화 (2026-09-08, ADR-0030 채택) |
 | CHECKIN | [requirements/CHECKIN.md](CHECKIN.md) | P10 상세화 (2026-09-14, ADR-0035 채택) |
+| KNOWLEDGE | [requirements/KNOWLEDGE.md](KNOWLEDGE.md) | P11 상세화 (2026-09-15, ADR-0036 채택) |
 | MAIL / SYNC / AUTH | (예정) | 아래 표만 — 해당 주차 착수 전 상세화 |
 
 ---
@@ -181,6 +184,17 @@ flowchart LR
 | FR-CHECKIN-03 | 체크인을 부분 수정(병합)하거나 삭제한다 | P1 | 개인 OS P10 | ✅ |
 | FR-CHECKIN-04 | 기대정렬 체크인 위젯: 카드 목록 + 새 체크인 폼 + 삭제 | P1 | 개인 OS P10 | ✅ |
 | FR-CHECKIN-05 | 체크인을 프로젝트/목표에 선택적으로 연결한다 (느슨 FK, 삭제 시 SET NULL) | P2 | 개인 OS P10 | ✅ |
+
+## 12. 지식 축적 추세·역량 지도 (KNOWLEDGE) — 개인 생산성 OS P11
+
+> 상세 수용 기준은 [requirements/KNOWLEDGE.md](KNOWLEDGE.md). 결정 [ADR-0036](../architecture/adr/ADR-0036-knowledge-trend-view.md) (채택 2026-09-15).
+
+| ID | 요구사항 | 우선순위 | 목표 주차 | 상태 |
+|---|---|:---:|:---:|:---:|
+| FR-KNOW-01 | 체크인 빈도(주)·OKR 평균 달성률(월)·태그 분포를 한 응답으로 집계하는 읽기 전용 API | P1 | 개인 OS P11 | ✅ |
+| FR-KNOW-02 | 지식 지도 위젯: 체크인 빈도·OKR 추이 라인차트 + 태그 분포를 한 화면에 표시 | P1 | 개인 OS P11 | ✅ |
+| FR-KNOW-03 | 웹 데모 모드에서도 동일하게 동작한다 (데모 경로 패리티) | P1 | 개인 OS P11 | ✅ |
+| FR-KNOW-04 | REVERSE_PLAN §5-3 정합성 감사의 "지식 축적 추세" 공백을 문서상 해소한다 | P2 | 개인 OS P11 | ✅ |
 
 ---
 

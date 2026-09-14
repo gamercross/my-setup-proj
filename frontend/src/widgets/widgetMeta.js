@@ -135,6 +135,19 @@ export const WIDGET_META = {
       showForm: { type: 'bool', default: true, label: '새 체크인 폼 표시' },
     },
   },
+  knowledge: {
+    type: 'knowledge',
+    name: '지식 지도',
+    icon: '🧠',
+    description: '체크인·OKR·태그로 보는 지식 축적 추세',
+    defaultSize: { w: 8, h: 12 },
+    minSize: { w: 4, h: 8 },
+    maxSize: { w: 12, h: 24 },
+    configSchema: {
+      weeks: { type: 'number', min: 4, max: 26, step: 2, default: 8, label: '표시 주 수' },
+      showTags: { type: 'bool', default: true, label: '태그 분포 표시' },
+    },
+  },
   // "준비 중" 자리표시자 — 전용 위젯이 아직 없는 주제의 기본 인스턴스 (ADR-0032).
   // hidden: true 는 옵셔널 신규 필드. 피커 목록에서 제외한다 (다른 메타엔 넣지 않는다).
   placeholder: {

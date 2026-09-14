@@ -32,3 +32,27 @@ test('TC-P8-LINE-03: N개 점이면 M...L 경로 + 점 좌표 단조 증가', ()
   // pct 클수록 y 는 작다 (위로)
   assert.ok(m.dots[0].y > m.dots[2].y);
 });
+
+test('TC-P11-LINE-01: valueKey/labelKey 옵션 — 기본 동작 회귀 없이 다른 키를 읽는다', () => {
+  const m = buildLinePath(
+    [
+      { week: '2026-06-01', label: '06-01', count: 0, ratio: 0 },
+      { week: '2026-06-08', label: '06-08', count: 4, ratio: 1 },
+    ],
+    { width: 300, height: 100, padding: 20, valueKey: 'ratio', labelKey: 'label' }
+  );
+  assert.equal(m.dots.length, 2);
+  assert.equal(m.dots[0].label, '06-01');
+  assert.equal(m.dots[1].label, '06-08');
+  assert.equal(m.dots[0].pct, 0);
+  assert.equal(m.dots[1].pct, 1);
+  // pct 클수록 y 는 작다 (위로)
+  assert.ok(m.dots[0].y > m.dots[1].y);
+});
+
+test('TC-P11-LINE-02: 옵션 미지정 시 기존 month/krAvgPct 기본값 회귀 없음', () => {
+  const m = buildLinePath([{ month: '2026-07', krAvgPct: 0.5 }]);
+  assert.equal(m.dots[0].month, '2026-07');
+  assert.equal(m.dots[0].label, '2026-07');
+  assert.equal(m.dots[0].pct, 0.5);
+});

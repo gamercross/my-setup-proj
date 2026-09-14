@@ -5,6 +5,7 @@
 // - progress 는 P9 전용 위젯(FR-UI-06).
 // - okr·weekly 는 P8 전용 위젯(FR-OKR-06).
 // - checkin 은 P10 전용 위젯 (FR-CHECKIN-04, ADR-0035).
+// - knowledge 는 P11 전용 위젯 (FR-KNOW-02, ADR-0036).
 // - activity 는 agent 위젯(P7, FR-AGENT-08).
 // - 미정의 주제 id 는 cloneDefaultInstances 가 placeholder 1개로 폴백한다.
 
@@ -29,6 +30,7 @@ export const DEFAULT_LAYOUTS = {
   okr: [inst('okr', 0, 0, 8, 10)],
   weekly: [inst('weekly', 0, 0, 8, 8)],
   checkin: [inst('checkin', 0, 0, 8, 10)],
+  knowledge: [inst('knowledge', 0, 0, 8, 12)],
   activity: [inst('agent', 0, 0, 8, 8)],
   progress: [inst('progress', 0, 0, 10, 12)],
   settings: [inst('placeholder', 0, 0, 6, 4)],

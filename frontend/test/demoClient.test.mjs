@@ -187,6 +187,26 @@ test('TC-P8-DEMO-05: GET /planner/weekly 는 3버킷 계약', async () => {
   assert.equal(w.lastWeek.done, 1);
 });
 
+test('TC-P11-DEMO-01: GET /knowledge-trend 는 스키마 키를 모두 포함하고 weeks 검증한다', async () => {
+  const res = await demoRequest('GET', '/knowledge-trend');
+  assert.deepEqual(Object.keys(res).sort(), ['checkins', 'okr', 'summary', 'tags', 'window']);
+  assert.equal(res.window.weeks, 8);
+  assert.equal(res.checkins.points.length, 8);
+  assert.ok(Array.isArray(res.okr.points));
+  assert.ok(Array.isArray(res.tags.items));
+  // 시드 태스크에 태그가 있으므로 빈 화면이 아니다
+  assert.ok(res.tags.total > 0);
+  assert.ok(res.checkins.total > 0);
+
+  const res4 = await demoRequest('GET', '/knowledge-trend?weeks=4');
+  assert.equal(res4.window.weeks, 4);
+  assert.equal(res4.checkins.points.length, 4);
+
+  await assert.rejects(() => demoRequest('GET', '/knowledge-trend?weeks=0'), (e) => e.status === 400);
+  await assert.rejects(() => demoRequest('GET', '/knowledge-trend?weeks=27'), (e) => e.status === 400);
+  await assert.rejects(() => demoRequest('GET', '/knowledge-trend?weeks=abc'), (e) => e.status === 400);
+});
+
 test('TC-P7-06: POST /agent/run-now 는 즉시 성공 + 이력 1건 추가', async () => {
   const before = (await demoRequest('GET', '/agent/activity')).logs.length;
   const res = await demoRequest('POST', '/agent/run-now', {});

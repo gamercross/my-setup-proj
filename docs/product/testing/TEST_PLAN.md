@@ -600,6 +600,50 @@ fake service 주입, 네트워크 0회. 재시도 테스트는 `services.retry.s
 |---|---|---|
 | TC-CHK-M | `plan` 주제 기대정렬 위젯 — 새 체크인 작성·삭제 | 카드 목록 즉시 갱신, 답변 개수 진행 표시 반영 |
 
+### 3.5i 지식 축적 추세·역량 지도 (P11, FR-KNOW-01~04, ADR-0036)
+
+**백엔드 — `backend/test/knowledgeTrend.test.js`** (`:memory:` 격리, supertest + 서비스 직접 호출)
+
+| ID | 대상 | 기대 결과 | 우선 |
+|---|---|---|:---:|
+| TC-KNOW-01 | 기본 호출 | 200 · `window.weeks=8` · `checkins.points.length=8` · 오름차순 | P1 |
+| TC-KNOW-02 | 데이터 0건 | 200 · 모든 배열 존재 · `count` 전부 0 (에러 아님) | P1 |
+| TC-KNOW-03 | `?weeks=4` | `points.length=4` · `window.from` 이 4주 전 월요일 | P1 |
+| TC-KNOW-04 | `?weeks=0`·`27`·`abc` | 각각 400 "weeks 는 1~26 사이 정수여야 합니다." | P1 |
+| TC-KNOW-05 | 체크인 3건을 서로 다른 주에 삽입 | 해당 주 `count` 반영, 빈 주는 0 | P1 |
+| TC-KNOW-06 | `kr_snapshots` 존재 | `okr.points` 가 `round3` 평균 · month 오름차순 · 창 밖 달 제외 | P1 |
+| TC-KNOW-07 | `task_tags`(`user`/`agent` 혼합) | source 무관 합산 · `count DESC, tag ASC` · 13종이면 12개 + `otherCount` | P1 |
+| TC-KNOW-08 | 호출 후 `kr_snapshots` 행 수 | 증가하지 않음(스냅샷 미적재, FR-OKR-04 AC-3 불변식) | P1 |
+
+**프론트 스토어 — `frontend/test/knowledgeStore.test.mjs`**
+
+| ID | 대상 | 기대 결과 |
+|---|---|---|
+| TC-P11-STORE-01 | `fetchTrend` 성공 | `trend` 설정, `error` null |
+| TC-P11-STORE-02 | `fetchTrend` 실패 | `error` 문자열, 기존 `trend` 보존 |
+| TC-P11-STORE-03 | `fetchTrend({weeks})` | `weeks` 쿼리를 그대로 전달 |
+
+**레지스트리 — `frontend/test/registry.test.mjs`**
+
+| ID | 대상 | 기대 결과 |
+|---|---|---|
+| TC-P11-REG-01 | `knowledge` 위젯 메타·기본 레이아웃 | 등록 확인 · `w≤12` · `minSize` 이상 (ADR-0036) |
+
+**차트 회귀 — `frontend/test/linePath.test.mjs`**: `valueKey`/`labelKey` 옵션 케이스 + 옵션 미지정 시
+기존 `month`/`krAvgPct` 기본 동작 회귀 없음 확인.
+
+**데모 패리티 — `frontend/test/demoClient.test.mjs`**
+
+| ID | 대상 | 기대 결과 |
+|---|---|---|
+| TC-P11-DEMO-01 | `GET /knowledge-trend` | 스키마 키(`window`·`checkins`·`okr`·`tags`·`summary`) 전부 포함, `weeks` 검증 400 |
+
+**수동 확인 (로컬 GUI) — 백로그**
+
+| ID | 절차 | 기대 |
+|---|---|---|
+| TC-KNOW-M | `plan` 주제 "지식 지도" 위젯 열람 | 체크인 빈도·OKR 달성률 라인차트 2개 + 태그 분포 막대가 렌더된다 |
+
 ### 3.5e 서비스 계층 — `backend/test/services.test.js` (fix/ai-results-cleanup)
 
 > 앱 없이 `backend/src/services/*` 를 직접 호출, `:memory:` 격리 (`loadService` 헬퍼). 오류 타입은 `name`/`status` 로 판정.

@@ -314,6 +314,20 @@ stateDiagram-v2
 | 관련 FR | FR-CHECKIN-01~05 · [ADR-0035](../architecture/adr/ADR-0035-expectation-checkin.md) |
 | 상태 | 에러 → `ErrorBanner(onRetry)` / 로딩 → "불러오는 중…" / 빈(체크인 0) → 안내 문구 + 추가 폼 / 정상 → 위 레이아웃 |
 
+### 3.5f 지식 지도 위젯 ✅ P11 (FR-KNOW-01~04, 2026-09-15, ADR-0036)
+
+| 항목 | 내용 |
+|---|---|
+| 목적 | 체크인 빈도(주)·OKR 평균 달성률(월)·태그 분포를 한 화면에서 종합해 "지식이 쌓이는 방향"을 보여준다 (§1-0 목적 정합) |
+| 주제 | `knowledge` 주제의 기본 위젯(타입 `knowledge`, `defaultLayout.js` — 8×12). 아이콘 🧠 |
+| 뷰 | `widgets/views/KnowledgeWidgetView.jsx` — 스토어 구독·effect·4상태 소유 |
+| 프레젠테이션 | 새 공용 컴포넌트 없음 — `StatTile`·`LineChart`·`DotProgress`·`Chip`·`ErrorBanner` 재사용. `LineChart`/`linePath.js` 는 `valueKey`/`labelKey`/`stroke` 옵션으로 확장(하위 호환, OKR 위젯 기본 동작 무변경). 인라인 스타일 + CSS 변수만(`styles.css` 무변경) |
+| 레이아웃 | StatTile 3(체크인 총건수·기록한 주·OKR 최신 달성률) → 상단 체크인 빈도 `LineChart`(`stroke="var(--ok)"`, count 를 주간 최대치로 정규화한 `ratio` 표시 + "최대 N건/주" 캡션) → 중단 OKR 평균 달성률 `LineChart`(기본 accent 색) → (`showTags`) 하단 태그 분포(`Chip` + `DotProgress` + 건수, `otherCount>0` 이면 "기타" 칩) |
+| config | `weeks`(number 4~26 step2 기본 8), `showTags`(bool 기본 true) |
+| 데이터 출처 | `GET /api/knowledge-trend?weeks=` → `store/useKnowledgeStore.js`(읽기 전용, `useCheckinStore` 규약 — throw 없음·실패 시 기존 trend 보존) |
+| 관련 FR | FR-KNOW-01~04 · [ADR-0036](../architecture/adr/ADR-0036-knowledge-trend-view.md) |
+| 상태 | 에러(trend 없음) → `ErrorBanner(onRetry)` / 로딩 → "불러오는 중…" / 빈(체크인·OKR·태그 전부 0) → 안내 문구 / 정상 → 위 레이아웃 |
+
 ### 3.6 ErrorBanner / ErrorBoundary ✅ B3 (FR-UI-04, 2026-09-03)
 
 | 항목 | 내용 |

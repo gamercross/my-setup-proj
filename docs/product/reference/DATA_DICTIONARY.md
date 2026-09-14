@@ -206,6 +206,9 @@
 - `SCHEMA_VERSION` 을 올리지 않고 `CREATE TABLE IF NOT EXISTS` 로 반영한다 (OKR 3테이블 선례, ADR-0035 §4).
 - 파생값(답변 개수·완성도 점수)은 저장하지 않는다 — 위젯이 표시하는 진행 표시는 프런트 전용 계산.
 
+> 🆕 `GET /api/knowledge-trend`(FR-KNOW-01, ADR-0036)는 이 테이블과 `kr_snapshots`·`task_tags` 를
+> 순수 SQL 로 집계만 하는 **읽기 전용 파생 뷰**다 — 새 테이블·컬럼을 추가하지 않는다.
+
 ---
 
 ## 11. `widget_instances` — 위젯 레이아웃 (🔶 제안, C5 단계 2)

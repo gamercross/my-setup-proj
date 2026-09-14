@@ -73,3 +73,4 @@
 | [0033](ADR-0033-standalone-widget-windows.md) | 독립 위젯 창 (바탕화면 위젯) — 방향 유지, 뷰는 셸 독립 | 제안 — 보류 (2026-09-08, 규범만) | FR-WIDGET-*, NFR-SEC-04 | A-W6 |
 | [0034](ADR-0034-okr-google-grading.md) | OKR 구글식 등급 — `key_results.kind`(committed/aspirational) + 등급 밴드 | 채택 (2026-09-14) | FR-OKR-02/03/07 | — |
 | [0035](ADR-0035-expectation-checkin.md) | 기대정렬 체크인 — 전용 테이블 1개 + 7질문 자유 서술 | 채택 (2026-09-14) | FR-CHECKIN-01~05 | — |
+| [0036](ADR-0036-knowledge-trend-view.md) | 지식 축적 추세·역량 지도 — 읽기 전용 파생 뷰(체크인·OKR·태그 종합) | 채택 (2026-09-15) | FR-KNOW-01~04 | — |

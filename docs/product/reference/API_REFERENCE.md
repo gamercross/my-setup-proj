@@ -660,6 +660,48 @@ FR-OKR-05 · 서비스 `backend/src/services/planner.js` · 읽기 전용 SQL �
 
 ---
 
+## 지식 추세 (knowledge-trend) ✅ 구현 — 개인 OS P11 (2026-09-15)
+
+FR-KNOW-01~04 · [ADR-0036](../architecture/adr/ADR-0036-knowledge-trend-view.md) ·
+서비스 `backend/src/services/knowledgeTrend.js` · 읽기 전용 SQL 집계 (Claude 호출 없음)
+
+체크인 빈도(주 단위)·OKR 평균 달성률(월 단위, `kr_snapshots` 재사용)·태그 분포를 한 응답으로 준다.
+이 라우트는 **스냅샷을 적재하지 않는다** — 적재 주체는 `GET /api/okr/trend` 뿐이다(FR-OKR-04 AC-3).
+
+### `GET /api/knowledge-trend` ✅
+
+| 쿼리 | 설명 |
+|---|---|
+| `weeks` | 창 길이(주). 기본 8, 허용 1~26. 범위 밖·비정수 → 400 `{"error":"weeks 는 1~26 사이 정수여야 합니다."}` |
+
+**응답 200**
+```json
+{
+  "window": { "weeks": 8, "from": "2026-07-27", "to": "2026-09-20" },
+  "checkins": {
+    "total": 7,
+    "points": [ { "week": "2026-07-27", "label": "07-27", "count": 0 } ]
+  },
+  "okr": {
+    "points": [ { "month": "2026-07", "krAvgPct": 0.41 } ],
+    "latestPct": 0.84
+  },
+  "tags": {
+    "total": 14, "distinct": 5, "otherCount": 0,
+    "items": [ { "tag": "학습", "count": 6 } ]
+  },
+  "summary": { "checkinWeeks": 4, "activeWeeks": 8, "topTag": "학습" }
+}
+```
+- `checkins.points` 는 `weeks` 개가 항상 채워진다(데이터 없는 주는 `count: 0`), 오름차순, 마지막 원소가 이번 주.
+  `week` 는 그 주 월요일의 로컬 `YYYY-MM-DD`, `label` 은 `MM-DD`.
+- `okr.points` 는 창과 겹치는 달의 `kr_snapshots` 평균(`round3`), month 오름차순.
+- `tags.items` 는 창 안에서 부착된 `task_tags` 를 `source` 무관하게 세고 `count DESC, tag ASC` 정렬,
+  최대 12개. 잘린 나머지는 `tags.otherCount` 에 합산한다.
+- 데이터 0건이어도 배열은 빈 배열이며 200(에러 아님).
+
+---
+
 ## 기대정렬 체크인 (checkins) ✅ 구현 — 개인 OS P10 (2026-09-14)
 
 FR-CHECKIN-01~05 · [ADR-0035](../architecture/adr/ADR-0035-expectation-checkin.md) ·
