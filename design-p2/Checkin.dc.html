@@ -40,35 +40,43 @@
     .phead h1{margin:0;font-size:22px;font-weight:680;letter-spacing:-.015em}
     .phead .sub{font-size:12.5px;color:var(--muted);margin-top:4px}
     .phead .right{margin-left:auto;display:flex;align-items:center;gap:10px}
-    .live{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ok);background:rgba(46,125,91,.1);border-radius:999px;padding:4px 10px;font-weight:600}
-    .live .dot{width:7px;height:7px;border-radius:999px;background:var(--ok)}
-    .statrow{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin-bottom:16px}
+    .btn{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:650;border-radius:9px;padding:8px 13px;background:var(--accent);color:#fff}
+    .btn svg{width:14px;height:14px}
+    .statrow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:16px}
     .stat{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:13px 14px;display:flex;flex-direction:column;gap:6px;box-shadow:var(--shadow-card)}
     .stat .lab{font-size:11px;color:var(--muted);font-weight:500}
     .stat .val{font-size:22px;font-weight:720;letter-spacing:-.02em}
     .stat.accent .val{color:var(--accent)}
-    .stat.ok .val{color:var(--ok)}.stat.warn .val{color:var(--warn)}.stat.bad .val{color:var(--bad)}
-    .cols{display:grid;grid-template-columns:1.4fr 1fr;gap:16px}
+    .cols{display:grid;grid-template-columns:1.35fr 1fr;gap:16px;align-items:start}
     .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--card-radius);box-shadow:var(--shadow-card);padding:16px 18px;margin-bottom:16px}
     .card>header{display:flex;align-items:center;gap:8px;margin-bottom:14px}
     .card>header svg{width:16px;height:16px;color:var(--muted)}
     .card>header h3{margin:0;font-size:13.5px;font-weight:650}
     .card>header .act{margin-left:auto;font-size:12px;color:var(--accent);font-weight:600}
-    .kr{display:flex;flex-direction:column;gap:7px;padding:12px 0;border-top:1px solid var(--border)}
-    .kr:first-of-type{border-top:0}
-    .kr .top{display:flex;justify-content:space-between;font-size:12.5px;align-items:center}
-    .kr .top .r{display:flex;align-items:center;gap:8px}
-    .dots{display:flex;gap:3px;flex-wrap:wrap}
-    .dots i{width:8px;height:8px;border-radius:2px;background:var(--panel-2)}
-    .dots i.f{background:var(--accent)}
     .chip{display:inline-flex;align-items:center;font-size:11px;border-radius:999px;padding:2px 9px;font-weight:600}
     .c-ok{background:rgba(46,125,91,.12);color:var(--ok)}
     .c-warn{background:rgba(194,105,31,.14);color:var(--warn)}
     .c-bad{background:rgba(194,59,59,.12);color:var(--bad)}
-    .wk{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-    .wk div{background:var(--panel-2);border-radius:10px;padding:12px;text-align:center}
-    .wk .n{font-size:20px;font-weight:700}
-    .wk .l{font-size:11px;color:var(--muted);margin-top:3px}
+    .c-accent{background:var(--accent-soft);color:var(--accent)}
+    /* 타임라인 카드 */
+    .ci{border-top:1px solid var(--border);padding:16px 0}
+    .ci:first-of-type{padding-top:0;border-top:0}
+    .ci .cihead{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+    .ci .period{font-size:13px;font-weight:700}
+    .ci .rail{width:6px;height:6px;border-radius:999px;background:var(--accent)}
+    .qa{display:flex;flex-direction:column;gap:8px}
+    .qa .row{display:flex;gap:10px}
+    .qa .q{flex:0 0 84px;font-size:11px;color:var(--muted);font-weight:600;padding-top:1px}
+    .qa .a{flex:1;font-size:12.5px;line-height:1.5;color:var(--text)}
+    /* 새 체크인 폼 */
+    .field{margin-bottom:12px}
+    .field label{display:block;font-size:11.5px;font-weight:650;color:#3a4048;margin-bottom:5px}
+    .field label .n{color:var(--muted);font-weight:500;margin-left:4px}
+    .field textarea,.field select{width:100%;font:inherit;font-size:12.5px;border:1px solid var(--border);border-radius:9px;padding:8px 10px;background:var(--panel-2);color:var(--text);resize:none}
+    .field textarea{height:44px}
+    .field.optional{display:flex;gap:8px}
+    .field.optional>div{flex:1}
+    .hint{font-size:11px;color:var(--muted);margin:-4px 0 14px;line-height:1.5}
   </style>
 </helmet>
 
@@ -84,13 +92,17 @@
       <div class="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>일정</div>
     </div>
     <div class="navgrp"><h4>PLAN</h4>
-      <div class="nav active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.6"/></svg>OKR</div>
+      <div class="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.6"/></svg>OKR</div>
       <div class="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></svg>주간 플래너</div>
+      <div class="nav active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>기대정렬</div>
     </div>
     <div class="navgrp"><h4>AGENT</h4>
       <div class="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg>활동</div>
       <div class="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h5l2 3h9v11H4z"/></svg>진행 현황</div>
       <div class="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></svg>다이어그램</div>
+    </div>
+    <div class="navgrp"><h4>CONNECT</h4>
+      <div class="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3v12a3 3 0 0 0 3 3h9"/><circle cx="6" cy="3" r="2"/><circle cx="18" cy="15" r="2"/><circle cx="6" cy="18" r="2"/><path d="M6 6v9"/></svg>GitHub</div>
     </div>
     <div class="navgrp"><h4>SYSTEM</h4>
       <div class="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>설정</div>
@@ -100,55 +112,65 @@
 
   <main class="main">
     <div class="phead">
-      <svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.6"/></svg>
-      <div><h1>OKR</h1><div class="sub">2026 Q3 · 7월–9월 · 마지막 갱신 오늘 07:32</div></div>
-      <div class="right"><span class="live"><span class="dot"></span>Live</span></div>
+      <svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      <div><h1>기대정렬</h1><div class="sub">뭘 하고 있는지, 왜 하는지 — 7질문으로 스스로 점검한다 · 마지막 기록 3주차</div></div>
+      <div class="right"><button class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>새 체크인</button></div>
     </div>
 
     <div class="statrow">
-      <div class="stat accent"><div class="lab">KR 평균 달성률</div><div class="val">68%</div></div>
-      <div class="stat"><div class="lab">Objective</div><div class="val">3</div></div>
-      <div class="stat"><div class="lab">Key Result</div><div class="val">9</div></div>
-      <div class="stat ok"><div class="lab">90% 이상</div><div class="val">2</div></div>
-      <div class="stat warn"><div class="lab">40–89%</div><div class="val">5</div></div>
-      <div class="stat bad"><div class="lab">40% 미만</div><div class="val">2</div></div>
+      <div class="stat accent"><div class="lab">누적 체크인</div><div class="val">3</div></div>
+      <div class="stat"><div class="lab">이번 목표 기간</div><div class="val">2026-Q3</div></div>
+      <div class="stat"><div class="lab">가장 최근</div><div class="val">3주차</div></div>
     </div>
 
     <div class="cols">
       <div>
         <div class="card">
-          <header><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-4 4"/></svg><h3>월별 KR 평균 달성률</h3><span class="act">Q3</span></header>
-          <svg viewBox="0 0 520 180" style="width:100%;height:auto">
-            <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2f6feb" stop-opacity="0.18"/><stop offset="1" stop-color="#2f6feb" stop-opacity="0"/></linearGradient></defs>
-            <line x1="40" y1="20" x2="40" y2="150" stroke="#ececec"/><line x1="40" y1="150" x2="500" y2="150" stroke="#ececec"/>
-            <text x="12" y="26" font-size="10" fill="#8a8a8a">100</text><text x="18" y="94" font-size="10" fill="#8a8a8a">50</text><text x="24" y="153" font-size="10" fill="#8a8a8a">0</text>
-            <path d="M40 150 L130 118 L230 96 L330 92 L430 70 L500 66 L500 150 Z" fill="url(#g)"/>
-            <path d="M40 150 L130 118 L230 96 L330 92 L430 70 L500 66" fill="none" stroke="#2f6feb" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-            <circle cx="130" cy="118" r="3" fill="#2f6feb"/><circle cx="230" cy="96" r="3" fill="#2f6feb"/><circle cx="330" cy="92" r="3" fill="#2f6feb"/><circle cx="430" cy="70" r="3" fill="#2f6feb"/><circle cx="500" cy="66" r="3.5" fill="#2f6feb"/>
-            <text x="120" y="168" font-size="10" fill="#8a8a8a">7월 초</text><text x="215" y="168" font-size="10" fill="#8a8a8a">7월 말</text><text x="315" y="168" font-size="10" fill="#8a8a8a">8월 중</text><text x="415" y="168" font-size="10" fill="#8a8a8a">9월 초</text><text x="478" y="168" font-size="10" fill="#8a8a8a">현재</text>
-          </svg>
-        </div>
-        <div class="card">
-          <header><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 11l3 3 8-8M4 12v7a1 1 0 0 0 1 1h14"/></svg><h3>핵심 결과</h3><span class="act">Objective 전체</span></header>
-          <div class="kr"><div class="top"><span>제품 문서 정합률 100%</span><span class="r"><span class="chip c-ok">94%</span></span></div><div class="dots"><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i></i><i></i></div></div>
-          <div class="kr"><div class="top"><span>개인 OS 로드맵 P9 중 P5 완료</span><span class="r"><span class="chip c-warn">44%</span></span></div><div class="dots"><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
-          <div class="kr"><div class="top"><span>웹 데모 피드백 10건 반영</span><span class="r"><span class="chip c-bad">30%</span></span></div><div class="dots"><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
-        </div>
-      </div>
-      <div>
-        <div class="card">
-          <header><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg><h3>주간 플래너</h3></header>
-          <div class="wk">
-            <div><div class="n">5</div><div class="l">지난주 완료</div></div>
-            <div><div class="n">8<span style="font-size:12px;color:var(--muted)"> / 3</span></div><div class="l">이번주 예정 / 완료</div></div>
-            <div><div class="n">4</div><div class="l">다음주 예정</div></div>
+          <header><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></svg><h3>타임라인</h3><span class="act">최신순</span></header>
+
+          <div class="ci">
+            <div class="cihead"><span class="rail"></span><span class="period">3주차</span><span class="chip c-accent">기획서 작성 중</span></div>
+            <div class="qa">
+              <div class="row"><span class="q">뭘 하고 있지</span><span class="a">이 결과에 대한 피드백을 받기 위해 기획서를 쓰고, 내 작업을 소개하는 중이다.</span></div>
+              <div class="row"><span class="q">왜 하지</span><span class="a">지금까지 쌓은 걸 남에게 보여줄 수 있는 형태로 만들어야, 다음 단계의 피드백을 받을 수 있으니까.</span></div>
+            </div>
+          </div>
+
+          <div class="ci">
+            <div class="cihead"><span class="rail"></span><span class="period">2주차</span><span class="chip c-warn">역량 점검 중</span></div>
+            <div class="qa">
+              <div class="row"><span class="q">뭘 하고 있지</span><span class="a">내 개발·지식 역량을 확인하고, 뭘 놓쳤는지·어디를 더 넓게 봐야 하는지에 대한 피드백을 받는 중이다.</span></div>
+              <div class="row"><span class="q">어떤 상태</span><span class="a">피드백을 수용하는 단계 — 아직 반영은 시작 전.</span></div>
+            </div>
+          </div>
+
+          <div class="ci">
+            <div class="cihead"><span class="rail"></span><span class="period">1주차</span><span class="chip c-ok">완료</span></div>
+            <div class="qa">
+              <div class="row"><span class="q">구체적으로</span><span class="a">위젯 셸 뼈대와 핵심 화면 배치를 잡았다.</span></div>
+              <div class="row"><span class="q">어떤 상태</span><span class="a">프로토타입 완성.</span></div>
+            </div>
           </div>
         </div>
+      </div>
+
+      <div>
         <div class="card">
-          <header><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v18M3 12h18"/></svg><h3>Objective</h3></header>
-          <div class="kr"><div class="top"><span>문서·품질 기반 다지기</span><span class="chip c-ok">O1 · 94%</span></div></div>
-          <div class="kr"><div class="top"><span>개인 생산성 OS 출시 준비</span><span class="chip c-warn">O2 · 58%</span></div></div>
-          <div class="kr"><div class="top"><span>사용자 피드백 루프 구축</span><span class="chip c-bad">O3 · 30%</span></div></div>
+          <header><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg><h3>새 체크인</h3></header>
+          <div class="hint">7개 질문 중 채운 것만 저장된다 — 매번 다 답할 필요는 없다.</div>
+          <div class="field"><label>기간 라벨</label><textarea style="height:32px">4주차</textarea></div>
+          <div class="field"><label>내가 뭘 하고 있지<span class="n">what</span></label><textarea></textarea></div>
+          <div class="field"><label>이걸 왜 하지<span class="n">why</span></label><textarea></textarea></div>
+          <div class="field"><label>언제까지 할 것인지<span class="n">until</span></label><textarea></textarea></div>
+          <div class="field"><label>어떤 목표지<span class="n">goal</span></label><textarea></textarea></div>
+          <div class="field"><label>어떤 전략이지<span class="n">strategy</span></label><textarea></textarea></div>
+          <div class="field"><label>무엇을 구체적으로 할 것인지<span class="n">action</span></label><textarea></textarea></div>
+          <div class="field"><label>어떤 상태인지<span class="n">status</span></label><textarea></textarea></div>
+          <div class="field optional">
+            <div><label>연결할 프로젝트<span class="n">선택</span></label><select><option>— 없음 —</option><option>AI 대시보드 프로토타입</option></select></div>
+            <div><label>연결할 Objective<span class="n">선택</span></label><select><option>— 없음 —</option><option>개인 생산성 OS 출시 준비</option></select></div>
+          </div>
+          <button class="btn" style="width:100%;justify-content:center">저장</button>
         </div>
       </div>
     </div>

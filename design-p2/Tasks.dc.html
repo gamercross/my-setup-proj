@@ -12,6 +12,7 @@
       --bg:#f7f7f5;--panel:#fff;--panel-2:#f2f2ef;--border:#ececec;
       --text:#1a1a1a;--muted:#8a8a8a;--accent:#2f6feb;--accent-soft:rgba(47,111,235,.12);
       --ok:#2e7d5b;--warn:#c2691f;--bad:#c23b3b;
+      --p-high:#ef4444;--p-med:#f59e0b;--p-low:#64748b;
       --card-radius:16px;--shadow-card:0 1px 2px rgba(16,24,40,.04), 0 5px 14px rgba(16,24,40,.06);
     }
     *{box-sizing:border-box}
@@ -22,7 +23,8 @@
     .sb{width:240px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:16px 12px;gap:6px}
     .brand{display:flex;gap:10px;align-items:center;padding:4px 6px 10px}
     .brand .logo{width:34px;height:34px;border-radius:9px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
-    .brand .bt{font-weight:650;font-size:13.5px}.brand .bs{font-size:11px;color:var(--muted);margin-top:1px}
+    .brand .bt{font-weight:650;font-size:13.5px}
+    .brand .bs{font-size:11px;color:var(--muted);margin-top:1px}
     .search{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--panel-2);border-radius:10px;color:var(--muted);font-size:12.5px;margin-bottom:6px}
     .search .kbd{margin-left:auto;font-size:10px;border:1px solid var(--border);background:var(--panel);border-radius:5px;padding:1px 5px}
     .navgrp h4{margin:12px 6px 4px;font-size:10px;letter-spacing:.09em;color:var(--muted);font-weight:650}
@@ -31,6 +33,7 @@
     .nav.active{background:var(--panel-2);color:var(--text);font-weight:600}
     .nav.active svg{color:var(--accent)}
     .nav.active::before{content:"";position:absolute;left:0;top:6px;bottom:6px;width:3px;border-radius:2px;background:var(--accent)}
+    .nav .badge{margin-left:auto;font-size:11px;background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:1px 7px;font-weight:600}
     .user{margin-top:auto;display:flex;align-items:center;gap:10px;padding:10px 6px 2px;border-top:1px solid var(--border)}
     .user .av{width:28px;height:28px;border-radius:999px;background:#dfe3ea;color:#5a6472;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
     .user .un{font-size:12.5px;font-weight:600}.user .ue{font-size:10.5px;color:var(--muted)}
@@ -40,38 +43,36 @@
     .phead h1{margin:0;font-size:22px;font-weight:680;letter-spacing:-.015em}
     .phead .sub{font-size:12.5px;color:var(--muted);margin-top:4px}
     .phead .right{margin-left:auto;display:flex;align-items:center;gap:10px}
-    .live{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ok);background:rgba(46,125,91,.1);border-radius:999px;padding:4px 10px;font-weight:600}
-    .live .dot{width:7px;height:7px;border-radius:999px;background:var(--ok)}
+    .seg{display:flex;border:1px solid var(--border);border-radius:9px;overflow:hidden;font-size:12.5px}
+    .seg span{padding:6px 14px;color:#3a4048}
+    .seg span.on{background:var(--accent);color:#fff;font-weight:600}
     .btn{font-size:12.5px;border:1px solid var(--border);background:var(--panel);border-radius:9px;padding:6px 12px;color:#3a4048}
     .btn.pri{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600}
-    .statrow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:16px}
-    .stat{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:14px 15px;display:flex;flex-direction:column;gap:8px;box-shadow:var(--shadow-card)}
-    .stat .lab{font-size:11.5px;color:var(--muted);font-weight:500}
-    .stat .val{font-size:24px;font-weight:720;letter-spacing:-.02em}
-    .stat .delta{font-size:11px}
-    .stat .delta .c{display:inline-flex;align-items:center;gap:2px;font-weight:650;border-radius:999px;padding:1px 6px}
-    .up{color:var(--ok);background:rgba(46,125,91,.1)}
-    .svcrow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:16px}
-    .svc{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:14px 15px;box-shadow:var(--shadow-card)}
-    .svc .n{font-weight:600;font-size:13px;display:flex;align-items:center;gap:7px}
-    .svc .s{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--ok);margin-top:8px}
-    .svc .s .dot{width:7px;height:7px;border-radius:999px;background:var(--ok)}
-    .svc .s.warn{color:var(--warn)}.svc .s.warn .dot{background:var(--warn)}
-    .svc .m{font-size:11px;color:var(--muted);margin-top:6px}
     .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--card-radius);box-shadow:var(--shadow-card);padding:16px 18px;margin-bottom:16px}
     .card>header{display:flex;align-items:center;gap:8px;margin-bottom:14px}
     .card>header svg{width:16px;height:16px;color:var(--muted)}
     .card>header h3{margin:0;font-size:13.5px;font-weight:650}
     .card>header .act{margin-left:auto;font-size:12px;color:var(--accent);font-weight:600}
-    .chip{display:inline-flex;align-items:center;font-size:11px;border-radius:999px;padding:2px 9px;font-weight:600}
+    .chip{display:inline-flex;align-items:center;gap:5px;font-size:11px;border-radius:999px;padding:2px 9px;font-weight:600;white-space:nowrap}
+    .c-accent{background:var(--accent-soft);color:var(--accent)}
     .c-ok{background:rgba(46,125,91,.12);color:var(--ok)}
     .c-warn{background:rgba(194,105,31,.14);color:var(--warn)}
     .c-muted{background:var(--panel-2);color:#5a6472}
-    table.feed{width:100%;border-collapse:collapse;font-size:12.5px}
-    table.feed th{text-align:left;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:650;padding:0 10px 10px}
-    table.feed td{padding:11px 10px;border-top:1px solid var(--border);color:#3a4048}
-    .next{display:flex;align-items:center;gap:12px;font-size:13px}
-    .next .big{font-size:18px;font-weight:700}
+    .li{display:flex;align-items:center;gap:11px;padding:11px 0;border-top:1px solid var(--border);font-size:13px}
+    .li:first-of-type{border-top:0}
+    .cbx{width:16px;height:16px;border:1.6px solid #c7ccd4;border-radius:5px;flex-shrink:0}
+    .cbx.d{background:var(--accent);border-color:var(--accent)}
+    .li .t{flex:1;min-width:0}
+    .li .t.done{color:var(--muted);text-decoration:line-through}
+    .pri{width:7px;height:7px;border-radius:999px;flex-shrink:0}
+    .board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+    .col{background:var(--panel-2);border-radius:12px;padding:12px}
+    .col h4{margin:0 0 10px;font-size:12px;font-weight:650;display:flex;align-items:center;gap:7px}
+    .col h4 .n{color:var(--muted);font-weight:500}
+    .kc{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:11px 12px;margin-bottom:9px;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+    .kc .kt{font-size:12.5px;font-weight:550;margin-bottom:8px;display:flex;gap:8px;align-items:flex-start}
+    .kc .kb{width:15px;height:15px;border:1.6px solid #c7ccd4;border-radius:5px;flex-shrink:0;margin-top:1px}
+    .kc .meta{display:flex;gap:6px;flex-wrap:wrap}
   </style>
 </helmet>
 
@@ -81,7 +82,7 @@
     <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>검색<span class="kbd">⌘K</span></div>
     <div class="navgrp"><h4>COMMAND</h4>
       <div class="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>개요</div>
-      <div class="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="3.5"/><path d="m8 12 3 3 5-6"/></svg>할 일</div>
+      <div class="nav active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="3.5"/><path d="m8 12 3 3 5-6"/></svg>할 일 <span class="badge">12</span></div>
       <div class="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>브리핑</div>
       <div class="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/></svg>프로젝트</div>
       <div class="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>일정</div>
@@ -91,7 +92,7 @@
       <div class="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></svg>주간 플래너</div>
     </div>
     <div class="navgrp"><h4>AGENT</h4>
-      <div class="nav active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg>활동</div>
+      <div class="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg>활동</div>
       <div class="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h5l2 3h9v11H4z"/></svg>진행 현황</div>
       <div class="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></svg>다이어그램</div>
     </div>
@@ -103,40 +104,48 @@
 
   <main class="main">
     <div class="phead">
-      <svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg>
-      <div><h1>에이전트 활동</h1><div class="sub">마지막 sync 07:32 · 다음 실행 내일 07:30 (launchd)</div></div>
-      <div class="right"><span class="live"><span class="dot"></span>Live</span><span class="btn pri">지금 실행</span></div>
-    </div>
-
-    <div class="statrow">
-      <div class="stat"><div class="lab">마지막 sync</div><div class="val">1시간 전</div><div class="delta">오늘 07:32 · 성공</div></div>
-      <div class="stat"><div class="lab">성공률 (7일)</div><div class="val">96%</div><div class="delta"><span class="c up">▲ 2%p</span> vs 지난주</div></div>
-      <div class="stat"><div class="lab">큐 대기</div><div class="val">0</div><div class="delta">모든 작업 처리됨</div></div>
-    </div>
-
-    <div class="svcrow">
-      <div class="svc"><div class="n"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>Gmail</div><div class="s warn"><span class="dot"></span>부분 성공</div><div class="m">07:30 · 12건 중 10건 동기화</div></div>
-      <div class="svc"><div class="n"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>Calendar</div><div class="s"><span class="dot"></span>정상</div><div class="m">07:30 · 3건 동기화</div></div>
-      <div class="svc"><div class="n"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.8"><path d="M5 4h14v16H5z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>Notion</div><div class="s"><span class="dot"></span>정상</div><div class="m">07:31 · 브리핑 페이지 저장</div></div>
+      <svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="3.5"/><path d="m8 12 3 3 5-6"/></svg>
+      <div><h1>할 일</h1><div class="sub">12개 미완료 · 우선순위 높음 3</div></div>
+      <div class="right">
+        <div class="seg"><span>리스트</span><span class="on">보드</span></div>
+        <span class="btn pri">+ 할 일</span>
+      </div>
     </div>
 
     <div class="card">
-      <header><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/></svg><h3>실행 타임라인</h3><span class="act">전체 로그</span></header>
-      <table class="feed">
-        <thead><tr><th style="width:80px">시간</th><th style="width:110px">서비스</th><th>이벤트</th><th style="width:110px">상태</th><th style="width:80px">소요</th></tr></thead>
-        <tbody>
-          <tr><td>07:32</td><td>Claude</td><td>일일 브리핑 생성</td><td><span class="chip c-ok">성공</span></td><td style="color:var(--muted)">4.1s</td></tr>
-          <tr><td>07:31</td><td>Notion</td><td>브리핑 페이지 저장</td><td><span class="chip c-ok">성공</span></td><td style="color:var(--muted)">0.9s</td></tr>
-          <tr><td>07:30</td><td>Calendar</td><td>이벤트 동기화 (3)</td><td><span class="chip c-ok">성공</span></td><td style="color:var(--muted)">1.2s</td></tr>
-          <tr><td>07:30</td><td>Gmail</td><td>메일 동기화 (12)</td><td><span class="chip c-warn">부분</span></td><td style="color:var(--muted)">2.8s</td></tr>
-          <tr><td>어제 07:31</td><td>Claude</td><td>일일 브리핑 생성</td><td><span class="chip c-ok">성공</span></td><td style="color:var(--muted)">3.7s</td></tr>
-        </tbody>
-      </table>
+      <header>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+        <h3>칸반 보드</h3><span class="act">우선순위별</span>
+      </header>
+      <div class="board">
+        <div class="col">
+          <h4><span class="pri" style="background:var(--p-high)"></span>높음 <span class="n">3</span></h4>
+          <div class="kc"><div class="kt"><span class="kb"></span>ADR-0032 채택 결정 반영</div><div class="meta"><span class="chip c-warn">오늘</span><span class="chip c-muted">문서</span></div></div>
+          <div class="kc"><div class="kt"><span class="kb"></span>P4.5 planner 브리핑 작성</div><div class="meta"><span class="chip c-muted">내일</span><span class="chip c-muted">개발</span></div></div>
+          <div class="kc"><div class="kt"><span class="kb"></span>PR #43 리뷰 반영</div><div class="meta"><span class="chip c-warn">오늘</span></div></div>
+        </div>
+        <div class="col">
+          <h4><span class="pri" style="background:var(--p-med)"></span>보통 <span class="n">2</span></h4>
+          <div class="kc"><div class="kt"><span class="kb"></span>데모 D-4 진행바 재확인</div><div class="meta"><span class="chip c-muted">이번주</span><span class="chip c-muted">데모</span></div></div>
+          <div class="kc"><div class="kt"><span class="kb"></span>OKR 요구사항 초안</div><div class="meta"><span class="chip c-muted">이번주</span></div></div>
+        </div>
+        <div class="col">
+          <h4><span class="pri" style="background:var(--p-low)"></span>낮음 <span class="n">2</span></h4>
+          <div class="kc"><div class="kt"><span class="kb"></span>UI_STYLE 캡처 assets 정리</div><div class="meta"><span class="chip c-muted">언젠가</span></div></div>
+          <div class="kc"><div class="kt"><span class="kb"></span>작업로그 훅 점검</div><div class="meta"><span class="chip c-muted">언젠가</span></div></div>
+        </div>
+      </div>
     </div>
 
     <div class="card">
-      <header><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 2v4M16 2v4M3 10h18"/><rect x="3" y="4" width="18" height="18" rx="2"/></svg><h3>다음 실행</h3></header>
-      <div class="next"><span class="big">내일 07:30</span><span class="chip c-muted">launchd · com.aicomputeros.dailybrief</span><span style="color:var(--muted)">sync → 브리핑 → Notion</span></div>
+      <header>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+        <h3>리스트 뷰 (같은 데이터)</h3><span class="act">전체 보기</span>
+      </header>
+      <div class="li"><span class="cbx d"></span><span class="pri" style="background:var(--p-med)"></span><span class="t done">P4 공통 컴포넌트 PR 병합</span><span class="chip c-ok">완료</span></div>
+      <div class="li"><span class="cbx"></span><span class="pri" style="background:var(--p-high)"></span><span class="t">ADR-0032 채택 결정 반영</span><span class="chip c-warn">오늘</span></div>
+      <div class="li"><span class="cbx"></span><span class="pri" style="background:var(--p-high)"></span><span class="t">P4.5 planner 브리핑 작성</span><span class="chip c-muted">내일</span></div>
+      <div class="li"><span class="cbx"></span><span class="pri" style="background:var(--p-med)"></span><span class="t">데모 D-4 진행바 재확인</span><span class="chip c-muted">이번주</span></div>
     </div>
   </main>
 </div>

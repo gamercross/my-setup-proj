@@ -1,0 +1,148 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    :root{
+      --bg:#f7f7f5;--panel:#fff;--panel-2:#f2f2ef;--border:#ececec;
+      --text:#1a1a1a;--muted:#8a8a8a;--accent:#2f6feb;--accent-soft:rgba(47,111,235,.12);
+      --ok:#2e7d5b;--warn:#c2691f;--bad:#c23b3b;
+      --card-radius:16px;--shadow-card:0 1px 2px rgba(16,24,40,.04), 0 5px 14px rgba(16,24,40,.06);
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+    a{color:var(--accent);text-decoration:none}a:hover{color:#1d4fc4}
+    svg{display:block}
+    .app{display:flex;min-height:1024px}
+    .sb{width:240px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:16px 12px;gap:6px}
+    .brand{display:flex;gap:10px;align-items:center;padding:4px 6px 10px}
+    .brand .logo{width:34px;height:34px;border-radius:9px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
+    .brand .bt{font-weight:650;font-size:13.5px}.brand .bs{font-size:11px;color:var(--muted);margin-top:1px}
+    .search{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--panel-2);border-radius:10px;color:var(--muted);font-size:12.5px;margin-bottom:6px}
+    .search .kbd{margin-left:auto;font-size:10px;border:1px solid var(--border);background:var(--panel);border-radius:5px;padding:1px 5px}
+    .navgrp h4{margin:12px 6px 4px;font-size:10px;letter-spacing:.09em;color:var(--muted);font-weight:650}
+    .nav{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;font-size:13px;color:#3a4048;position:relative}
+    .nav svg{width:16px;height:16px;flex-shrink:0;color:var(--muted)}
+    .nav.active{background:var(--panel-2);color:var(--text);font-weight:600}
+    .nav.active svg{color:var(--accent)}
+    .nav.active::before{content:"";position:absolute;left:0;top:6px;bottom:6px;width:3px;border-radius:2px;background:var(--accent)}
+    .user{margin-top:auto;display:flex;align-items:center;gap:10px;padding:10px 6px 2px;border-top:1px solid var(--border)}
+    .user .av{width:28px;height:28px;border-radius:999px;background:#dfe3ea;color:#5a6472;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+    .user .un{font-size:12.5px;font-weight:600}.user .ue{font-size:10.5px;color:var(--muted)}
+    .main{flex:1;padding:24px 28px 30px;min-width:0}
+    .phead{display:flex;align-items:flex-start;gap:12px;margin-bottom:20px}
+    .phead .hi{width:22px;height:22px;color:var(--accent);margin-top:2px}
+    .phead h1{margin:0;font-size:22px;font-weight:680;letter-spacing:-.015em}
+    .phead .sub{font-size:12.5px;color:var(--muted);margin-top:4px}
+    .phead .right{margin-left:auto;display:flex;align-items:center;gap:10px}
+    .btn{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:650;border-radius:9px;padding:8px 13px;background:var(--accent);color:#fff}
+    .btn.ghost{background:var(--panel);border:1px solid var(--border);color:var(--text)}
+    .btn svg{width:14px;height:14px}
+    .statrow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:16px}
+    .stat{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:13px 14px;display:flex;flex-direction:column;gap:6px;box-shadow:var(--shadow-card)}
+    .stat .lab{font-size:11px;color:var(--muted);font-weight:500}
+    .stat .val{font-size:22px;font-weight:720;letter-spacing:-.02em}
+    .stat.accent .val{color:var(--accent)}
+    .chip{display:inline-flex;align-items:center;font-size:10.5px;border-radius:999px;padding:2px 8px;font-weight:600}
+    .c-ok{background:rgba(46,125,91,.12);color:var(--ok)}
+    .c-warn{background:rgba(194,105,31,.14);color:var(--warn)}
+    .c-muted{background:var(--panel-2);color:var(--muted)}
+    /* 프로젝트 카드 그리드 */
+    .pgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:16px}
+    .pcard{background:var(--panel);border:1px solid var(--border);border-radius:var(--card-radius);box-shadow:var(--shadow-card);padding:16px 18px}
+    .pcard .top{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+    .pcard .name{font-size:14px;font-weight:650}
+    .pcard .status{margin-left:auto}
+    .dots{display:flex;gap:3px;flex-wrap:wrap;margin-bottom:8px}
+    .dots i{width:8px;height:8px;border-radius:2px;background:var(--panel-2)}
+    .dots i.f{background:var(--accent)}
+    .pct-row{display:flex;align-items:center;gap:10px}
+    .pct-row .pct{font-size:18px;font-weight:700;font-variant-numeric:tabular-nums}
+    .slider{flex:1;height:4px;border-radius:99px;background:var(--panel-2);position:relative}
+    .slider .fill{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:var(--accent)}
+    .slider .thumb{position:absolute;top:50%;width:12px;height:12px;border-radius:50%;background:#fff;border:2px solid var(--accent);transform:translate(-50%,-50%)}
+    .field-row{display:flex;gap:10px;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow-card)}
+    .field-row input{flex:1;border:1px solid var(--border);background:var(--panel-2);border-radius:9px;padding:8px 10px;font:inherit;font-size:12.5px}
+  </style>
+</helmet>
+
+<div class="app">
+  <aside class="sb">
+    <div class="brand"><div class="logo">OS</div><div><div class="bt">생산성 OS</div><div class="bs">Personal Productivity</div></div></div>
+    <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>검색<span class="kbd">⌘K</span></div>
+    <div class="navgrp"><h4>COMMAND</h4>
+      <div class="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>개요</div>
+      <div class="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="3.5"/><path d="m8 12 3 3 5-6"/></svg>할 일</div>
+      <div class="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>브리핑</div>
+      <div class="nav active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/></svg>프로젝트</div>
+      <div class="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>일정</div>
+    </div>
+    <div class="navgrp"><h4>PLAN</h4>
+      <div class="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.6"/></svg>OKR</div>
+      <div class="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></svg>주간 플래너</div>
+      <div class="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>기대정렬</div>
+    </div>
+    <div class="navgrp"><h4>AGENT</h4>
+      <div class="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg>활동</div>
+      <div class="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h5l2 3h9v11H4z"/></svg>진행 현황</div>
+      <div class="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></svg>다이어그램</div>
+    </div>
+    <div class="navgrp"><h4>CONNECT</h4>
+      <div class="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3v12a3 3 0 0 0 3 3h9"/><circle cx="6" cy="3" r="2"/><circle cx="18" cy="15" r="2"/><circle cx="6" cy="18" r="2"/><path d="M6 6v9"/></svg>GitHub</div>
+    </div>
+    <div class="navgrp"><h4>SYSTEM</h4>
+      <div class="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>설정</div>
+    </div>
+    <div class="user"><div class="av">JL</div><div><div class="un">Jaeyeup</div><div class="ue">cp9coco…@gmail.com</div></div></div>
+  </aside>
+
+  <main class="main">
+    <div class="phead">
+      <svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/></svg>
+      <div><h1>프로젝트</h1><div class="sub">진행도는 카드에서 직접 슬라이더로 조정 · <span class="m">ProjectCard</span></div></div>
+      <div class="right"><button class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>새 프로젝트</button></div>
+    </div>
+
+    <div class="statrow">
+      <div class="stat accent"><div class="lab">진행 중</div><div class="val">3</div></div>
+      <div class="stat"><div class="lab">완료</div><div class="val">2</div></div>
+      <div class="stat"><div class="lab">보류</div><div class="val">1</div></div>
+    </div>
+
+    <div class="pgrid">
+      <div class="pcard">
+        <div class="top"><span class="name">AI 대시보드 프로토타입</span><span class="status chip c-ok">진행 중</span></div>
+        <div class="dots"><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        <div class="pct-row"><span class="pct">70%</span><div class="slider"><div class="fill" style="width:70%"></div><div class="thumb" style="left:70%"></div></div></div>
+      </div>
+      <div class="pcard">
+        <div class="top"><span class="name">우송대 운영체제 과제</span><span class="status chip c-warn">진행 중</span></div>
+        <div class="dots"><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        <div class="pct-row"><span class="pct">40%</span><div class="slider"><div class="fill" style="width:40%"></div><div class="thumb" style="left:40%"></div></div></div>
+      </div>
+      <div class="pcard">
+        <div class="top"><span class="name">포트폴리오 사이트 개편</span><span class="status chip c-ok">완료</span></div>
+        <div class="dots"><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i></div>
+        <div class="pct-row"><span class="pct">100%</span><div class="slider"><div class="fill" style="width:100%"></div><div class="thumb" style="left:100%"></div></div></div>
+      </div>
+      <div class="pcard">
+        <div class="top"><span class="name">유튜브 채널 리브랜딩</span><span class="status chip c-muted">보류</span></div>
+        <div class="dots"><i class="f"></i><i class="f"></i><i class="f"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        <div class="pct-row"><span class="pct">15%</span><div class="slider"><div class="fill" style="width:15%"></div><div class="thumb" style="left:15%"></div></div></div>
+      </div>
+    </div>
+
+    <div class="field-row">
+      <input placeholder="새 프로젝트 이름…">
+      <button class="btn">추가</button>
+    </div>
+  </main>
+</div>
+</x-dc>
+</body>
+</html>

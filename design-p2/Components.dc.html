@@ -8,175 +8,164 @@
 <x-dc>
 <helmet>
   <style>
-    /* 토큰 대조표: frontend/src/styles.css :root (ADR-0027 / UI_SPEC §1) 와 1:1.
-       이 아트보드가 P4 공통 컴포넌트 계약의 시각 기준이다. */
-    :root {
-      --bg:#f7f7f5; --panel:#ffffff; --panel-2:#f2f2ef; --border:#ececec;
-      --text:#1a1a1a; --muted:#8a8a8a;
-      --accent:#2f6feb; --accent-soft:rgba(47,111,235,.12);
-      --ok:#2e7d5b; --warn:#c2691f; --bad:#c23b3b;
-      --priority-high:#ef4444; --priority-medium:#f59e0b; --priority-low:#64748b;
-      --radius:8px; --chip-radius:999px; --pad:10px;
-      --card-radius:16px; /* P4 목표값(코드 10px) */
+    :root{
+      --bg:#f7f7f5;--panel:#fff;--panel-2:#f2f2ef;--border:#ececec;
+      --text:#1a1a1a;--muted:#8a8a8a;--accent:#2f6feb;--accent-soft:rgba(47,111,235,.12);
+      --ok:#2e7d5b;--warn:#c2691f;--bad:#c23b3b;
+      --p-high:#ef4444;--p-med:#f59e0b;--p-low:#64748b;
+      --card-radius:16px;--shadow-card:0 1px 2px rgba(16,24,40,.04), 0 5px 14px rgba(16,24,40,.06);
     }
-    * { box-sizing:border-box; }
-    body { margin:0; background:var(--bg); color:var(--text);
-      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }
-    .sec { font-size:12px; font-weight:700; letter-spacing:.02em; color:var(--muted); text-transform:uppercase; }
-    .tokline { font-size:11px; color:var(--muted); font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
-    .card { background:var(--panel); border:1px solid var(--border);
-      border-radius:var(--card-radius); box-shadow:0 1px 2px rgba(0,0,0,.04); }
-    .tile { background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:18px; }
-    .tlabel { font-size:12px; color:var(--muted); margin-bottom:8px; }
-    .tnum { font-weight:700; font-size:40px; line-height:1; }
-    .chip { display:inline-flex; align-items:center; padding:3px 11px;
-      border-radius:var(--chip-radius); font-size:12px; font-weight:600; }
-    .pbadge { display:inline-flex; align-items:center; padding:2px 10px;
-      border-radius:var(--chip-radius); font-size:11px; font-weight:700; background:var(--panel-2); }
-    .dot { width:8px; height:8px; border-radius:2px; background:var(--border); }
-    .dot.on { background:var(--accent); }
-    .dotrow { display:flex; gap:4px; flex-wrap:wrap; max-width:280px; }
-    table { border-collapse:collapse; width:100%; font-size:12px; }
-    th, td { border:1px solid var(--border); padding:7px 10px; text-align:left; vertical-align:top; }
-    th { background:var(--panel-2); color:var(--muted); font-weight:600; }
-    code { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:11px; }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+    a{color:var(--accent);text-decoration:none}a:hover{color:#1d4fc4}
+    svg{display:block}
+    .wrap{padding:30px 34px;max-width:1130px}
+    h1{font-size:22px;font-weight:680;margin:0 0 4px}
+    .lede{font-size:12.5px;color:var(--muted);margin-bottom:26px}
+    .sec{margin-bottom:26px}
+    .sec > h2{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:650;margin:0 0 12px}
+    .row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start}
+    .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--card-radius);box-shadow:var(--shadow-card);padding:16px 18px}
+    .stat{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:14px 15px;display:flex;flex-direction:column;gap:8px;box-shadow:var(--shadow-card);width:186px}
+    .stat .lab{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--muted);font-weight:500}
+    .stat .lab svg{width:14px;height:14px}
+    .stat .val{font-size:24px;font-weight:720;letter-spacing:-.02em}
+    .stat.accent .val{color:var(--accent)}.stat.ok .val{color:var(--ok)}.stat.warn .val{color:var(--warn)}.stat.bad .val{color:var(--bad)}
+    .delta{display:flex;align-items:center;gap:6px;font-size:11px}
+    .delta .c{display:inline-flex;align-items:center;gap:2px;font-weight:650;border-radius:999px;padding:1px 6px}
+    .up{color:var(--ok);background:rgba(46,125,91,.1)}
+    .down{color:var(--bad);background:rgba(194,59,59,.1)}
+    .delta .cap{color:var(--muted)}
+    .chip{display:inline-flex;align-items:center;gap:5px;font-size:11px;border-radius:999px;padding:2px 10px;font-weight:600}
+    .c-accent{background:var(--accent-soft);color:var(--accent)}
+    .c-ok{background:rgba(46,125,91,.12);color:var(--ok)}
+    .c-warn{background:rgba(194,105,31,.14);color:var(--warn)}
+    .c-bad{background:rgba(194,59,59,.12);color:var(--bad)}
+    .c-muted{background:var(--panel-2);color:#5a6472}
+    .c-live{background:rgba(46,125,91,.1);color:var(--ok)}
+    .c-live .d{width:6px;height:6px;border-radius:999px;background:var(--ok)}
+    .b-high{background:rgba(239,68,68,.12);color:var(--p-high)}
+    .b-med{background:rgba(245,158,11,.16);color:#b4770c}
+    .b-low{background:var(--panel-2);color:var(--p-low)}
+    .dots{display:flex;gap:3px;flex-wrap:wrap;width:210px}
+    .dots i{width:8px;height:8px;border-radius:2px;background:var(--panel-2)}
+    .dots i.f{background:var(--accent)}
+    .dp{display:flex;flex-direction:column;gap:6px}
+    .dp .l{font-size:11.5px;color:var(--muted)}
+    table.feed{border-collapse:collapse;font-size:12.5px;min-width:420px}
+    table.feed th{text-align:left;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:650;padding:0 12px 10px}
+    table.feed td{padding:11px 12px;border-top:1px solid var(--border);color:#3a4048}
+    .btn{font-size:12.5px;border:1px solid var(--border);background:var(--panel);border-radius:9px;padding:7px 14px;color:#3a4048}
+    .btn.pri{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600}
+    .seg{display:flex;border:1px solid var(--border);border-radius:9px;overflow:hidden;font-size:12.5px}
+    .seg span{padding:7px 15px;color:#3a4048}
+    .seg span.on{background:var(--accent);color:#fff;font-weight:600}
+    .nav{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;font-size:13px;color:#3a4048;position:relative;width:190px;background:var(--panel);border:1px solid var(--border)}
+    .nav svg{width:16px;height:16px;color:var(--muted)}
+    .nav.active{background:var(--panel-2);color:var(--text);font-weight:600;border-color:transparent}
+    .nav.active svg{color:var(--accent)}
+    .nav.active::before{content:"";position:absolute;left:0;top:6px;bottom:6px;width:3px;border-radius:2px;background:var(--accent)}
+    .sw{display:flex;flex-direction:column;gap:6px;align-items:center;font-size:10px;color:var(--muted)}
+    .sw i{width:56px;height:40px;border-radius:8px;border:1px solid var(--border)}
   </style>
 </helmet>
 
-<div style="width:1200px; min-height:1100px; background:var(--bg); padding:28px;
-  display:flex; flex-direction:column; gap:26px;">
+<div class="wrap">
+  <h1>공통 컴포넌트 시트</h1>
+  <div class="lede">UI_STYLE.md v2 · 디자인 토큰 = frontend/src/styles.css :root · 강조색 파랑 #2f6feb (ADR-0027 PO-2)</div>
 
-  <div style="font-size:18px; font-weight:700;">공통 컴포넌트 — 디자인 토큰 v2 (ADR-0027 / UI_SPEC §1)</div>
-
-  <!-- 1. 스탯 타일 -->
-  <div style="display:flex; flex-direction:column; gap:10px;">
-    <div class="sec">1. 스탯 타일 (Stat Tile) — 숫자 40px / 700</div>
-    <div class="tokline">배경 --panel / 보더 1px --border / radius 14px / 숫자색 = 기본 --text · --accent · --ok · --warn · --bad</div>
-    <div style="display:grid; grid-template-columns:repeat(5, minmax(0,1fr)); gap:14px;">
-      <div class="tile"><div class="tlabel">진행 중 과제</div><div class="tnum">3</div></div>
-      <div class="tile"><div class="tlabel">KR 평균 달성률</div><div class="tnum" style="color:var(--accent);">84.4%</div></div>
-      <div class="tile"><div class="tlabel">90% 이상</div><div class="tnum" style="color:var(--ok);">1</div></div>
-      <div class="tile"><div class="tlabel">40–89.9%</div><div class="tnum" style="color:var(--warn);">2</div></div>
-      <div class="tile"><div class="tlabel">40% 미만</div><div class="tnum" style="color:var(--bad);">0</div></div>
+  <div class="sec">
+    <h2>스탯 타일 — tone × 델타 칩</h2>
+    <div class="row">
+      <div class="stat"><div class="lab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="3.5"/><path d="m8 12 3 3 5-6"/></svg>미완료 할 일</div><div class="val">12</div><div class="delta"><span class="c down">▼ 3</span><span class="cap">vs 어제</span></div></div>
+      <div class="stat accent"><div class="lab">OKR 평균</div><div class="val">68%</div><div class="delta"><span class="c up">▲ 4%p</span><span class="cap">vs 지난주</span></div></div>
+      <div class="stat ok"><div class="lab">90% 이상 KR</div><div class="val">2</div><div class="delta"><span class="cap">달성 구간</span></div></div>
+      <div class="stat warn"><div class="lab">40–89% KR</div><div class="val">5</div><div class="delta"><span class="cap">진행 구간</span></div></div>
+      <div class="stat bad"><div class="lab">40% 미만 KR</div><div class="val">2</div><div class="delta"><span class="cap">주의 구간</span></div></div>
     </div>
   </div>
 
-  <!-- 2. 점그리드 진행바 -->
-  <div style="display:flex; flex-direction:column; gap:10px;">
-    <div class="sec">2. 점그리드 진행바 (Dot-grid Progress) — 점 8×8, radius 2px, 20칸</div>
-    <div class="tokline">채움 --accent / 빈칸 --border. solid bar 대신 점그리드로 통일 권장 (PERSONAL_OS §4)</div>
-    <div class="card" style="padding:18px; display:flex; flex-direction:column; gap:16px;">
-      <div>
-        <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:8px;">
-          <span>배포 파이프라인 안정화</span><span style="font-weight:700; color:var(--muted);">0%</span>
-        </div>
-        <div class="dotrow">
-          <span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
-        </div>
-      </div>
-      <div>
-        <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:8px;">
-          <span>AI 대시보드 프로토타입</span><span style="font-weight:700; color:var(--muted);">37%</span>
-        </div>
-        <div class="dotrow">
-          <span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
-        </div>
-      </div>
-      <div>
-        <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:8px;">
-          <span>콘텐츠 채널 개편</span><span style="font-weight:700; color:var(--muted);">100%</span>
-        </div>
-        <div class="dotrow">
-          <span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span>
-        </div>
-      </div>
-      <div class="tokline">예시 수치 = projects.progress (DATA_DICTIONARY). 금융·저축 소재는 도메인 밖(PERSONAL_OS §6)이라 사용하지 않음.</div>
+  <div class="sec">
+    <h2>칩 / 배지</h2>
+    <div class="card"><div class="row">
+      <span class="chip c-muted">todo</span>
+      <span class="chip c-accent">in_progress</span>
+      <span class="chip c-ok">done</span>
+      <span class="chip b-high">우선순위 높음</span>
+      <span class="chip b-med">보통</span>
+      <span class="chip b-low">낮음</span>
+      <span class="chip c-muted">카테고리 · 문서</span>
+      <span class="chip c-muted">opus</span>
+      <span class="chip c-muted">sonnet</span>
+      <span class="chip c-muted">haiku</span>
+      <span class="chip c-live"><span class="d"></span>Live</span>
+      <span class="chip c-warn">부분 성공</span>
+      <span class="chip c-bad">실패</span>
+    </div></div>
+  </div>
+
+  <div class="sec">
+    <h2>점-그리드 진행바 (DotProgress · 20점)</h2>
+    <div class="card"><div class="row" style="gap:28px">
+      <div class="dp"><span class="l">0%</span><div class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+      <div class="dp"><span class="l">35%</span><div class="dots"><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+      <div class="dp"><span class="l">70%</span><div class="dots"><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+      <div class="dp"><span class="l">100%</span><div class="dots"><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i></div></div>
+    </div></div>
+  </div>
+
+  <div class="sec">
+    <h2>피드 / 테이블 행</h2>
+    <div class="card"><table class="feed">
+      <thead><tr><th>시간</th><th>이벤트</th><th>서비스</th><th>상태</th><th></th></tr></thead>
+      <tbody>
+        <tr><td>07:32</td><td>일일 브리핑 생성</td><td>Claude</td><td><span class="chip c-ok">성공</span></td><td style="color:var(--muted)">⋯</td></tr>
+        <tr><td>07:30</td><td>메일 동기화 (12)</td><td>Gmail</td><td><span class="chip c-warn">부분</span></td><td style="color:var(--muted)">⋯</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="sec">
+    <h2>미니 차트 (인라인 SVG · PO-8)</h2>
+    <div class="row">
+      <div class="card"><svg viewBox="0 0 180 60" width="180" height="60"><path d="M2 48 L30 40 L58 44 L86 28 L114 30 L142 16 L178 10" fill="none" stroke="#2f6feb" stroke-width="2" stroke-linecap="round"/></svg><div style="font-size:11px;color:var(--muted);margin-top:4px">스파크라인</div></div>
+      <div class="card"><svg viewBox="0 0 180 60" width="180" height="60"><rect x="6" y="30" width="18" height="24" fill="#2f6feb" opacity=".35"/><rect x="34" y="20" width="18" height="34" fill="#2f6feb" opacity=".5"/><rect x="62" y="26" width="18" height="28" fill="#2f6feb" opacity=".55"/><rect x="90" y="12" width="18" height="42" fill="#2f6feb" opacity=".7"/><rect x="118" y="18" width="18" height="36" fill="#2f6feb" opacity=".8"/><rect x="146" y="8" width="18" height="46" fill="#2f6feb"/></svg><div style="font-size:11px;color:var(--muted);margin-top:4px">주간 완료 막대</div></div>
+      <div class="card"><svg viewBox="0 0 180 60" width="180" height="60"><path d="M4 8 H176 L150 30 L150 52 L112 52 L112 30 Z" fill="#2f6feb" opacity=".18"/><path d="M4 8 H176 L138 34 L138 34 L92 34 Z" fill="#2f6feb" opacity=".4"/></svg><div style="font-size:11px;color:var(--muted);margin-top:4px">퍼널 실루엣</div></div>
     </div>
   </div>
 
-  <!-- 3. 칩 -->
-  <div style="display:flex; flex-direction:column; gap:10px;">
-    <div class="sec">3. 칩 (Chip) — radius 999px (--chip-radius)</div>
-    <div class="tokline">활성 --accent-soft + --accent / 중립 --panel-2 + --muted / 상태 --panel-2 + (--ok · --warn · --bad)</div>
-    <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-      <span class="chip" style="background:var(--accent-soft); color:var(--accent);">전체 · 활성</span>
-      <span class="chip" style="background:var(--panel-2); color:var(--muted);">업무</span>
-      <span class="chip" style="background:var(--panel-2); color:var(--muted);">학습</span>
-      <span class="chip" style="background:var(--panel-2); color:var(--muted);">콘텐츠</span>
-      <span class="chip" style="background:var(--panel-2); color:var(--ok);">완료</span>
-      <span class="chip" style="background:var(--panel-2); color:var(--warn);">보류</span>
-      <span class="chip" style="background:var(--panel-2); color:var(--bad);">실패</span>
+  <div class="sec">
+    <h2>버튼 · 세그먼티드 컨트롤</h2>
+    <div class="card"><div class="row" style="align-items:center">
+      <span class="btn pri">실행</span>
+      <span class="btn">취소</span>
+      <span class="btn">+ 할 일</span>
+      <div class="seg"><span class="on">리스트</span><span>보드</span></div>
+    </div></div>
+  </div>
+
+  <div class="sec">
+    <h2>사이드바 네비 항목</h2>
+    <div class="row">
+      <div class="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>기본</div>
+      <div class="nav active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.6"/></svg>활성 (4px 인디케이터)</div>
     </div>
   </div>
 
-  <!-- 4. 카드 -->
-  <div style="display:flex; flex-direction:column; gap:10px;">
-    <div class="sec">4. 카드 (Card) — 정적 그림자 하나로 통일</div>
-    <div class="tokline">배경 --panel / 보더 1px --border / radius = P4 목표 16px (코드 --card-radius:10px) / shadow 0 1px 2px rgba(0,0,0,.04)</div>
-    <div style="display:flex; gap:14px;">
-      <div class="card" style="padding:16px; flex:1;">
-        <strong style="font-size:14px;">기본 카드</strong>
-        <div style="font-size:12px; color:var(--muted); margin-top:6px;">카드 내부 여백 14–18px 제안(코드 --pad:10px). 카드 간 간격 12px.</div>
-      </div>
-      <div class="card" style="padding:16px; flex:1;">
-        <strong style="font-size:14px;">중첩 카드</strong>
-        <div style="margin-top:10px; background:var(--panel-2); border:1px solid var(--border); border-radius:12px; padding:12px; font-size:12px; color:var(--muted);">
-          중첩면은 --panel-2
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 5. 우선순위 배지 -->
-  <div style="display:flex; flex-direction:column; gap:10px;">
-    <div class="sec">5. 우선순위 배지 (Priority Badge) — 강조·상태색과 독립</div>
-    <div class="tokline">높음 --priority-high / 보통 --priority-medium / 낮음 --priority-low. 현재 코드: 배경=색·글자=--bg. 캔버스 목표: soft 배경(신규 토큰 필요, 아래 표)</div>
-    <div style="display:flex; gap:10px; align-items:center;">
-      <span class="pbadge" style="color:var(--priority-high);">높음</span>
-      <span class="pbadge" style="color:var(--priority-medium);">보통</span>
-      <span class="pbadge" style="color:var(--priority-low);">낮음</span>
-      <span style="font-size:11px; color:var(--muted);">목표안: --panel-2 배경 + 우선순위색 글자 (soft 배경 토큰 확정 시 교체)</span>
-    </div>
-  </div>
-
-  <!-- 6. 라인차트 -->
-  <div style="display:flex; flex-direction:column; gap:10px;">
-    <div class="sec">6. 라인차트 (Trend) — 인라인 SVG</div>
-    <div class="tokline">축 --border / 선 --accent 2.5px / 포인트 r=3.5. 포인트 수 = x 라벨 수 (4개). 확인 필요: PO-8(차트 라이브러리 미확정 — 인라인 SVG로 그리되 Recharts 확정 아님)</div>
-    <div class="card" style="padding:18px;">
-      <svg width="100%" height="150" viewBox="0 0 620 150" preserveAspectRatio="none">
-        <line x1="44" y1="12" x2="44" y2="118" style="stroke:var(--border); stroke-width:1;"/>
-        <line x1="44" y1="118" x2="596" y2="118" style="stroke:var(--border); stroke-width:1;"/>
-        <polyline points="44,96 228,70 412,46 596,40" style="fill:none; stroke:var(--accent); stroke-width:2.5; stroke-linecap:round;"/>
-        <circle cx="44" cy="96" r="3.5" style="fill:var(--accent);"/>
-        <circle cx="228" cy="70" r="3.5" style="fill:var(--accent);"/>
-        <circle cx="412" cy="46" r="3.5" style="fill:var(--accent);"/>
-        <circle cx="596" cy="40" r="3.5" style="fill:var(--accent);"/>
-        <text x="30" y="138" font-size="10" style="fill:var(--muted);">6월</text>
-        <text x="214" y="138" font-size="10" style="fill:var(--muted);">7월</text>
-        <text x="398" y="138" font-size="10" style="fill:var(--muted);">8월</text>
-        <text x="576" y="138" font-size="10" style="fill:var(--muted);">9월</text>
-      </svg>
-    </div>
-  </div>
-
-  <!-- P4 신규 토큰 제안 표 -->
-  <div style="display:flex; flex-direction:column; gap:10px;">
-    <div class="sec">P4 신규 토큰 제안 (아직 styles.css 에 없음 — 임의 hex 아님, 제안값)</div>
-    <table>
-      <tr><th>제안 토큰</th><th>제안값</th><th>용도</th><th>근거</th></tr>
-      <tr><td><code>--priority-high-soft</code></td><td><code>rgba(239,68,68,.12)</code></td><td>높음 배지 배경</td><td>--priority-high 알파 12%</td></tr>
-      <tr><td><code>--priority-medium-soft</code></td><td><code>rgba(245,158,11,.14)</code></td><td>보통 배지 배경</td><td>--priority-medium 알파 14%</td></tr>
-      <tr><td><code>--priority-low-soft</code></td><td><code>rgba(100,116,139,.14)</code></td><td>낮음 배지 배경</td><td>--priority-low 알파 14%</td></tr>
-      <tr><td><code>--ok-soft / --warn-soft / --bad-soft</code></td><td><code>rgba(…, .14)</code></td><td>상태 칩 배경</td><td>현재 --panel-2 로 대체 중</td></tr>
-      <tr><td><code>--card-radius</code> (개정)</td><td><code>16px</code></td><td>카드 모서리</td><td>코드 현재 10px → P4 목표 16px</td></tr>
-      <tr><td><code>--card-pad</code></td><td><code>14–18px</code></td><td>카드 내부 여백</td><td>--pad:10px 는 위젯 본문 기준, 카드 내부는 더 넓게</td></tr>
-      <tr><td><code>--shadow-card</code></td><td><code>0 1px 2px rgba(0,0,0,.04)</code></td><td>카드 그림자</td><td>현재 인라인 반복 → 토큰화</td></tr>
-    </table>
-  </div>
-
-  <div style="font-size:11px; color:var(--muted);">
-    프레임 1200×1100 · 이 시트의 색 리터럴은 전부 :root 토큰 변수 참조(임의 hex 0건, 신규 제안값은 위 표에만 텍스트로 존재).
+  <div class="sec">
+    <h2>색상 토큰</h2>
+    <div class="card"><div class="row" style="gap:16px">
+      <div class="sw"><i style="background:#f7f7f5"></i>--bg</div>
+      <div class="sw"><i style="background:#fff"></i>--panel</div>
+      <div class="sw"><i style="background:#f2f2ef"></i>--panel-2</div>
+      <div class="sw"><i style="background:#ececec"></i>--border</div>
+      <div class="sw"><i style="background:#1a1a1a"></i>--text</div>
+      <div class="sw"><i style="background:#8a8a8a"></i>--muted</div>
+      <div class="sw"><i style="background:#2f6feb"></i>--accent</div>
+      <div class="sw"><i style="background:#2e7d5b"></i>--ok</div>
+      <div class="sw"><i style="background:#c2691f"></i>--warn</div>
+      <div class="sw"><i style="background:#c23b3b"></i>--bad</div>
+    </div></div>
   </div>
 </div>
 </x-dc>

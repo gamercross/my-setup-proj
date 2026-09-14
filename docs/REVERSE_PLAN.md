@@ -242,7 +242,7 @@ Akiflow·Linear 를 §1-0 재정의 기준으로 대조하면, 넷 다 **할일�
 
 각 역량 테마(개인 OS 의 T1~T6)는 P0(문서) → P1(ADR·요구사항) → P2(디자인 캔버스) → P3~P9(빌드)
 순서로 진행했다. "왜·무엇" 은 vision 문서가, "어떻게" 는 ADR·요구사항이, 목표 화면은
-Claude Design 캔버스(6 아트보드)가 담당한다.
+Claude Design 캔버스(2026-09-14 기준 13 아트보드 — P2 최초 6개 + 실제 위젯 전체 커버리지로 확장)가 담당한다.
 
 ### 3-2. 에이전트 파이프라인 (`/feature`)
 
@@ -475,7 +475,7 @@ flowchart TB
 | 백엔드 | Node (CI 22), Express 4, better-sqlite3 13, `@supabase/supabase-js` 2(연결 배선만), supertest, nodemon |
 | 에이전트 | Python (CI 3.12 / 로컬 3.14), anthropic SDK ≥0.49, python-dotenv, google-api-python-client 2.200, google-auth-oauthlib 1.4, google-auth-httplib2, cryptography 50 (Fernet), requests (Notion REST), apscheduler, pytest |
 | 자동화·운영 | Claude Code (서브에이전트 팀 + slash commands + hooks), GitHub Actions (`test.yml`: 문법 + `npm test` + `pytest -m "not network"`), launchd plist 3종(`dailybrief`·`runnow`·`worklog`), Slack incoming webhook, `verify.sh` · `check-docs.sh` |
-| 디자인 | Claude Design 캔버스 — `design-p2/*.dc.html` 6 아트보드 (개요·할일·OKR·에이전트 활동·진행 현황·공통 컴포넌트) |
+| 디자인 | Claude Design 캔버스 — `design-p2/*.dc.html` 13 아트보드 (개요·할일·OKR·에이전트 활동·진행 현황·공통 컴포넌트·기대정렬·GitHub 연동·일정·프로젝트·다이어그램·Daily Brief·주간 플래너 — 2026-09-14 실제 위젯 10종 전체 커버리지로 확장) |
 | 문서 방법론 | C4/arc42 뷰, ADR (결정 1개 = 파일 1개), FR/NFR/TRACEABILITY/TEST_PLAN, COURSE_MAPPING |
 
 ### 5-2. 재검토 노트
