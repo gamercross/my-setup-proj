@@ -14,8 +14,8 @@ import {
 import { DEFAULT_LAYOUTS, cloneDefaultInstances } from '../src/widgets/defaultLayout.js';
 import { WIDGET_META } from '../src/widgets/widgetMeta.js';
 
-test('TC-SHELL-06: TOPICS 는 11개, id 유일, group 유효, label/subtitle 비어있지 않음', () => {
-  assert.equal(TOPICS.length, 11);
+test('TC-SHELL-06: TOPICS 는 12개, id 유일, group 유효, label/subtitle 비어있지 않음', () => {
+  assert.equal(TOPICS.length, 12);
   const ids = new Set();
   const groups = new Set(TOPIC_GROUPS.map((g) => g.id));
   for (const t of TOPICS) {

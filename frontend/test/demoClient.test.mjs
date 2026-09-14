@@ -217,6 +217,47 @@ test('TC-PARITY-02: 매칭 우선순위 — 구체 경로가 포괄 경로보다
   await assert.rejects(() => demoRequest('GET', '/nope'), (e) => e.status === 404);
 });
 
+test('TC-P10-DEMO-01: 체크인 CRUD — GET 최신순/필터, POST 검증, PUT 병합, DELETE (ADR-0035)', async () => {
+  const list = await demoRequest('GET', '/checkins');
+  assert.equal(list.checkins.length, 3);
+  // 최신순(created_at DESC)
+  const created = list.checkins.map((c) => c.created_at);
+  assert.deepEqual(created, [...created].sort().reverse());
+
+  // 7개 답변 전부 공백 → 400
+  await assert.rejects(
+    () => demoRequest('POST', '/checkins', { period: 'x', what: '  ' }),
+    (e) => e.status === 400 && /최소 한 개/.test(e.message)
+  );
+  // 없는 project_id/objective_id → 400
+  await assert.rejects(
+    () => demoRequest('POST', '/checkins', { what: 'x', project_id: 9999 }),
+    (e) => e.status === 400
+  );
+  await assert.rejects(
+    () => demoRequest('POST', '/checkins', { what: 'x', objective_id: 9999 }),
+    (e) => e.status === 400
+  );
+
+  const { checkin } = await demoRequest('POST', '/checkins', { what: '새 체크인' });
+  assert.equal(checkin.what, '새 체크인');
+  assert.equal(checkin.why, null);
+
+  const upd = await demoRequest('PUT', `/checkins/${checkin.id}`, { why: '이유 추가' });
+  assert.equal(upd.checkin.what, '새 체크인');
+  assert.equal(upd.checkin.why, '이유 추가');
+
+  // 병합 결과가 전부 비면 400, 없는 id 404
+  await assert.rejects(
+    () => demoRequest('PUT', `/checkins/${checkin.id}`, { what: '', why: '' }),
+    (e) => e.status === 400
+  );
+  await assert.rejects(() => demoRequest('PUT', '/checkins/99999', { what: 'x' }), (e) => e.status === 404);
+
+  await demoRequest('DELETE', `/checkins/${checkin.id}`);
+  await assert.rejects(() => demoRequest('DELETE', `/checkins/${checkin.id}`), (e) => e.status === 404);
+});
+
 test('TC-P9-DEMO-01: GET /tree 는 노드 배열, GET /docs/<존재> 는 tokens, <없음> 은 404', async () => {
   const { tree } = await demoRequest('GET', '/tree');
   assert.ok(Array.isArray(tree) && tree.length > 0);

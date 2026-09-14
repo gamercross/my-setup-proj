@@ -18,6 +18,7 @@ flowchart LR
     UI["UI 01~05<br/>대시보드 공통"]
     WIDGET["WIDGET 01~08<br/>위젯 셸·커스터마이즈<br/>(대시보드 OS)"]
     OKR["OKR 01~06<br/>목표·핵심결과·주간 플래너<br/>(개인 OS P8)"]
+    CHECKIN["CHECKIN 01~05<br/>기대정렬 체크인<br/>(개인 OS P10)"]
   end
   TASK & UI --> B["Phase B (완료)"]
   PROJ --> C2["Phase C2 (완료)"]
@@ -25,9 +26,10 @@ flowchart LR
   UI --> C4["Phase C4 (다이어그램 뷰어)"]
   WIDGET --> C5["Phase C5~C6 (위젯 셸·테마)"]
   OKR --> P8["개인 OS P8"]
+  CHECKIN --> P10["개인 OS P10"]
   AGENT & MAIL --> D["Phase D (Week 6~7)"]
   AUTH & SYNC --> E["Phase E (Week 9~)"]
-  B & C2 & C3 & C4 & C5 & P8 & D & E --> TR["TRACEABILITY.md<br/>+ TEST_PLAN.md (TC-*)"]
+  B & C2 & C3 & C4 & C5 & P8 & P10 & D & E --> TR["TRACEABILITY.md<br/>+ TEST_PLAN.md (TC-*)"]
 ```
 
 > 🆕 **대시보드 OS 전환** (2026-09-03) — 고정 패널 대시보드를 **위젯이 움직이고 위젯마다 디자인하는 데스크톱 OS** 형태로 확장. 개념 [../vision/DASHBOARD_OS.md](../vision/DASHBOARD_OS.md), 상세 [WIDGET.md](WIDGET.md), 결정 [ADR-0020~0022](../architecture/adr/).
@@ -55,6 +57,7 @@ flowchart LR
 | CAL | [requirements/CAL.md](CAL.md) | FR-CAL-01/02 완료 (C3 위젯 + D-마무리 캐시 조회), FR-CAL-03 D2-b 완료 |
 | WIDGET | [requirements/WIDGET.md](WIDGET.md) | 초안 (제안 — 착수 전 DASHBOARD_OS §8 결정) |
 | OKR | [requirements/OKR.md](OKR.md) | P8 착수 전 상세화 (2026-09-08, ADR-0030 채택) |
+| CHECKIN | [requirements/CHECKIN.md](CHECKIN.md) | P10 상세화 (2026-09-14, ADR-0035 채택) |
 | MAIL / SYNC / AUTH | (예정) | 아래 표만 — 해당 주차 착수 전 상세화 |
 
 ---
@@ -166,6 +169,18 @@ flowchart LR
 | FR-OKR-04 | 월별 KR 평균 달성률 추이를 스냅샷으로 쌓고 인라인 SVG 라인차트로 본다 | P2 | 개인 OS P8 | ✅ |
 | FR-OKR-05 | 주간 플래너: `due_date` 를 ISO 주로 버킷팅해 지난주 완료 / 이번주 / 다음주 요약을 조회한다 (순수 집계) | P1 | 개인 OS P8 | ✅ |
 | FR-OKR-06 | OKR·주간 플래너 위젯: 스탯 타일 그리드 + objective/KR 편집 + 주간 리스트(단일 캐시 완료 토글) | P1 | 개인 OS P8 | ✅ |
+
+## 11. 기대정렬 체크인 (CHECKIN) — 개인 생산성 OS P10
+
+> 상세 수용 기준은 [requirements/CHECKIN.md](CHECKIN.md). 결정 [ADR-0035](../architecture/adr/ADR-0035-expectation-checkin.md) (채택 2026-09-14).
+
+| ID | 요구사항 | 우선순위 | 목표 주차 | 상태 |
+|---|---|:---:|:---:|:---:|
+| FR-CHECKIN-01 | 사용자는 7개 질문(뭘 하고 있지/왜/언제까지/목표/전략/구체적 행동/상태)에 자유롭게 답해 체크인을 생성한다 (최소 1개 필수) | P1 | 개인 OS P10 | ✅ |
+| FR-CHECKIN-02 | 체크인 목록을 최신순으로 조회하고, 프로젝트/목표로 필터링한다 | P1 | 개인 OS P10 | ✅ |
+| FR-CHECKIN-03 | 체크인을 부분 수정(병합)하거나 삭제한다 | P1 | 개인 OS P10 | ✅ |
+| FR-CHECKIN-04 | 기대정렬 체크인 위젯: 카드 목록 + 새 체크인 폼 + 삭제 | P1 | 개인 OS P10 | ✅ |
+| FR-CHECKIN-05 | 체크인을 프로젝트/목표에 선택적으로 연결한다 (느슨 FK, 삭제 시 SET NULL) | P2 | 개인 OS P10 | ✅ |
 
 ---
 

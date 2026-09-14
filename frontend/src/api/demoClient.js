@@ -362,6 +362,110 @@ function deleteKeyResult(id) {
   return { ok: true };
 }
 
+// ── 기대정렬 체크인(개인 OS P10, ADR-0035) — 백엔드 services/checkins.js 흉내 ──
+const CHECKIN_ANSWER_FIELDS = ['what', 'why', 'until', 'goal', 'strategy', 'action', 'status'];
+
+// 쿼리 파라미터 하나(project_id 또는 objective_id)를 필터값으로 파싱한다.
+// 미지정 → undefined, 'none'|'null' → null, 그 외 양의 정수 → 그 값, 아니면 400.
+function parseCheckinIdFilter(raw, label) {
+  if (raw === undefined) return undefined;
+  if (raw === 'none' || raw === 'null') return null;
+  const n = Number(raw);
+  if (!Number.isInteger(n) || n <= 0) {
+    throw err(400, `${label} 는 양의 정수이거나 "none" 이어야 합니다.`);
+  }
+  return n;
+}
+
+function listCheckins(query) {
+  let rows = store.expectation_checkins.slice();
+  const projectId = parseCheckinIdFilter(query.project_id, 'project_id');
+  if (projectId !== undefined) {
+    rows = rows.filter((c) => (projectId === null ? c.project_id == null : c.project_id === projectId));
+  }
+  const objectiveId = parseCheckinIdFilter(query.objective_id, 'objective_id');
+  if (objectiveId !== undefined) {
+    rows = rows.filter((c) => (objectiveId === null ? c.objective_id == null : c.objective_id === objectiveId));
+  }
+  rows.sort((a, b) => (a.created_at < b.created_at ? 1 : a.created_at > b.created_at ? -1 : b.id - a.id));
+  const lim = Number(query.limit) > 0 ? Number(query.limit) : 50;
+  return { checkins: rows.slice(0, lim) };
+}
+
+// 텍스트 정규화 — 트림 후 '' → null, max 초과 시 400 (백엔드 services/checkins.js 와 동일한 길이 검증).
+function normalizeCheckinText(raw, max, message) {
+  if (raw === undefined || raw === null) return null;
+  const text = String(raw).trim();
+  if (text.length === 0) return null;
+  if (text.length > max) throw err(400, message);
+  return text;
+}
+
+function assertCheckinAtLeastOneAnswer(row) {
+  const hasAny = CHECKIN_ANSWER_FIELDS.some((key) => row[key] !== null && row[key] !== undefined);
+  if (!hasAny) throw err(400, '최소 한 개 질문에는 답해야 합니다.');
+}
+
+function createCheckin(body) {
+  const b = body || {};
+  const row = { period: normalizeCheckinText(b.period, 40, 'period 는 40자 이하여야 합니다.') };
+  for (const key of CHECKIN_ANSWER_FIELDS) row[key] = normalizeCheckinText(b[key], 2000, '답변은 2000자 이하여야 합니다.');
+  assertCheckinAtLeastOneAnswer(row);
+  if (b.project_id != null && !store.projects.some((p) => p.id === b.project_id)) {
+    throw err(400, '연결할 프로젝트를 찾을 수 없습니다.');
+  }
+  if (b.objective_id != null && !store.objectives.some((o) => o.id === b.objective_id)) {
+    throw err(400, '연결할 목표를 찾을 수 없습니다.');
+  }
+  const now = nowIso();
+  const checkin = {
+    id: nextId(),
+    period: row.period,
+    what: row.what, why: row.why, until: row.until, goal: row.goal,
+    strategy: row.strategy, action: row.action, status: row.status,
+    project_id: b.project_id ?? null,
+    objective_id: b.objective_id ?? null,
+    created_at: now,
+    updated_at: now,
+  };
+  store.expectation_checkins.push(checkin);
+  return { checkin };
+}
+
+function updateCheckin(id, body) {
+  const checkin = store.expectation_checkins.find((c) => c.id === Number(id));
+  if (!checkin) throw err(404, '체크인을 찾을 수 없습니다.');
+  const b = body || {};
+  const next = { ...checkin };
+  if (b.period !== undefined) next.period = normalizeCheckinText(b.period, 40, 'period 는 40자 이하여야 합니다.');
+  for (const key of CHECKIN_ANSWER_FIELDS) {
+    if (b[key] !== undefined) next[key] = normalizeCheckinText(b[key], 2000, '답변은 2000자 이하여야 합니다.');
+  }
+  if (b.project_id !== undefined) {
+    if (b.project_id != null && !store.projects.some((p) => p.id === b.project_id)) {
+      throw err(400, '연결할 프로젝트를 찾을 수 없습니다.');
+    }
+    next.project_id = b.project_id;
+  }
+  if (b.objective_id !== undefined) {
+    if (b.objective_id != null && !store.objectives.some((o) => o.id === b.objective_id)) {
+      throw err(400, '연결할 목표를 찾을 수 없습니다.');
+    }
+    next.objective_id = b.objective_id;
+  }
+  assertCheckinAtLeastOneAnswer(next);
+  next.updated_at = nowIso();
+  Object.assign(checkin, next);
+  return { checkin };
+}
+
+function deleteCheckin(id) {
+  const nid = Number(id);
+  if (!store.expectation_checkins.some((c) => c.id === nid)) throw err(404, '체크인을 찾을 수 없습니다.');
+  store.expectation_checkins = store.expectation_checkins.filter((c) => c.id !== nid);
+  return { ok: true };
+}
+
 function plannerWeekly() {
   const b = bucketTasks(store.tasks, new Date());
   const pick = (t) => ({
@@ -475,6 +579,12 @@ export const DEMO_ROUTES = [
   { method: 'GET', spec: '/okr', match: (p) => p === '/okr', handler: (p, q) => okrDashboard(q) },
 
   { method: 'GET', spec: '/planner/weekly', match: (p) => p === '/planner/weekly', handler: () => plannerWeekly() },
+
+  // 기대정렬 체크인(P10, ADR-0035) — 구체 경로(/checkins)를 /checkins/:id 보다 먼저 매칭.
+  { method: 'GET', spec: '/checkins', match: (p) => p === '/checkins', handler: (p, q) => listCheckins(q) },
+  { method: 'POST', spec: '/checkins', match: (p) => p === '/checkins', handler: (p, q, body) => createCheckin(body) },
+  { method: 'PUT', spec: '/checkins/:id', match: (p) => p.startsWith('/checkins/'), handler: (p, q, body) => updateCheckin(p.slice(10), body) },
+  { method: 'DELETE', spec: '/checkins/:id', match: (p) => p.startsWith('/checkins/'), handler: (p) => deleteCheckin(p.slice(10)) },
 ];
 
 // method+path 를 받아 백엔드와 같은 형태의 객체를 반환한다 (실패 시 throw).

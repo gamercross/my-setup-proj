@@ -660,6 +660,49 @@ FR-OKR-05 · 서비스 `backend/src/services/planner.js` · 읽기 전용 SQL �
 
 ---
 
+## 기대정렬 체크인 (checkins) ✅ 구현 — 개인 OS P10 (2026-09-14)
+
+FR-CHECKIN-01~05 · [ADR-0035](../architecture/adr/ADR-0035-expectation-checkin.md) ·
+서비스 `backend/src/services/checkins.js`
+
+7개 질문(`what`/`why`/`until`/`goal`/`strategy`/`action`/`status`)은 전부 자유 서술
+TEXT·nullable — 최소 1개는 채워야 한다. `period` 는 자유 라벨이며 날짜 형식을 강제하지 않는다.
+채점·완성도 점수는 계산·저장하지 않는다(ADR-0035).
+
+### `GET /api/checkins` — 목록 (최신순) ✅
+
+| 쿼리 | 설명 |
+|---|---|
+| `project_id` | 정수 또는 `none`(연결 안 된 것만). 잘못된 값 → 400 |
+| `objective_id` | 정수 또는 `none`. 잘못된 값 → 400 |
+| `limit` | 최대 반환 수 (기본 50) |
+
+**응답 200**
+```json
+{
+  "checkins": [ { "id": 1, "period": "1주차", "what": "...", "why": null, "until": null,
+                   "goal": null, "strategy": null, "action": "...", "status": "...",
+                   "project_id": 1, "objective_id": null,
+                   "created_at": "2026-09-14T00:00:00.000Z", "updated_at": "2026-09-14T00:00:00.000Z" } ]
+}
+```
+정렬: `created_at DESC, id DESC`.
+
+### `POST /api/checkins` ✅ · `PUT /api/checkins/:id` ✅ · `DELETE /api/checkins/:id` ✅
+
+| 필드 | 규칙 |
+|---|---|
+| `period` | 선택, 트림 후 40자 이하, 빈 값은 `null` |
+| `what`/`why`/`until`/`goal`/`strategy`/`action`/`status` | 각각 선택, 트림 후 2000자 이하, 빈 값은 `null`. **7개 전부 `null` 이면 400** `{"error":"최소 한 개 질문에는 답해야 합니다."}` (PUT 은 병합 결과 기준) |
+| `project_id` | 선택, 느슨 FK (없는 프로젝트면 400) |
+| `objective_id` | 선택, 느슨 FK (없는 목표면 400) |
+
+- POST → `201 { "checkin": {...} }`. PUT 은 보낸 필드만 병합 → `200 { "checkin": {...} }`.
+  DELETE → `200 { "ok": true }`.
+- 없는 id 수정/삭제 → 404. 검증 실패 → 400.
+
+---
+
 # curl 예시 세트
 
 ```bash

@@ -21,5 +21,6 @@ router.use('/sync', require('./sync'));
 router.use('/agent', require('./agent'));
 router.use('/okr', require('./okr'));
 router.use('/planner', require('./planner'));
+router.use('/checkins', require('./checkins'));
 
 module.exports = router;

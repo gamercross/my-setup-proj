@@ -15,6 +15,7 @@ import OkrWidgetView from './views/OkrWidgetView.jsx';
 import PlannerWidgetView from './views/PlannerWidgetView.jsx';
 import ProgressWidgetView from './views/ProgressWidgetView.jsx';
 import PlaceholderWidgetView from './views/PlaceholderWidgetView.jsx';
+import CheckinWidgetView from './views/CheckinWidgetView.jsx';
 
 // 타입 → view 컴포넌트 매핑.
 const VIEWS = {
@@ -28,6 +29,7 @@ const VIEWS = {
   weekly: PlannerWidgetView,
   progress: ProgressWidgetView,
   placeholder: PlaceholderWidgetView,
+  checkin: CheckinWidgetView,
 };
 
 // 메타 + view 를 합쳐 최종 레지스트리를 만든다.

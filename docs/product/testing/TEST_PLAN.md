@@ -554,6 +554,52 @@ fake service 주입, 네트워크 0회. 재시도 테스트는 `services.retry.s
 | TC-OKR-M | `plan` 주제에서 OKR 위젯 — objective/KR 인라인 추가·현재치 수정 | 스탯 타일 6 + DotProgress + 라인차트가 즉시 갱신 |
 | TC-PLAN-M | 주간 플래너 위젯 — 지난주 완료 / 이번주(체크 토글) / 다음주 | `useTaskStore` 단일 캐시로 토글 1회 반영 |
 
+### 3.5h 기대정렬 체크인 (P10, FR-CHECKIN-01~05, ADR-0035)
+
+**백엔드 — `backend/test/checkins.test.js`** (`:memory:` 격리, supertest)
+
+| ID | 대상 | 기대 결과 | 우선 |
+|---|---|---|:---:|
+| TC-CHK-01 | `POST /api/checkins` 정상 | 201 · 7필드 왕복 · ISO8601 · 미지정 필드 `null` | P1 |
+| TC-CHK-02 | 7필드 전부 공백 | 400 "최소 한 개 질문에는 답해야 합니다." · 미저장 | P1 |
+| TC-CHK-03 | `period` 미지정/공백 | 201 · `period` `null` | P1 |
+| TC-CHK-04 | 없는 `project_id`/`objective_id` | 각각 400 | P1 |
+| TC-CHK-05 | `GET /api/checkins` 목록 | 최신순(`created_at DESC, id DESC`) · `limit` 준수 | P1 |
+| TC-CHK-06 | `GET` 필터 | `project_id`/`objective_id`(정수·`none`) 필터, 잘못된 값 → 400 | P1 |
+| TC-CHK-07 | `PUT /api/checkins/:id` 부분수정 | 보낸 필드만 병합 · `updated_at` 변경 · 없는 id → 404 | P1 |
+| TC-CHK-08 | `PUT` 으로 7필드 전부 지움 | 400 · 기존 행 불변 | P1 |
+| TC-CHK-09 | `DELETE /api/checkins/:id` | 200 `{ok:true}` · 재삭제 404 | P1 |
+
+**저장소 회귀 — `backend/test/db.test.js`**: TC-DB-07(`expectation_checkins` prepared statement 왕복,
+`"action"` 인용 응답 키 `action`, 프로젝트/objective 삭제 시 체크인 생존 + FK `NULL`).
+
+**프론트 스토어 — `frontend/test/checkinStore.test.mjs`**
+
+| ID | 대상 | 기대 결과 |
+|---|---|---|
+| TC-P10-STORE-01 | `fetchCheckins` 성공 | `checkins` 설정, `error` null |
+| TC-P10-STORE-02 | `fetchCheckins` 실패 | `error` 문자열, 기존 데이터 보존 |
+| TC-P10-STORE-03 | `addCheckin` | 성공 시 맨 앞 삽입, 실패 시 `false`·`error` 설정 |
+| TC-P10-STORE-04 | `updateCheckin`/`removeCheckin` | 낙관적 갱신 즉시 반영 + 실패 롤백 |
+
+**레지스트리·주제 — `frontend/test/{registry,topics}.test.mjs`**
+
+| ID | 대상 | 기대 결과 |
+|---|---|---|
+| TC-P10-REG-01 | `checkin` 위젯 메타·기본 레이아웃 | 등록 확인 · `w≤12` · `minSize` 이상 (ADR-0035) |
+
+**데모 패리티 — `frontend/test/demoClient.test.mjs`**
+
+| ID | 대상 | 기대 결과 |
+|---|---|---|
+| TC-P10-DEMO-01 | 체크인 CRUD | `GET` 최신순/필터, `POST` 검증(400), `PUT` 병합(400/404), `DELETE`(404) — 실서버와 동일 스키마 |
+
+**수동 확인 (로컬 GUI) — 백로그**
+
+| ID | 절차 | 기대 |
+|---|---|---|
+| TC-CHK-M | `plan` 주제 기대정렬 위젯 — 새 체크인 작성·삭제 | 카드 목록 즉시 갱신, 답변 개수 진행 표시 반영 |
+
 ### 3.5e 서비스 계층 — `backend/test/services.test.js` (fix/ai-results-cleanup)
 
 > 앱 없이 `backend/src/services/*` 를 직접 호출, `:memory:` 격리 (`loadService` 헬퍼). 오류 타입은 `name`/`status` 로 판정.
