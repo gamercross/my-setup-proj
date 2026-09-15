@@ -2,6 +2,13 @@
 
 > Claude를 에이전트로 사용하기 위한 API 설정 및 MCP 연동
 
+> ⚠️ **실제 구현과의 차이:** §2(MCP 설정)는 **참고용 가이드**다 — 이 저장소의
+> `agent/`는 MCP 없이 Claude API(§1)를 직접 호출하고, Gmail·Calendar는
+> `agent/services/*.py`가 각 REST API를 직접 호출한다. 프로젝트 저장소 안에 등록된
+> MCP 서버는 없다(`.mcp.json` 없음). `.claude/settings.json`이 유일하게 언급하는
+> MCP는 Notion이고, 그마저 `permissions.deny`로 차단돼 있다. §2는 나중에 MCP로
+> 전환하고 싶을 때를 위한 절차 메모로 남겨둔다.
+
 ---
 
 ## 📋 목차
