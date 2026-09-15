@@ -272,24 +272,42 @@ Akiflow·Linear 를 §1-0 재정의 기준으로 대조하면, 넷 다 **할일�
 순서로 진행했다. "왜·무엇" 은 vision 문서가, "어떻게" 는 ADR·요구사항이, 목표 화면은
 Claude Design 캔버스(2026-09-14 기준 13 아트보드 — P2 최초 6개 + 실제 위젯 전체 커버리지로 확장)가 담당한다.
 
-### 3-2. 에이전트 파이프라인 (`/feature`)
+### 3-2. 에이전트 파이프라인 — 어떻게 굴러가는가 (`/feature`)
 
 **의도 (사용자 진술).** 개발자가 1인(C-1)이라 **혼자서 내지 못하는 속도를 보완**하려고
 파이프라인을 세웠다. 부수 효과로 강의 B(AI 지원 개발 프로세스) 실습과 품질 게이트(자기검열
 강제)를 겸한다.
 
-모든 코드 작업은 4역할 에이전트 파이프라인 1회로 완성한다. 오케스트레이터는 직접 코딩하지 않는다.
+**시작 방법.** 사람이 `/feature <이번 작업 설명>` 을 치면(또는 `/build-next` 가 로드맵에서
+다음 스텝을 골라 같은 방식으로) 오케스트레이터 세션이 열린다. 오케스트레이터는 **직접 코드를
+쓰지 않고**, 4개 역할에게 순서대로 위임만 한다 — 한 번에 한 역할만 활성.
 
 ```
-planner → developer → supervisor (최대 2회) → finisher
- 계획      구현         리뷰 + 테스트 PASS/FAIL    검증·커밋·푸시
+사람: "/feature 지식 축적 추세 뷰 만들어줘"
+   │
+   ▼
+오케스트레이터  ── 0. 브랜치 확인 (main 위면 feature/<주제> 새로 판다)
+   │
+   ▼
+┌──────────┐  계획   ┌───────────┐  구현   ┌────────────┐  PASS ┌──────────┐
+│ planner  │ ──────▶ │ developer │ ──────▶ │ supervisor │ ────▶ │ finisher │──▶ PR 오픈
+│(조사·설계)│         │  (구현)    │         │(리뷰+테스트)│       │(검증·커밋·푸시)│
+└──────────┘         └───────────┘         └─────┬──────┘       └──────────┘
+                            ▲                     │
+                            └── CHANGES_NEEDED ────┘  (최대 2회, 넘으면 커밋 없이 사람에게 보고)
 ```
 
 - 명시적 **상태 그래프**로 정의([ORCHESTRATION.md](setup/ORCHESTRATION.md) §2): `SELECT→GATE→PLAN→BUILD→REVIEW→FINISH→REPORT`
   + 정지 상태 6종(`STOP_DECISION` 등). 사람 결정이 필요한 지점에서만 멈춘다.
 - 불변 규칙: 한 번에 한 에이전트만 활성 · REVISE 최대 2회 · **커밋은 finisher 만** ·
-  실행돼 FAIL 난 검사가 있으면 커밋 금지 · 정지 상태에서 임의 진행 금지 · 각 전이마다 Slack 한 줄.
-- `/build-next` 는 이 파이프라인을 로드맵 위에서 반복 실행(다음 스텝 자동 선택).
+  실행돼 FAIL 난 검사가 있으면 커밋 금지 · 정지 상태에서 임의 진행 금지 · 각 전이마다 Slack 한 줄
+  (`scripts/slack-notify.sh`)으로 진행 상황을 알린다.
+- **finisher 는 PR 을 여는 데까지만 한다 — 병합은 항상 사람.** 이 경계는 문서 규칙일 뿐 아니라
+  Claude Code 자체의 실행 권한으로도 막혀 있다(에이전트가 `gh pr merge` 를 시도하면 도구 단계에서
+  거부된다).
+- `/build-next` 는 이 파이프라인을 로드맵 위에서 반복 실행(다음 스텝 자동 선택). 사람이 자는 동안
+  여러 `/feature` 를 순차로 돌리고 PR 만 열어 둔 채 멈추는 방식으로도 쓰인다(실제 선례: 2026-09-15
+  새벽, PR #74·#76·#77 을 이 방식으로 열었다).
 
 ### 3-3. 가드레일 (Claude Code 훅 — `.claude/settings.json`)
 
@@ -305,10 +323,32 @@ planner → developer → supervisor (최대 2회) → finisher
 backend `npm test`(142) · frontend `node --test`(106) · agent `pytest -m "not network"`(80) ·
 `npm run build` / `build:demo`. FAIL 하나라도 있으면 커밋하지 않고, SKIP 은 커밋 메시지에 명시.
 
-### 3-5. 브랜치·PR
+### 3-5. GitHub 사용 방식 — 브랜치부터 데모 배포까지
 
-`feature/<주제> → PR → main`. Git Flow·`develop` 미채택([0023](product/architecture/adr/ADR-0023-branch-model.md), 1인 프로젝트라 오버헤드 대비 이득 없음).
-`main` 직접 커밋·force push 금지. **PR 병합은 사람이** 한다.
+Git Flow·`develop` 브랜치는 채택하지 않았다([0023](product/architecture/adr/ADR-0023-branch-model.md),
+1인 프로젝트라 오버헤드 대비 이득이 없다는 판단). `main` 직접 커밋·force push 금지.
+
+```
+1. feature/<주제>          브랜치 생성 (main 위 직접 커밋 금지)
+2. commit                  finisher 가 검증 게이트 통과 후 커밋
+3. git push origin ...     원격에 반영
+4. PR 오픈 (finisher)  ──▶  GitHub Actions "Test & Build" 자동 실행
+                             ├─ docs      문서·오케스트레이션 정합 (check_docs.py)
+                             ├─ backend   문법 검사 + npm test + 서비스 스모크
+                             ├─ frontend  문법 검사 + npm test + Vite 빌드 + 데모 빌드
+                             └─ agent     문법 검사 + pytest (네트워크 제외)
+5. 사람이 PR 리뷰 + 병합    ◀── 파이프라인이 자동으로 하지 않는 유일한 단계
+6. main 에 frontend/ 변경 병합 ──▶  "Deploy Web Demo" 워크플로 자동 발동
+                                    VITE_DEMO=1 빌드(백엔드·Electron 없이
+                                    인메모리 목 데이터로 동작) → GitHub Pages 자동 배포
+```
+
+- **데모↔실서버 패리티**: 데모 목 데이터(`demoClient.js`/`demoData.js`)가 실제 API 경로와
+  어긋나지 않는지 `scripts/check-demo-parity.mjs` 가 자동 비교한다([0026](product/architecture/adr/ADR-0026-web-demo-mode.md)
+  후속 보완, 커밋 `0a1435c`). 새 엔드포인트를 추가하고 데모 목을 안 고치면 이 단계에서 걸린다.
+- 병합된 로컬 브랜치는 다음 세션 시작 시 자동 정리된다(`scripts/prune-merged-branches.sh`, SessionStart 훅).
+- 스택 PR(의존 관계가 있는 여러 PR)은 아래부터 순서대로 병합하고, 병합할 때마다 위 PR 의 base 를
+  `main` 으로 재지정한다.
 
 ### 3-6. 설계 문서 방법론
 
