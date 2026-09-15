@@ -74,3 +74,4 @@
 | [0034](ADR-0034-okr-google-grading.md) | OKR 구글식 등급 — `key_results.kind`(committed/aspirational) + 등급 밴드 | 채택 (2026-09-14) | FR-OKR-02/03/07 | — |
 | [0035](ADR-0035-expectation-checkin.md) | 기대정렬 체크인 — 전용 테이블 1개 + 7질문 자유 서술 | 채택 (2026-09-14) | FR-CHECKIN-01~05 | — |
 | [0036](ADR-0036-knowledge-trend-view.md) | 지식 축적 추세·역량 지도 — 읽기 전용 파생 뷰(체크인·OKR·태그 종합) | 채택 (2026-09-15) | FR-KNOW-01~04 | — |
+| [0037](ADR-0037-reference-summary-tracking.md) | 레퍼런스 자료 요약 절차 추적 — `reference_materials`+`reference_summary_steps` 2테이블 | 채택 (2026-09-15) | FR-REF-01~06 | — |

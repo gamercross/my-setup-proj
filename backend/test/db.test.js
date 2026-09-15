@@ -135,6 +135,8 @@ describe('DB 계층', () => {
       'kr_snapshots',
       'objectives',
       'projects',
+      'reference_materials',
+      'reference_summary_steps',
       'sync_logs',
       'task_tags',
       'tasks',

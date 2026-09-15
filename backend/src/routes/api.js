@@ -23,5 +23,6 @@ router.use('/okr', require('./okr'));
 router.use('/planner', require('./planner'));
 router.use('/checkins', require('./checkins'));
 router.use('/knowledge-trend', require('./knowledgeTrend'));
+router.use('/references', require('./references'));
 
 module.exports = router;

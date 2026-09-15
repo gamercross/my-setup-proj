@@ -278,6 +278,73 @@ test('TC-P10-DEMO-01: 체크인 CRUD — GET 최신순/필터, POST 검증, PUT 
   await assert.rejects(() => demoRequest('DELETE', `/checkins/${checkin.id}`), (e) => e.status === 404);
 });
 
+test('TC-P12-DEMO-01: 레퍼런스 CRUD — GET due_date 오름차순/필터, POST 검증, PUT 병합, DELETE (ADR-0037)', async () => {
+  const list = await demoRequest('GET', '/references');
+  assert.equal(list.references.length, 4);
+  // due_date 오름차순, NULL 은 맨 뒤
+  const dues = list.references.map((r) => r.due_date);
+  assert.equal(dues[dues.length - 1], null);
+  for (let i = 0; i < dues.length - 2; i += 1) {
+    if (dues[i] && dues[i + 1]) assert.ok(dues[i] <= dues[i + 1]);
+  }
+  // 시드에 steps 가 부착돼 있다
+  assert.ok(list.references[0].steps.length >= 0);
+
+  await assert.rejects(() => demoRequest('POST', '/references', {}), (e) => e.status === 400 && /title/.test(e.message));
+  await assert.rejects(
+    () => demoRequest('POST', '/references', { title: 'x', due_date: '2026/09/20' }),
+    (e) => e.status === 400 && /due_date/.test(e.message)
+  );
+  await assert.rejects(
+    () => demoRequest('POST', '/references', { title: 'x', project_id: 9999 }),
+    (e) => e.status === 400
+  );
+
+  const { reference } = await demoRequest('POST', '/references', { title: '새 자료' });
+  assert.equal(reference.title, '새 자료');
+  assert.equal(reference.status, 'todo');
+  assert.deepEqual(reference.steps, []);
+
+  const upd = await demoRequest('PUT', `/references/${reference.id}`, { status: 'reading' });
+  assert.equal(upd.reference.status, 'reading');
+  assert.equal(upd.reference.title, '새 자료');
+
+  await assert.rejects(() => demoRequest('PUT', '/references/99999', { title: 'x' }), (e) => e.status === 404);
+
+  await demoRequest('DELETE', `/references/${reference.id}`);
+  await assert.rejects(() => demoRequest('DELETE', `/references/${reference.id}`), (e) => e.status === 404);
+});
+
+test('TC-P12-DEMO-02: 요약 단계 추가/삭제 — 순서 증가, 부모 행 전체 반환, 없는 리소스 404 (ADR-0037)', async () => {
+  const { reference } = await demoRequest('POST', '/references', { title: '자료' });
+
+  const first = await demoRequest('POST', `/references/${reference.id}/steps`, { note: '훑기' });
+  assert.equal(first.reference.steps.length, 1);
+  assert.equal(first.reference.steps[0].step_order, 1);
+
+  const second = await demoRequest('POST', `/references/${reference.id}/steps`, { note: '정리' });
+  assert.equal(second.reference.steps.length, 2);
+  assert.equal(second.reference.steps[1].step_order, 2);
+
+  await assert.rejects(
+    () => demoRequest('POST', '/references/99999/steps', { note: 'x' }),
+    (e) => e.status === 404
+  );
+  await assert.rejects(
+    () => demoRequest('POST', `/references/${reference.id}/steps`, { note: '  ' }),
+    (e) => e.status === 400
+  );
+
+  const stepId = second.reference.steps[0].id;
+  const afterRemove = await demoRequest('DELETE', `/references/${reference.id}/steps/${stepId}`);
+  assert.equal(afterRemove.reference.steps.length, 1);
+
+  await assert.rejects(
+    () => demoRequest('DELETE', `/references/${reference.id}/steps/999999`),
+    (e) => e.status === 404
+  );
+});
+
 test('TC-P9-DEMO-01: GET /tree 는 노드 배열, GET /docs/<존재> 는 tokens, <없음> 은 404', async () => {
   const { tree } = await demoRequest('GET', '/tree');
   assert.ok(Array.isArray(tree) && tree.length > 0);

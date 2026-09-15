@@ -215,6 +215,22 @@ export function createDataset() {
       project_id: 1, objective_id: 2, created_at: iso(at(-7, 10, 0)), updated_at: iso(at(-7, 10, 0)) },
   ];
 
+  // 레퍼런스 자료(개인 OS P12, ADR-0037) 시연용 — 강의/문서/아티클 4건, 요약 단계는 reference_summary_steps 로 분리.
+  const reference_materials = [
+    { id: 1, title: 'AI시대 소프트웨어공학 3주차 강의자료', category: '강의', location: null, due_date: dateOnly(at(2, 0, 0)), status: 'summarizing', project_id: 2, created_at: nowIso, updated_at: nowIso },
+    { id: 2, title: 'react-grid-layout 공식 문서', category: '개발 문서', location: 'https://github.com/react-grid-layout/react-grid-layout', due_date: dateOnly(at(5, 0, 0)), status: 'reading', project_id: 1, created_at: nowIso, updated_at: nowIso },
+    { id: 3, title: 'OKR 구글 사례 아티클', category: '읽을거리', location: null, due_date: null, status: 'done', project_id: null, created_at: nowIso, updated_at: nowIso },
+    { id: 4, title: '운영체제 페이지 교체 알고리즘 논문', category: '강의', location: null, due_date: dateOnly(at(9, 0, 0)), status: 'todo', project_id: 2, created_at: nowIso, updated_at: nowIso },
+  ];
+  const reference_summary_steps = [
+    { id: 1, reference_id: 1, step_order: 1, note: '전체 훑기', created_at: nowIso },
+    { id: 2, reference_id: 1, step_order: 2, note: '핵심 개념 5개 추출', created_at: nowIso },
+    { id: 3, reference_id: 1, step_order: 3, note: 'ADR 형식으로 재정리', created_at: nowIso },
+    { id: 4, reference_id: 2, step_order: 1, note: '위젯 셸에 필요한 API 만 발췌', created_at: nowIso },
+    { id: 5, reference_id: 3, step_order: 1, note: '사례별 KR 설계 방식 비교', created_at: nowIso },
+    { id: 6, reference_id: 3, step_order: 2, note: '우리 OKR 위젯에 적용할 점 정리', created_at: nowIso },
+  ];
+
   // 문서 트리·본문 — 진행 현황 위젯(P9, FR-UI-06) 시연용. 실제 파일이 없으므로 목 토큰을 쓴다.
   const docTree = [
     {
@@ -326,6 +342,8 @@ export function createDataset() {
     key_results,
     kr_snapshots,
     expectation_checkins,
+    reference_materials,
+    reference_summary_steps,
     docTree,
     docTokens,
     _runNowPending: false,

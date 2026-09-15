@@ -466,6 +466,166 @@ function deleteCheckin(id) {
   return { ok: true };
 }
 
+// ── 레퍼런스 자료(개인 OS P12, ADR-0037) — 백엔드 services/references.js 흉내 ──
+const REFERENCE_STATUSES = ['todo', 'reading', 'summarizing', 'done'];
+const DUE_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+// 텍스트 정규화 — 트림 후 '' → null, max 초과 시 400 (백엔드와 동일한 길이 검증).
+function normalizeReferenceText(raw, max, message) {
+  if (raw === undefined || raw === null) return null;
+  const text = String(raw).trim();
+  if (text.length === 0) return null;
+  if (text.length > max) throw err(400, message);
+  return text;
+}
+
+function normalizeReferenceTitle(raw) {
+  const title = String(raw ?? '').trim();
+  if (title.length === 0) throw err(400, 'title 은 필수입니다.');
+  if (title.length > 200) throw err(400, 'title 은 200자 이하여야 합니다.');
+  return title;
+}
+
+function normalizeReferenceDueDate(raw) {
+  if (raw === undefined || raw === null) return null;
+  const text = String(raw).trim();
+  if (text.length === 0) return null;
+  if (!DUE_DATE_RE.test(text)) throw err(400, 'due_date 는 YYYY-MM-DD 형식이어야 합니다.');
+  return text;
+}
+
+function assertReferenceStatus(raw) {
+  if (raw === undefined) return 'todo';
+  if (!REFERENCE_STATUSES.includes(raw)) {
+    throw err(400, 'status 는 todo·reading·summarizing·done 중 하나여야 합니다.');
+  }
+  return raw;
+}
+
+// steps 를 부착한 레퍼런스 행을 만든다 (attachSteps 패턴 — N+1 없음, JS 조인 1회).
+function withSteps(row) {
+  return {
+    ...row,
+    steps: store.reference_summary_steps
+      .filter((s) => s.reference_id === row.id)
+      .slice()
+      .sort((a, b) => a.step_order - b.step_order || a.id - b.id),
+  };
+}
+
+function listReferences(query) {
+  let rows = store.reference_materials.slice();
+  if (query.category !== undefined) rows = rows.filter((r) => r.category === query.category);
+  if (query.status !== undefined) rows = rows.filter((r) => r.status === query.status);
+  if (query.project_id !== undefined) {
+    if (query.project_id === 'none' || query.project_id === 'null') {
+      rows = rows.filter((r) => r.project_id == null);
+    } else {
+      const n = Number(query.project_id);
+      if (!Number.isInteger(n) || n <= 0) throw err(400, 'project_id 는 양의 정수이거나 "none" 이어야 합니다.');
+      rows = rows.filter((r) => r.project_id === n);
+    }
+  }
+  rows.sort((a, b) => {
+    if (!a.due_date && !b.due_date) return a.id - b.id;
+    if (!a.due_date) return 1;
+    if (!b.due_date) return -1;
+    return a.due_date < b.due_date ? -1 : a.due_date > b.due_date ? 1 : a.id - b.id;
+  });
+  const lim = Number(query.limit) > 0 ? Number(query.limit) : 50;
+  return { references: rows.slice(0, lim).map(withSteps) };
+}
+
+function createReference(body) {
+  const b = body || {};
+  const row = {
+    title: normalizeReferenceTitle(b.title),
+    category: normalizeReferenceText(b.category, 40, '카테고리는 40자 이하여야 합니다.'),
+    location: normalizeReferenceText(b.location, 500, '자료 위치는 500자 이하여야 합니다.'),
+    due_date: normalizeReferenceDueDate(b.due_date),
+    status: assertReferenceStatus(b.status),
+  };
+  if (b.project_id != null && !store.projects.some((p) => p.id === b.project_id)) {
+    throw err(400, '연결할 프로젝트를 찾을 수 없습니다.');
+  }
+  const now = nowIso();
+  const reference = {
+    id: nextId(),
+    title: row.title,
+    category: row.category,
+    location: row.location,
+    due_date: row.due_date,
+    status: row.status,
+    project_id: b.project_id ?? null,
+    created_at: now,
+    updated_at: now,
+  };
+  store.reference_materials.push(reference);
+  return { reference: withSteps(reference) };
+}
+
+function updateReference(id, body) {
+  const reference = store.reference_materials.find((r) => r.id === Number(id));
+  if (!reference) throw err(404, '레퍼런스를 찾을 수 없습니다.');
+  const b = body || {};
+  const next = { ...reference };
+  if (b.title !== undefined) next.title = normalizeReferenceTitle(b.title);
+  if (b.category !== undefined) next.category = normalizeReferenceText(b.category, 40, '카테고리는 40자 이하여야 합니다.');
+  if (b.location !== undefined) next.location = normalizeReferenceText(b.location, 500, '자료 위치는 500자 이하여야 합니다.');
+  if (b.due_date !== undefined) next.due_date = normalizeReferenceDueDate(b.due_date);
+  if (b.status !== undefined) next.status = assertReferenceStatus(b.status);
+  if (b.project_id !== undefined) {
+    if (b.project_id != null && !store.projects.some((p) => p.id === b.project_id)) {
+      throw err(400, '연결할 프로젝트를 찾을 수 없습니다.');
+    }
+    next.project_id = b.project_id;
+  }
+  next.updated_at = nowIso();
+  Object.assign(reference, next);
+  return { reference: withSteps(reference) };
+}
+
+function deleteReference(id) {
+  const nid = Number(id);
+  if (!store.reference_materials.some((r) => r.id === nid)) throw err(404, '레퍼런스를 찾을 수 없습니다.');
+  store.reference_materials = store.reference_materials.filter((r) => r.id !== nid);
+  // CASCADE — 삭제된 레퍼런스의 요약 단계도 함께 지운다.
+  store.reference_summary_steps = store.reference_summary_steps.filter((s) => s.reference_id !== nid);
+  return { ok: true };
+}
+
+function addReferenceStep(id, body) {
+  const nid = Number(id);
+  const reference = store.reference_materials.find((r) => r.id === nid);
+  if (!reference) throw err(404, '레퍼런스를 찾을 수 없습니다.');
+  const note = String((body || {}).note ?? '').trim();
+  if (note.length === 0) throw err(400, '요약 단계 내용을 입력해 주세요.');
+  if (note.length > 2000) throw err(400, '요약 단계는 2000자 이하여야 합니다.');
+  const existing = store.reference_summary_steps.filter((s) => s.reference_id === nid);
+  const maxOrder = existing.reduce((acc, s) => Math.max(acc, s.step_order), 0);
+  store.reference_summary_steps.push({
+    id: nextId(),
+    reference_id: nid,
+    step_order: maxOrder + 1,
+    note,
+    created_at: nowIso(),
+  });
+  return { reference: withSteps(reference) };
+}
+
+function removeReferenceStep(id, stepId) {
+  const nid = Number(id);
+  const reference = store.reference_materials.find((r) => r.id === nid);
+  if (!reference) throw err(404, '레퍼런스를 찾을 수 없습니다.');
+  const nStepId = Number(stepId);
+  if (!store.reference_summary_steps.some((s) => s.id === nStepId && s.reference_id === nid)) {
+    throw err(404, '요약 단계를 찾을 수 없습니다.');
+  }
+  // step_order 는 재번호 매기지 않는다 (이력 보존 — 백엔드와 동일).
+  store.reference_summary_steps = store.reference_summary_steps.filter((s) => s.id !== nStepId);
+  return { reference: withSteps(reference) };
+}
+
 function plannerWeekly() {
   const b = bucketTasks(store.tasks, new Date());
   const pick = (t) => ({
@@ -649,6 +809,27 @@ export const DEMO_ROUTES = [
   { method: 'POST', spec: '/checkins', match: (p) => p === '/checkins', handler: (p, q, body) => createCheckin(body) },
   { method: 'PUT', spec: '/checkins/:id', match: (p) => p.startsWith('/checkins/'), handler: (p, q, body) => updateCheckin(p.slice(10), body) },
   { method: 'DELETE', spec: '/checkins/:id', match: (p) => p.startsWith('/checkins/'), handler: (p) => deleteCheckin(p.slice(10)) },
+
+  // 레퍼런스 자료(P12, ADR-0037) — steps 하위 경로를 /references/:id 보다 먼저 매칭.
+  { method: 'GET', spec: '/references', match: (p) => p === '/references', handler: (p, q) => listReferences(q) },
+  { method: 'POST', spec: '/references', match: (p) => p === '/references', handler: (p, q, body) => createReference(body) },
+  {
+    method: 'DELETE',
+    spec: '/references/:id/steps/:stepId',
+    match: (p) => /^\/references\/\d+\/steps\/\d+$/.test(p),
+    handler: (p) => {
+      const parts = p.split('/');
+      return removeReferenceStep(parts[2], parts[4]);
+    },
+  },
+  {
+    method: 'POST',
+    spec: '/references/:id/steps',
+    match: (p) => /^\/references\/\d+\/steps$/.test(p),
+    handler: (p, q, body) => addReferenceStep(p.split('/')[2], body),
+  },
+  { method: 'PUT', spec: '/references/:id', match: (p) => p.startsWith('/references/'), handler: (p, q, body) => updateReference(p.slice(12), body) },
+  { method: 'DELETE', spec: '/references/:id', match: (p) => p.startsWith('/references/'), handler: (p) => deleteReference(p.slice(12)) },
 ];
 
 // method+path 를 받아 백엔드와 같은 형태의 객체를 반환한다 (실패 시 throw).
