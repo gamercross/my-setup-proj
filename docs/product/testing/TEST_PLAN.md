@@ -30,7 +30,7 @@ flowchart TB
 2. **서비스** — `bash scripts/smoke.sh`: 임시 포트+임시 DB 로 backend 기동 → `/api/health` → task 생성/조회/삭제 왕복 → 정리. `verify.sh` 의 "▶ 서비스 확인" + CI `backend` 잡에 포함.
 3. **사용자 흐름** — 로컬에서 backend+frontend 실행 후 TC-UI-10~16, GUI 체크(§5). 자동화 불가(디스플레이 필요).
 
-`verify.sh` 전체 실행 시 정적+서비스가 한 번에 돈다 (현재 21/0/0).
+`verify.sh` 전체 실행 시 정적+서비스가 한 번에 돈다 (현재 49/0/0).
 
 ## 1. 테스트 레벨과 범위
 
