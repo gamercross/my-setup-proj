@@ -328,6 +328,20 @@ stateDiagram-v2
 | 관련 FR | FR-KNOW-01~04 · [ADR-0036](../architecture/adr/ADR-0036-knowledge-trend-view.md) |
 | 상태 | 에러(trend 없음) → `ErrorBanner(onRetry)` / 로딩 → "불러오는 중…" / 빈(체크인·OKR·태그 전부 0) → 안내 문구 / 정상 → 위 레이아웃 |
 
+### 3.5g 레퍼런스 위젯 ✅ P12 (FR-REF-01~06, 2026-09-15, ADR-0037)
+
+| 항목 | 내용 |
+|---|---|
+| 목적 | 강의·참고 자료를 카테고리·마감일과 함께 등록하고, 그 자료를 어떤 요약 절차로 소화했는지 이력을 남긴다 (RAW_STORIES #7, §1-0 목적 정합) |
+| 주제 | `reference` 주제의 기본 위젯(타입 `reference`, `defaultLayout.js` — 8×10). PLAN 그룹(OKR·기대정렬·지식 지도 다음). 아이콘 📚 |
+| 뷰 | `widgets/views/ReferenceWidgetView.jsx` — 스토어 구독·effect·4상태 소유. 펼침 상태(`expandedId`)는 컴포넌트 로컬 `useState`(레이아웃 config 에 저장 안 함) |
+| 프레젠테이션 | 새 공용 컴포넌트 없음 — `Chip`·`DotProgress`·`StatTile`·`ErrorBanner` 재사용. 카드·폼은 뷰 로컬 컴포넌트. 인라인 스타일 + CSS 변수만(`styles.css` 무변경) |
+| 레이아웃 | StatTile 3(총 자료·마감 임박 3일 이내·요약 완료) → 상태 필터 칩 바(전체/할 일/읽는 중/요약 중/완료, 클라이언트 측 필터 — 재조회 안 함) → "+ 새 레퍼런스" 폼(기본 접힘) → 카드 목록: 접힘(제목·카테고리 칩·마감일·상태 칩·단계 개수), 펼침(`DotProgress`(상태 4단계→0/33/66/100%, 프런트 전용) + 자료 위치(`http(s)://` 만 링크, 그 외 평문) + 요약 절차 이력 `<ol>` + 단계별 삭제 버튼 + 단계 추가 폼) |
+| config | `statusFilter`(enum all/todo/reading/summarizing/done 기본 all), `maxItems`(number 5~50 step5 기본 20), `showForm`(bool 기본 true) |
+| 데이터 출처 | `GET/POST/PUT/DELETE /api/references`, `POST/DELETE /api/references/:id/steps[/:stepId]` → `store/useReferenceStore.js`(레퍼런스 수정·삭제는 낙관적 갱신+롤백, 요약 단계 추가·삭제는 서버가 갱신된 부모 행 전체를 반환하므로 낙관적 갱신 없이 응답으로 치환) |
+| 관련 FR | FR-REF-01~06 · [ADR-0037](../architecture/adr/ADR-0037-reference-summary-tracking.md) |
+| 상태 | 에러 → `ErrorBanner(onRetry)` / 로딩 → "불러오는 중…" / 빈(레퍼런스 0) → 안내 문구 + 추가 폼 / 정상 → 위 레이아웃 |
+
 ### 3.6 ErrorBanner / ErrorBoundary ✅ B3 (FR-UI-04, 2026-09-03)
 
 | 항목 | 내용 |

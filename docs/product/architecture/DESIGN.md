@@ -61,6 +61,7 @@
 | [0034](adr/ADR-0034-okr-google-grading.md) | OKR 구글식 등급 — `key_results.kind`(committed/aspirational) + 등급 밴드(`krGrade`/`objectiveGrade`) | 채택 (2026-09-14) |
 | [0035](adr/ADR-0035-expectation-checkin.md) | 기대정렬 체크인 — 전용 테이블 1개(`expectation_checkins`) + 7질문 자유 서술 | 채택 (2026-09-14) |
 | [0036](adr/ADR-0036-knowledge-trend-view.md) | 지식 축적 추세·역량 지도 — 읽기 전용 파생 뷰(새 테이블 없음), 체크인(주)·OKR(월) 비대칭 유지, `kr_snapshots` 미적재 | 채택 (2026-09-15) |
+| [0037](adr/ADR-0037-reference-summary-tracking.md) | 레퍼런스 자료 요약 절차 추적 (`reference_materials`+`reference_summary_steps`, 단계는 추가·삭제만) | 채택 (2026-09-15) |
 
 > 🆕 **대시보드 OS 전환 (2026-09-03)** — 고정 패널 → 위젯 셸. 개념: [../vision/DASHBOARD_OS.md](../vision/DASHBOARD_OS.md),
 > 요구사항: [../requirements/WIDGET.md](../requirements/WIDGET.md), 화면: [../reference/UI_SPEC.md](../reference/UI_SPEC.md) §3.8~.

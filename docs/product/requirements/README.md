@@ -26,6 +26,7 @@
 | [OKR.md](OKR.md) | 🆕 OKR + 주간 플래너 상세 — FR-OKR-01~06 (Objective/KR CRUD·대시보드·월별 추이·주간 버킷·위젯) | 개인 OS P8 착수 시 | [ADR-0030](../architecture/adr/ADR-0030-okr-data-model.md) 채택(2026-09-08). Weekly Brief(Claude)는 범위 밖 후속. `kr_snapshots` 적재 주체는 P8 planner 결정 |
 | [CHECKIN.md](CHECKIN.md) | 🆕 기대정렬 체크인 상세 — FR-CHECKIN-01~05 (7질문 자유 서술 CRUD·목록/필터·위젯·선택 연결) | 개인 OS P10 완료 | [ADR-0035](../architecture/adr/ADR-0035-expectation-checkin.md) 채택(2026-09-14). 전용 테이블 1개, `SCHEMA_VERSION` 미상향, 채점·완성도 점수 없음 |
 | [KNOWLEDGE.md](KNOWLEDGE.md) | 🆕 지식 축적 추세·역량 지도 상세 — FR-KNOW-01~04 (체크인·OKR·태그 종합 읽기 전용 API·위젯·데모 패리티) | 개인 OS P11 완료 | [ADR-0036](../architecture/adr/ADR-0036-knowledge-trend-view.md) 채택(2026-09-15). 새 테이블 없음, Claude 호출 없음, `kr_snapshots` 미적재 |
+| [REFERENCE.md](REFERENCE.md) | 🆕 레퍼런스 자료 요약 절차 추적 상세 — FR-REF-01~06 (자료 CRUD·요약 단계 추가/삭제·위젯·선택 연결) | 개인 OS P12 완료 | [ADR-0037](../architecture/adr/ADR-0037-reference-summary-tracking.md) 채택(2026-09-15). 테이블 2개(`reference_materials`+`reference_summary_steps`), 단계는 추가·삭제만(수정 없음), 자동 요약 없음 |
 
 ---
 

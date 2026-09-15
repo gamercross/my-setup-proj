@@ -520,6 +520,7 @@ flowchart TB
 | 진행 현황 · 파일 탐색 뷰 | Q7 | `GET /api/tree` + `GET /api/docs/:path`(의존성 0 토크나이저, `.md` 만, 상한 깊이 8·항목 2000·1MB, 심링크 스킵), `progress` 위젯(좌 트리/우 본문, 분할선 드래그·패널 접기·섹션 접기) | 파서·`dangerouslySetInnerHTML` 없음 | P9 ✅ (#59) |
 | 기대정렬 체크인 (7질문 자기 점검) | Q4 | `expectation_checkins` 전용 테이블(자유 서술 7질문, 최소 1개 필수), `GET/POST/PUT/DELETE /api/checkins`, `CheckinWidgetView`·`useCheckinStore`(낙관적 갱신+롤백), 프로젝트/목표 선택 연결(느슨 FK) | zustand, better-sqlite3 | P10 ✅ (ADR-0035) |
 | 지식 축적 추세·역량 지도 | Q4 | `GET /api/knowledge-trend`(순수 SQL 집계, 새 테이블 없음) — 체크인 주간 빈도 + `kr_snapshots` 월평균 + `task_tags` 분포를 한 응답으로 종합, `KnowledgeWidgetView`·`useKnowledgeStore`(읽기 전용) | 인라인 SVG `LineChart` 재사용 | P11 ✅ (ADR-0036) |
+| 레퍼런스 자료 요약 절차 추적 | Q4 | `reference_materials`+`reference_summary_steps` 2테이블(요약 단계는 추가·삭제만, 재번호 없음), `GET/POST/PUT/DELETE /api/references`·`POST/DELETE .../steps`, `ReferenceWidgetView`·`useReferenceStore`(낙관적 갱신+롤백, 단계는 서버 반환 부모 행으로 치환), 프로젝트 선택 연결(느슨 FK) | zustand, better-sqlite3 | P12 ✅ (ADR-0037) |
 | Daily Brief 에이전트 | Q1, Q2 | `sync.py`(수집) → `daily_brief.py`(생성) → Claude → `briefs`(date upsert) → Notion, `GET /api/brief/today` | anthropic SDK(`claude-sonnet-5`, thinking adaptive), launchd | D3 ✅ |
 | Gmail·Calendar 실 수집 | Q1 | `agent/services/{gmail,calendar}.py`, OAuth 최초 로그인 → `emails`·`calendar_events` upsert 캐시 | google-api-python-client 2.200, google-auth-oauthlib 1.4, cryptography 50 (Fernet) | D2-b ✅ |
 | Notion 브리핑 저장 | Q1 | `services/notion.py` REST 직접 호출, 미설정 시 스킵 | requests (`Notion-Version: 2022-06-28`) | D3 ✅ |
@@ -561,13 +562,13 @@ flowchart TB
 | 위젯 셸·단일 캐시·칸반 | 인프라 | 목적을 담는 그릇 — 그 자체가 목적에 답하진 않음, 정상 |
 | 에이전트 활동 위젯 | 약함 | "언제 돌았는지"만 보여줌, 지식 추출 없음 |
 | Daily Brief 에이전트 | 약함 | 메일·일정 요약이지 "오늘 무엇을 배웠나"가 아니다 |
-| **레퍼런스 요약 절차** | **공백** | RAW_STORIES #7 — 카테고리 정리는 있지만 요약이 어떻게 됐는지 추적이 없다 |
+| ~~레퍼런스 요약 절차~~ | ~~공백~~ → **강함** | RAW_STORIES #7 — 카테고리 정리 + 마감 + 요약 절차 이력(추가·삭제)까지 추적한다 (`reference_materials`+`reference_summary_steps`, ADR-0037, P12) |
 | 지식 축적 추세·역량 지도(P11) | **강함** | 체크인 주간 빈도 + OKR 월평균 + 태그 분포를 한 화면에 종합 — §1-0 목적에 직접 답한다 (`GET /api/knowledge-trend`, ADR-0036) |
 
-**판단.** 강함 3·보통 2·인프라 3(정상)·약함 2·공백 1. 지금 있는 기능을 급하게 고칠
+**판단.** 강함 4·보통 2·인프라 3(정상)·약함 2·공백 0. 지금 있는 기능을 급하게 고칠
 필요는 없다 — "약함" 두 항목은 존재 이유가 다른 목적(Q1 통합·Q5 지식 가시화)에
-있었고 그 자체로는 유효하다. 다만 **공백 1개**(레퍼런스 요약 절차)는 §1-0 목적에
-아직 아무도 답하지 않은 자리이며, §6-2 남은 일에 다음 세션 후보로 남는다.
+있었고 그 자체로는 유효하다. **공백 1→0** — 마지막 공백(레퍼런스 요약 절차)은 P12
+(ADR-0037)에서 닫혔다.
 
 ---
 
@@ -605,7 +606,7 @@ Phase A (환경·자동화 인프라)
   → 개인 생산성 OS: P0 문서 → P1 ADR → P2 디자인 → P3 라이트 테마 → P4 공통 컴포넌트
      → P4.5 사이드바 셸 → P5 단일 캐시·칸반 → P6 자동 분류 → P7 에이전트 활동
      → P8 OKR·주간 플래너 → P9 진행 현황·파일 탐색 (#59 병합)
-     → P11 지식 지도
+     → P11 지식 지도 → P12 레퍼런스 자료 요약 절차 추적
 ```
 
 일정 근거는 [ROADMAP.md](product/ROADMAP.md), Phase↔Week↔강의 대응은 [progress/COURSE_MAPPING.md](progress/COURSE_MAPPING.md).
@@ -619,9 +620,9 @@ Phase A (환경·자동화 인프라)
 - **로컬 수동 검증 백로그** — TC-P3~P9-M 을 실제 Electron 앱에서 확인해 `PROGRESS.md`·`TEST_PLAN.md` 반영(§4-5 D4)
 - **보안 보완** — §4-5 S1~S5: 루프백 바인딩·CORS 환경 분기·태그 불변식 DB 제약·토큰 키 회전 런북·pre-commit 시크릿 스캔
 - **미결 결정** — §2-4 참조 (제안 ADR 0015·0016 2~4항·0017·0019·0033 + PO-10)
-- **다음 세션 기능 후보(§5-3 정합성 감사)** — 레퍼런스 자료 요약 절차 추적(RAW_STORIES #7).
-  §1-0 목적에 아직 아무 기능도 답하지 않은 남은 공백이다. (지식 축적 추세·역량 지도는
-  P11 에서 닫혔다 — ADR-0036.)
+- **다음 세션 기능 후보(§5-3 정합성 감사)** — 없음. 마지막 공백이던 레퍼런스 자료 요약 절차
+  추적(RAW_STORIES #7)은 P12 에서 닫혔다(ADR-0037). (지식 축적 추세·역량 지도는 P11 에서
+  닫혔다 — ADR-0036.)
 
 ### 6-3. 평가 기준과 향후 활용
 

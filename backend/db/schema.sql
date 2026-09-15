@@ -155,6 +155,37 @@ CREATE INDEX IF NOT EXISTS idx_checkins_created   ON expectation_checkins(create
 CREATE INDEX IF NOT EXISTS idx_checkins_project   ON expectation_checkins(project_id);
 CREATE INDEX IF NOT EXISTS idx_checkins_objective ON expectation_checkins(objective_id);
 
+-- ── 레퍼런스 자료 (개인 OS P12 — ADR-0037) ─────────────
+-- 테이블명은 reference_materials (REFERENCES 는 SQLite 예약어라 회피).
+-- API 경로·JSON 키는 'references'/'reference' 를 그대로 쓴다 (ADR-0037 §불일치 명시).
+CREATE TABLE IF NOT EXISTS reference_materials (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  title      TEXT    NOT NULL,
+  category   TEXT,
+  location   TEXT,
+  due_date   TEXT,
+  status     TEXT    NOT NULL DEFAULT 'todo'
+             CHECK (status IN ('todo','reading','summarizing','done')),
+  project_id INTEGER REFERENCES projects(id) ON DELETE SET NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_refs_due      ON reference_materials(due_date);
+CREATE INDEX IF NOT EXISTS idx_refs_status   ON reference_materials(status);
+CREATE INDEX IF NOT EXISTS idx_refs_category ON reference_materials(category);
+CREATE INDEX IF NOT EXISTS idx_refs_project  ON reference_materials(project_id);
+
+-- ── 레퍼런스 요약 절차 이력 (수정 없음, 추가·삭제만) ────
+-- step_order 는 삭제 후에도 재번호를 매기지 않는다 (이력 보존).
+CREATE TABLE IF NOT EXISTS reference_summary_steps (
+  id           INTEGER PRIMARY KEY AUTOINCREMENT,
+  reference_id INTEGER NOT NULL REFERENCES reference_materials(id) ON DELETE CASCADE,
+  step_order   INTEGER NOT NULL,
+  note         TEXT    NOT NULL,
+  created_at   TEXT    NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_ref_steps_ref ON reference_summary_steps(reference_id, step_order);
+
 -- ── (향후) Supabase 동기화용 확장 ──────────────────────
 -- ALTER TABLE tasks    ADD COLUMN user_id    TEXT;
 -- ALTER TABLE tasks    ADD COLUMN is_synced  INTEGER NOT NULL DEFAULT 0;

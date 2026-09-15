@@ -20,6 +20,7 @@ flowchart LR
     OKR["OKR 01~06<br/>목표·핵심결과·주간 플래너<br/>(개인 OS P8)"]
     CHECKIN["CHECKIN 01~05<br/>기대정렬 체크인<br/>(개인 OS P10)"]
     KNOW["KNOW 01~04<br/>지식 축적 추세·역량 지도<br/>(개인 OS P11)"]
+    REF["REF 01~06<br/>레퍼런스 자료 요약 절차 추적<br/>(개인 OS P12)"]
   end
   TASK & UI --> B["Phase B (완료)"]
   PROJ --> C2["Phase C2 (완료)"]
@@ -29,9 +30,10 @@ flowchart LR
   OKR --> P8["개인 OS P8"]
   CHECKIN --> P10["개인 OS P10"]
   KNOW --> P11["개인 OS P11"]
+  REF --> P12["개인 OS P12"]
   AGENT & MAIL --> D["Phase D (Week 6~7)"]
   AUTH & SYNC --> E["Phase E (Week 9~)"]
-  B & C2 & C3 & C4 & C5 & P8 & P10 & P11 & D & E --> TR["TRACEABILITY.md<br/>+ TEST_PLAN.md (TC-*)"]
+  B & C2 & C3 & C4 & C5 & P8 & P10 & P11 & P12 & D & E --> TR["TRACEABILITY.md<br/>+ TEST_PLAN.md (TC-*)"]
 ```
 
 > 🆕 **대시보드 OS 전환** (2026-09-03) — 고정 패널 대시보드를 **위젯이 움직이고 위젯마다 디자인하는 데스크톱 OS** 형태로 확장. 개념 [../vision/DASHBOARD_OS.md](../vision/DASHBOARD_OS.md), 상세 [WIDGET.md](WIDGET.md), 결정 [ADR-0020~0022](../architecture/adr/).
@@ -61,6 +63,7 @@ flowchart LR
 | OKR | [requirements/OKR.md](OKR.md) | P8 착수 전 상세화 (2026-09-08, ADR-0030 채택) |
 | CHECKIN | [requirements/CHECKIN.md](CHECKIN.md) | P10 상세화 (2026-09-14, ADR-0035 채택) |
 | KNOWLEDGE | [requirements/KNOWLEDGE.md](KNOWLEDGE.md) | P11 상세화 (2026-09-15, ADR-0036 채택) |
+| REFERENCE | [requirements/REFERENCE.md](REFERENCE.md) | P12 상세화 (2026-09-15, ADR-0037 채택) |
 | MAIL / SYNC / AUTH | (예정) | 아래 표만 — 해당 주차 착수 전 상세화 |
 
 ---
@@ -195,6 +198,19 @@ flowchart LR
 | FR-KNOW-02 | 지식 지도 위젯: 체크인 빈도·OKR 추이 라인차트 + 태그 분포를 한 화면에 표시 | P1 | 개인 OS P11 | ✅ |
 | FR-KNOW-03 | 웹 데모 모드에서도 동일하게 동작한다 (데모 경로 패리티) | P1 | 개인 OS P11 | ✅ |
 | FR-KNOW-04 | REVERSE_PLAN §5-3 정합성 감사의 "지식 축적 추세" 공백을 문서상 해소한다 | P2 | 개인 OS P11 | ✅ |
+
+## 13. 레퍼런스 자료 요약 절차 추적 (REFERENCE) — 개인 생산성 OS P12
+
+> 상세 수용 기준은 [requirements/REFERENCE.md](REFERENCE.md). 결정 [ADR-0037](../architecture/adr/ADR-0037-reference-summary-tracking.md) (채택 2026-09-15).
+
+| ID | 요구사항 | 우선순위 | 목표 주차 | 상태 |
+|---|---|:---:|:---:|:---:|
+| FR-REF-01 | 사용자는 제목·카테고리·자료 위치·마감일과 함께 레퍼런스 자료를 등록한다 | P1 | 개인 OS P12 | ✅ |
+| FR-REF-02 | 레퍼런스 목록을 마감일 순으로 조회하고, 카테고리/상태/프로젝트로 필터링한다 | P1 | 개인 OS P12 | ✅ |
+| FR-REF-03 | 레퍼런스를 부분 수정(병합)하거나 삭제한다 (삭제 시 요약 단계도 CASCADE) | P1 | 개인 OS P12 | ✅ |
+| FR-REF-04 | 레퍼런스별 요약 절차 이력을 추가·삭제한다 (수정은 없음, 삭제해도 재번호 안 함) | P1 | 개인 OS P12 | ✅ |
+| FR-REF-05 | 레퍼런스 위젯: 카드 목록 + 상태 필터 + 요약 절차 이력 펼침 뷰 + 새 레퍼런스 폼 | P1 | 개인 OS P12 | ✅ |
+| FR-REF-06 | 레퍼런스를 프로젝트에 선택적으로 연결한다 (느슨 FK, 삭제 시 SET NULL) | P2 | 개인 OS P12 | ✅ |
 
 ---
 

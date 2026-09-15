@@ -74,6 +74,13 @@ const ICONS = {
       <path d="M4 20V10M10 20V4M16 20v-8M22 20V8" {...P} />
     </>
   ),
+  reference: (
+    <>
+      <path d="M5 4h11a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2z" {...P} />
+      <path d="M5 4v14a2 2 0 0 0 2 2h11" {...P} />
+      <path d="M8 8h6M8 11h6" {...P} />
+    </>
+  ),
   diagrams: (
     <>
       <rect x="4" y="3" width="7" height="6" rx="1" {...P} />
