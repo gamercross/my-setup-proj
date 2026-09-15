@@ -66,8 +66,9 @@ flowchart TB
 | NFR-SEC-03 | Claude API Key 는 백엔드/에이전트에서만 사용, 렌더러에 노출 안 됨 | `preload.js` 화이트리스트에 키 없음 | 코드리뷰 |
 | NFR-SEC-04 | Electron: `contextIsolation: true`, `nodeIntegration: false` 유지 | 설정 고정 | `main.js` 리뷰 |
 | NFR-SEC-05 | OAuth refresh token 은 로컬에 암호화 저장 (평문 금지) | Fernet 암호화 JSON 파일 (`TOKEN_ENCRYPTION_KEY`, 권한 0600 — [ADR-0024](../architecture/adr/ADR-0024-oauth-token-storage.md)) | TC-AUTH-03 (저장 바이트에 평문 토큰 없음 + 0600) |
-| NFR-SEC-06 | 백엔드 CORS 는 로컬 오리진만 허용 | `origin` 화이트리스트 | 설정 리뷰 |
+| NFR-SEC-06 | 백엔드 CORS 는 로컬 오리진만 허용. `Origin: null` 은 `APP_ENV=packaged` 에서만 허용(개발·웹데모는 거부가 기본값) | `origin` 화이트리스트, `APP_ENV` 미설정 시 `null` 오리진 헤더 미부착 | 설정 리뷰, TC-MW-04·TC-MW-10 |
 | NFR-SEC-07 | 입력 검증: 필수값·타입·범위(progress 0–100 등)를 API 경계에서 검증 | 400 응답 반환 | supertest |
+| NFR-SEC-08 | 백엔드 HTTP 서버는 루프백(`127.0.0.1`)에만 바인딩한다 — 같은 LAN 기기의 API 접근을 차단 | `app.listen` host 인자 고정, LAN IP 접속 거부 | 코드리뷰 + 수동 |
 
 ### 3.1 경량 위협 모델
 

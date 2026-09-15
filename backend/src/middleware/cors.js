@@ -3,6 +3,11 @@
 
 const ALLOWED_ORIGINS = ['http://localhost:5173', 'http://127.0.0.1:5173'];
 
+// 패키징된 Electron 빌드인지 여부. env는 모듈 로드 시점이 아니라 요청 시점에 읽는다.
+function isPackagedBuild() {
+  return process.env.APP_ENV === 'packaged';
+}
+
 // 허용 오리진이면 CORS 헤더를 붙이고, preflight(OPTIONS)는 여기서 204 로 끝낸다.
 function corsMiddleware(req, res, next) {
   try {
@@ -15,9 +20,10 @@ function corsMiddleware(req, res, next) {
 
     let allowedEcho = null;
 
-    // ② Origin: 'null' (문자열) → 허용.
-    //    prod Electron 은 file:// 에서 렌더러를 로드하므로 fetch 가 Origin: null 을 보낸다.
-    if (origin === 'null') {
+    // ② Origin: 'null' (문자열) → 패키징된 Electron(file://)만 허용.
+    //    개발·웹데모 빌드에서는 로컬 HTML·샌드박스 iframe도 같은 값을 보내므로 허용하지 않는다.
+    //    판별은 APP_ENV=packaged, 미설정 시 거부가 기본값.
+    if (origin === 'null' && isPackagedBuild()) {
       allowedEcho = 'null';
     } else if (ALLOWED_ORIGINS.includes(origin)) {
       // ③ 화이트리스트 오리진 → 그대로 에코.

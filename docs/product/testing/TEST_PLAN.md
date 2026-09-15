@@ -676,12 +676,13 @@ fake service 주입, 네트워크 0회. 재시도 테스트는 `services.retry.s
 | TC-MW-01 | NFR-SEC-06 | 허용 오리진으로 `GET /api/tasks` | 200 + `Access-Control-Allow-Origin` 에코 + `Vary: Origin` |
 | TC-MW-02 | NFR-SEC-06 | 비허용 오리진으로 요청 | 응답에 CORS 헤더 없음 |
 | TC-MW-03 | NFR-SEC-06 | `OPTIONS` preflight (PUT, custom content-type) | 204 + `Access-Control-Allow-Methods`/`-Headers`/`-Max-Age` |
-| TC-MW-04 | NFR-SEC-06 | `Origin: null` (prod Electron `file://`) | 200 + `Access-Control-Allow-Origin: null` |
+| TC-MW-04 | NFR-SEC-06 | `APP_ENV=packaged` + `Origin: null` (prod Electron `file://`) | 200 + `Access-Control-Allow-Origin: null` |
 | TC-MW-05 | NFR-SEC-07 | 정의되지 않은 경로 | 404 `{error:'요청한 경로를 찾을 수 없습니다.'}` (여분 키 없음) |
 | TC-MW-06 | NFR-SEC-07 | 깨진 JSON 본문 | 400 `{error:'요청 본문(JSON) 형식이 올바르지 않습니다.'}` |
 | TC-MW-07 | NFR-REL / OBS | `errorHandler` 직접 호출 (console.error mock) | 500 표준 봉투 |
 | TC-MW-08 | NFR-OBS-01 | 개발 환경 요청 1건 | `requestLogger` 가 `METHOD path status ms` 1줄 출력 |
 | TC-MW-09 | NFR-SEC-06 | 200KB 본문 POST | 413 `{error:'요청 본문이 너무 큽니다.'}` (영어 메시지 미매치) |
+| TC-MW-10 | NFR-SEC-06 | `APP_ENV` 미설정 + `Origin: null` | 200, `Access-Control-Allow-Origin` 헤더 없음 |
 
 ### 3.5c 캘린더 API — `backend/test/calendar.test.js` (Phase C3 → D-마무리)
 

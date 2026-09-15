@@ -22,3 +22,4 @@ Electron 렌더러가 데이터를 받는 경로가 없다. 선택지는 (a) 백
 - CORS 설정 필요 (로컬 오리진 화이트리스트, NFR-SEC-06) — Week 4 C1.
 - `index.html` CSP 에 `connect-src` 허용 필요 — [UI_SPEC.md](../../reference/UI_SPEC.md) §7.
 - 실시간 동기화(FR-SYNC-02)는 나중에 WebSocket 추가로 확장.
+- 백엔드는 `127.0.0.1` 로만 바인딩한다(2026-09-15, NFR-SEC-08) — 같은 LAN 기기에서 이 REST API 에 접근할 수 없다.

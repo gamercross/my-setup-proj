@@ -110,7 +110,7 @@ describe('수명주기 — 통합 (TC-REL-05~06)', () => {
     // health 대기
     await waitFor(async () => {
       try {
-        await httpGet(`http://localhost:${port}/api/health`);
+        await httpGet(`http://127.0.0.1:${port}/api/health`);
         return true;
       } catch {
         return false;

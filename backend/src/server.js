@@ -9,9 +9,11 @@ const { registerProcessHandlers } = require('./lifecycle');
 
 const app = createApp();
 const PORT = process.env.PORT || 3000;
+// 루프백 고정 — 같은 LAN 기기의 API 접근 차단(NFR-SEC-08). 호스트는 env로 열지 않는다(설정 실수로 재노출 방지).
+const HOST = '127.0.0.1';
 
 // 서버 시작
-const server = app.listen(PORT, () => {
+const server = app.listen(PORT, HOST, () => {
   console.log(`✅ 백엔드 서버 실행 중: http://localhost:${PORT}`);
   // 기동 시 1회 이번 달 KR 스냅샷 적재 (FR-OKR-04, 적재 주체 = 백엔드).
   try {

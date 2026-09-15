@@ -117,8 +117,9 @@ C 세부: C1 미들웨어(CORS·로깅·에러) ✅(2026-09-03) → C2 프로젝
 | NFR-SEC-03 | Claude 키 백엔드/에이전트 전용, `preload.js` 화이트리스트 | B1 | 코드리뷰 | 🚧 |
 | NFR-SEC-04 | Electron `contextIsolation:true`/`nodeIntegration:false` | 상시 | TC-UI-05 | ✅ |
 | NFR-SEC-05 | OAuth 토큰 암호화 저장 (Fernet 암호화 JSON 파일 — [ADR-0024](../architecture/adr/ADR-0024-oauth-token-storage.md)) | D2-b | TC-AUTH-03 | ✅ D2-b |
-| NFR-SEC-06 | CORS 로컬 오리진 화이트리스트 (`backend/src/middleware/cors.js`) | C1 | TC-MW-01~04, TC-MW-09 | ✅ (2026-09-03) |
+| NFR-SEC-06 | CORS 로컬 오리진 화이트리스트, `Origin: null` 은 `APP_ENV=packaged` 에서만 (`backend/src/middleware/cors.js`) | C1 | TC-MW-01~04, TC-MW-09, TC-MW-10 | ✅ (2026-09-15) |
 | NFR-SEC-07 | API 경계 입력 검증 | C1, B2, C2 | TC-TASK-02,03 / TC-PROJ-02,03,09,09c,09d / TC-DB-04a~d / TC-MW-05,06 | 🚧 (C2: `backend/src/errors.js` 가 SQLite CHECK/NOTNULL/FK → 400 한국어 매핑, `project_id` 사전 검증. `due_date` 형식 검증·빈 title 덮어쓰기 금지는 이월) |
+| NFR-SEC-08 | 백엔드 HTTP 서버 루프백(`127.0.0.1`) 바인딩 (`backend/src/server.js`) | — | — | ✅ (코드리뷰, 2026-09-15) |
 | NFR-REL-01 | 모든 외부 호출·IO try/catch | 상시 | supervisor 리뷰 | 🚧 |
 | NFR-REL-02 | 외부 API 실패가 앱 크래시로 안 이어짐 | D1 | TC-AGENT-03, TC-UI-02 | 🚧 |
 | NFR-REL-03 | 백엔드 `uncaughtException` 로깅 후 안전 종료 / `unhandledRejection` 로깅·생존 | 상시 | TC-REL-01~06 | ✅ (`src/server.js` + `src/lifecycle.js`, `test/lifecycle.test.js`, 2026-09-07) |
