@@ -42,3 +42,4 @@ FR-TASK-08(`task_tags` + `sync_logs` CHECK 확장)에서 첫 마이그레이션�
 - down 없음 → 실수한 마이그레이션은 백업 복원으로만 롤백.
 - `.gitignore` 에 `*.bak-*` 추가.
 - 재검토: Supabase 도입 시 두 저장소의 마이그레이션 동기화 방식을 Week 10 ADR 에서.
+- 트리거는 `schema.sql` 의 `CREATE TRIGGER IF NOT EXISTS` 로 적용하며 `SCHEMA_VERSION` 을 올리지 않는다(2026-09-16).

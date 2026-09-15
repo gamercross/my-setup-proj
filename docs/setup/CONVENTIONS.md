@@ -13,7 +13,7 @@
 | 주석 언어 | **한국어**. "왜"를 설명하고, 자명한 "무엇"은 생략. |
 | 구현 범위 | **최소 실행 가능 수준**. 과설계·미리 만들기 금지. 계획에 없는 범위는 건드리지 않는다. |
 | 에러 처리 | 모든 외부 호출·파일 IO·네트워크에 `try/catch`(JS) / `try/except`(Py). 실패 시 사용자 친화적 메시지 + 앱은 계속 동작 (NFR-REL-01, 02). |
-| 시크릿 | `.env` 값을 코드에 **하드코딩 금지**. 설명은 [ENV_REFERENCE.md](ENV_REFERENCE.md). |
+| 시크릿 | `.env` 값을 코드에 **하드코딩 금지**. 설명은 [ENV_REFERENCE.md](ENV_REFERENCE.md). 커밋 시 pre-commit 훅(`scripts/check-secrets.sh`)이 자동 스캔(우회: `SECRET_SCAN_SKIP=1`). |
 | 계층 분리 | `routes → services → db`. 라우트에 비즈니스 로직·SQL 금지 (NFR-MAINT-02). |
 | DB 인터페이스 | `backend/src/db.js` 의 `getX/addX/updateX/deleteX` 시그니처는 저장소가 바뀌어도 유지 (NFR-MAINT-03). |
 | 스타일 일관성 | 새 파일은 주변 파일의 네이밍·주석 밀도·관용구에 맞춘다. |

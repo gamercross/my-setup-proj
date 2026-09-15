@@ -57,7 +57,7 @@ flowchart LR
 
 | ID | 리스크 | 확률 | 영향 | 등급 | 완화책 | 상태 |
 |---|---|---|---|:---:|---|:---:|
-| R-13 | **시크릿·토큰이 git에 커밋됨** (C-6) | 낮음 | 높음 | 🟠 | `.gitignore` `.env`·`*.db`, `security-review` 스킬, 커밋 전 `git diff --staged` 육안 확인(GIT_WORKFLOW §3) | 🟢 |
+| R-13 | **시크릿·토큰이 git에 커밋됨** (C-6) | 낮음 | 높음 | 🟠 | `.gitignore` `.env`·`*.db`, `security-review` 스킬, 커밋 전 `git diff --staged` 육안 확인(GIT_WORKFLOW §3), pre-commit 시크릿 스캔(`scripts/check-secrets.sh`·`.githooks/pre-commit`, 2026-09-16) | 🟢 |
 | R-14 | OAuth refresh token **평문 저장** (NFR-SEC-05) | 중간 | 중간 | 🟠 | Fernet 암호화 파일 저장 채택·구현([ADR-0024](../architecture/adr/ADR-0024-oauth-token-storage.md), D2-b). 키 회전·유출 대응 런북 추가(2026-09-16, [ENV_REFERENCE.md](../../setup/ENV_REFERENCE.md)) | 🟢 |
 | R-15 | 로컬 :3000 API가 **CORS/CSP 없이** 다른 로컬 프로세스에 노출 | 중간 | 낮음 | 🟡 | C1에서 CORS 로컬 오리진 화이트리스트(NFR-SEC-06), `connect-src` 제한 | 🟡 |
 | R-16 | 스키마 변경 시 **기존 로컬 DB와 불일치** (ADR-0003) | 중간 | 낮음 | 🟡 | 초기 단계엔 DB 파일 삭제·재생성, Week 10 전후 마이그레이션 도구 도입 검토 | 🟡 |

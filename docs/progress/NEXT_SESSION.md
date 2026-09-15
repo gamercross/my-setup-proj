@@ -25,6 +25,10 @@
   (공백 1→0)**
 - **보안 보완 S1·S2** — 백엔드 `127.0.0.1` 루프백 바인딩, CORS `Origin: null`을
   `APP_ENV=packaged`일 때만 허용(PR #77). §4-5 보안 약점 9건 → 7건
+- **보안 보완 S3·S5** — `task_tags` 사용자 태그 비침범을 DB 트리거
+  `trg_task_tags_agent_no_override`(`RAISE(IGNORE)`)로 이중화(ADR-0029 갱신) + pre-commit
+  시크릿 스캔 `scripts/check-secrets.sh`/`.githooks/pre-commit`(`setup.sh` 가 `core.hooksPath`
+  설정, `verify.sh` "▶ 시크릿 스캔" 편입). §4-5 보안 약점 7건 → 5건(S4만 남음)
 - story 저장소 분리 — `my-setup-proj-story` 공개 저장소·GitHub Pages 쇼케이스(PR #65)
 - **OKR 단독 화면 폐지 → 프로젝트 내장** — OKR은 이제 프로젝트 카드 안에서만 존재,
   기대정렬 답변이 그 프로젝트 OKR의 기초 데이터가 됨. 디자인 캔버스에 반영(PR #71·#72)
@@ -52,34 +56,21 @@
   "열어두기"를 요청했으나 **이 세션 중 원인 불명의 외부 자동 병합**으로 곧바로 병합됐다
   (직접 병합한 적 없음 — 이 패턴이 반복 관찰됨, 원인 미상).
 - **OAuth 키 회전·유출 대응 런북(구 S4)** — `ENV_REFERENCE.md` `TOKEN_ENCRYPTION_KEY` 절에
-  추가, ADR-0024·RISKS R-14 갱신 (2026-09-16, `docs/oauth-key-rotation-runbook` 브랜치)
-
-**진행 중 — 다음 세션이 이어받을 것 (아래 §B-1 참고):**
-- `fix/security-s3-s5` 브랜치 (PR #81, **의도적으로 병합 안 하고 열어둠**) — S3(태그 비침범
-  DB 트리거 `trg_task_tags_agent_no_override`)·S5(pre-commit 시크릿 스캔
-  `scripts/check-secrets.sh` + `.githooks/pre-commit`) 구현 완료, 4역할 파이프라인 완주
-  (supervisor 1차 CHANGES_NEEDED→수정→2차 PASS). `verify.sh` 54/0/0.
-- `docs/oauth-key-rotation-runbook` 브랜치 (이 커밋들, 아직 push 전일 수 있음) — PR #81 과
-  독립적이라 순서 상관없이 병합 가능.
+  추가, ADR-0024·RISKS R-14 갱신 (2026-09-16, PR #82). §4-5 보안 약점: S1~S5 **전부 해소**,
+  남은 건 D1~D4 기술 부채뿐.
 
 ---
 
 ## B. 다음 세션 할 일
 
-**B-1. 최우선 — 열어둔 PR들 확인**
-`gh pr list --repo gamercross/my-setup-proj --state open` 로 먼저 확인해라. PR #81(S3+S5)과
-`docs/oauth-key-rotation-runbook`(S4)이 아직 열려 있으면 리뷰·병합. 둘 다 이미 병합됐다면
-(자동 병합 패턴이 반복됐으므로 가능성 있음) 아래 B-3 로 바로 넘어가라.
-
-**B-2. §5-3 정합성 감사** — **공백 0.** P12(레퍼런스 자료 요약)로 마지막 공백이
+**B-1. §5-3 정합성 감사** — **공백 0.** P12(레퍼런스 자료 요약)로 마지막 공백이
 닫혔다. 새 기능을 추가할 때마다 "이게 §1-0 목적 중 어디에 답하는가"만 확인하면 된다.
 
-**B-3. 다음 우선순위 (기존부터 있던 것)**
+**B-2. 다음 우선순위 (기존부터 있던 것)**
 - ADR-0016 2~4항 — 패키징 시 백엔드 실행 주체·재기동·포트, `APP_ENV` 주입 주체
   (루프백 바인딩·CORS null 분기는 해소, 2026-09-15)
 - 로컬 수동 검증 백로그 (TC-P3~P12-M)
-- §4-5·4-6 보안·위험 보완 — **PR #81 병합되면 S3·S5도 해소, 남는 건 D1~D4뿐**
-  (S1·S2는 2026-09-15, S4는 2026-09-16 해소)
+- §4-5·4-6 보안·위험 보완 — **남은 건 D1~D4뿐** (S1·S2는 2026-09-15, S3·S4·S5는 2026-09-16 전부 해소)
 - 상세는 `REVERSE_PLAN.md` §6-2
 
 ---

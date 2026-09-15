@@ -221,10 +221,13 @@ bash scripts/slack-notify.sh "✅" "마무리하는 친구" "커밋 abc123 푸�
   agents/README.md
   commands/feature.md        # /feature — 한 기능 파이프라인
   commands/build-next.md     # /build-next — 로드맵 자동 진행 상위 루프
+.githooks/
+  pre-commit                 # git 훅(core.hooksPath): 커밋 직전 scripts/check-secrets.sh --staged 실행 (NFR-SEC-01, S5)
 scripts/
   worklog.sh                 # 매 턴: 오늘 섹션 갱신
   prune-merged-branches.sh   # SessionStart / 파이프라인 착수: origin/main 에 병합된 로컬 브랜치 삭제
   hook-code-branch-guard.sh  # PreToolUse: 코드 소스를 main 에서 직접 편집 시 승인 프롬프트 (CONVENTIONS §6)
+  check-secrets.sh           # 시크릿 패턴·경로 스캔 (.githooks/pre-commit 이 호출, verify.sh 도 편입)
   worklog-eod.sh             # 23:50: 커밋·푸시·슬랙
   slack-notify.sh            # 슬랙 Incoming Webhook 전송
   render-diagrams.sh         # docs/ 의 Mermaid 블록 → SVG (docs/setup/DIAGRAMS.md)

@@ -60,6 +60,12 @@ pip install -r requirements.txt
 deactivate
 cd "$ROOT"
 
+# 6. pre-commit 시크릿 스캔 훅 활성화 (git 저장소일 때만, 멱등 — NFR-SEC-01)
+if git rev-parse --git-dir >/dev/null 2>&1; then
+  git config core.hooksPath .githooks
+  echo "✅ pre-commit 시크릿 스캔 훅 활성화 (git config core.hooksPath .githooks)"
+fi
+
 echo "🎉 설정 완료!"
 echo "   다음: bash verify.sh           (환경·문법·문서 정합)"
 echo "         bash scripts/smoke.sh    (backend 가 실제로 뜨는지)"
