@@ -23,7 +23,7 @@ fi
 
 PORT="${SMOKE_PORT:-3987}"
 TMPDB="$(mktemp -t smoke_app_XXXX).db"
-BASE="http://localhost:${PORT}"
+BASE="http://127.0.0.1:${PORT}"
 SRV_PID=""
 
 cleanup() {

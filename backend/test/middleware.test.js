@@ -40,11 +40,17 @@ describe('CORS / 로깅 / 에러 미들웨어', () => {
     assert.match(res.headers['access-control-allow-headers'], /Content-Type/);
   });
 
-  it('TC-MW-04: Origin: null (prod Electron file://) 은 허용한다', async () => {
-    const app = createTestApp();
-    const res = await request(app).get('/api/health').set('Origin', 'null');
-    assert.equal(res.status, 200);
-    assert.equal(res.headers['access-control-allow-origin'], 'null');
+  it('TC-MW-04: Origin: null 은 APP_ENV=packaged 일 때만 허용한다', async () => {
+    const prev = process.env.APP_ENV;
+    process.env.APP_ENV = 'packaged';
+    try {
+      const app = createTestApp();
+      const res = await request(app).get('/api/health').set('Origin', 'null');
+      assert.equal(res.status, 200);
+      assert.equal(res.headers['access-control-allow-origin'], 'null');
+    } finally {
+      process.env.APP_ENV = prev;
+    }
   });
 
   it('TC-MW-05: 없는 경로는 404 + 단일 오류 봉투', async () => {
@@ -124,6 +130,23 @@ describe('CORS / 로깅 / 에러 미들웨어', () => {
     } finally {
       logMock.mock.restore();
       process.env.NODE_ENV = prev;
+    }
+  });
+
+  it('TC-MW-10: APP_ENV 미설정이면 Origin: null 도 CORS 헤더가 없다', async () => {
+    const prev = process.env.APP_ENV;
+    delete process.env.APP_ENV;
+    try {
+      const app = createTestApp();
+      const res = await request(app).get('/api/health').set('Origin', 'null');
+      assert.equal(res.status, 200);
+      assert.equal(res.headers['access-control-allow-origin'], undefined);
+    } finally {
+      if (prev === undefined) {
+        delete process.env.APP_ENV;
+      } else {
+        process.env.APP_ENV = prev;
+      }
     }
   });
 });

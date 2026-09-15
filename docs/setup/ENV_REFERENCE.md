@@ -27,6 +27,7 @@
 | `AGENT_PATH` | ❌ (선택) | `agent/` 폴더 절대 경로 명시(패키지 배포·비표준 배치용). 지정 시 폴백 없이 그 경로만 신뢰 | `backend/src/services/agent.js` | 저장소 루트의 `agent/` → `process.resourcesPath/agent` 순으로 탐색. 못 찾으면 "지금 실행" 503 |
 | `NODE_ENV` | ✅ | `development` / `production`. 로깅·개발도구·Vite 로드 방식 분기 (ADR-0010) | `backend/src/server.js`, `frontend/src/main.js` | 코드 기본값(`development` 가정) |
 | `PORT` | ✅ | 백엔드 리슨 포트. 기본 `3000` | `backend/src/server.js` | `3000` 사용 |
+| `APP_ENV` | ❌ | 패키징된 Electron 빌드에서만 `packaged`. `backend/src/middleware/cors.js` 가 `Origin: null` 허용 여부를 이 값에만 건다 | `backend/src/middleware/cors.js` | 미설정=거부(안전 기본값). 패키징 프로세스가 이 값을 주입하는 주체는 [ADR-0016](../product/architecture/adr/ADR-0016-desktop-process-topology.md) 2~4항 후속 — 현재 미확정 |
 | `DATABASE_PATH` | — | 로컬 SQLite 파일 경로 (ADR-0009). 비우면 `backend/data/app.db` | `backend/db/index.js`, `agent/db.py` | ✅ B2 + D1 구현: `backend/db/index.js`·`agent/db.py` 둘 다 이 값을 읽음(트림 후 비었으면 `backend/data/app.db`, `:memory:` 통과). **로딩 비대칭 주의** — agent 는 `load_dotenv()` 로 `.env` 를 읽지만 backend 는 셸 환경변수로만 읽는다. 둘을 같은 파일로 맞추려면 셸에서 `export DATABASE_PATH=...`. Electron 패키지는 `main.js` 가 `userData` 로 덮어씀 |
 
 ## 2. 키별 발급 방법

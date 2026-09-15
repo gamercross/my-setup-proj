@@ -8,7 +8,7 @@ Electron·Express·에이전트는 독립 프로세스다([ADR-0015](ADR-0015-lo
 
 ## 결정
 1. **개발 모드 (채택, 2026-09-09):** 저장소 루트의 `bash scripts/dev.sh` 하나가 `concurrently -k` 로 backend(`node backend/src/server.js`) + Vite + Electron 을 함께 띄운다. `frontend` 의 `npm run dev`(Vite+Electron)와 "터미널 2개" 는 폴백으로 유지. Electron 은 기존대로 Vite 포트만 대기한다(백엔드 헬스 대기는 2항 소관).
-2. **(제안 — 미결) 패키징 앱:** Electron `main.js` 가 백엔드를 `child_process.fork` 로 자식 프로세스로 기동. `/api/health` 200 확인 후 창 표시. 앱 종료 시 자식도 종료.
+2. **(제안 — 미결) 패키징 앱:** Electron `main.js` 가 백엔드를 `child_process.fork` 로 자식 프로세스로 기동. `/api/health` 200 확인 후 창 표시. 앱 종료 시 자식도 종료. `APP_ENV=packaged` 를 이 자식 프로세스에 주입하는 주체는 본 ADR 확정 시 정한다 — CORS `Origin: null` 허용(NFR-SEC-06)이 여기 의존.
 3. **(제안 — 미결) 백엔드 비정상 종료:** main 이 최대 3회 재기동(지수 백오프). 초과 시 전역 `ErrorBanner` + "재시도" 버튼.
 4. **(제안 — 미결) 포트 충돌:** 3000/5173 사용 중이면 다음 빈 포트 사용, `preload.apiBaseUrl` 로 렌더러에 전달(하드코딩 제거).
 
