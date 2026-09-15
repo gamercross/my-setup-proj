@@ -17,6 +17,7 @@ import ProgressWidgetView from './views/ProgressWidgetView.jsx';
 import PlaceholderWidgetView from './views/PlaceholderWidgetView.jsx';
 import CheckinWidgetView from './views/CheckinWidgetView.jsx';
 import KnowledgeWidgetView from './views/KnowledgeWidgetView.jsx';
+import ReferenceWidgetView from './views/ReferenceWidgetView.jsx';
 
 // 타입 → view 컴포넌트 매핑.
 const VIEWS = {
@@ -32,6 +33,7 @@ const VIEWS = {
   placeholder: PlaceholderWidgetView,
   checkin: CheckinWidgetView,
   knowledge: KnowledgeWidgetView,
+  reference: ReferenceWidgetView,
 };
 
 // 메타 + view 를 합쳐 최종 레지스트리를 만든다.

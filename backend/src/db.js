@@ -50,6 +50,13 @@ const CHECKIN_FIELDS = [
   'objective_id',
 ];
 
+// ── 레퍼런스 자료 (reference_materials / reference_summary_steps — 개인 OS P12, ADR-0037) ──
+// 테이블명은 reference_materials(SQLite 예약어 회피)지만 응답 키는 그대로 유지한다.
+const REFERENCE_COLS =
+  'id, title, category, location, due_date, status, project_id, created_at, updated_at';
+const STEP_COLS = 'id, reference_id, step_order, note, created_at';
+const REFERENCE_FIELDS = ['title', 'category', 'location', 'due_date', 'status', 'project_id'];
+
 // prepared statement 는 모듈 로드 시 준비한다.
 const stmts = {
   listTasks: db.prepare(`SELECT ${TASK_COLS} FROM tasks ORDER BY id`),
@@ -222,6 +229,45 @@ const stmts = {
     `SELECT month, AVG(pct) AS avg FROM kr_snapshots
       WHERE month >= @fromMonth GROUP BY month ORDER BY month ASC`
   ),
+
+  // ── 레퍼런스 자료(reference_materials / reference_summary_steps) ──────
+  // categoryMode/statusMode/projectMode: listCheckins 의 @mode 바인딩 기법과 동일.
+  listReferences: db.prepare(
+    `SELECT ${REFERENCE_COLS} FROM reference_materials
+     WHERE (@categoryMode = 'all' OR (@categoryMode = 'value' AND category = @category))
+       AND (@statusMode = 'all' OR (@statusMode = 'value' AND status = @status))
+       AND (@projectMode = 'all' OR (@projectMode = 'none' AND project_id IS NULL) OR (@projectMode = 'id' AND project_id = @projectId))
+     ORDER BY (due_date IS NULL), due_date, id
+     LIMIT @limit`
+  ),
+  getReference: db.prepare(`SELECT ${REFERENCE_COLS} FROM reference_materials WHERE id = ?`),
+  insertReference: db.prepare(
+    `INSERT INTO reference_materials (title, category, location, due_date, status, project_id, created_at, updated_at)
+     VALUES (@title, @category, @location, @due_date, @status, @project_id, @created_at, @updated_at)`
+  ),
+  updateReference: db.prepare(
+    `UPDATE reference_materials SET title = @title, category = @category, location = @location,
+       due_date = @due_date, status = @status, project_id = @project_id, updated_at = @updated_at
+     WHERE id = @id`
+  ),
+  deleteReference: db.prepare('DELETE FROM reference_materials WHERE id = ?'),
+
+  // steps — listAllSteps 는 attachSteps 의 JS 조인용(N+1 금지, attachTags 패턴).
+  listAllSteps: db.prepare(
+    `SELECT ${STEP_COLS} FROM reference_summary_steps ORDER BY reference_id, step_order, id`
+  ),
+  listStepsForRef: db.prepare(
+    `SELECT ${STEP_COLS} FROM reference_summary_steps WHERE reference_id = ? ORDER BY step_order, id`
+  ),
+  maxStepOrder: db.prepare(
+    'SELECT COALESCE(MAX(step_order), 0) AS mx FROM reference_summary_steps WHERE reference_id = ?'
+  ),
+  insertStep: db.prepare(
+    `INSERT INTO reference_summary_steps (reference_id, step_order, note, created_at)
+     VALUES (@reference_id, @step_order, @note, @created_at)`
+  ),
+  // step_order 는 삭제 후 재번호 매기지 않는다 (이력 보존).
+  deleteStep: db.prepare('DELETE FROM reference_summary_steps WHERE id = ? AND reference_id = ?'),
 };
 
 // 동기화 서비스 화이트리스트 (schema.sql 의 CHECK 와 일치)
@@ -246,6 +292,27 @@ function attachTags(rows) {
 function attachTagsOne(row) {
   if (!row) return row;
   row.tags = stmts.listTagsForTask.all(row.id).map((r) => r.tag);
+  return row;
+}
+
+// ── 레퍼런스 요약 단계 부착 헬퍼 ─────────────────────────
+// reference 행에 steps 배열(step_order ASC)을 붙인다. attachTags 패턴 그대로.
+function attachSteps(rows) {
+  if (!Array.isArray(rows) || rows.length === 0) return rows;
+  const map = new Map();
+  for (const step of stmts.listAllSteps.all()) {
+    if (!map.has(step.reference_id)) map.set(step.reference_id, []);
+    map.get(step.reference_id).push(step);
+  }
+  for (const row of rows) {
+    row.steps = map.get(row.id) || [];
+  }
+  return rows;
+}
+
+function attachStepsOne(row) {
+  if (!row) return row;
+  row.steps = stmts.listStepsForRef.all(row.id);
   return row;
 }
 
@@ -654,6 +721,97 @@ function getKrTrendFrom(fromMonth) {
   return stmts.listTrendFrom.all({ fromMonth });
 }
 
+// ── 레퍼런스 자료(reference_materials) ─────────────────────────
+
+// filter.category/status: undefined=전체, 값=일치. filter.projectId: undefined=전체, null=미연결, 정수=그 값.
+// filter.limit: 기본 50.
+function getReferences(filter = {}) {
+  const categoryMode = filter.category === undefined ? 'all' : 'value';
+  const statusMode = filter.status === undefined ? 'all' : 'value';
+  const projectMode =
+    filter.projectId === undefined ? 'all' : filter.projectId === null ? 'none' : 'id';
+  const lim = Number.isInteger(filter.limit) && filter.limit > 0 ? filter.limit : 50;
+  return attachSteps(
+    stmts.listReferences.all({
+      categoryMode,
+      category: categoryMode === 'value' ? filter.category : null,
+      statusMode,
+      status: statusMode === 'value' ? filter.status : null,
+      projectMode,
+      projectId: projectMode === 'id' ? toId(filter.projectId) : null,
+      limit: lim,
+    })
+  );
+}
+
+function getReference(id) {
+  const nid = toId(id);
+  if (nid === null) return undefined;
+  return attachStepsOne(stmts.getReference.get(nid));
+}
+
+function addReference(r) {
+  const now = new Date().toISOString();
+  const row = {
+    title: r.title,
+    category: r.category ?? null,
+    location: r.location ?? null,
+    due_date: r.due_date ?? null,
+    status: r.status || 'todo',
+    project_id: r.project_id ?? null,
+    created_at: now,
+    updated_at: now,
+  };
+  const info = stmts.insertReference.run(row);
+  return getReference(info.lastInsertRowid);
+}
+
+// 레퍼런스 수정 (없으면 undefined, 허용 필드만 병합)
+function updateReference(id, patch) {
+  const row = stmts.getReference.get(toId(id));
+  if (!row) return undefined;
+  for (const key of REFERENCE_FIELDS) {
+    if (patch && patch[key] !== undefined) {
+      row[key] = patch[key];
+    }
+  }
+  row.updated_at = new Date().toISOString();
+  stmts.updateReference.run(row);
+  return getReference(row.id);
+}
+
+function deleteReference(id) {
+  const nid = toId(id);
+  if (nid === null) return false;
+  return stmts.deleteReference.run(nid).changes > 0;
+}
+
+// 요약 단계 추가 — 레퍼런스 존재는 서비스가 먼저 확인한다(404 메시지 구분).
+// MAX(step_order)+1 계산과 INSERT 를 transaction 으로 묶어 경합을 막는다.
+// 갱신된 부모 행(steps 포함) 반환.
+function addReferenceStep(id, note) {
+  const nid = toId(id);
+  transaction(() => {
+    const { mx } = stmts.maxStepOrder.get(nid);
+    stmts.insertStep.run({
+      reference_id: nid,
+      step_order: mx + 1,
+      note,
+      created_at: new Date().toISOString(),
+    });
+  });
+  return getReference(nid);
+}
+
+// 요약 단계 삭제 — step_order 재번호 매기지 않는다(이력 보존).
+// 단계 존재 여부는 서비스가 먼저 확인한다(404 메시지 구분). 갱신된 부모 행 반환.
+function removeReferenceStep(id, stepId) {
+  const nid = toId(id);
+  const nStepId = toId(stepId);
+  stmts.deleteStep.run(nStepId, nid);
+  return getReference(nid);
+}
+
 module.exports = {
   SYNC_SERVICES,
   getObjectives,
@@ -695,4 +853,11 @@ module.exports = {
   getCheckinCountsByWeek,
   getTagCountsInRange,
   getKrTrendFrom,
+  getReferences,
+  getReference,
+  addReference,
+  updateReference,
+  deleteReference,
+  addReferenceStep,
+  removeReferenceStep,
 };

@@ -745,6 +745,67 @@ TEXT·nullable — 최소 1개는 채워야 한다. `period` 는 자유 라벨�
 
 ---
 
+## 레퍼런스 자료 (references) ✅ 구현 — 개인 OS P12 (2026-09-15)
+
+FR-REF-01~06 · [ADR-0037](../architecture/adr/ADR-0037-reference-summary-tracking.md) ·
+서비스 `backend/src/services/references.js`
+
+DB 테이블명은 `reference_materials`(`REFERENCES` 가 SQLite 예약어라 회피)지만, API 경로·JSON
+키는 `references`/`reference` 를 그대로 쓴다. 요약 단계(`steps`)는 각 레퍼런스 행에 배열로
+부착되며, 추가·삭제만 가능하다(수정 없음). 요약 진행도(%) 는 서버가 계산·저장하지 않는다.
+
+### `GET /api/references` — 목록 (마감일 오름차순, NULL 맨 뒤) ✅
+
+| 쿼리 | 설명 |
+|---|---|
+| `category` | 그 카테고리만 |
+| `status` | `todo`\|`reading`\|`summarizing`\|`done` 중 하나만 |
+| `project_id` | 정수 또는 `none`(연결 안 된 것만). 잘못된 값 → 400 |
+| `limit` | 최대 반환 수 (기본 50) |
+
+**응답 200**
+```json
+{
+  "references": [ { "id": 1, "title": "AI시대 소프트웨어공학 3주차 강의자료", "category": "강의",
+                     "location": null, "due_date": "2026-09-17", "status": "summarizing",
+                     "project_id": 2, "created_at": "2026-09-15T00:00:00.000Z",
+                     "updated_at": "2026-09-15T00:00:00.000Z",
+                     "steps": [ { "id": 1, "reference_id": 1, "step_order": 1, "note": "전체 훑기",
+                                  "created_at": "2026-09-15T00:00:00.000Z" } ] } ]
+}
+```
+정렬: `(due_date IS NULL), due_date, id`. `GET /api/references/:id`(단건)는 제공하지 않는다.
+
+### `POST /api/references` ✅ · `PUT /api/references/:id` ✅ · `DELETE /api/references/:id` ✅
+
+| 필드 | 규칙 |
+|---|---|
+| `title` | 필수, 트림 후 1~200자 |
+| `category` | 선택, 트림 후 40자 이하, 빈 값은 `null` |
+| `location` | 선택, 트림 후 500자 이하, 빈 값은 `null` |
+| `due_date` | 선택, `YYYY-MM-DD` 형식만 허용(형식 오류 → 400), 빈 값은 `null` |
+| `status` | 선택, 기본 `todo`. 4값(`todo`/`reading`/`summarizing`/`done`) 밖이면 400 |
+| `project_id` | 선택, 느슨 FK (없는 프로젝트면 400) |
+
+- POST → `201 { "reference": {...} }`(`steps: []`). PUT 은 보낸 필드만 병합 → `200 { "reference": {...} }`.
+  DELETE → `200 { "ok": true }`(요약 단계도 CASCADE 삭제).
+- 없는 id 수정/삭제 → 404 `{"error":"레퍼런스를 찾을 수 없습니다."}`. 검증 실패 → 400.
+
+### `POST /api/references/:id/steps` ✅ · `DELETE /api/references/:id/steps/:stepId` ✅
+
+| 필드 | 규칙 |
+|---|---|
+| `note` | 필수, 트림 후 1~2000자 |
+
+- POST → `201 { "reference": {...} }` — 갱신된 부모 행 전체(steps 포함) 반환. `step_order` 는
+  그 레퍼런스의 기존 최댓값+1.
+- DELETE → `200 { "reference": {...} }` — 삭제 후 남은 단계의 `step_order` 는 재번호를 매기지
+  않는다(이력 보존).
+- 없는 레퍼런스 id → 404 `{"error":"레퍼런스를 찾을 수 없습니다."}`. 없는 단계 id → 404
+  `{"error":"요약 단계를 찾을 수 없습니다."}`. 단계 수정(PUT) 엔드포인트는 없다.
+
+---
+
 # curl 예시 세트
 
 ```bash

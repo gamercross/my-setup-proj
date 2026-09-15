@@ -211,7 +211,54 @@
 
 ---
 
-## 11. `widget_instances` — 위젯 레이아웃 (🔶 제안, C5 단계 2)
+## 11. `reference_materials` — 레퍼런스 자료 (FR-REF-01, ADR-0037)
+
+테이블명은 `reference_materials` (`REFERENCES` 가 SQLite 예약어라 회피)지만, API 경로·JSON 키는
+`references`/`reference` 를 그대로 쓴다(응답 계약과 테이블명 불일치 — ADR-0037 §결정2 참조).
+
+| 컬럼 | 타입 | 제약 | 의미 | 예시 |
+|---|---|---|---|---|
+| `id` | INTEGER | PK, auto | 식별자 | `1` |
+| `title` | TEXT | NOT NULL | 자료 제목 | `"AI시대 소프트웨어공학 3주차 강의자료"` |
+| `category` | TEXT | nullable | 자유 카테고리 라벨 | `"강의"` |
+| `location` | TEXT | nullable | 자료 위치(URL 또는 메모) | `"https://..."` |
+| `due_date` | TEXT | nullable, `YYYY-MM-DD` 형식만 허용(엄격) | 언제까지 볼지 | `"2026-09-20"` |
+| `status` | TEXT | NOT NULL, DEFAULT `'todo'`, CHECK(`todo`\|`reading`\|`summarizing`\|`done`) | 진행 상태 | `"summarizing"` |
+| `project_id` | INTEGER | FK → `projects(id)` `ON DELETE SET NULL` (느슨, ADR-0012) | 선택 연결 | `2` |
+| `created_at` `updated_at` | TEXT | NOT NULL | ISO8601 | — |
+
+- 인덱스: `idx_refs_due(due_date)`, `idx_refs_status(status)`, `idx_refs_category(category)`,
+  `idx_refs_project(project_id)`.
+- `due_date` 는 `tasks.due_date` 보다 엄격하게 형식을 검증한다 — 목록 정렬
+  (`(due_date IS NULL), due_date, id`)이 API 계약의 일부이기 때문(ADR-0037 §결정5).
+- `SCHEMA_VERSION` 을 올리지 않고 `CREATE TABLE IF NOT EXISTS` 로 반영한다 (OKR·체크인 선례).
+- 파생값(요약 진행도 %)은 저장하지 않는다 — 위젯이 표시하는 진행 표시는 프런트 전용 계산.
+
+---
+
+## 12. `reference_summary_steps` — 레퍼런스 요약 절차 이력 (FR-REF-04, ADR-0037)
+
+레퍼런스 자료 1건을 어떤 절차로 요약했는지 시점별로 남기는 하위 리소스. **추가·삭제만 가능하고
+수정(PUT)은 없다** — 사후 편집은 이력을 왜곡하기 때문(ADR-0037 §결정3).
+
+| 컬럼 | 타입 | 제약 | 의미 | 예시 |
+|---|---|---|---|---|
+| `id` | INTEGER | PK, auto | 식별자 | `1` |
+| `reference_id` | INTEGER | FK → `reference_materials(id)` `ON DELETE CASCADE` | 소속 레퍼런스 | `1` |
+| `step_order` | INTEGER | NOT NULL | 절차 순서(그 레퍼런스 내에서 `MAX+1`로 부여) | `1` |
+| `note` | TEXT | NOT NULL | 이번 단계에서 한 일 | `"전체 훑기"` |
+| `created_at` | TEXT | NOT NULL | ISO8601 | — |
+
+- 인덱스: `idx_ref_steps_ref(reference_id, step_order)`.
+- 삭제된 단계의 `step_order` 는 남은 행에 재번호를 매기지 않는다(이력 보존, ADR-0037 §결정4).
+  다음 추가 단계는 **남은 행 기준** `MAX(step_order)+1` 이므로, 삭제된 번호가 나중에 재사용될 수
+  있다 — 이는 "과거 행을 건드리지 않는다"는 원칙과 모순되지 않는다.
+- `GET /api/references` 응답에서 각 레퍼런스 행에 `steps` 배열(`step_order` 오름차순)로 부착된다
+  (`backend/src/db.js` 의 `attachSteps`, N+1 방지 — `attachTags` 패턴과 동일).
+
+---
+
+## 13. `widget_instances` — 위젯 레이아웃 (🔶 제안, C5 단계 2)
 
 > UI 상태다(도메인 데이터 아님). **1차는 SQLite 가 아니라 브라우저 `localStorage`** 에 `dashboard.layout.v1` 키로 저장한다.
 > SQLite 이관은 재설치·다기기 요구가 생길 때 ([ADR-0021](../architecture/adr/ADR-0021-widget-layout-persistence.md)). 아직 `schema.sql` 에 없다.
@@ -242,6 +289,8 @@ key_results (1) ──< (N) kr_snapshots   UNIQUE(key_result_id, month), ON DELE
 projects (0..1) ──< (N) key_results    key_results.project_id FK, ON DELETE SET NULL (느슨, ADR-0012)
 projects (0..1) ──< (N) expectation_checkins    project_id FK, ON DELETE SET NULL (느슨, ADR-0035)
 objectives (0..1) ──< (N) expectation_checkins  objective_id FK, ON DELETE SET NULL (느슨, ADR-0035)
+reference_materials (1) ──< (N) reference_summary_steps   ON DELETE CASCADE (ADR-0037)
+projects (0..1) ──< (N) reference_materials     project_id FK, ON DELETE SET NULL (느슨, ADR-0012·0037)
 briefs          독립 (날짜별 1건)
 calendar_events 독립 (외부 캐시)
 emails          독립 (외부 캐시)

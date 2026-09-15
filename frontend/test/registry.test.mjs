@@ -95,6 +95,25 @@ test('TC-P11-REG-01: knowledge 위젯 메타·기본 레이아웃 (ADR-0036)', (
   }
 });
 
+test('TC-P12-REG-01: reference 위젯 메타·기본 레이아웃 (ADR-0037)', () => {
+  const r = WIDGET_META.reference;
+  assert.ok(r, 'reference 메타 누락');
+  assert.equal(r.type, 'reference');
+  assert.equal(r.configSchema.statusFilter.type, 'enum');
+  assert.deepEqual(r.configSchema.statusFilter.options, ['all', 'todo', 'reading', 'summarizing', 'done']);
+  assert.equal(r.configSchema.statusFilter.default, 'all');
+  assert.equal(r.configSchema.maxItems.type, 'number');
+  assert.equal(r.configSchema.maxItems.default, 20);
+  assert.equal(r.configSchema.showForm.type, 'bool');
+  assert.equal(r.configSchema.showForm.default, true);
+
+  assert.deepEqual(DEFAULT_LAYOUTS.reference.map((i) => i.type), ['reference']);
+  for (const inst of DEFAULT_LAYOUTS.reference) {
+    assert.ok(inst.w <= 12);
+    assert.ok(inst.w >= r.minSize.w && inst.h >= r.minSize.h);
+  }
+});
+
 test('TC-P10-REG-01: checkin 위젯 메타·기본 레이아웃 (ADR-0035)', () => {
   const c = WIDGET_META.checkin;
   assert.ok(c, 'checkin 메타 누락');

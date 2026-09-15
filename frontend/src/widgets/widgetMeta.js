@@ -148,6 +148,20 @@ export const WIDGET_META = {
       showTags: { type: 'bool', default: true, label: '태그 분포 표시' },
     },
   },
+  reference: {
+    type: 'reference',
+    name: '레퍼런스',
+    icon: '📚',
+    description: '강의·참고 자료 정리와 요약 절차 이력',
+    defaultSize: { w: 8, h: 10 },
+    minSize: { w: 4, h: 6 },
+    maxSize: { w: 12, h: 24 },
+    configSchema: {
+      statusFilter: { type: 'enum', options: ['all', 'todo', 'reading', 'summarizing', 'done'], default: 'all', label: '상태 필터' },
+      maxItems: { type: 'number', min: 5, max: 50, step: 5, default: 20, label: '최대 표시 개수' },
+      showForm: { type: 'bool', default: true, label: '새 레퍼런스 폼 표시' },
+    },
+  },
   // "준비 중" 자리표시자 — 전용 위젯이 아직 없는 주제의 기본 인스턴스 (ADR-0032).
   // hidden: true 는 옵셔널 신규 필드. 피커 목록에서 제외한다 (다른 메타엔 넣지 않는다).
   placeholder: {

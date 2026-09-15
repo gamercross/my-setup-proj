@@ -644,6 +644,62 @@ fake service 주입, 네트워크 0회. 재시도 테스트는 `services.retry.s
 |---|---|---|
 | TC-KNOW-M | `plan` 주제 "지식 지도" 위젯 열람 | 체크인 빈도·OKR 달성률 라인차트 2개 + 태그 분포 막대가 렌더된다 |
 
+### 3.5j 레퍼런스 자료 요약 절차 추적 (P12, FR-REF-01~06, ADR-0037)
+
+**백엔드 — `backend/test/references.test.js`** (`:memory:` 격리, supertest)
+
+| ID | 대상 | 기대 결과 | 우선 |
+|---|---|---|:---:|
+| TC-REF-01 | `POST /api/references` 정상 | 201 · 필드 왕복 · `status` 기본 `todo` · `steps` 빈 배열 | P1 |
+| TC-REF-02 | `title` 누락/공백/200자 초과 | 각각 400 | P1 |
+| TC-REF-03 | `due_date` 형식 오류/정상 | 오류 400 "due_date 는 YYYY-MM-DD 형식이어야 합니다." · 정상 201 | P1 |
+| TC-REF-04 | `status` 잘못된 값 | 400 | P1 |
+| TC-REF-05 | 없는 `project_id` | 400 "연결할 프로젝트를 찾을 수 없습니다." | P1 |
+| TC-REF-06 | `GET /api/references` 목록 | `due_date` 오름차순(NULL 맨 뒤) · `category`/`status` 필터 · `limit` 준수 | P1 |
+| TC-REF-07 | `GET` `project_id` 필터 | 정수·`none` 필터, 잘못된 값 → 400 | P1 |
+| TC-REF-08 | `PUT /api/references/:id` 부분수정 | 보낸 필드만 병합 · 없는 id → 404 | P1 |
+| TC-REF-09 | `DELETE /api/references/:id` | 200 `{ok:true}` · 재삭제 404 · 딸린 요약 단계 CASCADE 삭제 | P1 |
+| TC-REF-10 | `POST /api/references/:id/steps` | 201 · `step_order` 순차 증가 · 갱신된 부모 행 전체 반환 · 없는 레퍼런스 404 · 빈 `note` 400 | P1 |
+| TC-REF-11 | `DELETE /api/references/:id/steps/:stepId` | 200 · 남은 단계 `step_order` 재번호 안 함 · 없는 단계 404 | P1 |
+| TC-REF-12 | `category`/`location` 길이 초과 | 각각 400 | P1 |
+
+**저장소 회귀 — `backend/test/db.test.js`**: TC-DB-03(스키마 멱등 + WAL + 재로드 시
+`sqlite_master` 테이블 목록에 `reference_materials`·`reference_summary_steps` 포함되는지 확인).
+
+**프론트 스토어 — `frontend/test/referenceStore.test.mjs`**
+
+| ID | 대상 | 기대 결과 |
+|---|---|---|
+| TC-P12-STORE-01 | `fetchReferences` 성공 | `references` 설정, `error` null |
+| TC-P12-STORE-02 | `fetchReferences` 실패 | `error` 문자열, 기존 데이터 보존 |
+| TC-P12-STORE-03 | `addReference` | 성공 시 끝에 추가, 실패 시 `false`·`error` 설정 |
+| TC-P12-STORE-04 | `updateReference`/`removeReference` | 낙관적 갱신 즉시 반영 + 실패 롤백 |
+| TC-P12-STORE-05 | `addStep`/`removeStep` | 서버가 반환한 부모 행 전체로 치환(낙관적 갱신 없음) |
+
+**레지스트리·주제 — `frontend/test/{registry,topics}.test.mjs`**
+
+| ID | 대상 | 기대 결과 |
+|---|---|---|
+| TC-P12-REG-01 | `reference` 위젯 메타·기본 레이아웃 | 등록 확인 · `w≤12` · `minSize` 이상 (ADR-0037) |
+
+`topics.test.mjs` 의 `TOPICS.length` 는 13→14 로 갱신(PLAN 그룹에 "레퍼런스" 추가).
+
+**데모 패리티 — `frontend/test/demoClient.test.mjs`**
+
+| ID | 대상 | 기대 결과 |
+|---|---|---|
+| TC-P12-DEMO-01 | 레퍼런스 CRUD | `GET` 마감일 오름차순/필터, `POST` 검증(400), `PUT` 병합(404), `DELETE`(404) — 실서버와 동일 스키마 |
+| TC-P12-DEMO-02 | 요약 단계 추가/삭제 | 순서 증가, 부모 행 전체 반환, 없는 리소스 404 |
+
+`scripts/check-demo-parity.mjs` — `DEMO_ROUTES` 의 `/references/:id/steps/:stepId`·`/references/:id/steps`
+가 `/references/:id` 보다 먼저 등록되어야 한다(경로 매칭 순서).
+
+**수동 확인 (로컬 GUI) — 백로그**
+
+| ID | 절차 | 기대 |
+|---|---|---|
+| TC-REF-M | `plan` 주제 레퍼런스 위젯 — 카드 펼침·요약 단계 추가/삭제·상태 필터 | 카드 목록 즉시 갱신, 요약 절차 이력이 순서대로 렌더된다 |
+
 ### 3.5e 서비스 계층 — `backend/test/services.test.js` (fix/ai-results-cleanup)
 
 > 앱 없이 `backend/src/services/*` 를 직접 호출, `:memory:` 격리 (`loadService` 헬퍼). 오류 타입은 `name`/`status` 로 판정.
