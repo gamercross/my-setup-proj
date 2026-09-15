@@ -367,6 +367,92 @@ describe('DB 계층', () => {
     require('../db').closeDatabase();
   });
 
+  it('TC-DB-08a: user 태그가 있는 할일에 agent 태그 INSERT 는 트리거가 조용히 무시한다', () => {
+    const db = loadDb(':memory:');
+    const conn = require('../db').getDb();
+    const task = db.addTask({ title: '사용자 태그 보호' });
+
+    conn
+      .prepare("INSERT INTO task_tags (task_id, tag, source, created_at) VALUES (?, ?, 'user', ?)")
+      .run(task.id, '수동', new Date().toISOString());
+
+    let caught;
+    let info;
+    try {
+      info = conn
+        .prepare("INSERT INTO task_tags (task_id, tag, source, created_at) VALUES (?, ?, 'agent', ?)")
+        .run(task.id, '업무', new Date().toISOString());
+    } catch (e) {
+      caught = e;
+    }
+    assert.equal(caught, undefined, '트리거는 예외를 던지지 않아야 한다');
+    assert.equal(info.changes, 0);
+
+    const rows = conn.prepare('SELECT tag, source FROM task_tags WHERE task_id = ?').all(task.id);
+    assert.deepEqual(rows, [{ tag: '수동', source: 'user' }]);
+    require('../db').closeDatabase();
+  });
+
+  it('TC-DB-08b: 태그 0개인 할일에는 agent 태그 INSERT 가 정상 반영된다', () => {
+    const db = loadDb(':memory:');
+    const conn = require('../db').getDb();
+    const task = db.addTask({ title: '태그 없음' });
+
+    const info = conn
+      .prepare("INSERT INTO task_tags (task_id, tag, source, created_at) VALUES (?, ?, 'agent', ?)")
+      .run(task.id, '업무', new Date().toISOString());
+    assert.equal(info.changes, 1);
+    require('../db').closeDatabase();
+  });
+
+  it('TC-DB-08c: agent 태그가 있는 할일에는 agent/user 태그 추가 모두 허용된다', () => {
+    const db = loadDb(':memory:');
+    const conn = require('../db').getDb();
+    const task = db.addTask({ title: 'agent 태그 존재' });
+    const now = new Date().toISOString();
+
+    conn
+      .prepare("INSERT INTO task_tags (task_id, tag, source, created_at) VALUES (?, ?, 'agent', ?)")
+      .run(task.id, '업무', now);
+
+    const infoAgent = conn
+      .prepare("INSERT INTO task_tags (task_id, tag, source, created_at) VALUES (?, ?, 'agent', ?)")
+      .run(task.id, '개인', now);
+    assert.equal(infoAgent.changes, 1, '다른 agent 태그 추가는 허용된다');
+
+    const infoUser = conn
+      .prepare("INSERT INTO task_tags (task_id, tag, source, created_at) VALUES (?, ?, 'user', ?)")
+      .run(task.id, '수동', now);
+    assert.equal(infoUser.changes, 1, 'user 태그 추가는 방향 제한이 없다');
+
+    require('../db').closeDatabase();
+  });
+
+  it('TC-DB-08d: 트리거가 존재하고 재오픈해도 멱등하며 user_version 은 2 그대로다', () => {
+    const dbPath = path.join(tmpDir, 'trigger-idempotent.db');
+
+    let db = loadDb(dbPath);
+    let conn = require('../db').getDb();
+    const triggers = conn
+      .prepare("SELECT name FROM sqlite_master WHERE type = 'trigger'")
+      .all()
+      .map((r) => r.name);
+    assert.ok(triggers.includes('trg_task_tags_agent_no_override'));
+    require('../db').closeDatabase();
+
+    // 같은 파일 DB 재오픈 — 트리거 재생성(IF NOT EXISTS)이 예외 없이 통과해야 한다.
+    let caught;
+    try {
+      db = loadDb(dbPath);
+      conn = require('../db').getDb();
+    } catch (e) {
+      caught = e;
+    }
+    assert.equal(caught, undefined, '재오픈 시 예외가 없어야 한다');
+    assert.equal(conn.pragma('user_version', { simple: true }), 2);
+    require('../db').closeDatabase();
+  });
+
   it('TC-DB-04c: CHECK 위반은 SqliteError(code=SQLITE_CONSTRAINT_CHECK) 로 던진다', () => {
     const db = loadDb(':memory:');
     let caught;

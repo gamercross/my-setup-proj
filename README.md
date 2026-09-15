@@ -206,13 +206,14 @@ my-setup-proj/
 기존 기능을 전부 그 기준으로 다시 검토했다(§5-3 정합성 감사) — 결과: 강함 4·보통 2·
 인프라 3(정상)·약함 2·**공백 0**(마지막 공백이던 레퍼런스 요약 절차 추적은 P12 에서 닫힘).
 2026-09-15에는 §4-5 보안 약점 중 로컬 네트워크 노출·CORS `null` 오리진 허용(구 S1·S2)도
+해소했다. 2026-09-16에는 태그 비침범 DB 트리거·pre-commit 시크릿 스캔(구 S3·S5)도
 해소했다 — 남은 항목은 [NEXT_SESSION.md §B](docs/progress/NEXT_SESSION.md).
 
 | 지표 | 값 |
 |---|---|
 | 채택된 ADR | 37건 |
-| 자동 테스트 | 387건 — backend 178 · frontend 129 · agent 80 |
-| `verify.sh` / `check-docs.sh` | 49/0/0 · 11/0/0 |
+| 자동 테스트 | 395건 — backend 182 · frontend 129 · agent 84 |
+| `verify.sh` / `check-docs.sh` | 54/0/0 · 11/0/0 |
 | 완료된 빌드 페이즈 | P0–P9 (10/10) + P10(OKR 등급·기대정렬 체크인) + P11(지식 지도) + P12(레퍼런스 요약) |
 
 지금 무엇을 해야 하는지는 **[NEXT_SESSION.md §A·§B](docs/progress/NEXT_SESSION.md)**

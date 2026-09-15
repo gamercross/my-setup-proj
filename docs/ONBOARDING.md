@@ -93,7 +93,7 @@ flowchart TB
 |---|---|
 | 개념 설계 · 요구사항 · 아키텍처 문서 · 37개 ADR(제안·보류 6건 제외 채택) | ✅ 완료 (product/) |
 | 자동화 인프라 (에이전트 팀 · `/feature` · `/build-next` · 작업로그 · CI) | ✅ 동작 |
-| 로컬 환경 (node v26 · npm 11 · python 3.14 · venv) | ✅ Phase A2, `verify.sh` 49/0/0 |
+| 로컬 환경 (node v26 · npm 11 · python 3.14 · venv) | ✅ Phase A2, `verify.sh` 54/0/0 |
 | 백엔드 tasks/projects CRUD 라우트 | ✅ SQLite 영속화(B2) + 미들웨어 정식화(C1) + `errors.js` 오류 매핑·`tasks.project_id`(C2). 프론트 배선 완료(B3 할일 / C2 프로젝트) |
 | 프론트엔드 React | ✅ B1(Vite 마운트) + B3(할일) + C2(프로젝트) + C3(캘린더) + C4(다이어그램) + C5(위젯 셸, `Dashboard.jsx` 제거) — 브라우저 E2E 로컬 수동 확인 대기 |
 | 캘린더 / 다이어그램 API | ✅ C3 `/api/calendar/events`(더미, 실 Google 은 D2) · C4 `/api/diagrams`(services 계층) |
@@ -102,9 +102,9 @@ flowchart TB
 | Supabase | ✅ 클라이언트 부트스트랩만 (`backend/src/supabase.js` + `GET /api/sync/health`) — 동기화·인증·`user_id` 없음 (Week 10+, ADR-0008) |
 | DB (SQLite) | ✅ B2 (better-sqlite3, WAL, DATABASE_PATH) — 13테이블 |
 | AI 에이전트 | ✅ D1 Daily Brief 실데이터 + D2-a 재시도/`sync_logs` + D2-b Google OAuth(Fernet 토큰) + Gmail/Calendar 실 수집(`agent/sync.py`). Notion 저장은 뼈대 |
-| 자동화 테스트 | ✅ backend 178 / frontend 129 / agent 80 (Phase A3~개인OS P12), `verify.sh` 49/0/0 (`--code-only` 41/0/0) |
+| 자동화 테스트 | ✅ backend 182 / frontend 129 / agent 84 (Phase A3~개인OS P12, DB 트리거·시크릿 스캔 포함), `verify.sh` 54/0/0 (`--code-only` 46/0/0) |
 
-**다음 착수:** [NEXT_SESSION.md](progress/NEXT_SESSION.md) §B — ADR-0016 2~4항(패키징 프로세스 토폴로지), 남은 보안 보완(S3~S5)·기술 부채(D1~D4), 로컬 수동 검증 백로그. Google 최초 로그인은 사용자가 `python agent/auth/google_oauth.py login` 로 1회 수행.
+**다음 착수:** [NEXT_SESSION.md](progress/NEXT_SESSION.md) §B — ADR-0016 2~4항(패키징 프로세스 토폴로지), 남은 보안 보완(S4)·기술 부채(D1~D4), 로컬 수동 검증 백로그. Google 최초 로그인은 사용자가 `python agent/auth/google_oauth.py login` 로 1회 수행.
 (제안 ADR 0009~0012 채택됨, D2 부터 `.env` API 키 필요).
 
 ---
@@ -154,13 +154,13 @@ flowchart LR
 환경은 이미 구축됨(Phase A2). 새 머신이면 `bash setup.sh` 부터.
 
 ```bash
-bash verify.sh             # 환경 + 문법 점검 (현재 49/0/0)
+bash verify.sh             # 환경 + 문법 점검 (현재 54/0/0)
 bash verify.sh --code-only # 문법만 (문서 전용 커밋 시)
 bash scripts/render-diagrams.sh   # docs/ 의 Mermaid → SVG
 
 # 백엔드
 cd backend && npm start     # http://localhost:3000
-cd backend && npm test      # 테스트 (현재 178케이스)
+cd backend && npm test      # 테스트 (현재 182케이스)
 
 # 프론트 (Vite 도입 = Phase B1)
 cd frontend && npm run dev

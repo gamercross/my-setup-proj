@@ -146,6 +146,37 @@ def test_agent_add_agent_tags_skips_already_tagged(temp_db, monkeypatch):
     assert _tags(temp_db, tid) == [("수동", "user")]
 
 
+def test_agent_47_race_user_tag_inserted_before_ask_returns(temp_db, monkeypatch):
+    """TC-AGENT-47: ask 응답 직전에 사용자가 태그를 달면 예외 없이 0건, user 태그 보존.
+
+    add_agent_tags 의 existing-count 가드와 DB 트리거가 이중으로 막아야 하는 경합 시나리오.
+    """
+    tid = _insert_task(temp_db, title="경합 시나리오")
+
+    def fake_ask(*a, **k):
+        # 응답을 돌려주기 직전에 사용자가 태그를 단 상황을 흉내낸다.
+        with db.connect() as conn:
+            with conn:
+                conn.execute(
+                    "INSERT INTO task_tags (task_id, tag, source, created_at) "
+                    "VALUES (?, '수동', 'user', ?)",
+                    (tid, datetime.now().isoformat()),
+                )
+        return '{"tags": {"' + str(tid) + '": ["공부"]}}'
+
+    monkeypatch.setattr(classify, "ask", fake_ask)
+
+    written = classify.classify_untagged()
+
+    assert written == 0
+    with db.connect() as conn:
+        row = conn.execute(
+            "SELECT status FROM sync_logs WHERE service='classify'"
+        ).fetchone()
+    assert row[0] == "success"
+    assert _tags(temp_db, tid) == [("수동", "user")]
+
+
 def test_agent_get_untagged_excludes_done_and_tagged(temp_db):
     """TC-AGENT-40: get_untagged_tasks 는 완료·태그 있는 할일은 제외한다."""
     a = _insert_task(temp_db, title="대상")

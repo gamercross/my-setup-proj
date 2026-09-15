@@ -25,6 +25,10 @@
   (공백 1→0)**
 - **보안 보완 S1·S2** — 백엔드 `127.0.0.1` 루프백 바인딩, CORS `Origin: null`을
   `APP_ENV=packaged`일 때만 허용(PR #77). §4-5 보안 약점 9건 → 7건
+- **보안 보완 S3·S5** — `task_tags` 사용자 태그 비침범을 DB 트리거
+  `trg_task_tags_agent_no_override`(`RAISE(IGNORE)`)로 이중화(ADR-0029 갱신) + pre-commit
+  시크릿 스캔 `scripts/check-secrets.sh`/`.githooks/pre-commit`(`setup.sh` 가 `core.hooksPath`
+  설정, `verify.sh` "▶ 시크릿 스캔" 편입). §4-5 보안 약점 7건 → 5건(S4만 남음)
 - story 저장소 분리 — `my-setup-proj-story` 공개 저장소·GitHub Pages 쇼케이스(PR #65)
 - **OKR 단독 화면 폐지 → 프로젝트 내장** — OKR은 이제 프로젝트 카드 안에서만 존재,
   기대정렬 답변이 그 프로젝트 OKR의 기초 데이터가 됨. 디자인 캔버스에 반영(PR #71·#72)
@@ -67,7 +71,7 @@
 - ADR-0016 2~4항 — 패키징 시 백엔드 실행 주체·재기동·포트, `APP_ENV` 주입 주체
   (루프백 바인딩·CORS null 분기는 해소, 2026-09-15)
 - 로컬 수동 검증 백로그 (TC-P3~P12-M)
-- §4-5·4-6 보안·위험 보완 — 남은 것 S3~S5, D1~D4 (S1·S2는 해소됨)
+- §4-5·4-6 보안·위험 보완 — 남은 것 S4, D1~D4 (S1·S2·S3·S5 는 해소됨)
 - 상세는 `REVERSE_PLAN.md` §6-2
 
 ---

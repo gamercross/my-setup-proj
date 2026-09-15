@@ -47,6 +47,7 @@ category/tag 컬럼이 없고, `project_id`(수동)만 있다. 에이전트는 `
 - 백엔드 응답에 `tags: []` 노출. `TASK_COLS` 는 불변 — 별도 쿼리 + JS 조인으로 부착.
 - 분류 품질은 프롬프트에 달림 — 오분류해도 사용자가 칩 옆 `×` 로 즉시 교정.
 - `ON DELETE CASCADE` 로 할 일 삭제 시 태그 정리.
+- 사용자 태그 비침범(AC-4)은 2026-09-16 DB 트리거 trg_task_tags_agent_no_override 로 이중화(RAISE(IGNORE) — 배치 무중단). REVERSE_PLAN §4-5 S3 해소.
 
 ## 채택 시 영향
 `backend/db/schema.sql`(`task_tags` + `sync_logs` CHECK), `backend/db/index.js`(마이그레이션 러너),
