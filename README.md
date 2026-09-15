@@ -39,6 +39,8 @@
 | **프로젝트** | 진행 바 + 기대정렬 체크인(시작 근거) → 내장 OKR(진행) → GitHub 최근 커밋(작업물 위치) | ✅ |
 | **일정** | 오늘·내일 일정. Google Calendar를 에이전트가 로컬 캐시에 동기화 | ✅ |
 | **기대정렬 체크인** | 뭘·왜·언제까지·목표·전략·구체적으로·상태 — 7질문 자기 점검을 시간순으로 기록 | ✅ P10 |
+| **지식 지도** | 체크인 빈도·OKR 평균 달성률·태그 분포를 한 화면에 — "지금까지 뭘 배웠나"를 추세로 | ✅ P11 |
+| **레퍼런스 자료 요약** | 참고 자료별 요약 절차(추가·삭제 이력)를 상태 필터와 함께 추적 | ✅ P12 |
 | **주간 플래너** | 지난주·이번주·다음주 버킷, 기대정렬 키워드에서 뽑은 카테고리 태그와 연동 | ✅ |
 | **에이전트 활동** | sync·분류·브리핑 실행 로그 + "지금 실행" 즉시 트리거 | ✅ |
 | **진행 현황 · 파일 탐색** | 저장소를 열지 않고 앱 안에서 문서·ADR·결정 과정을 그대로 읽음 | ✅ P9 |
@@ -196,20 +198,22 @@ my-setup-proj/
 
 ---
 
-## 📊 현재 상태 (2026-09-15)
+## 📊 현재 상태 (2026-09-16)
 
-개인 생산성 OS **P0~P10 전부 완료** — 위젯 셸·할일·프로젝트·캘린더·다이어그램·OKR·
-에이전트 활동·진행 현황·기대정렬 체크인까지 실 코드로 동작하고, 전부 **브라우저 웹
-데모**에도 반영된다. 2026-09-14~15에 목적을 재정의하고(§1-0) 기존 기능을 전부 그 기준으로
-다시 검토했다(§5-3 정합성 감사) — 결과: 강함 2·보통 2·인프라 3(정상)·약함 2·공백 1
-(레퍼런스 요약 절차 추적, 다음 세션 최우선).
+개인 생산성 OS **P0~P12 전부 완료** — 위젯 셸·할일·프로젝트·캘린더·다이어그램·OKR·
+에이전트 활동·진행 현황·기대정렬 체크인·지식 지도·레퍼런스 자료 요약까지 실 코드로
+동작하고, 전부 **브라우저 웹 데모**에도 반영된다. 2026-09-14에 목적을 재정의하고(§1-0)
+기존 기능을 전부 그 기준으로 다시 검토했다(§5-3 정합성 감사) — 결과: 강함 4·보통 2·
+인프라 3(정상)·약함 2·**공백 0**(마지막 공백이던 레퍼런스 요약 절차 추적은 P12 에서 닫힘).
+2026-09-15에는 §4-5 보안 약점 중 로컬 네트워크 노출·CORS `null` 오리진 허용(구 S1·S2)도
+해소했다 — 남은 항목은 [NEXT_SESSION.md §B](docs/progress/NEXT_SESSION.md).
 
 | 지표 | 값 |
 |---|---|
-| 채택된 ADR | 35건 |
-| 자동 테스트 | 351건 — backend 157 · frontend 115 · agent 79 |
+| 채택된 ADR | 37건 |
+| 자동 테스트 | 387건 — backend 178 · frontend 129 · agent 80 |
 | `verify.sh` / `check-docs.sh` | 49/0/0 · 11/0/0 |
-| 완료된 빌드 페이즈 | P0–P9 (10/10) + P10(OKR 등급·기대정렬 체크인) |
+| 완료된 빌드 페이즈 | P0–P9 (10/10) + P10(OKR 등급·기대정렬 체크인) + P11(지식 지도) + P12(레퍼런스 요약) |
 
 지금 무엇을 해야 하는지는 **[NEXT_SESSION.md §A·§B](docs/progress/NEXT_SESSION.md)**
 (마무리된 것 / 다음 세션 할 일 두 구간으로 정리돼 있다) 를 가장 먼저 본다.
@@ -222,8 +226,8 @@ flowchart TB
   subgraph FE["프런트엔드 (Electron + React) — Phase B~C · P3~P6"]
     NAV["사이드바 셸 · 주제별 레이아웃<br/>P4.5 (ADR-0032) · 라이트 테마 P3 (ADR-0027)"]
     SHELL["위젯 셸 · 레이아웃 localStorage 영속<br/>C5·C6 (ADR-0020~0022)"]
-    W1["할 일 (리스트/칸반 · 태그 칩)<br/>단일 캐시 P5 (ADR-0028)"] & W2["프로젝트"] & W3["일정"] & W4["다이어그램"] & W5["오늘 브리핑"]
-    NAV --- SHELL --- W1 & W2 & W3 & W4 & W5
+    W1["할 일 (리스트/칸반 · 태그 칩)<br/>단일 캐시 P5 (ADR-0028)"] & W2["프로젝트"] & W3["일정"] & W4["다이어그램"] & W5["오늘 브리핑"] & W6["지식 지도 P11"] & W7["레퍼런스 요약 P12"]
+    NAV --- SHELL --- W1 & W2 & W3 & W4 & W5 & W6 & W7
   end
 
   subgraph API["백엔드 (Express :3000/api) — Phase B2·C1·C2·D-마무리"]
@@ -233,10 +237,12 @@ flowchart TB
     EP3["/calendar/events · /mail/unread<br/>(캐시 조회, 읽기 전용)"]
     EP4["/brief/today (200/null · ADR-0025)"]
     EP5["/diagrams · /sync/logs · /sync/health"]
-    RT --- EP1 & EP2 & EP3 & EP4 & EP5
+    EP6["/knowledge-trend (P11, ADR-0036)"]
+    EP7["/references (+/steps) (P12, ADR-0037)"]
+    RT --- EP1 & EP2 & EP3 & EP4 & EP5 & EP6 & EP7
   end
 
-  DB[("로컬 SQLite<br/>better-sqlite3 · WAL · 최소 마이그레이션 (ADR-0018)<br/>tasks · task_tags · projects · calendar_events<br/>emails · briefs · sync_logs")]
+  DB[("로컬 SQLite<br/>better-sqlite3 · WAL · 최소 마이그레이션 (ADR-0018) · 13테이블<br/>tasks · task_tags · projects · calendar_events · emails · briefs · sync_logs<br/>objectives · key_results · kr_snapshots · expectation_checkins<br/>reference_materials · reference_summary_steps")]
 
   subgraph AGENT["Python 에이전트 — Phase D1~D3 · P6"]
     SYNC["sync.py — Gmail·Calendar 수집<br/>OAuth 토큰 Fernet 암호화 (ADR-0024)"]
@@ -266,13 +272,13 @@ flowchart TB
 
 | 영역 | 상태 |
 |---|---|
-| 개념 설계 · 요구사항 · 아키텍처 문서 (ADR-0001~0036, 진행 중 1건 제외 채택 다수) | ✅ (`docs/product/`) |
+| 개념 설계 · 요구사항 · 아키텍처 문서 (ADR-0001~0037, 제안·보류 일부 제외 채택 다수) | ✅ (`docs/product/`) |
 | 자동화 인프라 (에이전트 팀 · `/feature` 파이프라인 · 작업로그 · CI · 병합 브랜치 자동 정리) | ✅ 동작 |
-| 프론트 (위젯 셸·11개 위젯) · 백엔드 (routes→services→db) · DB (SQLite·WAL) | ✅ |
+| 프론트 (위젯 셸·12개 위젯) · 백엔드 (routes→services→db) · DB (SQLite·WAL) | ✅ |
 | Python 에이전트 (Daily Brief · Gmail/Calendar 수집 · 자동 분류 · Notion 저장) | ✅ 실 API end-to-end 검증됨 |
 | 웹 데모 (`VITE_DEMO` 목 어댑터 + GitHub Pages 자동 재배포) | ✅ |
-| 프론트↔백엔드 브라우저 E2E 수동 검증 백로그 (TC-P3~P11-M) | ⏳ 로컬 수동 확인 대기 — 웹 데모로 대체 시각 검증 가능 |
-| "지식 축적 추세·역량 지도" 위젯 (§5-3 공백 항목) | 🚧 구현 중 — [NEXT_SESSION.md §A](docs/progress/NEXT_SESSION.md) 참고 |
+| 프론트↔백엔드 브라우저 E2E 수동 검증 백로그 (TC-P3~P12-M) | ⏳ 로컬 수동 확인 대기 — 웹 데모로 대체 시각 검증 가능 |
+| 남은 보안 보완 (§4-5 S3~S5) · 기술 부채 (D1~D4) | ⏳ 다음 세션 — [NEXT_SESSION.md §B](docs/progress/NEXT_SESSION.md) 참고 |
 
 정확한 최신은 [TRACEABILITY.md](docs/product/requirements/TRACEABILITY.md) · `git log`.
 날짜별 작업 이력은 [PROGRESS.md](docs/progress/PROGRESS.md) · [작업로그.md](작업로그.md).
@@ -293,7 +299,7 @@ planner(계획) → developer(구현) → supervisor(리뷰·검증) → finishe
 - 상태 그래프·정지 조건: [ORCHESTRATION.md](docs/setup/ORCHESTRATION.md)
 - 규칙: [CONVENTIONS.md](docs/setup/CONVENTIONS.md) · 커밋·푸시: [GIT_WORKFLOW.md](docs/setup/GIT_WORKFLOW.md) · 전체: [AUTOMATION.md](docs/setup/AUTOMATION.md)
 - 브랜치: `feature/* → PR → main` ([ADR-0023](docs/product/architecture/adr/ADR-0023-branch-model.md)). `main` 직접 커밋·`develop`·Git Flow 안 씀.
-- 미결정 설계는 **제안** 상태 ADR ([목록·상태](docs/product/architecture/adr/README.md)) — 관련 Phase 착수 전 사용자 결정. 현재 제안: 0013(전체 작업 큐)·0015·0016(패키징·재기동·포트 — 1항 dev 통합 실행은 채택)·0017·0019. 나머지 0001~0012·0014·0018·0020~0032 는 채택.
+- 미결정 설계는 **제안** 상태 ADR ([목록·상태](docs/product/architecture/adr/README.md)) — 관련 Phase 착수 전 사용자 결정. 현재 제안·보류: 0013(전체 작업 큐)·0015·0016(패키징·재기동·포트 — 1항 dev 통합 실행, 루프백 바인딩은 채택)·0017·0019·0033(독립 위젯 창). 나머지 0001~0012·0014·0018·0020~0032·0034~0037 는 채택.
 
 ---
 

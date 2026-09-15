@@ -29,7 +29,7 @@ flowchart LR
 |:-:|---|---|---|---|
 | 1 | **vision/** | 왜 만드나, 완료의 정의 | 제품 정의(대시보드 OS), 위젯 셸 개념, 현행 분석(갭 G1~G9), 제약·가정, 리스크, 사용 여정 | [vision/README.md](vision/README.md) |
 | 2 | **requirements/** | 무엇을 만족해야 하나 | 기능 요구사항(FR-*), 비기능(NFR-*), 추적 매트릭스, 도메인별 수용 기준(TASK/UI/AGENT/PROJ/WIDGET) | [requirements/README.md](requirements/README.md) |
-| 3 | **architecture/** | 어떻게 만드나 | 뷰 지도, 목표 구조, 설계 원칙, 품질 드라이버, 런타임/데이터/횡단 관심사, 진화 경로, **결정 이력 ADR-0001~0023** | [architecture/README.md](architecture/README.md) |
+| 3 | **architecture/** | 어떻게 만드나 | 뷰 지도, 목표 구조, 설계 원칙, 품질 드라이버, 런타임/데이터/횡단 관심사, 진화 경로, **결정 이력 ADR-0001~0037**(채택 다수, 제안·보류 6건) | [architecture/README.md](architecture/README.md) |
 | 4 | **reference/** | 정확한 계약 | REST 엔드포인트, 화면·컴포넌트 계약, DB 필드 사전, 용어집 | [reference/README.md](reference/README.md) |
 | 5 | **testing/** | 어떻게 검증 | 테스트 레벨·케이스(TC-*)·머지 게이트·피라미드 | [testing/README.md](testing/README.md) |
 

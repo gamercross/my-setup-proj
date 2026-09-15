@@ -20,7 +20,7 @@
 
 | 무엇 | 명령 | 대상 |
 |---|---|---|
-| 정적(환경·문법·문서 정합) + 서비스 | `bash verify.sh` | 로컬 전체 (현재 21/0/0) |
+| 정적(환경·문법·문서 정합) + 서비스 | `bash verify.sh` | 로컬 전체 (현재 49/0/0) |
 | 정적만 (문서 커밋) | `bash verify.sh --code-only` | 문법 + 문서 정합 |
 | 문서 정합만 | `bash scripts/check-docs.sh` | 링크·ADR표·FR추적·README·드리프트 ([DOC_HEALTH](../../setup/DOC_HEALTH.md)) |
 | 서비스 스모크 | `bash scripts/smoke.sh` | backend 기동·`/api/health`·SQLite 쓰기 왕복 |

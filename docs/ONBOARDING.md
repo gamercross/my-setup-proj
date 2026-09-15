@@ -91,19 +91,20 @@ flowchart TB
 
 | 영역 | 상태 |
 |---|---|
-| 개념 설계 · 요구사항 · 아키텍처 문서 · 33개 ADR | ✅ 완료 (product/) |
+| 개념 설계 · 요구사항 · 아키텍처 문서 · 37개 ADR(제안·보류 6건 제외 채택) | ✅ 완료 (product/) |
 | 자동화 인프라 (에이전트 팀 · `/feature` · `/build-next` · 작업로그 · CI) | ✅ 동작 |
 | 로컬 환경 (node v26 · npm 11 · python 3.14 · venv) | ✅ Phase A2, `verify.sh` 49/0/0 |
 | 백엔드 tasks/projects CRUD 라우트 | ✅ SQLite 영속화(B2) + 미들웨어 정식화(C1) + `errors.js` 오류 매핑·`tasks.project_id`(C2). 프론트 배선 완료(B3 할일 / C2 프로젝트) |
 | 프론트엔드 React | ✅ B1(Vite 마운트) + B3(할일) + C2(프로젝트) + C3(캘린더) + C4(다이어그램) + C5(위젯 셸, `Dashboard.jsx` 제거) — 브라우저 E2E 로컬 수동 확인 대기 |
 | 캘린더 / 다이어그램 API | ✅ C3 `/api/calendar/events`(더미, 실 Google 은 D2) · C4 `/api/diagrams`(services 계층) |
-| 위젯 셸 (대시보드 OS) | ✅ C5 (레지스트리 · `useLayoutStore` · 배치·리사이즈·최소화 · localStorage 영속 · 위젯별 격리) / ⏳ C6 테마·표시 옵션 |
+| 위젯 셸 (대시보드 OS) | ✅ C5·C6 (레지스트리 · `useLayoutStore` · 배치·리사이즈·최소화 · localStorage 영속 · 위젯별 격리·테마·표시 옵션) |
+| 개인 생산성 OS (P0~P12) | ✅ 전부 완료 — 라이트 테마·사이드바 셸·단일 캐시·자동 분류·에이전트 활동·OKR·진행 현황·기대정렬 체크인·지식 지도·레퍼런스 요약 (상세: [PERSONAL_OS.md](product/vision/PERSONAL_OS.md) §7) |
 | Supabase | ✅ 클라이언트 부트스트랩만 (`backend/src/supabase.js` + `GET /api/sync/health`) — 동기화·인증·`user_id` 없음 (Week 10+, ADR-0008) |
-| DB (SQLite) | ✅ B2 (better-sqlite3, WAL, DATABASE_PATH) |
+| DB (SQLite) | ✅ B2 (better-sqlite3, WAL, DATABASE_PATH) — 13테이블 |
 | AI 에이전트 | ✅ D1 Daily Brief 실데이터 + D2-a 재시도/`sync_logs` + D2-b Google OAuth(Fernet 토큰) + Gmail/Calendar 실 수집(`agent/sync.py`). Notion 저장은 뼈대 |
-| 자동화 테스트 | ✅ backend 142 / frontend 106 / agent 80 (Phase A3~개인OS P9), `verify.sh` 49/0/0 (`--code-only` 41/0/0) |
+| 자동화 테스트 | ✅ backend 178 / frontend 129 / agent 80 (Phase A3~개인OS P12), `verify.sh` 49/0/0 (`--code-only` 41/0/0) |
 
-**다음 착수:** 백엔드 mail/calendar 조회 API 를 실 캐시로 배선, Notion 실 연동, B3~C6 브라우저 E2E 로컬 검증. Google 최초 로그인은 사용자가 `python agent/auth/google_oauth.py login` 로 1회 수행. (D2-b 는 2026-09-07 완료)
+**다음 착수:** [NEXT_SESSION.md](progress/NEXT_SESSION.md) §B — ADR-0016 2~4항(패키징 프로세스 토폴로지), 남은 보안 보완(S3~S5)·기술 부채(D1~D4), 로컬 수동 검증 백로그. Google 최초 로그인은 사용자가 `python agent/auth/google_oauth.py login` 로 1회 수행.
 (제안 ADR 0009~0012 채택됨, D2 부터 `.env` API 키 필요).
 
 ---
@@ -159,7 +160,7 @@ bash scripts/render-diagrams.sh   # docs/ 의 Mermaid → SVG
 
 # 백엔드
 cd backend && npm start     # http://localhost:3000
-cd backend && npm test      # 테스트 (현재 142케이스)
+cd backend && npm test      # 테스트 (현재 178케이스)
 
 # 프론트 (Vite 도입 = Phase B1)
 cd frontend && npm run dev
@@ -174,8 +175,7 @@ cd agent && source venv/bin/activate && python test_claude.py
 
 - 불확실하면 추측하지 말고 **"확인 필요"** 로 표시하고 멈춘다.
 - 계획 범위를 벗어나야 하면 이유와 함께 보고하고 사용자 확인을 받는다.
-- 남은 미결정(제안): [ADR-0013](product/architecture/adr/ADR-0013-dashboard-agent-queue.md) **부분 채택** — P7 "지금 실행" 트리거(FR-AGENT-08)는 파일 플래그 + launchd WatchPaths 로 채택(2026-09-08), 전체 작업 큐(FR-AGENT-09)만 제안 상태,
-  [ADR-0014](product/architecture/adr/ADR-0014-dashboard-diagram-viewer.md)(대시보드 다이어그램 뷰어, Phase C1 이후 착수). 0009~0012 는 채택 완료.
+- 남은 미결정(제안·보류): [ADR-0013](product/architecture/adr/ADR-0013-dashboard-agent-queue.md) **부분 채택** — P7 "지금 실행" 트리거(FR-AGENT-08)는 파일 플래그 + launchd WatchPaths 로 채택(2026-09-08), 전체 작업 큐(FR-AGENT-09)만 제안 상태 — 그 외 0015·0016(2~4항)·0017·0019·0033(보류). 나머지는 채택 완료. 전체 목록·상태는 [adr/README.md](product/architecture/adr/README.md).
 
 ---
 
