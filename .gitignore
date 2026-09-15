@@ -43,6 +43,14 @@ design-p2/*-canvas.html
 # DB 마이그레이션 백업 (ADR-0018)
 *.bak-*
 
+# 시크릿·토큰 (NFR-SEC-01, S5 — agent/.gitignore 의 .secrets/ 와 중복 방어)
+agent/.secrets/
+*.pem
+*.p12
+*.key
+credentials.json
+client_secret*.json
+
 # IDE / OS
 .vscode/
 .idea/

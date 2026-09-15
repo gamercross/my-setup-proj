@@ -177,3 +177,43 @@ def test_sync_14_get_today_events_filters_today_asc(temp_db):
     )
     titles = [e["title"] for e in db.get_today_events()]
     assert titles == ["오전", "오후"]
+
+
+def test_agent_46_trigger_ignores_agent_insert_on_user_tagged_task(temp_db):
+    """TC-AGENT-46: 앱 가드를 우회한 직접 INSERT 도 DB 트리거가 조용히 막는다.
+
+    add_agent_tags 의 '태그 0개' 가드를 거치지 않고, agent/db.py 와 동일한
+    'INSERT OR IGNORE ... source=agent' 문을 직접 실행해도 예외 없이 rowcount=0.
+    """
+    now = datetime.now().isoformat()
+    with sqlite3.connect(temp_db) as conn:
+        cur = conn.execute(
+            "INSERT INTO tasks (title, due_date, priority, status, created_at, updated_at) "
+            "VALUES (?, NULL, 'medium', 'todo', ?, ?)",
+            ("경합 대상", now, now),
+        )
+        task_id = cur.lastrowid
+        conn.execute(
+            "INSERT INTO task_tags (task_id, tag, source, created_at) VALUES (?, '수동', 'user', ?)",
+            (task_id, now),
+        )
+        conn.commit()
+
+    with db.connect() as conn:
+        caught = None
+        try:
+            cur = conn.execute(
+                "INSERT OR IGNORE INTO task_tags (task_id, tag, source, created_at) "
+                "VALUES (?, '업무', 'agent', ?)",
+                (task_id, now),
+            )
+            conn.commit()
+        except sqlite3.Error as e:  # pragma: no cover - 발생하면 안 됨
+            caught = e
+        assert caught is None
+        assert cur.rowcount == 0
+
+        rows = conn.execute(
+            "SELECT tag, source FROM task_tags WHERE task_id = ?", (task_id,)
+        ).fetchall()
+        assert [(r["tag"], r["source"]) for r in rows] == [("수동", "user")]

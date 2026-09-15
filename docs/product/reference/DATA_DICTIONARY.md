@@ -54,6 +54,7 @@
 - 인덱스: `idx_task_tags_tag(tag)` — 태그별 조회/필터용.
 - 쓰기 주체: 수동은 백엔드(`POST/DELETE /api/tasks/:id/tags`, `source='user'`). 자동은 **에이전트**(`agent/classify.py` → `agent/db.py:add_agent_tags`, `source='agent'`) — `daily_brief` 배치에서 태그 0개인 미완료 할일에만. ADR-0011 "에이전트 tasks 읽기 전용" 의 명시적 예외(`task_tags` 쓰기만).
 - API 응답에 `source` 는 노출하지 않는다(`tags` 는 문자열 배열).
+- 트리거 `trg_task_tags_agent_no_override`(`BEFORE INSERT`) — 이미 `source='user'` 태그가 있는 할일에 `source='agent'` INSERT 를 `RAISE(IGNORE)` 로 조용히 무시한다. `SCHEMA_VERSION` 은 올리지 않는다(2026-09-16, ADR-0029).
 
 ## 2. `projects` — 프로젝트
 

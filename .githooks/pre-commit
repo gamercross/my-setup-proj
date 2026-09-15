@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# pre-commit 훅 — 커밋 직전 시크릿 스캔 (NFR-SEC-01, RISKS R-13, REVERSE_PLAN §4-5 S5).
+#
+# 활성화: git config core.hooksPath .githooks (setup.sh 가 자동 설정).
+# 우회: SECRET_SCAN_SKIP=1 git commit ... 또는 git commit --no-verify.
+set -u
+ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"
+if [ -z "$ROOT" ]; then
+  # git 저장소 밖에서 훅이 실행될 일은 없지만, 방어적으로 통과시킨다.
+  exit 0
+fi
+
+bash "$ROOT/scripts/check-secrets.sh" --staged
+rc=$?
+
+if [ "$rc" -eq 1 ]; then
+  echo "❌ pre-commit: 시크릿 스캔에 걸려 커밋을 차단합니다. (우회: SECRET_SCAN_SKIP=1 또는 --no-verify)"
+  exit 1
+elif [ "$rc" -eq 2 ]; then
+  echo "⚠️  pre-commit: 시크릿 스캔을 건너뛰었습니다(SKIP)."
+  exit 0
+fi
+
+exit 0

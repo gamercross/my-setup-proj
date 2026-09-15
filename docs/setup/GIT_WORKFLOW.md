@@ -66,6 +66,7 @@
 | `my-setup-proj/` 폴더 **밖** 파일 | 건드리지 않는다 (`~/Library/LaunchAgents/` 등) |
 | `작업로그.md` | **커밋 섹션**(`### 📦 커밋` 이하)은 Stop 훅 자동 생성 → 손대지 않는다. **요약 블록**(`<!-- SUMMARY:날짜 -->`)은 finisher 가 커밋 시 갱신하고 함께 스테이징한다 ([AUTOMATION.md](AUTOMATION.md) §3) |
 | `.env`, `*.db`, `node_modules/`, `venv/`, `dist/` | `.gitignore` 로 제외됨. 실수로 `git add -f` 하지 않는다 |
+| 시크릿/키로 보이는 값·경로 | pre-commit 훅(`.githooks/pre-commit` → `scripts/check-secrets.sh`)이 스테이징 시점에 자동 차단한다 (NFR-SEC-01, S5) |
 | 무관한 기존 미커밋 변경 | 이번 작업과 논리적으로 다르면 **별도 커밋**으로 나눈다 (§4) |
 
 커밋 전 `git status` 와 `git diff --staged` 로 스테이징 내용을 반드시 육안 확인한다.
@@ -121,6 +122,7 @@
 [ ] FAIL 0 확인 (SKIP 은 보고에 명시)
 [ ] 브랜치 정책 확인 (`feature/*` 위에서 작업 중인지 — `main` 직접 커밋 금지, ADR-0023)
 [ ] my-setup-proj/ 밖 파일 미포함, .gitignore 대상 미포함
+[ ] 시크릿 스캔 통과 (pre-commit 훅이 자동 실행 — 차단되면 값을 .env 로 옮기거나 스테이징에서 제외)
 [ ] 커밋 메시지 형식 + 꼬리말 + (필요 시) "검증 일부 미실행" 명시
 [ ] PROGRESS.md 갱신 (대응 항목 있을 때)
 [ ] git push → 실패 시 로컬 보존 + 보고

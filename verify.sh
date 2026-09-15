@@ -100,6 +100,9 @@ syntax_check "scripts/dev.sh 문법"      bash    bash -n scripts/dev.sh
 # CI 편입 시 이 줄은 `npm ci`(backend·frontend) 이후에 배치할 것 — --dry-run 이 node_modules/concurrently 전제를 검사한다
 syntax_check "scripts/dev.sh --dry-run (TC-DEV-01)" bash bash scripts/dev.sh --dry-run
 syntax_check "scripts/check-demo-parity.mjs 문법" node node --check scripts/check-demo-parity.mjs
+syntax_check "scripts/check-secrets.sh 문법"      bash    bash -n scripts/check-secrets.sh
+syntax_check ".githooks/pre-commit 문법"          bash    bash -n .githooks/pre-commit
+syntax_check "scripts/check-secrets.sh --self-test (TC-SEC-01,02)" bash bash scripts/check-secrets.sh --self-test
 
 echo "▶ 문서 정합 확인"
 # 문서·오케스트레이션 정합 (링크·ADR표·FR추적·README커버리지·드리프트) — docs/setup/DOC_HEALTH.md
@@ -127,6 +130,35 @@ if command -v node >/dev/null 2>&1; then
   fi
 else
   echo "⏭️  데모 패리티 — SKIP (node 없음)"; SKIP=$((SKIP + 1))
+fi
+
+# 시크릿 스캔 — 스테이징된 변경에 시크릿/키 파일이 섞여 있는지 확인 (NFR-SEC-01, S5).
+echo "▶ 시크릿 스캔"
+if command -v bash >/dev/null 2>&1 && command -v git >/dev/null 2>&1; then
+  bash scripts/check-secrets.sh --staged
+  rc=$?
+  if [ "$rc" -eq 0 ]; then
+    echo "✅ 시크릿 스캔"; PASS=$((PASS + 1))
+  elif [ "$rc" -eq 2 ]; then
+    echo "⏭️  시크릿 스캔 — SKIP (git 없음/저장소 아님)"; SKIP=$((SKIP + 1))
+  else
+    echo "❌ 시크릿 스캔 (위 로그 참고)"; FAIL=$((FAIL + 1))
+  fi
+else
+  echo "⏭️  시크릿 스캔 — SKIP (bash/git 없음)"; SKIP=$((SKIP + 1))
+fi
+
+# 시크릿 스캔 — docs/ 거짓양성 0 확인 (TC-SEC-03).
+if command -v git >/dev/null 2>&1; then
+  DOC_FILES="$(git ls-files 'docs/*.md')"
+  if [ -n "$DOC_FILES" ]; then
+    # shellcheck disable=SC2086
+    if bash scripts/check-secrets.sh --files $DOC_FILES; then
+      echo "✅ 시크릿 스캔 docs/ 거짓양성 0 (TC-SEC-03)"; PASS=$((PASS + 1))
+    else
+      echo "❌ 시크릿 스캔 docs/ 거짓양성 발생 (TC-SEC-03, 위 로그 참고)"; FAIL=$((FAIL + 1))
+    fi
+  fi
 fi
 
 # 서비스 스모크 — backend 가 실제로 뜨고 응답하고 SQLite 에 쓰는가.

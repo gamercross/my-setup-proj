@@ -30,7 +30,7 @@ flowchart TB
 2. **서비스** — `bash scripts/smoke.sh`: 임시 포트+임시 DB 로 backend 기동 → `/api/health` → task 생성/조회/삭제 왕복 → 정리. `verify.sh` 의 "▶ 서비스 확인" + CI `backend` 잡에 포함.
 3. **사용자 흐름** — 로컬에서 backend+frontend 실행 후 TC-UI-10~16, GUI 체크(§5). 자동화 불가(디스플레이 필요).
 
-`verify.sh` 전체 실행 시 정적+서비스가 한 번에 돈다 (현재 49/0/0).
+`verify.sh` 전체 실행 시 정적+서비스가 한 번에 돈다 (현재 54/0/0).
 
 ## 1. 테스트 레벨과 범위
 
@@ -145,6 +145,10 @@ CI(`.github/workflows/test.yml`)에 `npm test`(backend), `pytest -m "not network
 | TC-DB-04b | schema CHECK | `PUT /api/projects/:id {status:"hold"}` | 400 (허용값 밖) | ✅ P0(C2, `projects.test.js`) |
 | TC-DB-04c | schema CHECK | `db.addTask` 직접 호출, 잘못된 값 | `SqliteError(code=SQLITE_CONSTRAINT_CHECK)` 던짐 | ✅ P1(C2, `db.test.js`) |
 | TC-DB-04d | schema FK | `db.addTask({project_id:<없음>})` 직접 호출 | FK 위반으로 던짐 | ✅ P1(C2, `db.test.js`) |
+| TC-DB-08a | ADR-0029 / FR-TASK-08 | `trg_task_tags_agent_no_override`, `source='user'` 태그 있는 할일에 `source='agent'` INSERT | 예외 없음, `changes===0`, user 태그만 남음 | ✅ (`db.test.js`) |
+| TC-DB-08b | 트리거 | 태그 0개 할일에 `source='agent'` INSERT | `changes===1` (거짓 차단 없음) | ✅ (`db.test.js`) |
+| TC-DB-08c | 트리거 | agent 태그 있는 할일에 agent/user 태그 추가 | 둘 다 허용 (방향 제한 없음) | ✅ (`db.test.js`) |
+| TC-DB-08d | 트리거 | `sqlite_master` 조회 + 같은 파일 DB 재오픈 | 트리거 존재, 재오픈 예외 없음, `user_version` 은 2 유지 | ✅ (`db.test.js`) |
 
 ### 3.4 에이전트 — `agent/tests/test_daily_brief.py`
 
@@ -189,6 +193,8 @@ Claude(`classify.ask`)는 전부 monkeypatch — `network` 마커 없음. DB 는
 | TC-AGENT-38 | `classify_untagged` | `ask` 예외 | 반환 0(전파 없음), `sync_logs('classify','failed')` | ✅ |
 | TC-AGENT-39 | `db.add_agent_tags` | 이미 `source='user'` 태그 있는 할일 | 저장 0건 (건드리지 않음) | ✅ |
 | TC-AGENT-40 | `db.get_untagged_tasks` | done·태그 있는 할일 혼재 | 미완료·태그 0개만 반환 | ✅ |
+| TC-AGENT-46 | `task_tags` DB 트리거 | 앱 가드 우회 직접 INSERT(`source='agent'`), 대상 할일에 `source='user'` 태그 존재 | 예외 없음, `rowcount==0`, 기존 user 태그 보존 | ✅ |
+| TC-AGENT-47 | `classify_untagged` | `ask` 응답 직전 경합으로 `source='user'` 태그 삽입 | 예외 없이 반환 0, `sync_logs('classify','success')`, user 태그 보존 | ✅ |
 
 `test_daily_brief.py`: `_run()` 이 `build_context` 전에 `classify_untagged()` 를 호출하고 그 예외를 삼킨다(순서 검증).
 
@@ -373,6 +379,21 @@ fake service 주입, 네트워크 0회. 재시도 테스트는 `services.retry.s
 | TC-PARITY-02 | `DEMO_ROUTES` 테이블 | — | `demoClient` import | `method+spec` 조합 중복 0·모든 `spec` 이 `/` 시작. `POST /tasks/:id/tags` 는 태그 추가(PUT 아님)·`GET /okr/trend` 는 trend(대시보드 아님)·미등록 경로 404 | P2 |
 
 > shape 패리티(응답 필드·상태코드)는 범위 밖 — 후속. `verify.sh` "▶ 데모 패리티 확인" 에 편입.
+
+### 3.4c 시크릿 스캔 — `scripts/check-secrets.sh` · `.githooks/pre-commit` (NFR-SEC-01, RISKS R-13)
+
+| ID | 유형 | 절차 | 통과 조건 | 우선 |
+|---|---|---|---|:---:|
+| TC-SEC-01 | 자동(`verify.sh`) | `bash -n scripts/check-secrets.sh` | 문법 오류 0 | P1 |
+| TC-SEC-02 | 자동(`verify.sh`) | `bash scripts/check-secrets.sh --self-test` | anthropic·google-api·google-oauth-secret·slack-token·slack-webhook·fernet-key·private-key·filled-env 8개 패턴 각 1건 이상 탐지, 정상 파일 0건, exit 0 | P1 |
+| TC-SEC-03 | 자동(`verify.sh`) | `bash scripts/check-secrets.sh --files $(git ls-files docs/*.md)` (git pathspec `*` 는 `/` 를 넘어 매치하므로 `docs/**/*.md` 아님 — 97건이 아니라 101건 전부 포함) | 거짓양성 0, exit 0 | P1 |
+| TC-SEC-04 | 반자동 | 임시 파일에 `ANTHROPIC_API_KEY=sk-ant-…` → `git add` → `git commit` | 차단(exit 1), 파일명·패턴명 출력, 값은 앞 6자만 노출 후 마스킹 | P2 |
+| TC-SEC-05 | 반자동 | `.env` 를 `git add -f` 후 `git commit` | 경로 규칙으로 차단, `.env.example` 은 통과 | P2 |
+| TC-SEC-06 | 반자동 | TC-SEC-04 상태에서 `SECRET_SCAN_SKIP=1 git commit` | 경고만 찍고 커밋 진행 | P2 |
+
+> TC-SEC-01~03 은 `verify.sh` "▶ 문법 확인"·"▶ 시크릿 스캔" 블록에 편입돼 매 실행 시 자동 검증된다.
+> TC-SEC-04~06 은 실제 git 커밋을 만들므로 임시 저장소에서 반자동으로 재현·확인한다.
+> 우회 경로: `SECRET_SCAN_SKIP=1` 환경변수 또는 `git commit --no-verify`(차단 메시지에 안내).
 
 ### 3.5 다이어그램 API — `backend/test/diagrams.test.js` (Phase C4)
 

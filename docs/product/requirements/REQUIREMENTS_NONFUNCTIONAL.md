@@ -61,7 +61,7 @@ flowchart TB
 
 | ID | 요구사항 | 기준 | 검증 방법 |
 |---|---|---|---|
-| NFR-SEC-01 | 모든 시크릿은 `.env` 에만 두고 git 에 커밋하지 않는다 | `.gitignore` 에 `.env` 포함, 코드 하드코딩 0 | `git log -p` grep, `security-review` |
+| NFR-SEC-01 | 모든 시크릿은 `.env` 에만 두고 git 에 커밋하지 않는다 | `.gitignore` 에 `.env` 포함, 코드 하드코딩 0, pre-commit 시크릿 스캔(`scripts/check-secrets.sh`, `.githooks/pre-commit`) 통과 | `git log -p` grep, `security-review`, `scripts/check-secrets.sh`(TC-SEC-01~06) |
 | NFR-SEC-02 | 모든 외부 API 통신은 HTTPS | http:// 외부 호출 0 | 코드리뷰 |
 | NFR-SEC-03 | Claude API Key 는 백엔드/에이전트에서만 사용, 렌더러에 노출 안 됨 | `preload.js` 화이트리스트에 키 없음 | 코드리뷰 |
 | NFR-SEC-04 | Electron: `contextIsolation: true`, `nodeIntegration: false` 유지 | 설정 고정 | `main.js` 리뷰 |
