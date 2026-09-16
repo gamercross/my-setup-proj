@@ -91,7 +91,7 @@ flowchart TB
 
 | 영역 | 상태 |
 |---|---|
-| 개념 설계 · 요구사항 · 아키텍처 문서 · 37개 ADR(제안·보류 6건 제외 채택) | ✅ 완료 (product/) |
+| 개념 설계 · 요구사항 · 아키텍처 문서 · 37개 ADR(제안·보류 5건 제외 채택) | ✅ 완료 (product/) |
 | 자동화 인프라 (에이전트 팀 · `/feature` · `/build-next` · 작업로그 · CI) | ✅ 동작 |
 | 로컬 환경 (node v26 · npm 11 · python 3.14 · venv) | ✅ Phase A2, `verify.sh` 54/0/0 |
 | 백엔드 tasks/projects CRUD 라우트 | ✅ SQLite 영속화(B2) + 미들웨어 정식화(C1) + `errors.js` 오류 매핑·`tasks.project_id`(C2). 프론트 배선 완료(B3 할일 / C2 프로젝트) |
@@ -175,7 +175,7 @@ cd agent && source venv/bin/activate && python test_claude.py
 
 - 불확실하면 추측하지 말고 **"확인 필요"** 로 표시하고 멈춘다.
 - 계획 범위를 벗어나야 하면 이유와 함께 보고하고 사용자 확인을 받는다.
-- 남은 미결정(제안·보류): [ADR-0013](product/architecture/adr/ADR-0013-dashboard-agent-queue.md) **부분 채택** — P7 "지금 실행" 트리거(FR-AGENT-08)는 파일 플래그 + launchd WatchPaths 로 채택(2026-09-08), 전체 작업 큐(FR-AGENT-09)만 제안 상태 — 그 외 0015·0016(2~4항)·0017·0019·0033(보류). 나머지는 채택 완료. 전체 목록·상태는 [adr/README.md](product/architecture/adr/README.md).
+- 남은 미결정(제안·보류): [ADR-0013](product/architecture/adr/ADR-0013-dashboard-agent-queue.md) **부분 채택** — P7 "지금 실행" 트리거(FR-AGENT-08)는 파일 플래그 + launchd WatchPaths 로 채택(2026-09-08), 전체 작업 큐(FR-AGENT-09)만 제안 상태 — 그 외 0015·0016(2~4항)·0019·0033(보류). 나머지는 채택 완료(0017 은 2026-09-16 채택). 전체 목록·상태는 [adr/README.md](product/architecture/adr/README.md).
 
 ---
 

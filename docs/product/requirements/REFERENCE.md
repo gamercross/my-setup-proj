@@ -21,9 +21,9 @@
 - 요약 단계(`reference_summary_steps`)는 **추가·삭제만** — 수정(PUT) 엔드포인트는 없다
   (ADR-0037 §결정3). 삭제 후 `step_order` 를 재번호 매기지 않는다(§결정4).
 - 서버는 요약 진행도(%) 같은 파생값을 계산·저장하지 않는다(ADR-0035 선례).
-- 검증 실패 → HTTP 400 `{ "error": "<메시지>" }` (NFR-SEC-07).
-- 존재하지 않는 레퍼런스 `id` → 404 `{ "error": "레퍼런스를 찾을 수 없습니다." }`,
-  존재하지 않는 단계 `stepId` → 404 `{ "error": "요약 단계를 찾을 수 없습니다." }`.
+- 검증 실패 → HTTP 400, RFC 9457 봉투 `{ "type": "validation_error", "detail": "<메시지>", ... }` (NFR-SEC-07, [ADR-0017](../architecture/adr/ADR-0017-rest-error-contract.md)). 아래 AC 의 `{error:"..."}` 표기는 이 봉투의 `detail` 값을 가리킨다.
+- 존재하지 않는 레퍼런스 `id` → 404 `{ "type": "not_found", "detail": "레퍼런스를 찾을 수 없습니다." }`,
+  존재하지 않는 단계 `stepId` → 404 `{ "type": "not_found", "detail": "요약 단계를 찾을 수 없습니다." }`.
 - 비목표: 에이전트(Python/Claude) 자동 요약, Notion 연동 — 둘 다 이번 범위가 아니다(ADR-0037 §결정8).
 - 웹 데모(ADR-0026): 아래 API 는 `frontend/src/api/demoClient.js` / `demoData.js` 인메모리
   목 어댑터에도 추가한다 — 안 하면 데모에서 레퍼런스 위젯이 깨진다.

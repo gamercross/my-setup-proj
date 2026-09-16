@@ -44,7 +44,8 @@ describe('기대정렬 체크인 API', () => {
       .post('/api/checkins')
       .send({ period: '1주차', what: '  ', why: '', status: null });
     assert.equal(res.status, 400);
-    assert.equal(res.body.error, '최소 한 개 질문에는 답해야 합니다.');
+    assert.equal(res.body.detail, '최소 한 개 질문에는 답해야 합니다.');
+    assert.equal(res.body.type, 'validation_error');
 
     const list = await request(app).get('/api/checkins');
     assert.equal(list.body.checkins.length, 0);
@@ -65,13 +66,15 @@ describe('기대정렬 체크인 API', () => {
       .post('/api/checkins')
       .send({ what: 'x', project_id: 9999 });
     assert.equal(badProject.status, 400);
-    assert.equal(badProject.body.error, '연결할 프로젝트를 찾을 수 없습니다.');
+    assert.equal(badProject.body.detail, '연결할 프로젝트를 찾을 수 없습니다.');
+    assert.equal(badProject.body.type, 'validation_error');
 
     const badObjective = await request(app)
       .post('/api/checkins')
       .send({ what: 'x', objective_id: 9999 });
     assert.equal(badObjective.status, 400);
-    assert.equal(badObjective.body.error, '연결할 목표를 찾을 수 없습니다.');
+    assert.equal(badObjective.body.detail, '연결할 목표를 찾을 수 없습니다.');
+    assert.equal(badObjective.body.type, 'validation_error');
   });
 
   it('TC-CHK-05: GET 목록 — 최신순·필드셋·limit', async () => {
@@ -112,11 +115,13 @@ describe('기대정렬 체크인 API', () => {
 
     const bad = await request(app).get('/api/checkins?project_id=abc');
     assert.equal(bad.status, 400);
-    assert.equal(bad.body.error, 'project_id 는 양의 정수이거나 "none" 이어야 합니다.');
+    assert.equal(bad.body.detail, 'project_id 는 양의 정수이거나 "none" 이어야 합니다.');
+    assert.equal(bad.body.type, 'validation_error');
 
     const badObj = await request(app).get('/api/checkins?objective_id=-1');
     assert.equal(badObj.status, 400);
-    assert.equal(badObj.body.error, 'objective_id 는 양의 정수이거나 "none" 이어야 합니다.');
+    assert.equal(badObj.body.detail, 'objective_id 는 양의 정수이거나 "none" 이어야 합니다.');
+    assert.equal(badObj.body.type, 'validation_error');
   });
 
   it('TC-CHK-07: PUT 부분수정 — 보낸 필드만 병합·updated_at 변경·없는 id 404', async () => {
@@ -131,7 +136,8 @@ describe('기대정렬 체크인 API', () => {
 
     const missing = await request(app).put('/api/checkins/9999').send({ what: 'x' });
     assert.equal(missing.status, 404);
-    assert.equal(missing.body.error, '체크인을 찾을 수 없습니다.');
+    assert.equal(missing.body.detail, '체크인을 찾을 수 없습니다.');
+    assert.equal(missing.body.type, 'not_found');
   });
 
   it('TC-CHK-08: PUT으로 전부 지움 → 400·기존 행 불변', async () => {
@@ -140,7 +146,8 @@ describe('기대정렬 체크인 API', () => {
 
     const res = await request(app).put(`/api/checkins/${id}`).send({ what: '' });
     assert.equal(res.status, 400);
-    assert.equal(res.body.error, '최소 한 개 질문에는 답해야 합니다.');
+    assert.equal(res.body.detail, '최소 한 개 질문에는 답해야 합니다.');
+    assert.equal(res.body.type, 'validation_error');
 
     const check = await request(app).get('/api/checkins');
     assert.equal(check.body.checkins[0].what, '유일한 답변');
@@ -156,6 +163,7 @@ describe('기대정렬 체크인 API', () => {
 
     const again = await request(app).delete(`/api/checkins/${id}`);
     assert.equal(again.status, 404);
-    assert.equal(again.body.error, '체크인을 찾을 수 없습니다.');
+    assert.equal(again.body.detail, '체크인을 찾을 수 없습니다.');
+    assert.equal(again.body.type, 'not_found');
   });
 });

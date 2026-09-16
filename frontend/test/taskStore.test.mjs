@@ -66,7 +66,7 @@ test('TC-P5-11: 실패하면 byId/order/tasks 3필드가 복원되고 error 가 
   const prevOrder = prev.order;
   const prevTasks = prev.tasks;
 
-  fetchImpl = () => jsonRes({ error: '서버 오류' }, false, 500);
+  fetchImpl = () => jsonRes({ type: 'internal_error', title: '서버 내부 오류가 발생했습니다', detail: '서버 오류' }, false, 500);
   await store.getState().removeTask(2); // 반드시 resolve (throw 없음)
 
   const s = store.getState();
@@ -131,7 +131,7 @@ test('TC-P6-08: removeTag 실패 시 스냅샷 복원 + error, DELETE 경로 인
   const prevTasks = store.getState().tasks;
 
   let calledUrl;
-  fetchImpl = (url) => { calledUrl = url; return jsonRes({ error: '서버 오류' }, false, 500); };
+  fetchImpl = (url) => { calledUrl = url; return jsonRes({ type: 'internal_error', title: '서버 내부 오류가 발생했습니다', detail: '서버 오류' }, false, 500); };
   await store.getState().removeTag(1, '가');
 
   assert.match(calledUrl, /\/tasks\/1\/tags\/%EA%B0%80$/);

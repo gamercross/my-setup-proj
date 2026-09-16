@@ -124,7 +124,7 @@ C 세부: C1 미들웨어(CORS·로깅·에러) ✅(2026-09-03) → C2 프로젝
 | NFR-SEC-04 | Electron `contextIsolation:true`/`nodeIntegration:false` | 상시 | TC-UI-05 | ✅ |
 | NFR-SEC-05 | OAuth 토큰 암호화 저장 (Fernet 암호화 JSON 파일 — [ADR-0024](../architecture/adr/ADR-0024-oauth-token-storage.md)) | D2-b | TC-AUTH-03 | ✅ D2-b |
 | NFR-SEC-06 | CORS 로컬 오리진 화이트리스트, `Origin: null` 은 `APP_ENV=packaged` 에서만 (`backend/src/middleware/cors.js`) | C1 | TC-MW-01~04, TC-MW-09, TC-MW-10 | ✅ (2026-09-15) — `APP_ENV` 주입 주체는 [ADR-0016](../architecture/adr/ADR-0016-desktop-process-topology.md) 2항(Electron main 이 자식 fork 시 env 로 전달)으로 확정 (2026-09-16) |
-| NFR-SEC-07 | API 경계 입력 검증 | C1, B2, C2 | TC-TASK-02,03 / TC-PROJ-02,03,09,09c,09d / TC-DB-04a~d / TC-MW-05,06 | 🚧 (C2: `backend/src/errors.js` 가 SQLite CHECK/NOTNULL/FK → 400 한국어 매핑, `project_id` 사전 검증. `due_date` 형식 검증·빈 title 덮어쓰기 금지는 이월) |
+| NFR-SEC-07 | API 경계 입력 검증 | C1, B2, C2, C-W4([ADR-0017](../architecture/adr/ADR-0017-rest-error-contract.md)) | TC-TASK-02,03 / TC-PROJ-02,03,09,09c,09d / TC-DB-04a~d / TC-MW-05,06 / TC-ERR-01~08 | 🚧 (C2: `backend/src/errors.js` 가 SQLite CHECK/NOTNULL/FK → 400 한국어 매핑, `project_id` 사전 검증. ADR-0017 채택(2026-09-16): 오류 응답을 RFC 9457 스타일 봉투로 통일 — `backend/src/problem.js`. `due_date` 형식 검증·빈 title 덮어쓰기 금지는 이월) |
 | NFR-SEC-08 | 백엔드 HTTP 서버 루프백(`127.0.0.1`) 바인딩 (`backend/src/server.js`) | — | — | ✅ (코드리뷰, 2026-09-15) |
 | NFR-REL-01 | 모든 외부 호출·IO try/catch | 상시 | supervisor 리뷰 | 🚧 |
 | NFR-REL-02 | 외부 API 실패가 앱 크래시로 안 이어짐 | D1 | TC-AGENT-03, TC-UI-02 | 🚧 |

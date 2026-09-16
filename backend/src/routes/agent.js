@@ -5,6 +5,7 @@
 
 const router = require('express').Router();
 const agent = require('../services/agent');
+const { sendProblem } = require('../problem');
 
 // GET /api/agent/activity?limit= - 활동 위젯 데이터. logs 조회 실패만 500, 나머지는 실패해도 200.
 router.get('/activity', async (req, res) => {
@@ -14,7 +15,10 @@ router.get('/activity', async (req, res) => {
   if (limit !== undefined) {
     lim = Number(limit);
     if (!Number.isInteger(lim) || lim <= 0) {
-      return res.status(400).json({ error: 'limit 은 1 이상의 정수여야 합니다.' });
+      return sendProblem(res, 'validation_error', {
+        detail: 'limit 은 1 이상의 정수여야 합니다.',
+        errors: [{ field: 'limit', message: '1 이상의 정수여야 합니다.' }],
+      });
     }
     if (lim > 50) lim = 50;
   }
@@ -24,7 +28,7 @@ router.get('/activity', async (req, res) => {
     res.json(data);
   } catch (err) {
     console.error('agent/activity 조회 실패:', err);
-    res.status(500).json({ error: '에이전트 활동을 불러오지 못했습니다.' });
+    sendProblem(res, 'internal_error', { detail: '에이전트 활동을 불러오지 못했습니다.' });
   }
 });
 
@@ -35,12 +39,12 @@ router.post('/run-now', (req, res) => {
     const result = agent.requestRun();
 
     if (!result.ok && result.reason === 'no-root') {
-      return res
-        .status(503)
-        .json({ error: '에이전트 폴더를 찾을 수 없어 실행을 요청할 수 없습니다.' });
+      return sendProblem(res, 'upstream_unavailable', {
+        detail: '에이전트 폴더를 찾을 수 없어 실행을 요청할 수 없습니다.',
+      });
     }
     if (!result.ok) {
-      return res.status(500).json({ error: '지금 실행 요청을 저장하지 못했습니다.' });
+      return sendProblem(res, 'internal_error', { detail: '지금 실행 요청을 저장하지 못했습니다.' });
     }
 
     res.json({
@@ -52,7 +56,7 @@ router.post('/run-now', (req, res) => {
     });
   } catch (err) {
     console.error('agent/run-now 처리 실패:', err);
-    res.status(500).json({ error: '지금 실행 요청을 저장하지 못했습니다.' });
+    sendProblem(res, 'internal_error', { detail: '지금 실행 요청을 저장하지 못했습니다.' });
   }
 });
 

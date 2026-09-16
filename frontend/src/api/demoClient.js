@@ -11,10 +11,23 @@ let store = createDataset();
 const nowIso = () => new Date().toISOString();
 const nextId = () => (store._seq += 1);
 
-// 한국어 에러 (client.js 의 정규화 규칙과 맞춘다)
+// status → type 파생 (ADR-0017 — 백엔드 problem.js 의 PROBLEM_TYPES 표와 일치시킨다)
+const STATUS_TO_TYPE = {
+  400: { type: 'validation_error', title: '입력이 올바르지 않습니다' },
+  404: { type: 'not_found', title: '요청한 리소스를 찾을 수 없습니다' },
+  409: { type: 'conflict', title: '요청이 현재 상태와 충돌합니다' },
+  503: { type: 'upstream_unavailable', title: '일시적으로 요청을 처리할 수 없습니다' },
+};
+
+// 한국어 에러 (client.js 의 정규화 규칙과 맞춘다) — status/type/title/detail/requestId 를 부착한다.
 function err(status, message) {
   const e = new Error(message);
   e.status = status;
+  const mapped = STATUS_TO_TYPE[status] || { type: 'internal_error', title: '서버 내부 오류가 발생했습니다' };
+  e.type = mapped.type;
+  e.title = mapped.title;
+  e.detail = message;
+  e.requestId = 'r-demo';
   return e;
 }
 

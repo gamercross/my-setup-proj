@@ -3,6 +3,7 @@
 
 const router = require('express').Router();
 const diagramsService = require('../services/diagrams');
+const { sendProblem } = require('../problem');
 
 // GET /api/diagrams?doc= - 다이어그램 목록. doc 은 선택(문서 basename, 대소문자 무시).
 router.get('/', (req, res) => {
@@ -12,7 +13,7 @@ router.get('/', (req, res) => {
     res.json({ diagrams: diagramsService.listDiagrams({ doc }) });
   } catch (err) {
     console.error('다이어그램 조회 실패:', err);
-    res.status(500).json({ error: '다이어그램을 불러오지 못했습니다.' });
+    sendProblem(res, 'internal_error', { detail: '다이어그램을 불러오지 못했습니다.' });
   }
 });
 

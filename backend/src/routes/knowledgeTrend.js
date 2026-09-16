@@ -3,18 +3,7 @@
 
 const router = require('express').Router();
 const knowledge = require('../services/knowledgeTrend');
-const { isValidationError, isNotFoundError, toClientMessage } = require('../errors');
-
-function handleError(err, res, { logPrefix, failMessage }) {
-  if (isNotFoundError(err)) {
-    return res.status(404).json({ error: err.message });
-  }
-  if (isValidationError(err)) {
-    return res.status(400).json({ error: toClientMessage(err) });
-  }
-  console.error(logPrefix, err);
-  res.status(500).json({ error: failMessage });
-}
+const { sendServiceError } = require('../problem');
 
 // GET /api/knowledge-trend - 주차별 체크인 빈도 + 월별 OKR 평균 달성률 + 태그 분포.
 // 주의: 여기서 kr_snapshots 를 적재하지 않는다 — 적재 주체는 GET /api/okr/trend 뿐이다
@@ -24,7 +13,7 @@ router.get('/', (req, res) => {
     const weeks = knowledge.assertWeeks(req.query.weeks);
     res.json(knowledge.getKnowledgeTrend(new Date(), { weeks }));
   } catch (err) {
-    handleError(err, res, {
+    sendServiceError(err, res, {
       logPrefix: '지식 추세 조회 실패:',
       failMessage: '지식 추세를 불러오지 못했습니다.',
     });

@@ -3,19 +3,7 @@
 
 const router = require('express').Router();
 const checkinsService = require('../services/checkins');
-const { isValidationError, isNotFoundError, toClientMessage } = require('../errors');
-
-// 서비스 오류 → 상태코드 (404 우선 → 400 → 500). routes/tasks.js 와 동일 패턴.
-function handleError(err, res, { logPrefix, failMessage }) {
-  if (isNotFoundError(err)) {
-    return res.status(404).json({ error: err.message });
-  }
-  if (isValidationError(err)) {
-    return res.status(400).json({ error: toClientMessage(err) });
-  }
-  console.error(logPrefix, err);
-  res.status(500).json({ error: failMessage });
-}
+const { sendProblem, sendServiceError } = require('../problem');
 
 // 쿼리 파라미터 하나(project_id 또는 objective_id)를 필터값으로 파싱한다.
 // 미지정 → undefined, 'none'|'null' → null, 그 외 양의 정수 → 그 값, 아니면 오류 메시지 반환.
@@ -35,11 +23,21 @@ router.get('/', (req, res) => {
     const filter = {};
 
     const project = parseIdFilter(req.query.project_id, 'project_id');
-    if (!project.ok) return res.status(400).json({ error: project.error });
+    if (!project.ok) {
+      return sendProblem(res, 'validation_error', {
+        detail: project.error,
+        errors: [{ field: 'project_id', message: project.error }],
+      });
+    }
     if (project.value !== undefined) filter.projectId = project.value;
 
     const objective = parseIdFilter(req.query.objective_id, 'objective_id');
-    if (!objective.ok) return res.status(400).json({ error: objective.error });
+    if (!objective.ok) {
+      return sendProblem(res, 'validation_error', {
+        detail: objective.error,
+        errors: [{ field: 'objective_id', message: objective.error }],
+      });
+    }
     if (objective.value !== undefined) filter.objectiveId = objective.value;
 
     if (req.query.limit !== undefined) {
@@ -49,7 +47,7 @@ router.get('/', (req, res) => {
 
     res.json({ checkins: checkinsService.listCheckins(filter) });
   } catch (err) {
-    handleError(err, res, { logPrefix: '체크인 조회 실패:', failMessage: '체크인을 불러오지 못했습니다.' });
+    sendServiceError(err, res, { logPrefix: '체크인 조회 실패:', failMessage: '체크인을 불러오지 못했습니다.' });
   }
 });
 
@@ -59,7 +57,7 @@ router.post('/', (req, res) => {
     const checkin = checkinsService.createCheckin(req.body || {});
     res.status(201).json({ checkin });
   } catch (err) {
-    handleError(err, res, { logPrefix: '체크인 생성 실패:', failMessage: '체크인을 생성하지 못했습니다.' });
+    sendServiceError(err, res, { logPrefix: '체크인 생성 실패:', failMessage: '체크인을 생성하지 못했습니다.' });
   }
 });
 
@@ -69,7 +67,7 @@ router.put('/:id', (req, res) => {
     const checkin = checkinsService.updateCheckin(req.params.id, req.body || {});
     res.json({ checkin });
   } catch (err) {
-    handleError(err, res, { logPrefix: '체크인 수정 실패:', failMessage: '체크인을 수정하지 못했습니다.' });
+    sendServiceError(err, res, { logPrefix: '체크인 수정 실패:', failMessage: '체크인을 수정하지 못했습니다.' });
   }
 });
 
@@ -79,7 +77,7 @@ router.delete('/:id', (req, res) => {
     checkinsService.deleteCheckin(req.params.id);
     res.json({ ok: true });
   } catch (err) {
-    handleError(err, res, { logPrefix: '체크인 삭제 실패:', failMessage: '체크인을 삭제하지 못했습니다.' });
+    sendServiceError(err, res, { logPrefix: '체크인 삭제 실패:', failMessage: '체크인을 삭제하지 못했습니다.' });
   }
 });
 

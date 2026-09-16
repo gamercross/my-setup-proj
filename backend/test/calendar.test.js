@@ -121,12 +121,14 @@ describe('캘린더 API', () => {
   it('TC-CAL-05: 파싱 불가한 from 은 400', async () => {
     const res = await request(app).get('/api/calendar/events?from=notadate');
     assert.equal(res.status, 400);
-    assert.equal(res.body.error, 'from 은 ISO8601 형식이어야 합니다.');
+    assert.equal(res.body.detail, 'from 은 ISO8601 형식이어야 합니다.');
+    assert.equal(res.body.type, 'validation_error');
   });
 
   it('TC-CAL-06: 파싱 불가한 to 는 400', async () => {
     const res = await request(app).get('/api/calendar/events?to=abc');
     assert.equal(res.status, 400);
-    assert.equal(res.body.error, 'to 는 ISO8601 형식이어야 합니다.');
+    assert.equal(res.body.detail, 'to 는 ISO8601 형식이어야 합니다.');
+    assert.equal(res.body.type, 'validation_error');
   });
 });

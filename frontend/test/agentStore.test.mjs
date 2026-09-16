@@ -49,7 +49,7 @@ test('TC-P7-02: fetchActivity 실패 시 error 문자열, 기존 activity 보존
   const store = await freshStore();
   await store.getState().fetchActivity();
 
-  fetchImpl = () => jsonRes({ error: '서버 오류' }, false, 500);
+  fetchImpl = () => jsonRes({ type: 'internal_error', title: '서버 내부 오류가 발생했습니다', detail: '서버 오류' }, false, 500);
   await store.getState().fetchActivity();
   const s = store.getState();
   assert.equal(s.error, '서버 오류');

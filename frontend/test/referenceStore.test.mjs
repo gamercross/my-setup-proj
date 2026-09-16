@@ -52,7 +52,7 @@ test('TC-P12-STORE-02: fetchReferences 실패 시 error 문자열, 기존 데이
   const store = await freshStore();
   await store.getState().fetchReferences();
 
-  fetchImpl = () => jsonRes({ error: '서버 오류' }, false, 500);
+  fetchImpl = () => jsonRes({ type: 'internal_error', title: '서버 내부 오류가 발생했습니다', detail: '서버 오류' }, false, 500);
   await store.getState().fetchReferences();
   const s = store.getState();
   assert.equal(s.error, '서버 오류');
@@ -73,7 +73,7 @@ test('TC-P12-STORE-03: addReference 성공 시 끝에 추가, 실패 시 false·
   assert.equal(s.references[1].id, 2, '새 레퍼런스가 끝에 추가');
   assert.equal(s.error, null);
 
-  fetchImpl = () => jsonRes({ error: 'title 은 필수입니다.' }, false, 400);
+  fetchImpl = () => jsonRes({ type: 'validation_error', title: '입력이 올바르지 않습니다', detail: 'title 은 필수입니다.' }, false, 400);
   const fail = await store.getState().addReference({});
   assert.equal(fail, false);
   s = store.getState();
@@ -99,7 +99,7 @@ test('TC-P12-STORE-04: updateReference/removeReference 낙관적 갱신 + 실패
   assert.equal(store.getState().references[0].title, '수정됨');
 
   // removeReference 실패 시 롤백
-  fetchImpl = () => jsonRes({ error: '레퍼런스를 찾을 수 없습니다.' }, false, 404);
+  fetchImpl = () => jsonRes({ type: 'not_found', title: '요청한 리소스를 찾을 수 없습니다', detail: '레퍼런스를 찾을 수 없습니다.' }, false, 404);
   const ok = await store.getState().removeReference(1);
   assert.equal(ok, false);
   const s = store.getState();
@@ -127,7 +127,7 @@ test('TC-P12-STORE-05: addStep/removeStep — 서버가 반환한 부모 행 전
   s = store.getState();
   assert.equal(s.references[0].steps.length, 0);
 
-  fetchImpl = () => jsonRes({ error: '요약 단계를 찾을 수 없습니다.' }, false, 404);
+  fetchImpl = () => jsonRes({ type: 'not_found', title: '요청한 리소스를 찾을 수 없습니다', detail: '요약 단계를 찾을 수 없습니다.' }, false, 404);
   const fail = await store.getState().removeStep(1, 999);
   assert.equal(fail, false);
   assert.equal(store.getState().error, '요약 단계를 찾을 수 없습니다.');

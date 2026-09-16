@@ -55,7 +55,7 @@ describe('동기화 이력 API', () => {
 
     const bad = await request(app).get('/api/sync/logs?service=bogus');
     assert.equal(bad.status, 400);
-    assert.match(bad.body.error, /gmail\|calendar\|notion\|supabase/);
+    assert.match(bad.body.detail, /gmail\|calendar\|notion\|supabase/);
   });
 
   it('TC-SYNC-11: classify 는 유효한 service — 저장·조회·필터가 된다 (ADR-0029)', async () => {
@@ -83,6 +83,6 @@ describe('동기화 이력 API', () => {
 
     const bad = await request(app).get('/api/sync/logs?limit=abc');
     assert.equal(bad.status, 400);
-    assert.match(bad.body.error, /정수/);
+    assert.match(bad.body.detail, /정수/);
   });
 });

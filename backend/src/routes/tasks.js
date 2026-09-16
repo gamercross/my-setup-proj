@@ -4,19 +4,7 @@
 
 const router = require('express').Router();
 const tasksService = require('../services/tasks');
-const { isValidationError, isNotFoundError, toClientMessage } = require('../errors');
-
-// 서비스 오류를 상태코드로 매핑한다 (404 우선 → 400 → 500).
-function handleError(err, res, { logPrefix, failMessage }) {
-  if (isNotFoundError(err)) {
-    return res.status(404).json({ error: err.message });
-  }
-  if (isValidationError(err)) {
-    return res.status(400).json({ error: toClientMessage(err) });
-  }
-  console.error(logPrefix, err);
-  res.status(500).json({ error: failMessage });
-}
+const { sendProblem, sendServiceError } = require('../problem');
 
 // GET /api/tasks - 할일 목록 (선택 쿼리 ?project_id=<int|none>, FR-TASK-06)
 router.get('/', (req, res) => {
@@ -29,16 +17,17 @@ router.get('/', (req, res) => {
       } else {
         const n = Number(raw);
         if (!Number.isInteger(n) || n <= 0) {
-          return res
-            .status(400)
-            .json({ error: 'project_id 는 양의 정수이거나 "none" 이어야 합니다.' });
+          return sendProblem(res, 'validation_error', {
+            detail: 'project_id 는 양의 정수이거나 "none" 이어야 합니다.',
+            errors: [{ field: 'project_id', message: '양의 정수이거나 "none" 이어야 합니다.' }],
+          });
         }
         filter.projectId = n;
       }
     }
     res.json({ tasks: tasksService.listTasks(filter) });
   } catch (err) {
-    handleError(err, res, { logPrefix: '할일 조회 실패:', failMessage: '할일을 불러오지 못했습니다.' });
+    sendServiceError(err, res, { logPrefix: '할일 조회 실패:', failMessage: '할일을 불러오지 못했습니다.' });
   }
 });
 
@@ -47,11 +36,11 @@ router.get('/:id', (req, res) => {
   try {
     const task = tasksService.getTask(req.params.id);
     if (!task) {
-      return res.status(404).json({ error: '할일을 찾을 수 없습니다.' });
+      return sendProblem(res, 'not_found', { detail: '할일을 찾을 수 없습니다.' });
     }
     res.json({ task });
   } catch (err) {
-    handleError(err, res, { logPrefix: '할일 조회 실패:', failMessage: '할일을 불러오지 못했습니다.' });
+    sendServiceError(err, res, { logPrefix: '할일 조회 실패:', failMessage: '할일을 불러오지 못했습니다.' });
   }
 });
 
@@ -61,7 +50,7 @@ router.post('/', (req, res) => {
     const task = tasksService.createTask(req.body || {});
     res.status(201).json({ task });
   } catch (err) {
-    handleError(err, res, { logPrefix: '할일 생성 실패:', failMessage: '할일을 생성하지 못했습니다.' });
+    sendServiceError(err, res, { logPrefix: '할일 생성 실패:', failMessage: '할일을 생성하지 못했습니다.' });
   }
 });
 
@@ -71,7 +60,7 @@ router.put('/:id', (req, res) => {
     const task = tasksService.updateTask(req.params.id, req.body || {});
     res.json({ task });
   } catch (err) {
-    handleError(err, res, { logPrefix: '할일 수정 실패:', failMessage: '할일을 수정하지 못했습니다.' });
+    sendServiceError(err, res, { logPrefix: '할일 수정 실패:', failMessage: '할일을 수정하지 못했습니다.' });
   }
 });
 
@@ -81,7 +70,7 @@ router.post('/:id/tags', (req, res) => {
     const task = tasksService.addTag(req.params.id, (req.body || {}).tag);
     res.status(201).json({ task });
   } catch (err) {
-    handleError(err, res, { logPrefix: '태그 추가 실패:', failMessage: '태그를 저장하지 못했습니다.' });
+    sendServiceError(err, res, { logPrefix: '태그 추가 실패:', failMessage: '태그를 저장하지 못했습니다.' });
   }
 });
 
@@ -91,7 +80,7 @@ router.delete('/:id/tags/:tag', (req, res) => {
     const task = tasksService.removeTag(req.params.id, req.params.tag);
     res.json({ task });
   } catch (err) {
-    handleError(err, res, { logPrefix: '태그 삭제 실패:', failMessage: '태그를 삭제하지 못했습니다.' });
+    sendServiceError(err, res, { logPrefix: '태그 삭제 실패:', failMessage: '태그를 삭제하지 못했습니다.' });
   }
 });
 
@@ -101,7 +90,7 @@ router.delete('/:id', (req, res) => {
     tasksService.deleteTask(req.params.id);
     res.json({ ok: true });
   } catch (err) {
-    handleError(err, res, { logPrefix: '할일 삭제 실패:', failMessage: '할일을 삭제하지 못했습니다.' });
+    sendServiceError(err, res, { logPrefix: '할일 삭제 실패:', failMessage: '할일을 삭제하지 못했습니다.' });
   }
 });
 

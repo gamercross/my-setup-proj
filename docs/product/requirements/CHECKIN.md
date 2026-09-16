@@ -18,8 +18,8 @@ ADR-0035 §맥락 참조.
   TEXT·nullable. **최소 1개는 채워야 한다** (전부 비면 400).
 - `period` 는 자유 라벨(예: "1주차")이며 날짜 형식을 강제하지 않는다.
 - 시각: 서버가 `created_at`/`updated_at` 을 ISO8601 로 채운다. 클라이언트가 보내도 무시.
-- 검증 실패 → HTTP 400 `{ "error": "<메시지>" }` (NFR-SEC-07).
-- 존재하지 않는 `id` → HTTP 404 `{ "error": "체크인을 찾을 수 없습니다." }`.
+- 검증 실패 → HTTP 400, RFC 9457 봉투 `{ "type": "validation_error", "detail": "<메시지>", ... }` (NFR-SEC-07, [ADR-0017](../architecture/adr/ADR-0017-rest-error-contract.md)). 아래 AC 의 `{error:"..."}` 표기는 이 봉투의 `detail` 값을 가리킨다.
+- 존재하지 않는 `id` → HTTP 404 `{ "type": "not_found", "detail": "체크인을 찾을 수 없습니다." }`.
 - 이 기능은 채점 도구가 아니다 — 완성도 점수·등급 같은 파생값을 서버가 계산·저장하지 않는다.
 - 웹 데모(ADR-0026): 아래 API 는 `frontend/src/api/demoClient.js` / `demoData.js` 인메모리
   목 어댑터에도 추가한다 — 안 하면 데모에서 체크인 위젯이 깨진다.

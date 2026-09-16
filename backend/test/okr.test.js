@@ -42,7 +42,8 @@ describe('OKR API', () => {
   it('TC-OKR-02: title 빈값 → 400, period 형식 오류 → 400, status enum 오류 → 400', async () => {
     let res = await request(app).post('/api/okr/objectives').send({ title: '  ', period: '2026' });
     assert.equal(res.status, 400);
-    assert.equal(res.body.error, 'title 은 필수입니다.');
+    assert.equal(res.body.detail, 'title 은 필수입니다.');
+    assert.equal(res.body.type, 'validation_error');
 
     res = await request(app).post('/api/okr/objectives').send({ title: 'x', period: '26-Q1' });
     assert.equal(res.status, 400);
@@ -91,7 +92,8 @@ describe('OKR API', () => {
       .post('/api/okr/key-results')
       .send({ objective_id: 9999, title: 'x', target: 1 });
     assert.equal(res.status, 400);
-    assert.equal(res.body.error, '목표(objective)를 찾을 수 없습니다.');
+    assert.equal(res.body.detail, '목표(objective)를 찾을 수 없습니다.');
+    assert.equal(res.body.type, 'validation_error');
 
     const objId = await seed(app, []);
     res = await request(app)
@@ -254,7 +256,8 @@ describe('OKR API', () => {
       .post('/api/okr/key-results')
       .send({ objective_id: objId, title: 'kr', target: 10, kind: 'moonshot' });
     assert.equal(bad.status, 400);
-    assert.equal(bad.body.error, 'kind 는 committed·aspirational 중 하나여야 합니다.');
+    assert.equal(bad.body.detail, 'kind 는 committed·aspirational 중 하나여야 합니다.');
+    assert.equal(bad.body.type, 'validation_error');
 
     // 저장 안 됨 확인
     const dashAfterBad = await request(app).get('/api/okr');

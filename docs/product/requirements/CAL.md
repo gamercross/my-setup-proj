@@ -10,7 +10,7 @@
 - **D2 (이후):** agent 가 채운 `calendar_events` 캐시를 `db.getCalendarEvents()` 로 읽어 교체. 응답 계약은 그대로.
 - 응답: 목록 `{ "events": [...] }`. 각 항목 snake_case: `id, event_id, title, start_time, end_time, location, synced_at`.
 - 시각: `start_time`/`end_time`/`synced_at` 은 ISO8601. 더미 생성·`from`/`to` 필터·"오늘/내일" 판정은 모두 **로컬 Date getter** 기준, 직렬화만 `toISOString()`.
-- 검증 실패 → HTTP 400 `{ "error": "<한국어 메시지>" }` (ADR-0017 선반영 없이 기존 포맷 유지).
+- 검증 실패 → HTTP 400, RFC 9457 봉투 `{ "type": "validation_error", "detail": "<한국어 메시지>", ... }` (NFR-SEC-07, [ADR-0017](../architecture/adr/ADR-0017-rest-error-contract.md), 채택).
 - 읽기 전용. POST/PUT/DELETE 없음.
 
 ---
@@ -25,7 +25,7 @@
 - **AC-1** `GET /api/calendar/events` → 200 `{ "events": [...] }`, 각 항목 `id, event_id, title, start_time, end_time, location, synced_at` (API_REFERENCE 예시와 키 동일).
 - **AC-2** `from`/`to`(ISO8601) 를 주면 `start_time` 이 그 구간(경계 포함)에 드는 일정만 반환.
 - **AC-3** 결과는 `start_time` 오름차순. 조건에 맞는 일정이 없으면 200 (404 아님). **`from > to` 도 400 이 아니라 200** 이며 유효 `start_time` 일정은 0건. (범위 필터는 유효 `start_time` 항목에만 적용되므로 `start_time` 미정 항목은 AC-8 대로 결과에 남을 수 있다.)
-- **AC-4** `from`/`to` 파싱 불가 → 400 `{ "error": "from 은 ISO8601 형식이어야 합니다." }` / `{ "error": "to 는 ISO8601 형식이어야 합니다." }`.
+- **AC-4** `from`/`to` 파싱 불가 → 400 `{ "type": "validation_error", "detail": "from 은 ISO8601 형식이어야 합니다." }` / `{ "type": "validation_error", "detail": "to 는 ISO8601 형식이어야 합니다." }`.
 - **AC-5** 대시보드 캘린더 패널 4상태(로딩/빈/정상/에러). 에러 시 `ErrorBanner` + 재시도. 캘린더 API 실패가 할일·프로젝트 패널 렌더를 막지 않는다.
 
 ### 관련

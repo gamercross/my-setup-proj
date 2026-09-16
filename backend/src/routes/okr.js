@@ -3,19 +3,7 @@
 
 const router = require('express').Router();
 const okr = require('../services/okr');
-const { isValidationError, isNotFoundError, toClientMessage } = require('../errors');
-
-// 서비스 오류 → 상태코드 (404 우선 → 400 → 500). routes/tasks.js 와 동일 패턴.
-function handleError(err, res, { logPrefix, failMessage }) {
-  if (isNotFoundError(err)) {
-    return res.status(404).json({ error: err.message });
-  }
-  if (isValidationError(err)) {
-    return res.status(400).json({ error: toClientMessage(err) });
-  }
-  console.error(logPrefix, err);
-  res.status(500).json({ error: failMessage });
-}
+const { sendServiceError } = require('../problem');
 
 // GET /api/okr - 대시보드 (objectives + summary). ?includeArchived=1|true 면 보관 목표 포함.
 router.get('/', (req, res) => {
@@ -24,7 +12,7 @@ router.get('/', (req, res) => {
     const includeArchived = raw === '1' || raw === 'true';
     res.json(okr.getDashboard({ includeArchived }));
   } catch (err) {
-    handleError(err, res, { logPrefix: 'OKR 조회 실패:', failMessage: 'OKR 을 불러오지 못했습니다.' });
+    sendServiceError(err, res, { logPrefix: 'OKR 조회 실패:', failMessage: 'OKR 을 불러오지 못했습니다.' });
   }
 });
 
@@ -40,7 +28,7 @@ router.get('/trend', (req, res) => {
     }
     res.json(okr.getTrend());
   } catch (err) {
-    handleError(err, res, { logPrefix: 'OKR 추이 조회 실패:', failMessage: '추이를 불러오지 못했습니다.' });
+    sendServiceError(err, res, { logPrefix: 'OKR 추이 조회 실패:', failMessage: '추이를 불러오지 못했습니다.' });
   }
 });
 
@@ -49,7 +37,7 @@ router.post('/objectives', (req, res) => {
   try {
     res.status(201).json({ objective: okr.createObjective(req.body || {}) });
   } catch (err) {
-    handleError(err, res, { logPrefix: '목표 생성 실패:', failMessage: '목표를 생성하지 못했습니다.' });
+    sendServiceError(err, res, { logPrefix: '목표 생성 실패:', failMessage: '목표를 생성하지 못했습니다.' });
   }
 });
 
@@ -58,7 +46,7 @@ router.put('/objectives/:id', (req, res) => {
   try {
     res.json({ objective: okr.updateObjective(req.params.id, req.body || {}) });
   } catch (err) {
-    handleError(err, res, { logPrefix: '목표 수정 실패:', failMessage: '목표를 수정하지 못했습니다.' });
+    sendServiceError(err, res, { logPrefix: '목표 수정 실패:', failMessage: '목표를 수정하지 못했습니다.' });
   }
 });
 
@@ -68,7 +56,7 @@ router.delete('/objectives/:id', (req, res) => {
     okr.deleteObjective(req.params.id);
     res.json({ ok: true });
   } catch (err) {
-    handleError(err, res, { logPrefix: '목표 삭제 실패:', failMessage: '목표를 삭제하지 못했습니다.' });
+    sendServiceError(err, res, { logPrefix: '목표 삭제 실패:', failMessage: '목표를 삭제하지 못했습니다.' });
   }
 });
 
@@ -77,7 +65,7 @@ router.post('/key-results', (req, res) => {
   try {
     res.status(201).json({ keyResult: okr.createKeyResult(req.body || {}) });
   } catch (err) {
-    handleError(err, res, { logPrefix: '핵심 결과 생성 실패:', failMessage: '핵심 결과를 생성하지 못했습니다.' });
+    sendServiceError(err, res, { logPrefix: '핵심 결과 생성 실패:', failMessage: '핵심 결과를 생성하지 못했습니다.' });
   }
 });
 
@@ -86,7 +74,7 @@ router.put('/key-results/:id', (req, res) => {
   try {
     res.json({ keyResult: okr.updateKeyResult(req.params.id, req.body || {}) });
   } catch (err) {
-    handleError(err, res, { logPrefix: '핵심 결과 수정 실패:', failMessage: '핵심 결과를 수정하지 못했습니다.' });
+    sendServiceError(err, res, { logPrefix: '핵심 결과 수정 실패:', failMessage: '핵심 결과를 수정하지 못했습니다.' });
   }
 });
 
@@ -96,7 +84,7 @@ router.delete('/key-results/:id', (req, res) => {
     okr.deleteKeyResult(req.params.id);
     res.json({ ok: true });
   } catch (err) {
-    handleError(err, res, { logPrefix: '핵심 결과 삭제 실패:', failMessage: '핵심 결과를 삭제하지 못했습니다.' });
+    sendServiceError(err, res, { logPrefix: '핵심 결과 삭제 실패:', failMessage: '핵심 결과를 삭제하지 못했습니다.' });
   }
 });
 

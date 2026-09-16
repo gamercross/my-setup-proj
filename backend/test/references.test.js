@@ -36,15 +36,18 @@ describe('레퍼런스 자료 API', () => {
   it('TC-REF-02: title 누락/공백/초과 → 400', async () => {
     const empty = await request(app).post('/api/references').send({});
     assert.equal(empty.status, 400);
-    assert.equal(empty.body.error, 'title 은 필수입니다.');
+    assert.equal(empty.body.detail, 'title 은 필수입니다.');
+    assert.equal(empty.body.type, 'validation_error');
 
     const blank = await request(app).post('/api/references').send({ title: '   ' });
     assert.equal(blank.status, 400);
-    assert.equal(blank.body.error, 'title 은 필수입니다.');
+    assert.equal(blank.body.detail, 'title 은 필수입니다.');
+    assert.equal(blank.body.type, 'validation_error');
 
     const tooLong = await request(app).post('/api/references').send({ title: 'a'.repeat(201) });
     assert.equal(tooLong.status, 400);
-    assert.equal(tooLong.body.error, 'title 은 200자 이하여야 합니다.');
+    assert.equal(tooLong.body.detail, 'title 은 200자 이하여야 합니다.');
+    assert.equal(tooLong.body.type, 'validation_error');
   });
 
   it('TC-REF-03: due_date 형식 오류 → 400, 올바른 형식 → 201', async () => {
@@ -52,7 +55,8 @@ describe('레퍼런스 자료 API', () => {
       .post('/api/references')
       .send({ title: 'x', due_date: '2026/09/20' });
     assert.equal(bad.status, 400);
-    assert.equal(bad.body.error, 'due_date 는 YYYY-MM-DD 형식이어야 합니다.');
+    assert.equal(bad.body.detail, 'due_date 는 YYYY-MM-DD 형식이어야 합니다.');
+    assert.equal(bad.body.type, 'validation_error');
 
     const ok = await request(app).post('/api/references').send({ title: 'x', due_date: '2026-09-20' });
     assert.equal(ok.status, 201);
@@ -62,13 +66,15 @@ describe('레퍼런스 자료 API', () => {
   it('TC-REF-04: status 잘못된 값 → 400', async () => {
     const res = await request(app).post('/api/references').send({ title: 'x', status: 'archived' });
     assert.equal(res.status, 400);
-    assert.equal(res.body.error, 'status 는 todo·reading·summarizing·done 중 하나여야 합니다.');
+    assert.equal(res.body.detail, 'status 는 todo·reading·summarizing·done 중 하나여야 합니다.');
+    assert.equal(res.body.type, 'validation_error');
   });
 
   it('TC-REF-05: 없는 project_id → 400', async () => {
     const res = await request(app).post('/api/references').send({ title: 'x', project_id: 9999 });
     assert.equal(res.status, 400);
-    assert.equal(res.body.error, '연결할 프로젝트를 찾을 수 없습니다.');
+    assert.equal(res.body.detail, '연결할 프로젝트를 찾을 수 없습니다.');
+    assert.equal(res.body.type, 'validation_error');
   });
 
   it('TC-REF-06: GET 목록 — due_date 오름차순(NULL 맨 뒤)·필터·limit', async () => {
@@ -111,7 +117,8 @@ describe('레퍼런스 자료 API', () => {
 
     const bad = await request(app).get('/api/references?project_id=abc');
     assert.equal(bad.status, 400);
-    assert.equal(bad.body.error, 'project_id 는 양의 정수이거나 "none" 이어야 합니다.');
+    assert.equal(bad.body.detail, 'project_id 는 양의 정수이거나 "none" 이어야 합니다.');
+    assert.equal(bad.body.type, 'validation_error');
   });
 
   it('TC-REF-08: PUT 부분수정 — 보낸 필드만 병합·없는 id 404', async () => {
@@ -125,7 +132,8 @@ describe('레퍼런스 자료 API', () => {
 
     const missing = await request(app).put('/api/references/9999').send({ title: 'x' });
     assert.equal(missing.status, 404);
-    assert.equal(missing.body.error, '레퍼런스를 찾을 수 없습니다.');
+    assert.equal(missing.body.detail, '레퍼런스를 찾을 수 없습니다.');
+    assert.equal(missing.body.type, 'not_found');
   });
 
   it('TC-REF-09: DELETE — 200 ok·재삭제 404·steps CASCADE', async () => {
@@ -139,7 +147,8 @@ describe('레퍼런스 자료 API', () => {
 
     const again = await request(app).delete(`/api/references/${id}`);
     assert.equal(again.status, 404);
-    assert.equal(again.body.error, '레퍼런스를 찾을 수 없습니다.');
+    assert.equal(again.body.detail, '레퍼런스를 찾을 수 없습니다.');
+    assert.equal(again.body.type, 'not_found');
   });
 
   it('TC-REF-10: 요약 단계 추가 — 순서 증가·부모 행 전체 반환·없는 레퍼런스 404·빈 note 400', async () => {
@@ -159,11 +168,13 @@ describe('레퍼런스 자료 API', () => {
 
     const missingRef = await request(app).post('/api/references/9999/steps').send({ note: 'x' });
     assert.equal(missingRef.status, 404);
-    assert.equal(missingRef.body.error, '레퍼런스를 찾을 수 없습니다.');
+    assert.equal(missingRef.body.detail, '레퍼런스를 찾을 수 없습니다.');
+    assert.equal(missingRef.body.type, 'not_found');
 
     const blank = await request(app).post(`/api/references/${id}/steps`).send({ note: '  ' });
     assert.equal(blank.status, 400);
-    assert.equal(blank.body.error, '요약 단계 내용을 입력해 주세요.');
+    assert.equal(blank.body.detail, '요약 단계 내용을 입력해 주세요.');
+    assert.equal(blank.body.type, 'validation_error');
   });
 
   it('TC-REF-11: 요약 단계 삭제 — step_order 재번호 안 함·없는 step 404', async () => {
@@ -185,7 +196,8 @@ describe('레퍼런스 자료 API', () => {
 
     const missingStep = await request(app).delete(`/api/references/${id}/steps/9999`);
     assert.equal(missingStep.status, 404);
-    assert.equal(missingStep.body.error, '요약 단계를 찾을 수 없습니다.');
+    assert.equal(missingStep.body.detail, '요약 단계를 찾을 수 없습니다.');
+    assert.equal(missingStep.body.type, 'not_found');
   });
 
   it('TC-REF-12: 카테고리/위치 길이 초과 → 400', async () => {
@@ -193,12 +205,14 @@ describe('레퍼런스 자료 API', () => {
       .post('/api/references')
       .send({ title: 'x', category: 'a'.repeat(41) });
     assert.equal(badCategory.status, 400);
-    assert.equal(badCategory.body.error, '카테고리는 40자 이하여야 합니다.');
+    assert.equal(badCategory.body.detail, '카테고리는 40자 이하여야 합니다.');
+    assert.equal(badCategory.body.type, 'validation_error');
 
     const badLocation = await request(app)
       .post('/api/references')
       .send({ title: 'x', location: 'a'.repeat(501) });
     assert.equal(badLocation.status, 400);
-    assert.equal(badLocation.body.error, '자료 위치는 500자 이하여야 합니다.');
+    assert.equal(badLocation.body.detail, '자료 위치는 500자 이하여야 합니다.');
+    assert.equal(badLocation.body.type, 'validation_error');
   });
 });

@@ -8,8 +8,8 @@
 
 - 저장소: `projects` 테이블 (better-sqlite3, [ADR-0002](../architecture/adr/ADR-0002-local-db-better-sqlite3.md)). 스키마 단일 원천 `backend/db/schema.sql`.
 - 시각: 서버가 `created_at`/`updated_at` 을 ISO8601 로 채운다.
-- 검증 실패 → HTTP 400 `{ "error": "<한국어 메시지>" }` (NFR-SEC-07). SQLite CHECK/NOTNULL/FK 위반도 `backend/src/errors.js` 가 400 + 한국어로 치환 (영문 원문 비노출).
-- 존재하지 않는 `id` → HTTP 404 `{ "error": "프로젝트를 찾을 수 없습니다." }`.
+- 검증 실패 → HTTP 400, RFC 9457 봉투 `{ "type": "validation_error", "detail": "<한국어 메시지>", ... }` (NFR-SEC-07, [ADR-0017](../architecture/adr/ADR-0017-rest-error-contract.md)). SQLite CHECK/NOTNULL/FK 위반도 `backend/src/errors.js` 가 400 + 한국어로 치환 (영문 원문 비노출). 아래 AC 의 `{error:"..."}` 표기는 이 봉투의 `detail` 값을 가리킨다.
+- 존재하지 않는 `id` → HTTP 404 `{ "type": "not_found", "detail": "프로젝트를 찾을 수 없습니다." }`.
 - 목록 응답 `{ "projects": [...] }`, 단건 `{ "project": {...} }`.
 - 상태값 스키마: `active` | `done` | `on_hold` (GLOSSARY §2). UI 라벨 `진행 중` / `완료` / `보류`.
 

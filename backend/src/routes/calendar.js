@@ -3,6 +3,7 @@
 
 const router = require('express').Router();
 const calendarService = require('../services/calendar');
+const { sendProblem } = require('../problem');
 
 // GET /api/calendar/events - 일정 목록 (선택 쿼리 from/to, ISO8601)
 router.get('/events', (req, res) => {
@@ -10,16 +11,22 @@ router.get('/events', (req, res) => {
     const { from, to } = req.query;
 
     if (from !== undefined && Number.isNaN(Date.parse(from))) {
-      return res.status(400).json({ error: 'from 은 ISO8601 형식이어야 합니다.' });
+      return sendProblem(res, 'validation_error', {
+        detail: 'from 은 ISO8601 형식이어야 합니다.',
+        errors: [{ field: 'from', message: 'ISO8601 형식이어야 합니다.' }],
+      });
     }
     if (to !== undefined && Number.isNaN(Date.parse(to))) {
-      return res.status(400).json({ error: 'to 는 ISO8601 형식이어야 합니다.' });
+      return sendProblem(res, 'validation_error', {
+        detail: 'to 는 ISO8601 형식이어야 합니다.',
+        errors: [{ field: 'to', message: 'ISO8601 형식이어야 합니다.' }],
+      });
     }
 
     res.json({ events: calendarService.listEvents({ from, to }) });
   } catch (err) {
     console.error('일정 조회 실패:', err);
-    res.status(500).json({ error: '일정을 불러오지 못했습니다.' });
+    sendProblem(res, 'internal_error', { detail: '일정을 불러오지 못했습니다.' });
   }
 });
 

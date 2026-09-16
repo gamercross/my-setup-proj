@@ -43,16 +43,18 @@ flowchart LR
 
 ### 2.1 백엔드 → 클라이언트
 
-- 현재: `{ "error": "메시지" }` + 상태코드. 검증 실패 400, 그 외 500.
-- 계층: `backend/src/errors.js` (C2) — 일반 Error(`필수`/`0~100` 등) + SQLite 제약(`SQLITE_CONSTRAINT_*`) → `isValidationError` → 400, `toClientMessage` 로 한국어 치환. **SQLite 영문 원문 비노출.**
-- **제안 (→ [ADR-0017](adr/ADR-0017-rest-error-contract.md)):** RFC 9457 스타일로 확장
+- RFC 9457(Problem Details) 스타일 ([ADR-0017](adr/ADR-0017-rest-error-contract.md), 채택):
   ```json
   { "type": "validation_error", "title": "입력이 올바르지 않습니다",
     "status": 400, "detail": "progress 는 0~100 이어야 합니다",
-    "errors": [{ "field": "progress", "message": "0~100" }] }
+    "errors": [{ "field": "progress", "message": "0~100" }],
+    "request_id": "r-20260916-abcd1234" }
   ```
-  - `type` 은 안정적인 코드(클라이언트 분기용), `title`/`detail` 은 사람이 읽는 한국어.
-  - 5xx 는 `detail` 에 내부 정보 노출 금지(로그에만). `type: "internal_error"` + 요청 id.
+  - `Content-Type: application/problem+json`. `type` 은 안정적인 코드(클라이언트 분기용), `title`/`detail` 은 사람이 읽는 한국어. `type ↔ status` 는 1:1(확정 6종: `validation_error`/400, `not_found`/404, `conflict`/409(예약), `payload_too_large`/413, `upstream_unavailable`/503, `internal_error`/500).
+  - 5xx 는 `detail` 에 내부 정보 노출 금지(로그에만).
+  - 단일 원천: `backend/src/problem.js` — `PROBLEM_TYPES` 표 + `sendProblem(res, type, opts)` + `sendServiceError(err, res, opts)`(옛 `handleError` 복붙 7건의 유일본).
+  - 계층: `backend/src/errors.js` (C2) — 일반 Error(`필수`/`0~100` 등) + SQLite 제약(`SQLITE_CONSTRAINT_*`) → `isValidationError` → `validation_error`, `toClientMessage` 로 한국어 치환(**SQLite 영문 원문 비노출**). `ConflictError`/`UpstreamUnavailableError` 클래스도 여기 정의.
+  - `{ "error": ... }` 옛 키는 완전히 제거했다(하위 호환 병기 없음 — 백엔드·프론트가 한 리포에서 함께 배포).
 
 ### 2.2 클라이언트 처리
 
@@ -75,12 +77,12 @@ flowchart LR
 
 ### 3.1 백엔드 요청 로그 (NFR-OBS-01, C1)
 
-- 형식: 한 줄. `<ISO8601> <METHOD> <path> <status> <ms>` + 요청 id.
-- `requestLogger` 가 미들웨어 체인 최상단 → preflight·본문 파싱 실패(400/413)도 포함.
+- 형식: 한 줄. `<METHOD> <path> <status> <ms> <request_id>`.
+- `requestLogger` 가 미들웨어 체인에서 `requestId` 미들웨어 바로 다음(최상단) → preflight·본문 파싱 실패(400/413)도 포함.
 
 ### 3.2 상관 id (correlation id)
 
-- **제안:** 모든 요청에 `X-Request-Id`(없으면 백엔드 생성). 로그 줄·오류 응답 `type` 옆에 포함.
+- 모든 요청에 `X-Request-Id` ([ADR-0017](adr/ADR-0017-rest-error-contract.md), `backend/src/middleware/requestId.js`). 클라이언트가 보낸 값이 `^[A-Za-z0-9._-]{1,64}$` 를 통과하면 그대로 채택, 아니면 `r-YYYYMMDD-<hex8>` 형식으로 새로 생성(헤더 인젝션 방지). 응답 헤더 `X-Request-Id` 로 에코 + 오류 응답 본문 `request_id` 에도 포함.
 - 에이전트 실행은 `run_id`(timestamp 기반) 하나로 그 실행의 모든 로그·`sync_logs` 행을 묶음.
 
 ### 3.3 에이전트 로그 (NFR-OBS-02)
@@ -145,7 +147,7 @@ flowchart LR
 | 관심사 | 측정 기준 | 결정 이력 | 구현 위치 |
 |---|---|---|---|
 | 설정 | — | ADR-0009 | `.env.example`, `backend/db/index.js` |
-| 오류 | NFR-SEC-07 | ADR-0017(제안) | `backend/src/errors.js`, `frontend/src/api/client.js` |
+| 오류 | NFR-SEC-07 | ADR-0017(채택) | `backend/src/problem.js`, `backend/src/errors.js`, `frontend/src/api/client.js` |
 | 로깅 | NFR-OBS-01~03 | — | `backend/src/middleware/requestLogger.js` |
 | 복원력 | NFR-REL-01~05 | — | `api/client.js`, `agent/daily_brief.py` |
 

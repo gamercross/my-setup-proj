@@ -230,7 +230,7 @@ ADR 표에서는 한 줄이지만, 실제로 가장 오래 붙잡은 갈림길�
 ### 2-4. 아직 안 정한 것 (제안 상태)
 
 - [0013](product/architecture/adr/ADR-0013-dashboard-agent-queue.md) 전체 작업 큐(FR-AGENT-09) — "지금 실행" 트리거만 채택, 큐는 미결
-- [0015](product/architecture/adr/ADR-0015-local-first-architecture.md) 아키텍처 스타일 명문화 · [0016](product/architecture/adr/ADR-0016-desktop-process-topology.md) 2~4항 — 데스크톱 프로세스 토폴로지(패키징 시 백엔드 실행 주체·재기동·포트 폴백) · [0017](product/architecture/adr/ADR-0017-rest-error-contract.md) REST 오류 계약(RFC 9457) · [0019](product/architecture/adr/ADR-0019-architecture-fitness-functions.md) 피트니스 함수
+- [0015](product/architecture/adr/ADR-0015-local-first-architecture.md) 아키텍처 스타일 명문화 · [0016](product/architecture/adr/ADR-0016-desktop-process-topology.md) 2~4항 — 데스크톱 프로세스 토폴로지(패키징 시 백엔드 실행 주체·재기동·포트 폴백) · [0019](product/architecture/adr/ADR-0019-architecture-fitness-functions.md) 피트니스 함수
 - [0033](product/architecture/adr/ADR-0033-standalone-widget-windows.md) 독립 위젯 창 — 방향만 유지, 구현 보류
 - PO-10 — 개인 OS 방향(P8~P9)과 Phase E(다중 사용자·Supabase)의 순서
 
@@ -453,10 +453,10 @@ S1~S5 전부 해소됨(2026-09-15~16) — 이 절에는 이제 남은 보안 항
 - *영향:* 응답 스키마·상태코드·에러 봉투가 목과 실서버 사이에서 드리프트해도 CI 가 못 잡는다.
 - *설계 보완:* 대표 엔드포인트 응답 형태를 스냅샷 비교하는 2단계를 `check-demo-parity.mjs` 에 추가.
 
-**D2 — REST 오류가 단일 봉투(`{ error: "한국어" }`)다.**
+**D2 — ✅ 해소 (2026-09-16).** REST 오류가 단일 봉투(`{ error: "한국어" }`)였다.
 - *원인:* 오류 계약(RFC 9457)을 [ADR-0017](product/architecture/adr/ADR-0017-rest-error-contract.md) 로 제안만 하고, 마감(C-2) 앞에서 채택을 미뤘다.
-- *영향:* 클라이언트가 검증 실패·미존재·서버 오류를 코드로 구분하지 못하고 메시지 문자열에 의존한다.
-- *설계 보완:* [ADR-0017](product/architecture/adr/ADR-0017-rest-error-contract.md) 채택 — problem+json 으로 `type`/`status` 분리.
+- *영향:* 클라이언트가 검증 실패·미존재·서버 오류를 코드로 구분하지 못하고 메시지 문자열에 의존했다.
+- *해소:* [ADR-0017](product/architecture/adr/ADR-0017-rest-error-contract.md) 채택 — problem+json 으로 `type`/`status`/`request_id` 분리. `backend/src/problem.js`(단일 원천, 6종 `type`) + `backend/src/middleware/requestId.js` 신설, 15개 라우트 전수 전환, `frontend/src/api/{client,demoClient}.js` 파싱 갱신.
 
 **D3 — 레이어·경계 규칙에 자동 검사가 없다.**
 - *원인:* 1인 개발(C-1)이라 "렌더러는 REST 로만", "에이전트는 외부 API 읽기 전용",
@@ -486,8 +486,8 @@ S1~S5 전부 해소됨(2026-09-15~16) — 이 절에는 이제 남은 보안 항
 
 ### 4-7. 문제 한눈에 보기 — 원인부터 도식화 (2026-09-15)
 
-§4-5의 남은 4개 항목(전부 기술 부채)은 개별 사실처럼 보이지만, 실제로는 같은 한 원인에서
-갈라져 나온다. **보안 항목(S1~S5)은 2026-09-15~16 사이에 전부 해소되어 이 도식에서 빠졌다.**
+§4-5의 남은 3개 항목(전부 기술 부채)은 개별 사실처럼 보이지만, 실제로는 같은 한 원인에서
+갈라져 나온다. **보안 항목(S1~S5)은 2026-09-15~16 사이에, D2 는 2026-09-16 에 전부 해소되어 이 도식에서 빠졌다.**
 
 ```mermaid
 flowchart TB
@@ -495,7 +495,6 @@ flowchart TB
   ROOT --> QUAL["기술 부채 · 품질"]
 
   QUAL --> D1["D1 데모↔실서버 스키마 드리프트 미검사"]
-  QUAL --> D2["D2 REST 오류 단일 봉투"]
   QUAL --> D3["D3 레이어 경계 자동 검사 없음"]
   QUAL --> D4["D4 수동 검증 백로그 미실행"]
 

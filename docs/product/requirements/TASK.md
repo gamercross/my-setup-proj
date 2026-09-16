@@ -7,8 +7,8 @@
 
 - 저장소: `tasks` 테이블 (Week 5 이전엔 `backend/src/db.js` 인메모리, 인터페이스 동일).
 - 시각: 서버가 `created_at`/`updated_at` 을 ISO8601 로 채운다. 클라이언트가 보내도 무시.
-- 검증 실패 → HTTP 400 `{ "error": "<메시지>" }` (NFR-SEC-07).
-- 존재하지 않는 `id` → HTTP 404 `{ "error": "할일을 찾을 수 없습니다." }`.
+- 검증 실패 → HTTP 400, RFC 9457 봉투 `{ "type": "validation_error", "detail": "<메시지>", ... }` (NFR-SEC-07, [ADR-0017](../architecture/adr/ADR-0017-rest-error-contract.md)). 아래 AC 의 `{error:"..."}` 표기는 이 봉투의 `detail` 값을 가리킨다.
+- 존재하지 않는 `id` → HTTP 404 `{ "type": "not_found", "detail": "할일을 찾을 수 없습니다." }`.
 - 모든 목록 응답은 `{ "tasks": [...] }`, 단건은 `{ "task": {...} }` 형태.
 
 ---

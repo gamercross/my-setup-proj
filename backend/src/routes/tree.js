@@ -3,6 +3,7 @@
 
 const router = require('express').Router();
 const treeService = require('../services/tree');
+const { sendProblem } = require('../problem');
 
 // GET /api/tree - 허용 루트(docs/ + 루트 *.md)의 .md 트리
 router.get('/', (req, res) => {
@@ -10,7 +11,7 @@ router.get('/', (req, res) => {
     res.json(treeService.listTree());
   } catch (err) {
     console.error('파일 트리 조회 실패:', err);
-    res.status(500).json({ error: '파일 트리를 불러오지 못했습니다.' });
+    sendProblem(res, 'internal_error', { detail: '파일 트리를 불러오지 못했습니다.' });
   }
 });
 

@@ -41,7 +41,7 @@
 | [0014](adr/ADR-0014-dashboard-diagram-viewer.md) | 대시보드 다이어그램 뷰어 (mermaid 클라이언트 렌더 + `/api/diagrams`) | 채택 |
 | [0015](adr/ADR-0015-local-first-architecture.md) | 아키텍처 스타일 — 로컬 우선 + 프로세스 분리 | **제안** |
 | [0016](adr/ADR-0016-desktop-process-topology.md) | 데스크톱 프로세스 토폴로지 (백엔드 실행 주체) | dev 통합 실행(1항) **채택** (2026-09-09) / 패키징·재기동·포트(2~4항) **제안** |
-| [0017](adr/ADR-0017-rest-error-contract.md) | REST 오류 응답 계약 (RFC 9457) | **제안** |
+| [0017](adr/ADR-0017-rest-error-contract.md) | REST 오류 응답 계약 (RFC 9457) | 채택 (2026-09-16) |
 | [0018](adr/ADR-0018-schema-migration-strategy.md) | 스키마 마이그레이션 전략 (최소안: `PRAGMA user_version` + `db/index.js` 인라인) | 채택 (2026-09-08, P6) |
 | [0019](adr/ADR-0019-architecture-fitness-functions.md) | 아키텍처 피트니스 함수 | **제안** |
 | [0020](adr/ADR-0020-widget-shell-architecture.md) | 위젯 셸 아키텍처 (react-grid-layout + 위젯 계약) | 채택 |
@@ -159,7 +159,7 @@ sync_logs                       매 동기화 시도 1행 추가 (service 에 'c
 > 엔드포인트별 요청/응답 예시·검증·부작용·curl 은 **[API_REFERENCE.md](../reference/API_REFERENCE.md)** 가 단일 원천이다.
 > 이 절은 개요표와 설계 원칙만 둔다.
 
-Base: `http://localhost:3000/api` · 응답은 JSON · 오류는 `{ "error": "메시지" }`
+Base: `http://localhost:3000/api` · 응답은 JSON · 오류는 RFC 9457 스타일 봉투([ADR-0017](adr/ADR-0017-rest-error-contract.md))
 
 엔드포인트 범위: `/health`, `/tasks`(CRUD), `/projects`(CRUD), `/calendar/events`, `/mail/unread`, `/brief/today`, `/sync/health`(구현 — 외부 연결 진단 전용, 항상 200), `/sync/logs`, `/diagrams`(읽기 전용, `docs/` 파싱 — C4).
 요청·응답 예시, 검증 규칙, 상태코드, 현재 구현과의 차이는 [API_REFERENCE.md](../reference/API_REFERENCE.md).

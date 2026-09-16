@@ -3,19 +3,7 @@
 
 const router = require('express').Router();
 const referencesService = require('../services/references');
-const { isValidationError, isNotFoundError, toClientMessage } = require('../errors');
-
-// 서비스 오류 → 상태코드 (404 우선 → 400 → 500). routes/checkins.js 와 동일 패턴.
-function handleError(err, res, { logPrefix, failMessage }) {
-  if (isNotFoundError(err)) {
-    return res.status(404).json({ error: err.message });
-  }
-  if (isValidationError(err)) {
-    return res.status(400).json({ error: toClientMessage(err) });
-  }
-  console.error(logPrefix, err);
-  res.status(500).json({ error: failMessage });
-}
+const { sendProblem, sendServiceError } = require('../problem');
 
 // project_id 쿼리 파라미터를 필터값으로 파싱한다. routes/checkins.js 의 parseIdFilter 와 동일.
 function parseIdFilter(raw, label) {
@@ -37,7 +25,12 @@ router.get('/', (req, res) => {
     if (req.query.status !== undefined) filter.status = req.query.status;
 
     const project = parseIdFilter(req.query.project_id, 'project_id');
-    if (!project.ok) return res.status(400).json({ error: project.error });
+    if (!project.ok) {
+      return sendProblem(res, 'validation_error', {
+        detail: project.error,
+        errors: [{ field: 'project_id', message: project.error }],
+      });
+    }
     if (project.value !== undefined) filter.projectId = project.value;
 
     if (req.query.limit !== undefined) {
@@ -47,7 +40,7 @@ router.get('/', (req, res) => {
 
     res.json({ references: referencesService.listReferences(filter) });
   } catch (err) {
-    handleError(err, res, { logPrefix: '레퍼런스 조회 실패:', failMessage: '레퍼런스를 불러오지 못했습니다.' });
+    sendServiceError(err, res, { logPrefix: '레퍼런스 조회 실패:', failMessage: '레퍼런스를 불러오지 못했습니다.' });
   }
 });
 
@@ -57,7 +50,7 @@ router.post('/', (req, res) => {
     const reference = referencesService.createReference(req.body || {});
     res.status(201).json({ reference });
   } catch (err) {
-    handleError(err, res, { logPrefix: '레퍼런스 생성 실패:', failMessage: '레퍼런스를 생성하지 못했습니다.' });
+    sendServiceError(err, res, { logPrefix: '레퍼런스 생성 실패:', failMessage: '레퍼런스를 생성하지 못했습니다.' });
   }
 });
 
@@ -67,7 +60,7 @@ router.post('/:id/steps', (req, res) => {
     const reference = referencesService.addStep(req.params.id, (req.body || {}).note);
     res.status(201).json({ reference });
   } catch (err) {
-    handleError(err, res, { logPrefix: '요약 단계 추가 실패:', failMessage: '요약 단계를 추가하지 못했습니다.' });
+    sendServiceError(err, res, { logPrefix: '요약 단계 추가 실패:', failMessage: '요약 단계를 추가하지 못했습니다.' });
   }
 });
 
@@ -77,7 +70,7 @@ router.delete('/:id/steps/:stepId', (req, res) => {
     const reference = referencesService.removeStep(req.params.id, req.params.stepId);
     res.json({ reference });
   } catch (err) {
-    handleError(err, res, { logPrefix: '요약 단계 삭제 실패:', failMessage: '요약 단계를 삭제하지 못했습니다.' });
+    sendServiceError(err, res, { logPrefix: '요약 단계 삭제 실패:', failMessage: '요약 단계를 삭제하지 못했습니다.' });
   }
 });
 
@@ -87,7 +80,7 @@ router.put('/:id', (req, res) => {
     const reference = referencesService.updateReference(req.params.id, req.body || {});
     res.json({ reference });
   } catch (err) {
-    handleError(err, res, { logPrefix: '레퍼런스 수정 실패:', failMessage: '레퍼런스를 수정하지 못했습니다.' });
+    sendServiceError(err, res, { logPrefix: '레퍼런스 수정 실패:', failMessage: '레퍼런스를 수정하지 못했습니다.' });
   }
 });
 
@@ -97,7 +90,7 @@ router.delete('/:id', (req, res) => {
     referencesService.deleteReference(req.params.id);
     res.json({ ok: true });
   } catch (err) {
-    handleError(err, res, { logPrefix: '레퍼런스 삭제 실패:', failMessage: '레퍼런스를 삭제하지 못했습니다.' });
+    sendServiceError(err, res, { logPrefix: '레퍼런스 삭제 실패:', failMessage: '레퍼런스를 삭제하지 못했습니다.' });
   }
 });
 

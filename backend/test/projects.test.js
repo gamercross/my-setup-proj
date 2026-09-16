@@ -26,13 +26,15 @@ describe('프로젝트 API', () => {
       .post('/api/projects')
       .send({ name: 'p', progress: 200 });
     assert.equal(res.status, 400);
-    assert.equal(res.body.error, 'progress 는 0~100 사이 숫자여야 합니다.');
+    assert.equal(res.body.detail, 'progress 는 0~100 사이 숫자여야 합니다.');
+    assert.equal(res.body.type, 'validation_error');
   });
 
   it('TC-PROJ-03: name 없으면 400', async () => {
     const res = await request(app).post('/api/projects').send({});
     assert.equal(res.status, 400);
-    assert.equal(res.body.error, 'name 은 필수입니다.');
+    assert.equal(res.body.detail, 'name 은 필수입니다.');
+    assert.equal(res.body.type, 'validation_error');
   });
 
   it('TC-PROJ-04: 없는 프로젝트 PUT 은 progress 값과 무관하게 404 우선', async () => {
@@ -40,7 +42,8 @@ describe('프로젝트 API', () => {
       .put('/api/projects/99999')
       .send({ progress: 200 });
     assert.equal(res.status, 404);
-    assert.equal(res.body.error, '프로젝트를 찾을 수 없습니다.');
+    assert.equal(res.body.detail, '프로젝트를 찾을 수 없습니다.');
+    assert.equal(res.body.type, 'not_found');
   });
 
   it('TC-PROJ-05: PUT 으로 progress 를 갱신한다', async () => {
@@ -87,7 +90,8 @@ describe('프로젝트 API', () => {
 
     const res = await request(app).put(`/api/projects/${id}`).send({ status: 'hold' });
     assert.equal(res.status, 400);
-    assert.equal(res.body.error, '입력값이 허용된 값 범위를 벗어났습니다.');
+    assert.equal(res.body.detail, '입력값이 허용된 값 범위를 벗어났습니다.');
+    assert.equal(res.body.type, 'validation_error');
   });
 
   it('TC-PROJ-06: DELETE 후 단건 조회는 404', async () => {

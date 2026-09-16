@@ -30,7 +30,8 @@ describe('할일 API', () => {
   it('TC-TASK-02: title 없으면 400, 목록은 비어 있다', async () => {
     const res = await request(app).post('/api/tasks').send({});
     assert.equal(res.status, 400);
-    assert.equal(res.body.error, 'title 은 필수입니다.');
+    assert.equal(res.body.detail, 'title 은 필수입니다.');
+    assert.equal(res.body.type, 'validation_error');
 
     const list = await request(app).get('/api/tasks');
     assert.equal(list.body.tasks.length, 0);
@@ -80,7 +81,8 @@ describe('할일 API', () => {
   it('TC-TASK-08: 없는 할일 PUT 은 404', async () => {
     const res = await request(app).put('/api/tasks/99999').send({ title: 'x' });
     assert.equal(res.status, 404);
-    assert.equal(res.body.error, '할일을 찾을 수 없습니다.');
+    assert.equal(res.body.detail, '할일을 찾을 수 없습니다.');
+    assert.equal(res.body.type, 'not_found');
   });
 
   it('TC-TASK-09: DELETE 후 목록에서 사라진다', async () => {
@@ -129,7 +131,8 @@ describe('할일 API', () => {
     const id = created.body.task.id;
     const res = await request(app).put(`/api/tasks/${id}`).send({ project_id: '1' });
     assert.equal(res.status, 400);
-    assert.equal(res.body.error, 'project_id 는 프로젝트 id(정수) 또는 null 이어야 합니다.');
+    assert.equal(res.body.detail, 'project_id 는 프로젝트 id(정수) 또는 null 이어야 합니다.');
+    assert.equal(res.body.type, 'validation_error');
   });
 
   it('TC-PROJ-09b: PUT {project_id: null} 은 200, 연결 해제', async () => {
@@ -146,7 +149,8 @@ describe('할일 API', () => {
   it('TC-DB-04a: 잘못된 priority 로 생성하면 500 이 아니라 400', async () => {
     const res = await request(app).post('/api/tasks').send({ title: 'a', priority: 'urgent' });
     assert.equal(res.status, 400);
-    assert.equal(res.body.error, '입력값이 허용된 값 범위를 벗어났습니다.');
+    assert.equal(res.body.detail, '입력값이 허용된 값 범위를 벗어났습니다.');
+    assert.equal(res.body.type, 'validation_error');
   });
 
   // FR-TASK-06 — GET /api/tasks?project_id=
@@ -223,14 +227,16 @@ describe('할일 API', () => {
     for (const bad of ['', '   ', 'a'.repeat(21), '콤마,있음', '개행\n있음']) {
       const res = await request(app).post(`/api/tasks/${t.id}/tags`).send({ tag: bad });
       assert.equal(res.status, 400, `bad=${JSON.stringify(bad)}`);
-      assert.equal(res.body.error, '태그는 1~20자여야 합니다.');
+      assert.equal(res.body.detail, '태그는 1~20자여야 합니다.');
+      assert.equal(res.body.type, 'validation_error');
     }
   });
 
   it('TC-TAG-05: 없는 할일에 태그 추가는 404', async () => {
     const res = await request(app).post('/api/tasks/99999/tags').send({ tag: 'x' });
     assert.equal(res.status, 404);
-    assert.equal(res.body.error, '할일을 찾을 수 없습니다.');
+    assert.equal(res.body.detail, '할일을 찾을 수 없습니다.');
+    assert.equal(res.body.type, 'not_found');
   });
 
   it('TC-TAG-06: DELETE /api/tasks/:id/tags/:tag 는 200 으로 태그를 지운다', async () => {

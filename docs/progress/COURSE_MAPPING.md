@@ -333,7 +333,7 @@ my-setup-proj/
 | FR-UI-05 / ADR-0014 | C-W7 | 다이어그램 뷰어 = mermaid(UML 대체) |
 | ADR-0016 / RUNTIME_VIEW | A-W6·A-W9 | 프로세스 토폴로지 (제안) |
 | ADR-0015 로컬 우선 | C-W3·C-W6 | 아키텍처 스타일 (제안) |
-| ADR-0017 REST 오류 계약 | C-W4 | (제안) |
+| ADR-0017 REST 오류 계약 | C-W4 | (채택 2026-09-16) |
 | ADR-0018 마이그레이션 전략 | A-W5, C-W4 | (제안) |
 | ADR-0019 피트니스 함수 | B-W6 | (제안) |
 | NFR §3.1 위협 모델 / NFR-SEC-* | A-W13, B-W9 | 보안 |
