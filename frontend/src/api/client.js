@@ -10,8 +10,14 @@ const DEMO =
   import.meta.env.VITE_DEMO === '1';
 
 // preload 브리지에서 API base URL 을 읽는다 (없으면 null)
+// getApiBaseUrl() 이 있으면 그 값을 우선 사용한다 — 재기동으로 포트가 바뀌어도 최신값을 반영한다.
+// (구버전 브리지 호환용으로 apiBaseUrl 문자열 필드도 폴백으로 남겨둔다.)
 function getBaseUrl() {
-  return (typeof window !== 'undefined' && window.appInfo?.apiBaseUrl) ?? null;
+  if (typeof window === 'undefined' || !window.appInfo) return null;
+  if (typeof window.appInfo.getApiBaseUrl === 'function') {
+    return window.appInfo.getApiBaseUrl() ?? null;
+  }
+  return window.appInfo.apiBaseUrl ?? null;
 }
 
 // 공통 요청 함수

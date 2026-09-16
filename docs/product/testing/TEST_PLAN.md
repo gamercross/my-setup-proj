@@ -802,6 +802,29 @@ fake service 주입, 네트워크 0회. 재시도 테스트는 `services.retry.s
 | TC-DEV-M2 | 수동 | 실행 중 Ctrl+C (또는 Electron 창 닫기) | backend·vite·electron 3개 모두 종료 — `ps` 로 잔존 프로세스 0 |
 | TC-DEV-M3 | 수동 | 백엔드를 따로 띄운 뒤 `bash scripts/dev.sh` | "3000 포트가 사용 중" 메시지 + 즉시 종료(비0), 새 프로세스 안 띄움 |
 
+### 3.6b 패키징 앱 백엔드 감독 — `frontend/test/{portFinder,healthCheck,backoff,backendSupervisor,apiBaseUrl}.test.mjs` (ADR-0016 2~4항)
+
+| ID | 대상 | 절차 | 통과 조건 |
+|---|---|---|---|
+| TC-TOPO-01 | `portFinder.js` | 3000 점유 상태에서 `findFreePort()` | 3001 반환 |
+| TC-TOPO-02 | `portFinder.js` | 3000~3010 전부 점유 상태에서 `findFreePort()` | 한국어 메시지로 reject, 11회만 시도(무한 탐색 금지) |
+| TC-TOPO-03 | `healthCheck.js` | `/api/health` 가 2번 실패 후 3번째 호출에서 200 | `waitForHealth()` → `true` |
+| TC-TOPO-04 | `healthCheck.js` | 계속 실패하는 fetch + `timeoutMs=300` | `waitForHealth()` → `false`, 타임아웃 후 폴링 중단 |
+| TC-TOPO-05 | `backoff.js` | `nextDelay(0..3)` 호출 | `[1000, 2000, 4000, null]` (3회 초과 시 자동 재기동 중단) |
+| TC-TOPO-06 | `backendSupervisor.js` | 자식 1회 비정상 exit | 1000ms 후 재기동 1회, 상태 `connecting`→`online` |
+| TC-TOPO-07 | `backendSupervisor.js` | 자식이 계속 죽음(헬스도 계속 실패) | fork 총 4회(최초+3), `state === 'failed'`, 잔여 타이머 0 |
+| TC-TOPO-08 | `backendSupervisor.js` | `failed` 후 `retry()` | `attempts` 0 초기화, 다시 3회 기회, `state === 'online'` |
+| TC-TOPO-09 | `backendSupervisor.js` | `stop()` 진행 중 자식 exit | 재기동 시도 0회, SIGTERM 1회만 전송 |
+| TC-TOPO-10 | `backendSupervisor.js` | fork 옵션 캡처 | `env.APP_ENV === 'packaged'`, `env.PORT` = `findPort()` 확정값 |
+| TC-TOPO-11 | `apiBaseUrl.js` | `parseApiBaseUrl(argv)` | `--api-base-url=` 있으면 그 값, 없으면 `http://localhost:3000/api` 폴백 |
+| TC-TOPO-12 | `backendSupervisor.js` | `start()` 를 살아있는 자식이 있는 상태에서 재호출(이중 기동 회귀) | 두 번째 fork 전에 이전 자식에 SIGTERM, 이전 자식이 실제로 exit 할 때까지 새 fork 대기 — 동시에 살아있는 자식은 항상 1개 |
+| TC-TOPO-13 | `backendSupervisor.js` | 헬스 실패(`waitForHealth` → `false`) | `disconnected` 로 알린 뒤 해당 자식을 SIGTERM, exit 이벤트가 attempts 기반 백오프(`connecting`)로 이어지고 한도 초과 시 `failed` 로 수렴 |
+| TC-TOPO-14 | `backendSupervisor.js` | 헬스 실패로 SIGTERM 만 보낸(killed=true, 아직 exit 전) 자식에 곧바로 `retry()` | `child.killed` 만 보고 죽었다 오판하지 않음 — 실제 `exit` 이벤트 전까지 새 fork 없음(2중 기동 방지) |
+| TC-TOPO-15 | `backendSupervisor.js` | 진행 중인 `start()` 의 헬스 대기가 자동 재기동(새 `start()`)보다 뒤처져 늦게 `false` 로 응답 | 낡은 결과가 최신 온라인 자식의 상태·생명주기를 건드리지 않음 |
+| TC-TOPO-16 | `backendSupervisor.js` | `retry()` 를 거의 동시에 2회 연달아 호출(커밋 락 경합) | 항상 살아있는 자식은 1개, `stop()` 이후 고아 프로세스 0 |
+| TC-TOPO-17 | `backendSupervisor.js` | 세대 불일치로 빠지는 낡은 `start()` 의 헬스가 뒤늦게 성공(`true`)으로 응답 | 온라인 상태를 되돌리지 않고, 자신이 fork 한 자식을 정리 및 exit 리스너 해제 |
+| TC-TOPO-18 | `backendSupervisor.js` | `start()` 가 이전 자식 `terminateChild` 대기 중일 때 `stop()` 호출, 이후 옛 자식 exit 통지 | `stop()` 이후 새 fork 0회, 살아있는(고아) 자식 0 — 재시도 도중 종료 시 고아 백엔드 방지 |
+
 ### 3.7 위젯 셸 수동 체크리스트 (Phase C5, FR-WIDGET)
 
 자동화 러너가 프론트에 없어 수동 확인. `npm run dev`(또는 `build && start`) 로 실행.

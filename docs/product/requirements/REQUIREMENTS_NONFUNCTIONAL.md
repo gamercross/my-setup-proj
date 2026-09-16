@@ -124,7 +124,7 @@ flowchart TB
 | NFR-DEPLOY-01 | 백엔드+에이전트를 Docker 이미지로 빌드·실행 가능 | `docker build` → `docker run` 정상 | 로컬 빌드 (강의 Week 12) |
 | NFR-DEPLOY-02 | Electron 앱을 `electron-builder` 로 패키징 가능 | 3-OS 바이너리 산출 | `npm run build` |
 | NFR-DEPLOY-03 | Daily Brief 는 launchd/cron 예약 작업으로 무인 실행 | 지정 시각 자동 실행 로그 | 로그 파일 확인 |
-| NFR-DEPLOY-04 | 로그는 파일로 남고 EOD 에 슬랙 요약 전송 | `scripts/*.log` + 슬랙 메시지 | 수동 확인 |
+| NFR-DEPLOY-04 | 로그는 파일로 남고 EOD 에 슬랙 요약 전송. 개발 모드는 `scripts/*.log`, 패키징/감독 모드(ADR-0016 결정 2항)는 Electron main 이 자식 백엔드 stdout/stderr 를 `userData/logs/backend.log` 로 리다이렉트(5MB 초과 시 1단계 회전) | 개발: `scripts/*.log` + 슬랙 메시지. 감독 모드: `userData/logs/backend.log` | 수동 확인, `frontend/src/main/backendLog.js` |
 
 ## 8. 관측성 (OBS)
 

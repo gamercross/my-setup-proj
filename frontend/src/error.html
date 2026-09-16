@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self'; style-src 'unsafe-inline'"
+    />
+    <title>AI Computer OS — 오류</title>
+  </head>
+  <body>
+    <main>
+      <h1>백엔드를 시작하지 못했습니다</h1>
+      <p id="message"></p>
+      <button id="retry-btn" type="button">재시도</button>
+    </main>
+    <!-- CSP script-src 'self' 때문에 인라인 스크립트 금지 — 별도 파일로 분리 -->
+    <script src="./error.js"></script>
+  </body>
+</html>

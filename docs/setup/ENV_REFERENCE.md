@@ -27,7 +27,8 @@
 | `AGENT_PATH` | ❌ (선택) | `agent/` 폴더 절대 경로 명시(패키지 배포·비표준 배치용). 지정 시 폴백 없이 그 경로만 신뢰 | `backend/src/services/agent.js` | 저장소 루트의 `agent/` → `process.resourcesPath/agent` 순으로 탐색. 못 찾으면 "지금 실행" 503 |
 | `NODE_ENV` | ✅ | `development` / `production`. 로깅·개발도구·Vite 로드 방식 분기 (ADR-0010) | `backend/src/server.js`, `frontend/src/main.js` | 코드 기본값(`development` 가정) |
 | `PORT` | ✅ | 백엔드 리슨 포트. 기본 `3000` | `backend/src/server.js` | `3000` 사용 |
-| `APP_ENV` | ❌ | 패키징된 Electron 빌드에서만 `packaged`. `backend/src/middleware/cors.js` 가 `Origin: null` 허용 여부를 이 값에만 건다 | `backend/src/middleware/cors.js` | 미설정=거부(안전 기본값). 패키징 프로세스가 이 값을 주입하는 주체는 [ADR-0016](../product/architecture/adr/ADR-0016-desktop-process-topology.md) 2~4항 후속 — 현재 미확정 |
+| `APP_ENV` | ❌ | 패키징된 Electron 빌드에서만 `packaged`. `backend/src/middleware/cors.js` 가 `Origin: null` 허용 여부를 이 값에만 건다 | `backend/src/middleware/cors.js` | 미설정=거부(안전 기본값). 주입 주체는 `frontend/src/main.js`(`backendSupervisor.start()` 가 `child_process.fork` 의 `env` 로 설정) — [ADR-0016](../product/architecture/adr/ADR-0016-desktop-process-topology.md) 2~4항 구현 완료 |
+| `APP_SUPERVISE_BACKEND` | ❌ | `1` 이면 개발 빌드에서도 `frontend/src/main.js` 가 백엔드를 감독 모드(fork·헬스체크·재기동·포트탐색)로 기동한다. 패키징 빌드(`app.isPackaged`)는 이 값과 무관하게 항상 감독 모드 | `frontend/src/main.js` | 미설정 시 개발 모드는 감독하지 않음(=`scripts/dev.sh` 가 이미 띄운 백엔드를 그대로 사용, SQLite 이중 오픈 방지) |
 | `DATABASE_PATH` | — | 로컬 SQLite 파일 경로 (ADR-0009). 비우면 `backend/data/app.db` | `backend/db/index.js`, `agent/db.py` | ✅ B2 + D1 구현: `backend/db/index.js`·`agent/db.py` 둘 다 이 값을 읽음(트림 후 비었으면 `backend/data/app.db`, `:memory:` 통과). **로딩 비대칭 주의** — agent 는 `load_dotenv()` 로 `.env` 를 읽지만 backend 는 셸 환경변수로만 읽는다. 둘을 같은 파일로 맞추려면 셸에서 `export DATABASE_PATH=...`. Electron 패키지는 `main.js` 가 `userData` 로 덮어씀 |
 
 ## 2. 키별 발급 방법
@@ -120,9 +121,10 @@ DATABASE_PATH=/tmp/test.db NODE_ENV=production node backend/src/server.js
 export PORT=3000 DATABASE_PATH=... && cd backend && npm start
 ```
 
-**개발 포트는 3000 고정.** Electron `preload.js` 의 `apiBaseUrl` 과 prod CSP `connect-src` 가 3000 으로 하드코딩돼 있다.
-`PORT` 를 바꾸면 frontend 는 여전히 3000 으로 요청한다 → **바꾸지 않는다** ([UI_SPEC.md](../product/reference/UI_SPEC.md) §5).
-포트를 가변으로 만들려면 Vite/Electron 실행 시 같은 `BACKEND_PORT` 를 preload 로 주입하는 별도 작업이 필요하다 (현재 범위 밖).
+**개발 모드(`scripts/dev.sh`, 감독 없음)는 포트 3000 고정.** Electron `preload.js` 의 `apiBaseUrl` 기본값과 CSP `connect-src` 가 3000 을 기본으로 가정한다.
+`PORT` 를 바꾸면 backend 는 그 포트로 뜨지만 frontend(dev 모드)는 여전히 3000 으로 요청한다 → 개발 모드에서는 **바꾸지 않는다** ([UI_SPEC.md](../product/reference/UI_SPEC.md) §5).
+
+**패키징/감독 모드**(`app.isPackaged` 또는 `APP_SUPERVISE_BACKEND=1`)는 다르다: `frontend/src/main.js` 가 3000~3010 범위에서 빈 포트를 탐색해 백엔드를 fork 하고, 확정된 포트를 `--api-base-url=` 인자로 preload 에 주입한다(`frontend/src/main/portFinder.js`). CSP `connect-src` 도 3000~3010 전 구간을 이미 허용해뒀다([ADR-0016](../product/architecture/adr/ADR-0016-desktop-process-topology.md) 결정 4항). 이 경로에서는 `PORT` 를 직접 조작할 필요가 없다 — supervisor 가 자식 fork 옵션의 `env.PORT` 로 확정 포트를 넘긴다.
 
 > dotenv 를 도입하기로 결정하면 backend·agent 의 로딩 위치·우선순위·테스트를 함께 표준화하고, 스크립트 방식과 혼용하지 않는다.
 

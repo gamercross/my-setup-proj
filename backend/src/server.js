@@ -21,6 +21,8 @@ const server = app.listen(PORT, HOST, () => {
   } catch (err) {
     console.error('월별 KR 스냅샷 적재 실패:', err.message);
   }
+  // 감독 모드(ADR-0016)에서 확정 포트는 부모(Electron main)가 fork 시 env.PORT 로 이미
+  // 넘겨준 값과 동일하다(portFinder → env.PORT → 여기서 listen). 별도 IPC 통지는 필요 없다.
 });
 
 // 프로세스 수명주기 핸들러 등록 (lifecycle.js):
