@@ -4,10 +4,15 @@
 
 const router = require('express').Router();
 const docsService = require('../services/docs');
+const { sendProblem } = require('../problem');
+
+// resolveDocPath 의 code(400|404) → problem type. 경로 탈출 시도도 404(not_found)로 나간다
+// (정보 은닉 의도 — 이미 결정된 사항, 새 type 을 만들지 않는다).
+const DOC_CODE_TO_TYPE = { 400: 'validation_error', 404: 'not_found' };
 
 // GET /api/docs - 경로 없음
 router.get('/', (req, res) => {
-  res.status(400).json({ error: '문서 경로가 필요합니다.' });
+  sendProblem(res, 'validation_error', { detail: '문서 경로가 필요합니다.' });
 });
 
 // GET /api/docs/<허용 루트 안의 상대경로> - 토큰 배열
@@ -17,13 +22,14 @@ router.get('/*', (req, res) => {
   const rel = req.params[0] || '';
   const resolved = docsService.resolveDocPath(rel);
   if (!resolved.ok) {
-    return res.status(resolved.code).json({ error: resolved.message });
+    const type = DOC_CODE_TO_TYPE[resolved.code] || 'internal_error';
+    return sendProblem(res, type, { detail: resolved.message });
   }
   try {
     res.json(docsService.readDocTokens(resolved.full, rel));
   } catch (err) {
     console.error('문서 조회 실패:', err);
-    res.status(500).json({ error: '문서를 불러오지 못했습니다.' });
+    sendProblem(res, 'internal_error', { detail: '문서를 불러오지 못했습니다.' });
   }
 });
 

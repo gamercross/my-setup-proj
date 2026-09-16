@@ -36,6 +36,18 @@ test('TC-DEMO-04: POST /tasks 로 추가되고 목록에 반영, title 없으면
   await assert.rejects(() => demoRequest('POST', '/tasks', {}), (e) => e.status === 400);
 });
 
+// ADR-0017 패리티 — 데모 오류도 status 로부터 type/title/requestId 를 파생한다.
+test('TC-ERR-DEMO-01: 데모 오류는 status→type 파생 + requestId="r-demo" 를 갖는다', async () => {
+  await assert.rejects(
+    () => demoRequest('POST', '/tasks', {}),
+    (e) => e.status === 400 && e.type === 'validation_error' && e.title === '입력이 올바르지 않습니다' && e.requestId === 'r-demo'
+  );
+  await assert.rejects(
+    () => demoRequest('PUT', '/checkins/99999', { what: 'x' }),
+    (e) => e.status === 404 && e.type === 'not_found'
+  );
+});
+
 test('TC-DEMO-05: PUT/DELETE /tasks/:id', async () => {
   const { task } = await demoRequest('POST', '/tasks', { title: 'x' });
   const upd = await demoRequest('PUT', `/tasks/${task.id}`, { status: 'done' });

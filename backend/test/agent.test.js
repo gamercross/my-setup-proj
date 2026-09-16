@@ -76,7 +76,7 @@ describe('에이전트 활동 API', () => {
 
     const bad = await request(app).get('/api/agent/activity?limit=abc');
     assert.equal(bad.status, 400);
-    assert.match(bad.body.error, /정수/);
+    assert.match(bad.body.detail, /정수/);
 
     const zero = await request(app).get('/api/agent/activity?limit=0');
     assert.equal(zero.status, 400);
@@ -137,7 +137,8 @@ describe('에이전트 활동 API', () => {
 
     const run = await request(app2).post('/api/agent/run-now').send({});
     assert.equal(run.status, 503);
-    assert.match(run.body.error, /에이전트 폴더/);
+    assert.match(run.body.detail, /에이전트 폴더/);
+    assert.equal(run.body.type, 'upstream_unavailable');
 
     const act = await request(app2).get('/api/agent/activity');
     assert.equal(act.status, 200);

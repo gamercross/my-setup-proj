@@ -55,7 +55,7 @@ test('TC-P10-STORE-02: fetchCheckins 실패 시 error 문자열, 기존 데이�
   const store = await freshStore();
   await store.getState().fetchCheckins();
 
-  fetchImpl = () => jsonRes({ error: '서버 오류' }, false, 500);
+  fetchImpl = () => jsonRes({ type: 'internal_error', title: '서버 내부 오류가 발생했습니다', detail: '서버 오류' }, false, 500);
   await store.getState().fetchCheckins();
   const s = store.getState();
   assert.equal(s.error, '서버 오류');
@@ -76,7 +76,7 @@ test('TC-P10-STORE-03: addCheckin 성공 시 맨 앞에 삽입, 실패 시 false
   assert.equal(s.checkins[0].id, 2, '새 체크인이 맨 앞');
   assert.equal(s.error, null);
 
-  fetchImpl = () => jsonRes({ error: '최소 한 개 질문에는 답해야 합니다.' }, false, 400);
+  fetchImpl = () => jsonRes({ type: 'validation_error', title: '입력이 올바르지 않습니다', detail: '최소 한 개 질문에는 답해야 합니다.' }, false, 400);
   const fail = await store.getState().addCheckin({});
   assert.equal(fail, false);
   s = store.getState();
@@ -102,7 +102,7 @@ test('TC-P10-STORE-04: updateCheckin/removeCheckin 낙관적 갱신 + 실패 롤
   assert.equal(store.getState().checkins[0].what, '수정됨');
 
   // updateCheckin 실패 시 롤백
-  fetchImpl = () => jsonRes({ error: '수정 실패' }, false, 400);
+  fetchImpl = () => jsonRes({ type: 'validation_error', title: '입력이 올바르지 않습니다', detail: '수정 실패' }, false, 400);
   await store.getState().updateCheckin(1, { what: '실패할 수정' });
   let s = store.getState();
   assert.equal(s.checkins[0].what, '수정됨', '롤백됨');
@@ -116,7 +116,7 @@ test('TC-P10-STORE-04: updateCheckin/removeCheckin 낙관적 갱신 + 실패 롤
 
   fetchImpl = () => jsonRes({ checkins: [CHECKIN] });
   await store.getState().fetchCheckins();
-  fetchImpl = () => jsonRes({ error: '삭제 실패' }, false, 400);
+  fetchImpl = () => jsonRes({ type: 'validation_error', title: '입력이 올바르지 않습니다', detail: '삭제 실패' }, false, 400);
   const failRemove = await store.getState().removeCheckin(1);
   assert.equal(failRemove, false);
   s = store.getState();

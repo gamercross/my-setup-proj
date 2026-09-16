@@ -20,7 +20,7 @@
   (FR-OKR-04 AC-3 불변식).
 - 체크인은 **주 단위**, OKR 은 **월 단위**로 집계한다 — `kr_snapshots.month` 를 그대로 재사용하고
   새 주간 스냅샷 로직을 만들지 않는다(ADR-0036 §비대칭 결정).
-- 검증 실패 → HTTP 400 `{ "error": "<메시지>" }` (NFR-SEC-07).
+- 검증 실패 → HTTP 400, RFC 9457 봉투 `{ "type": "validation_error", "detail": "<메시지>", ... }` (NFR-SEC-07, [ADR-0017](../architecture/adr/ADR-0017-rest-error-contract.md)). 아래 AC 의 `{error:"..."}` 표기는 이 봉투의 `detail` 값을 가리킨다.
 - 웹 데모(ADR-0026): `GET /knowledge-trend` 를 `frontend/src/api/demoClient.js` 목 어댑터에도
   추가한다 — 안 하면 데모에서 지식 지도 위젯이 깨진다. 새 목 데이터 배열은 만들지 않고 기존
   시드(`expectation_checkins`·`kr_snapshots`·`tasks[].tags`)에서 파생한다.

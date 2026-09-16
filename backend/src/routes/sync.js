@@ -5,6 +5,7 @@
 const router = require('express').Router();
 const supabase = require('../supabase');
 const db = require('../db');
+const { sendProblem } = require('../problem');
 
 // GET /api/sync/health - Supabase 외부 연결 진단. 항상 200 (실패도 200, 비밀값 미포함).
 router.get('/health', async (req, res) => {
@@ -28,23 +29,28 @@ router.get('/logs', (req, res) => {
     const { service, limit } = req.query;
 
     if (service !== undefined && !db.SYNC_SERVICES.includes(service)) {
-      return res
-        .status(400)
-        .json({ error: `service 는 ${db.SYNC_SERVICES.join('|')} 중 하나여야 합니다.` });
+      const detail = `service 는 ${db.SYNC_SERVICES.join('|')} 중 하나여야 합니다.`;
+      return sendProblem(res, 'validation_error', {
+        detail,
+        errors: [{ field: 'service', message: detail }],
+      });
     }
 
     let lim = 50;
     if (limit !== undefined) {
       lim = Number(limit);
       if (!Number.isInteger(lim) || lim <= 0) {
-        return res.status(400).json({ error: 'limit 은 1 이상의 정수여야 합니다.' });
+        return sendProblem(res, 'validation_error', {
+          detail: 'limit 은 1 이상의 정수여야 합니다.',
+          errors: [{ field: 'limit', message: '1 이상의 정수여야 합니다.' }],
+        });
       }
     }
 
     res.json({ logs: db.getSyncLogs({ service, limit: lim }) });
   } catch (err) {
     console.error('sync/logs 조회 실패:', err);
-    res.status(500).json({ error: '동기화 이력을 불러오지 못했습니다.' });
+    sendProblem(res, 'internal_error', { detail: '동기화 이력을 불러오지 못했습니다.' });
   }
 });
 

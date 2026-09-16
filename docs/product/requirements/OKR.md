@@ -14,8 +14,8 @@
 - 저장소: `objectives` · `key_results` · `kr_snapshots` 3테이블 (ADR-0030 §PO-5). P6 에서 도입한
   마이그레이션 러너(`backend/db/index.js`)로 forward-only 추가한다.
 - 시각: 서버가 `created_at`/`updated_at` 을 ISO8601 로 채운다. 클라이언트가 보내도 무시.
-- 검증 실패 → HTTP 400 `{ "error": "<메시지>" }` (NFR-SEC-07).
-- 존재하지 않는 `id` → HTTP 404 `{ "error": "<대상>을 찾을 수 없습니다." }`.
+- 검증 실패 → HTTP 400, RFC 9457 봉투 `{ "type": "validation_error", "detail": "<메시지>", ... }` (NFR-SEC-07, [ADR-0017](../architecture/adr/ADR-0017-rest-error-contract.md)). 아래 AC 의 `{error:"..."}` 표기는 이 봉투의 `detail` 값을 가리킨다.
+- 존재하지 않는 `id` → HTTP 404 `{ "type": "not_found", "detail": "<대상>을 찾을 수 없습니다." }`.
 - **OKR 데이터는 사용자가 앱에서 CRUD 한다.** 에이전트는 objective·key_result 를 만들거나
   고치지 않는다 (자동 분류 FR-TASK-08 과 다른 점). 에이전트가 쓰는 것은 `kr_snapshots`
   월별 적재뿐이다 (FR-OKR-04, 선택).

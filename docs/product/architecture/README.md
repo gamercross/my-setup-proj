@@ -17,9 +17,9 @@
 | [ARCHITECTURE_DRIVERS.md](ARCHITECTURE_DRIVERS.md) | 왜 이 구조인가 — ASR-1~8, 품질 속성 시나리오 QAS-1~8, **피트니스 함수 FF-1~9**, 트레이드오프 레지스터 | "이거 과설계 아닌가", 구조 규칙 확인 | FF-* 는 구조 규칙을 테스트로 강제하자는 것 ([ADR-0019](adr/ADR-0019-architecture-fitness-functions.md), 제안) |
 | [RUNTIME_VIEW.md](RUNTIME_VIEW.md) | 실행 중 프로세스(Electron·Express·에이전트), 시작/종료 순서, **연결 상태 머신**(백엔드 다운 ≠ 오프라인), 미결 RT-1~5 | 앱 실행·패키징·장애 대응 설계 | 백엔드 자동 기동 여부는 [ADR-0016](adr/ADR-0016-desktop-process-topology.md) — 1항(dev 통합 실행)·루프백 바인딩은 채택, 2~4항(패키징 실행 주체·재기동·포트)은 아직 제안 |
 | [DATA_ARCHITECTURE.md](DATA_ARCHITECTURE.md) | 데이터 분류(비밀/민감/개인/UI상태/운영), 쓰기 소유권(테이블당 1), 스키마 마이그레이션, 캐시 신선도·보관, 동기화 충돌 모델, 수명주기 다이어그램 | 스키마 변경, 캐시·동기화 작업 | 스키마 마이그레이션은 [ADR-0018](adr/ADR-0018-schema-migration-strategy.md)(채택 — `PRAGMA user_version` + 인라인 러너, `IF NOT EXISTS` 만으론 컬럼 변경 불가). 위젯 레이아웃은 UI 상태(별도 계층) |
-| [CROSSCUTTING.md](CROSSCUTTING.md) | 설정 우선순위, **오류 계약**(problem+json), 로깅·상관 id, 복원력(타임아웃·재시도표), 멱등성, 시간(ISO8601 UTC) | 오류 처리·로깅·외부 호출 구현 | 오류 응답 확장은 [ADR-0017](adr/ADR-0017-rest-error-contract.md)(제안). 재시도는 멱등 연산만 |
+| [CROSSCUTTING.md](CROSSCUTTING.md) | 설정 우선순위, **오류 계약**(problem+json), 로깅·상관 id, 복원력(타임아웃·재시도표), 멱등성, 시간(ISO8601 UTC) | 오류 처리·로깅·외부 호출 구현 | 오류 응답은 [ADR-0017](adr/ADR-0017-rest-error-contract.md)(채택). 재시도는 멱등 연산만 |
 | [ARCHITECTURE_EVOLUTION.md](ARCHITECTURE_EVOLUTION.md) | 로컬 단일 사용자 → 다중 사용자/클라우드 진화 경로, Stage 1~3, **지금 만들어 둘 이음새**, 되돌리기 어려운 결정 | Week 10 전 Supabase·인증 설계 | "지금 만들어 둘 이음새" 표 — `user_id` 자리, db 인터페이스 고정 등 |
-| [adr/](adr/README.md) | **결정 이력 ADR-0001~0037** (하나 = 파일 하나). 목록·상태·템플릿은 [adr/README.md](adr/README.md) | "왜 이렇게 정했나", 새 결정 추가 시 | 채택 다수 / 제안·보류 6건(0013·0015·0016 2~4항·0017·0019·0033). 착수 전 제안 ADR 결정 필요 |
+| [adr/](adr/README.md) | **결정 이력 ADR-0001~0037** (하나 = 파일 하나). 목록·상태·템플릿은 [adr/README.md](adr/README.md) | "왜 이렇게 정했나", 새 결정 추가 시 | 채택 다수 / 제안·보류 5건(0013·0015·0016 2~4항·0019·0033). 착수 전 제안 ADR 결정 필요 |
 
 ---
 

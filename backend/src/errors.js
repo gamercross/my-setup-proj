@@ -25,9 +25,37 @@ class NotFoundError extends Error {
   }
 }
 
+// 요청이 현재 상태와 충돌할 때 (ADR-0017 — 현재 발생원 없음, 향후를 위해 예약).
+class ConflictError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'ConflictError';
+    this.status = 409;
+  }
+}
+
+// 외부 의존성(에이전트 폴더·외부 API 등)을 일시적으로 쓸 수 없을 때 (ADR-0017).
+class UpstreamUnavailableError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'UpstreamUnavailableError';
+    this.status = 503;
+  }
+}
+
 // 404(리소스 없음) 오류인지 판정한다
 function isNotFoundError(err) {
   return err instanceof NotFoundError;
+}
+
+// 409(충돌) 오류인지 판정한다
+function isConflictError(err) {
+  return err instanceof ConflictError;
+}
+
+// 503(업스트림 불가) 오류인지 판정한다
+function isUpstreamError(err) {
+  return err instanceof UpstreamUnavailableError;
 }
 
 // 400 으로 매핑할 SQLite 제약 위반 코드
@@ -67,7 +95,11 @@ function toClientMessage(err) {
 module.exports = {
   ValidationError,
   NotFoundError,
+  ConflictError,
+  UpstreamUnavailableError,
   isValidationError,
   isNotFoundError,
+  isConflictError,
+  isUpstreamError,
   toClientMessage,
 };

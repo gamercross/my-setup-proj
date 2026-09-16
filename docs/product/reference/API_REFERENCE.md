@@ -16,21 +16,42 @@
 | 목록 응답 | `{ "<도메인복수>": [ ... ] }` — 예: `{ "tasks": [...] }` |
 | 단건 응답 | `{ "<도메인단수>": { ... } }` — 예: `{ "task": {...} }` |
 | 삭제 응답 | `{ "ok": true }` |
-| 오류 응답 | `{ "error": "<사람이 읽을 메시지>" }` (한국어) |
+| 오류 응답 | RFC 9457 스타일 봉투 (아래 "오류 응답 봉투" 참고, [ADR-0017](../architecture/adr/ADR-0017-rest-error-contract.md)) |
 | CORS | 구현 완료 (C1, `backend/src/middleware/cors.js`, NFR-SEC-06). 허용 오리진: `http://localhost:5173`, `http://127.0.0.1:5173`, `null`(prod Electron `file://`). 그 외 오리진은 CORS 헤더 미부여 |
-| 요청 로깅 | 모든 요청 1줄 (`METHOD path status ms`) — `backend/src/middleware/requestLogger.js` (C1, NFR-OBS-01) |
+| 요청 로깅 | 모든 요청 1줄 (`METHOD path status ms <request_id>`) — `backend/src/middleware/requestLogger.js` (C1, NFR-OBS-01) |
 | 본문 크기 | `express.json({ limit: '100kb' })`. 초과 시 413 |
 
-### 상태 코드 정책
+### 오류 응답 봉투 (ADR-0017, RFC 9457 스타일)
 
-| 코드 | 사용 |
-|---|---|
-| `200` | 조회·수정·삭제 성공 |
-| `201` | 생성 성공 (`POST`) |
-| `400` | 입력 검증 실패 (필수 누락, 타입/범위 위반, 잘못된 JSON) |
-| `404` | 경로의 `:id` 리소스 없음 / 정의되지 않은 경로 |
-| `413` | 요청 본문 크기 초과 (100KB) |
-| `500` | 서버 내부 오류 (DB 쓰기 실패 등). 본문은 일반 메시지, 상세는 서버 로그 |
+모든 4xx/5xx 응답은 아래 형태다. `{ "error": ... }` 옛 형태는 완전히 제거됐다.
+
+```json
+{
+  "type": "validation_error",
+  "title": "입력이 올바르지 않습니다",
+  "status": 400,
+  "detail": "title 은 필수입니다.",
+  "errors": [ { "field": "title", "message": "필수입니다" } ],
+  "request_id": "r-20260916-ab12cd34"
+}
+```
+
+- `Content-Type: application/problem+json` + 응답 헤더 `X-Request-Id`(본문 `request_id` 와 동일값).
+- `errors[]` 는 선택 필드 — 필드명을 아는 지점에서만 채운다(폼 표시용).
+- 아래 각 엔드포인트 설명에서는 지면상 `detail` 값(사람이 읽는 메시지)만 표기한다. 실제 응답은 항상 위 전체 봉투 형태다.
+
+### 상태 코드 정책 — `type` ↔ `status` 1:1
+
+| 코드 | `type` | 사용 |
+|---|---|---|
+| `200` | — | 조회·수정·삭제 성공 |
+| `201` | — | 생성 성공 (`POST`) |
+| `400` | `validation_error` | 입력 검증 실패 (필수 누락, 타입/범위 위반, 잘못된 JSON) |
+| `404` | `not_found` | 경로의 `:id` 리소스 없음 / 정의되지 않은 경로 / (docs 경로 형태 위반은 400 — ADR-0017 참고) |
+| `409` | `conflict` | 예약 — 현재 발생원 없음 |
+| `413` | `payload_too_large` | 요청 본문 크기 초과 (100KB) |
+| `503` | `upstream_unavailable` | 외부/로컬 의존성을 일시적으로 쓸 수 없음 (예: `agent/` 폴더 없음) |
+| `500` | `internal_error` | 서버 내부 오류 (DB 쓰기 실패 등). `detail` 은 일반 메시지, 상세는 서버 로그(`request_id` 로 대조) |
 
 ### 공통 검증 규칙 (NFR-SEC-07)
 
@@ -45,7 +66,7 @@
 | `project_id` (task) | 존재하는 프로젝트 id 또는 `null` | 400 `"연결할 프로젝트를 찾을 수 없습니다."` / `"project_id 는 프로젝트 id(정수) 또는 null 이어야 합니다."` |
 | `due_date` | `YYYY-MM-DD` 형식 | 400 (도입 예정) |
 
-**400 한국어 메시지 (C2 등록, `backend/src/errors.js`)**
+**400 `detail` 한국어 메시지 (C2 등록, `backend/src/errors.js` + `backend/src/problem.js`)**
 - `입력값이 허용된 값 범위를 벗어났습니다.` — SQLite CHECK 위반 (priority/status enum, progress 범위)
 - `연결할 프로젝트를 찾을 수 없습니다.` — 없는 `project_id` (라우트 사전 검증 또는 FK 위반)
 - `project_id 는 프로젝트 id(정수) 또는 null 이어야 합니다.` — 타입 오류
@@ -131,7 +152,7 @@ FR-TASK-02, FR-TASK-06
 - 할일이 없으면 `{ "tasks": [] }` (200, 에러 아님).
 - 현재 정렬: 생성 순(삽입 순).
 
-**응답 500** — `{ "error": "할일을 불러오지 못했습니다." }`
+**응답 500** — `{ "type": "internal_error", "detail": "할일을 불러오지 못했습니다." }`
 
 ---
 
@@ -144,7 +165,7 @@ FR-TASK (공통)
 | `:id` (path) | 할일 id (정수) |
 
 **응답 200** — `{ "task": { ... } }`
-**응답 404** — `{ "error": "할일을 찾을 수 없습니다." }`
+**응답 404** — `{ "type": "not_found", "detail": "할일을 찾을 수 없습니다." }`
 
 ---
 
@@ -181,11 +202,11 @@ FR-TASK-01
 ```json
 { "description": "제목 없음" }
 ```
-**응답 400** — `{ "error": "title 은 필수입니다." }`
+**응답 400** — `{ "type": "validation_error", "detail": "title 은 필수입니다." }`
 
 **`project_id` 검증 400 (ADR-0012, C2)**
-- 존재하지 않는 프로젝트: `{ "error": "연결할 프로젝트를 찾을 수 없습니다." }`
-- 정수/`null` 이 아닌 값(예: `"1"`): `{ "error": "project_id 는 프로젝트 id(정수) 또는 null 이어야 합니다." }`
+- 존재하지 않는 프로젝트: `{ "type": "validation_error", "detail": "연결할 프로젝트를 찾을 수 없습니다." }`
+- 정수/`null` 이 아닌 값(예: `"1"`): `{ "type": "validation_error", "detail": "project_id 는 프로젝트 id(정수) 또는 null 이어야 합니다." }`
 
 **부작용:** `tasks` 에 1행 추가. `id`·`created_at`·`updated_at` 은 서버가 채운다(클라이언트 값 무시).
 
@@ -206,7 +227,7 @@ FR-TASK-03, FR-TASK-04
 ```
 **응답 200** — `{ "task": { "...": "...", "status": "done", "updated_at": "..." } }`
 
-**응답 404** — `{ "error": "할일을 찾을 수 없습니다." }`
+**응답 404** — `{ "type": "not_found", "detail": "할일을 찾을 수 없습니다." }`
 **응답 400** — 잘못된 `priority`/`status`/`due_date` (검증 도입 후)
 
 ---
@@ -216,7 +237,7 @@ FR-TASK-03, FR-TASK-04
 FR-TASK-04
 
 **응답 200** — `{ "ok": true }`
-**응답 404** — `{ "error": "할일을 찾을 수 없습니다." }`
+**응답 404** — `{ "type": "not_found", "detail": "할일을 찾을 수 없습니다." }`
 
 **부작용:** `tasks` 에서 해당 행 제거. 연결된 `task_tags` 도 함께 삭제된다 (`ON DELETE CASCADE`).
 
@@ -231,9 +252,9 @@ FR-TASK-08 / ADR-0029
 **응답 201** — `{ "task": { ..., "tags": ["공부"] } }` (갱신된 할일 전체)
 - 이미 있는 태그면 멱등(201, 목록 불변).
 
-**응답 400** — `{ "error": "태그는 1~20자여야 합니다." }`
-**응답 404** — `{ "error": "할일을 찾을 수 없습니다." }`
-**응답 500** — `{ "error": "태그를 저장하지 못했습니다." }`
+**응답 400** — `{ "type": "validation_error", "detail": "태그는 1~20자여야 합니다." }`
+**응답 404** — `{ "type": "not_found", "detail": "할일을 찾을 수 없습니다." }`
+**응답 500** — `{ "type": "internal_error", "detail": "태그를 저장하지 못했습니다." }`
 
 ---
 
@@ -244,8 +265,8 @@ FR-TASK-08 / ADR-0029. `:tag` 는 URL 인코딩(한글 등). Express 가 자동 
 **응답 200** — `{ "task": { ..., "tags": [...] } }`
 - 없던 태그를 지워도 200(멱등).
 
-**응답 404** — `{ "error": "할일을 찾을 수 없습니다." }`
-**응답 500** — `{ "error": "태그를 삭제하지 못했습니다." }`
+**응답 404** — `{ "type": "not_found", "detail": "할일을 찾을 수 없습니다." }`
+**응답 500** — `{ "type": "internal_error", "detail": "태그를 삭제하지 못했습니다." }`
 
 ---
 
@@ -265,7 +286,7 @@ FR-TASK-08 / ADR-0029. `:tag` 는 URL 인코딩(한글 등). Express 가 자동 
 FR-PROJ-01, FR-PROJ-02
 
 - 목록: `{ "projects": [ ... ] }`, 없으면 `[]`.
-- 단건 없음: 404 `{ "error": "프로젝트를 찾을 수 없습니다." }`
+- 단건 없음: 404 `{ "type": "not_found", "detail": "프로젝트를 찾을 수 없습니다." }`
 
 ### `POST /api/projects` — 생성 ✅
 
@@ -283,7 +304,7 @@ FR-PROJ-01
 { "name": "캘린더 연동", "progress": 10 }
 ```
 **응답 201** — `{ "project": { ... } }`
-**응답 400** — `{ "error": "name 은 필수입니다." }` / `{ "error": "progress 는 0~100 사이 숫자여야 합니다." }`
+**응답 400** — `{ "type": "validation_error", "detail": "name 은 필수입니다." }` / `{ "type": "validation_error", "detail": "progress 는 0~100 사이 숫자여야 합니다." }`
 
 ### `PUT /api/projects/:id` — 수정 ✅
 
@@ -327,7 +348,8 @@ FR-CAL-01, FR-CAL-02
 
 **응답 400** (from/to 파싱 불가)
 ```json
-{ "error": "from 은 ISO8601 형식이어야 합니다." }
+{ "type": "validation_error", "title": "입력이 올바르지 않습니다", "status": 400,
+  "detail": "from 은 ISO8601 형식이어야 합니다.", "errors": [{ "field": "from", "message": "ISO8601 형식이어야 합니다." }] }
 ```
 
 - 데이터 출처: ✅ **`calendar_events` 캐시 테이블** (agent `sync.py` 가 채움 — [ADR-0011](../architecture/adr/ADR-0011-agent-backend-db-access.md)). 백엔드는 SELECT 만. 동기화 전이면 `{ "events": [] }`. 로컬 데모 데이터는 `scripts/seed-demo.js` 로 채운다.
@@ -357,7 +379,7 @@ FR-MAIL-01
 } ] }
 ```
 
-**응답 400** — `{ "error": "limit 은 1 이상의 정수여야 합니다." }`
+**응답 400** — `{ "type": "validation_error", "detail": "limit 은 1 이상의 정수여야 합니다." }`
 
 ---
 
@@ -424,7 +446,7 @@ FR-SYNC-03, NFR-OBS-03
 } ] }
 ```
 
-**응답 400** — `{ "error": "service 는 gmail|calendar|notion|supabase 중 하나여야 합니다." }`
+**응답 400** — `{ "type": "validation_error", "detail": "service 는 gmail|calendar|notion|supabase 중 하나여야 합니다." }`
 
 ---
 
@@ -469,8 +491,8 @@ health 확인이 실패해도 200 이다. `sync_logs` 조회 실패만 500.
   "alreadyPending": false, "note": "에이전트가 다음 감지 시 실행합니다." }
 ```
 
-**응답 503** — `{ "error": "에이전트 폴더를 찾을 수 없어 실행을 요청할 수 없습니다." }`
-**응답 500** — `{ "error": "지금 실행 요청을 저장하지 못했습니다." }` (파일 IO 실패)
+**응답 503** — `{ "type": "upstream_unavailable", "detail": "에이전트 폴더를 찾을 수 없어 실행을 요청할 수 없습니다." }`
+**응답 500** — `{ "type": "internal_error", "detail": "지금 실행 요청을 저장하지 못했습니다." }` (파일 IO 실패)
 
 ---
 
@@ -505,7 +527,7 @@ FR-UI-05 · [ADR-0014](../architecture/adr/ADR-0014-dashboard-diagram-viewer.md)
 - 클라이언트(`DiagramPanel.jsx`)가 `mermaid` 를 동적 import 해 SVG 로 렌더. 렌더 실패는
   블록 단위로 폴백(원문 코드 표시).
 
-**응답 500** — `{ "error": "다이어그램을 불러오지 못했습니다." }`
+**응답 500** — `{ "type": "internal_error", "detail": "다이어그램을 불러오지 못했습니다." }`
 
 ---
 
@@ -558,8 +580,8 @@ FR-UI-06 · [ADR-0031](../architecture/adr/ADR-0031-safe-markdown-render.md) · 
 - 지원 안 하는 문법(이미지·HTML 블록·각주 등)은 원문 텍스트로 담는다.
 - 클라이언트(`DocView.jsx`)가 토큰을 React 요소로 매핑 — 마크다운 파서·`dangerouslySetInnerHTML` 없음. 인라인 링크는 복사 버튼(외부 내비 차단).
 
-**응답 400** — 경로 형태 위반(`..`·절대경로·허용 밖·비-`.md`·심링크 탈출) `{ "error": "..." }`
-**응답 404** — 파일 없음 `{ "error": "..." }`
+**응답 400** — 경로 형태 위반(`..`·절대경로·허용 밖·비-`.md`·심링크 탈출) `{ "type": "validation_error", "detail": "..." }`
+**응답 404** — 파일 없음 `{ "type": "not_found", "detail": "..." }`
 
 ---
 
@@ -626,7 +648,7 @@ objective 등급은 하위 KR 이 전부 `aspirational` 이면 aspirational 밴�
 | `target` | 0 이상의 숫자 (생성 시 필수) |
 | `current` | 숫자 (기본 0) |
 | `unit` | 선택, 트림 후 `''`→null, 12자 이하 |
-| `kind` | 선택, `committed`\|`aspirational`, 기본 `committed` (ADR-0034). 허용값 밖이면 400 `{"error":"kind 는 committed·aspirational 중 하나여야 합니다."}` |
+| `kind` | 선택, `committed`\|`aspirational`, 기본 `committed` (ADR-0034). 허용값 밖이면 400 `{ "type": "validation_error", "detail": "kind 는 committed·aspirational 중 하나여야 합니다." }` |
 | `project_id` | 선택, 느슨 FK (없는 프로젝트면 400) |
 
 - POST → `201 { "keyResult": {...} }`. PUT 부분 수정 → `200 { "keyResult": {...} }`. DELETE → `200 { "ok": true }` (하위 스냅샷 CASCADE).
@@ -672,7 +694,7 @@ FR-KNOW-01~04 · [ADR-0036](../architecture/adr/ADR-0036-knowledge-trend-view.md
 
 | 쿼리 | 설명 |
 |---|---|
-| `weeks` | 창 길이(주). 기본 8, 허용 1~26. 범위 밖·비정수 → 400 `{"error":"weeks 는 1~26 사이 정수여야 합니다."}` |
+| `weeks` | 창 길이(주). 기본 8, 허용 1~26. 범위 밖·비정수 → 400 `{ "type": "validation_error", "detail": "weeks 는 1~26 사이 정수여야 합니다." }` |
 
 **응답 200**
 ```json
@@ -735,7 +757,7 @@ TEXT·nullable — 최소 1개는 채워야 한다. `period` 는 자유 라벨�
 | 필드 | 규칙 |
 |---|---|
 | `period` | 선택, 트림 후 40자 이하, 빈 값은 `null` |
-| `what`/`why`/`until`/`goal`/`strategy`/`action`/`status` | 각각 선택, 트림 후 2000자 이하, 빈 값은 `null`. **7개 전부 `null` 이면 400** `{"error":"최소 한 개 질문에는 답해야 합니다."}` (PUT 은 병합 결과 기준) |
+| `what`/`why`/`until`/`goal`/`strategy`/`action`/`status` | 각각 선택, 트림 후 2000자 이하, 빈 값은 `null`. **7개 전부 `null` 이면 400** `{ "type": "validation_error", "detail": "최소 한 개 질문에는 답해야 합니다." }` (PUT 은 병합 결과 기준) |
 | `project_id` | 선택, 느슨 FK (없는 프로젝트면 400) |
 | `objective_id` | 선택, 느슨 FK (없는 목표면 400) |
 
@@ -789,7 +811,7 @@ DB 테이블명은 `reference_materials`(`REFERENCES` 가 SQLite 예약어라 �
 
 - POST → `201 { "reference": {...} }`(`steps: []`). PUT 은 보낸 필드만 병합 → `200 { "reference": {...} }`.
   DELETE → `200 { "ok": true }`(요약 단계도 CASCADE 삭제).
-- 없는 id 수정/삭제 → 404 `{"error":"레퍼런스를 찾을 수 없습니다."}`. 검증 실패 → 400.
+- 없는 id 수정/삭제 → 404 `{ "type": "not_found", "detail": "레퍼런스를 찾을 수 없습니다." }`. 검증 실패 → 400.
 
 ### `POST /api/references/:id/steps` ✅ · `DELETE /api/references/:id/steps/:stepId` ✅
 
@@ -801,8 +823,8 @@ DB 테이블명은 `reference_materials`(`REFERENCES` 가 SQLite 예약어라 �
   그 레퍼런스의 기존 최댓값+1.
 - DELETE → `200 { "reference": {...} }` — 삭제 후 남은 단계의 `step_order` 는 재번호를 매기지
   않는다(이력 보존).
-- 없는 레퍼런스 id → 404 `{"error":"레퍼런스를 찾을 수 없습니다."}`. 없는 단계 id → 404
-  `{"error":"요약 단계를 찾을 수 없습니다."}`. 단계 수정(PUT) 엔드포인트는 없다.
+- 없는 레퍼런스 id → 404 `{ "type": "not_found", "detail": "레퍼런스를 찾을 수 없습니다." }`. 없는 단계 id → 404
+  `{ "type": "not_found", "detail": "요약 단계를 찾을 수 없습니다." }`. 단계 수정(PUT) 엔드포인트는 없다.
 
 ---
 

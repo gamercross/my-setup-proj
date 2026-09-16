@@ -53,7 +53,7 @@ test('TC-P8-STORE-02: fetchOkr 실패 시 error 문자열, 기존 데이터 보�
   const store = await freshStore();
   await store.getState().fetchOkr();
 
-  fetchImpl = () => jsonRes({ error: '서버 오류' }, false, 500);
+  fetchImpl = () => jsonRes({ type: 'internal_error', title: '서버 내부 오류가 발생했습니다', detail: '서버 오류' }, false, 500);
   await store.getState().fetchOkr();
   const s = store.getState();
   assert.equal(s.error, '서버 오류');
@@ -87,7 +87,7 @@ test('TC-P8-STORE-04: updateKeyResult 실패 시 롤백', async () => {
   const store = await freshStore();
   await store.getState().fetchOkr();
 
-  fetchImpl = () => jsonRes({ error: '수정 실패' }, false, 400);
+  fetchImpl = () => jsonRes({ type: 'validation_error', title: '입력이 올바르지 않습니다', detail: '수정 실패' }, false, 400);
   await store.getState().updateKeyResult(10, { current: 10 });
   const s = store.getState();
   assert.equal(s.objectives[0].keyResults[0].current, 5, '롤백됨');
@@ -121,7 +121,7 @@ test('TC-P8-STORE-GRADE: updateKeyResult({kind}) 낙관적 갱신 직후 grade �
   assert.equal(s.objectives[0].keyResults[0].grade, 'green');
 
   // 실패 시 롤백 — kind·grade 모두 원상 복구
-  fetchImpl = () => jsonRes({ error: '수정 실패' }, false, 400);
+  fetchImpl = () => jsonRes({ type: 'validation_error', title: '입력이 올바르지 않습니다', detail: '수정 실패' }, false, 400);
   await store.getState().updateKeyResult(10, { current: 1, kind: 'aspirational' });
   s = store.getState();
   assert.equal(s.objectives[0].keyResults[0].current, 7, '롤백됨');

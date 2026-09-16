@@ -4,6 +4,7 @@
 
 const router = require('express').Router();
 const mailService = require('../services/mail');
+const { sendProblem } = require('../problem');
 
 // GET /api/mail/unread - 미읽음 메일 목록 (선택 쿼리 limit)
 router.get('/unread', (req, res) => {
@@ -12,13 +13,16 @@ router.get('/unread', (req, res) => {
     if (req.query.limit !== undefined) {
       limit = Number(req.query.limit);
       if (!Number.isInteger(limit) || limit <= 0) {
-        return res.status(400).json({ error: 'limit 은 1 이상의 정수여야 합니다.' });
+        return sendProblem(res, 'validation_error', {
+          detail: 'limit 은 1 이상의 정수여야 합니다.',
+          errors: [{ field: 'limit', message: '1 이상의 정수여야 합니다.' }],
+        });
       }
     }
     res.json({ emails: mailService.listUnread({ limit }) });
   } catch (err) {
     console.error('메일 조회 실패:', err);
-    res.status(500).json({ error: '메일을 불러오지 못했습니다.' });
+    sendProblem(res, 'internal_error', { detail: '메일을 불러오지 못했습니다.' });
   }
 });
 

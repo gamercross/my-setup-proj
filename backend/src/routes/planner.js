@@ -3,25 +3,14 @@
 
 const router = require('express').Router();
 const planner = require('../services/planner');
-const { isValidationError, isNotFoundError, toClientMessage } = require('../errors');
-
-function handleError(err, res, { logPrefix, failMessage }) {
-  if (isNotFoundError(err)) {
-    return res.status(404).json({ error: err.message });
-  }
-  if (isValidationError(err)) {
-    return res.status(400).json({ error: toClientMessage(err) });
-  }
-  console.error(logPrefix, err);
-  res.status(500).json({ error: failMessage });
-}
+const { sendServiceError } = require('../problem');
 
 // GET /api/planner/weekly - 지난주/이번주/다음주 요약
 router.get('/weekly', (req, res) => {
   try {
     res.json(planner.getWeekly());
   } catch (err) {
-    handleError(err, res, {
+    sendServiceError(err, res, {
       logPrefix: '주간 플래너 조회 실패:',
       failMessage: '주간 플래너를 불러오지 못했습니다.',
     });

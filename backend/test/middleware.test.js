@@ -53,11 +53,18 @@ describe('CORS / 로깅 / 에러 미들웨어', () => {
     }
   });
 
-  it('TC-MW-05: 없는 경로는 404 + 단일 오류 봉투', async () => {
+  it('TC-MW-05: 없는 경로는 404 + RFC 9457 오류 봉투 (ADR-0017)', async () => {
     const app = createTestApp();
     const res = await request(app).get('/api/does-not-exist');
     assert.equal(res.status, 404);
-    assert.deepEqual(res.body, { error: '요청한 경로를 찾을 수 없습니다.' });
+    // request_id 는 요청마다 랜덤이라 deepEqual 대신 키별로 assert 한다.
+    assert.equal(res.body.type, 'not_found');
+    assert.equal(res.body.title, '요청한 리소스를 찾을 수 없습니다');
+    assert.equal(res.body.status, 404);
+    assert.equal(res.body.detail, '요청한 경로를 찾을 수 없습니다.');
+    assert.match(res.body.request_id, /^r-\d{8}-[0-9a-f]{8}$/);
+    assert.equal(res.headers['content-type'], 'application/problem+json; charset=utf-8');
+    assert.equal(res.headers['x-request-id'], res.body.request_id);
   });
 
   it('TC-MW-06: 깨진 JSON 본문은 400 (500 아님)', async () => {
@@ -67,7 +74,8 @@ describe('CORS / 로깅 / 에러 미들웨어', () => {
       .type('json')
       .send('{');
     assert.equal(res.status, 400);
-    assert.ok(res.body.error);
+    assert.equal(res.body.type, 'validation_error');
+    assert.ok(res.body.detail);
   });
 
   it('TC-MW-09: 너무 큰 본문은 413 + 한국어 봉투 (영어 내부 메시지 아님)', async () => {
@@ -78,8 +86,10 @@ describe('CORS / 로깅 / 에러 미들웨어', () => {
       .type('json')
       .send(big);
     assert.equal(res.status, 413);
-    assert.equal(res.body.error, '요청 본문이 너무 큽니다.');
-    assert.doesNotMatch(res.body.error, /entity|large/i);
+    assert.equal(res.body.type, 'payload_too_large');
+    assert.equal(res.body.detail, '요청 본문이 너무 큽니다.');
+    assert.doesNotMatch(res.body.detail, /entity|large/i);
+    assert.equal(res.headers['content-type'], 'application/problem+json; charset=utf-8');
   });
 
   it('TC-MW-07: errorHandler 를 직접 호출하면 500 봉투를 반환한다', () => {
@@ -88,8 +98,12 @@ describe('CORS / 로깅 / 에러 미들웨어', () => {
     const res = {
       headersSent: false,
       statusCode: 200,
+      req: {},
       status(code) {
         this.statusCode = code;
+        return this;
+      },
+      type() {
         return this;
       },
       json(body) {
@@ -104,7 +118,8 @@ describe('CORS / 로깅 / 에러 미들웨어', () => {
       errMock.mock.restore();
     }
     assert.equal(res.statusCode, 500);
-    assert.deepEqual(payload, { error: '서버 내부 오류가 발생했습니다.' });
+    assert.equal(payload.type, 'internal_error');
+    assert.equal(payload.detail, '서버 내부 오류가 발생했습니다.');
   });
 
   it('TC-MW-08: requestLogger 는 finish 시 한 줄 로그를 남긴다', () => {

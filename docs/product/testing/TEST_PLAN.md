@@ -92,7 +92,7 @@ CI(`.github/workflows/test.yml`)에 `npm test`(backend), `pytest -m "not network
 | ID | 대상 | 전제 | 입력 | 기대 결과 | 우선 |
 |---|---|---|---|---|:---:|
 | TC-TASK-01 | FR-TASK-01 | 빈 DB | `POST /api/tasks {title:"a"}` | 201, `task.id` 존재, `priority="medium"`, `status="todo"` | P0 |
-| TC-TASK-02 | FR-TASK-01 | — | `POST /api/tasks {}` | 400 `{error:"title 은 필수입니다."}`, DB 변화 없음 | P0 |
+| TC-TASK-02 | FR-TASK-01 | — | `POST /api/tasks {}` | 400, `type:'validation_error'`·`detail:"title 은 필수입니다."`, DB 변화 없음 | P0 |
 | TC-TASK-03 | FR-TASK-01 | — | `POST` `{title:"a", priority:"urgent"}` | 400 (enum 검증 도입 후) | P1 |
 | TC-TASK-04 | FR-TASK-02 | 할일 2건 | `GET /api/tasks` | 200, `tasks.length===2` | P0 |
 | TC-TASK-05 | FR-TASK-02 | 빈 DB | `GET /api/tasks` | 200 `{tasks:[]}` (404 아님) | P0 |
@@ -754,12 +754,26 @@ fake service 주입, 네트워크 0회. 재시도 테스트는 `services.retry.s
 | TC-MW-02 | NFR-SEC-06 | 비허용 오리진으로 요청 | 응답에 CORS 헤더 없음 |
 | TC-MW-03 | NFR-SEC-06 | `OPTIONS` preflight (PUT, custom content-type) | 204 + `Access-Control-Allow-Methods`/`-Headers`/`-Max-Age` |
 | TC-MW-04 | NFR-SEC-06 | `APP_ENV=packaged` + `Origin: null` (prod Electron `file://`) | 200 + `Access-Control-Allow-Origin: null` |
-| TC-MW-05 | NFR-SEC-07 | 정의되지 않은 경로 | 404 `{error:'요청한 경로를 찾을 수 없습니다.'}` (여분 키 없음) |
-| TC-MW-06 | NFR-SEC-07 | 깨진 JSON 본문 | 400 `{error:'요청 본문(JSON) 형식이 올바르지 않습니다.'}` |
-| TC-MW-07 | NFR-REL / OBS | `errorHandler` 직접 호출 (console.error mock) | 500 표준 봉투 |
+| TC-MW-05 | NFR-SEC-07 | 정의되지 않은 경로 | 404, RFC 9457 봉투(ADR-0017) `type:'not_found'`·`title`·`status:404`·`detail:'요청한 경로를 찾을 수 없습니다.'`·`request_id` 키별 assert(랜덤값이라 `deepEqual` 금지) |
+| TC-MW-06 | NFR-SEC-07 | 깨진 JSON 본문 | 400, `type:'validation_error'`·`detail` 존재 |
+| TC-MW-07 | NFR-REL / OBS | `errorHandler` 직접 호출 (console.error mock) | 500, `type:'internal_error'`·`detail:'서버 내부 오류가 발생했습니다.'` |
 | TC-MW-08 | NFR-OBS-01 | 개발 환경 요청 1건 | `requestLogger` 가 `METHOD path status ms` 1줄 출력 |
-| TC-MW-09 | NFR-SEC-06 | 200KB 본문 POST | 413 `{error:'요청 본문이 너무 큽니다.'}` (영어 메시지 미매치) |
+| TC-MW-09 | NFR-SEC-06 | 200KB 본문 POST | 413, `type:'payload_too_large'`·`detail:'요청 본문이 너무 큽니다.'` (영어 메시지 미매치), `Content-Type: application/problem+json` |
 | TC-MW-10 | NFR-SEC-06 | `APP_ENV` 미설정 + `Origin: null` | 200, `Access-Control-Allow-Origin` 헤더 없음 |
+
+### 3.5b-2 REST 오류 응답 계약 — `backend/test/errorContract.test.js` (ADR-0017)
+
+| ID | 대상 | 절차 | 기대 결과 |
+|---|---|---|---|
+| TC-ERR-01 | NFR-SEC-07, ADR-0017 | 400 검증 오류 유발 (`POST /api/tasks` `{}`) | `type:'validation_error'`, `status===400`, `title`·`detail`·`request_id` 존재 |
+| TC-ERR-02 | ADR-0017 | 404 유발 (`GET /api/tasks/99999`) | `type:'not_found'`, `status===404` |
+| TC-ERR-03 | NFR-SEC-07, ADR-0017 | `errorHandler` 에 내부 경로·SQLite 원문 섞인 Error 주입 | `detail` 에 스택·`/at \//`·`.js:숫자`·`SQLITE` 미포함, `type:'internal_error'` |
+| TC-ERR-04 | ADR-0017 | 임의 오류 요청 | `Content-Type: application/problem+json`, 응답 헤더 `X-Request-Id` === 본문 `request_id` |
+| TC-ERR-05 | ADR-0017 | `X-Request-Id` 헤더 전송(정상/부적합 값 2케이스) | 정상 형식은 그대로 에코, 부적합(공백 등)은 무시하고 `r-YYYYMMDD-<hex8>` 새로 발급 |
+| TC-ERR-06 | ADR-0017 | `GET /api/tasks?project_id=abc` | `errors[0].field === 'project_id'` |
+| TC-ERR-07 | ADR-0017 | `AGENT_PATH` 없는 경로로 `POST /api/agent/run-now` | 503, `type:'upstream_unavailable'` |
+| TC-ERR-08 | ADR-0017 | `frontend/src/api/client.js` — RFC 9457 봉투/구버전 shape/필드 누락 3케이스 | `type/title/detail/status/fieldErrors/requestId` 부착, 폴백 메시지 동작 (`frontend/test/client.test.mjs`) |
+| — | ADR-0017 | `PROBLEM_TYPES` 표 단위 테스트 | 정확히 6종, type→status 1:1 (중복 status 없음) |
 
 ### 3.5c 캘린더 API — `backend/test/calendar.test.js` (Phase C3 → D-마무리)
 
@@ -772,8 +786,8 @@ fake service 주입, 네트워크 0회. 재시도 테스트는 `services.retry.s
 | TC-CAL-02 | FR-CAL-01 AC-3 / FR-CAL-02 AC-8 | 위 응답 | `start_time` 있는 항목 오름차순, null 은 맨 뒤 | P1 |
 | TC-CAL-03 | FR-CAL-01 AC-2 | `?from=<오늘 00:00>&to=<오늘 23:59>` | 반환된 유효 `start_time` 전건이 구간 내 (자정 경계 취약 → `>= 1` 로 완화) | P1 |
 | TC-CAL-04 | FR-CAL-01 AC-2 / AC-8 | `?from=<+100일>` | 200, 유효 `start_time` 일정 0건, 시간 미정 항목만 남음 | P1 |
-| TC-CAL-05 | FR-CAL-01 AC-4 | `?from=notadate` | 400 `{error:"from 은 ISO8601 형식이어야 합니다."}` | P1 |
-| TC-CAL-06 | FR-CAL-01 AC-4 | `?to=abc` | 400 `{error:"to 는 ISO8601 형식이어야 합니다."}` | P1 |
+| TC-CAL-05 | FR-CAL-01 AC-4 | `?from=notadate` | 400, `type:'validation_error'`·`detail:"from 은 ISO8601 형식이어야 합니다."` | P1 |
+| TC-CAL-06 | FR-CAL-01 AC-4 | `?to=abc` | 400, `type:'validation_error'`·`detail:"to 는 ISO8601 형식이어야 합니다."` | P1 |
 | TC-CAL-07 | FR-CAL-01 AC-3 | `?from=<오늘>&to=<어제>` (from > to) | 200 (400 아님), 유효 `start_time` 일정 0건 | P1 |
 
 ### 3.5e 이메일 조회 API — `backend/test/mail.test.js` (D-마무리)
@@ -948,6 +962,7 @@ supervisor 는 리뷰 시 "이 변경에 대응하는 테스트가 있는가"를
 
 ## 7. 현재 상태 (2026-09-07, fix/ai-results-cleanup)
 
+- ADR-0017 채택(2026-09-16): REST 오류 응답 계약을 RFC 9457 스타일로 전환. 신규 `backend/src/problem.js`(`PROBLEM_TYPES` 6종 + `sendProblem`/`sendServiceError`) · `backend/src/middleware/requestId.js`. `backend/src/errors.js`(`ConflictError`/`UpstreamUnavailableError` 추가), `app.js`·`requestLogger.js`·`middleware/errorHandler.js`(problem+json 전환), 라우트 15개 전수(`{error}` → `sendProblem`/`sendServiceError`, 7개 중복 `handleError` 삭제). `frontend/src/api/{client,demoClient}.js` 파싱 갱신(스토어 `error` 문자열 동작 회귀 없음). 신규 `backend/test/errorContract.test.js`(TC-ERR-01~07 + PROBLEM_TYPES 고정 테스트), `frontend/test/client.test.mjs`(TC-ERR-08), 기존 47개 `{error}` assert 를 `type`/`detail` 키별 assert 로 전환(`middleware.test.js` 의 `deepEqual` 2곳은 request_id 랜덤이라 키별 assert 로 교체). `cd backend && npm test` 190/190(TC-CHK-07 은 1회 관찰됐던 간헐 실패가 supervisor 재검증 3회 재실행에서 재현되지 않음 — 이번 변경과 무관), `cd frontend && npm test` 151/151, `node scripts/check-demo-parity.mjs` 무영향, `bash verify.sh` 54/54.
 - 백엔드 자동화 테스트: **70케이스 작성됨** — `backend/test/tasks.test.js` (TC-TASK-01,02,04~10 + TC-PROJ-08/09/09b/09c/09d + TC-DB-04a), `backend/test/projects.test.js` (TC-PROJ-01~07,10,11 + TC-DB-04b), `backend/test/services.test.js` (TC-MAINT-01~05), `backend/test/lifecycle.test.js` (TC-REL-01~06), `backend/test/calendar.test.js` (TC-CAL-01~07), `backend/test/db.test.js` (TC-DB-01~03 + TC-DB-04c/d), `backend/test/middleware.test.js` (TC-MW-01~09), `backend/test/diagrams.test.js` (TC-DIAG-01~05), `backend/test/supabase.test.js` (TC-SYNC-01~05), `backend/test/sync.test.js` (TC-SYNC-08~10). `supertest` + `node --test`, `:memory:` DB. (TC-DB-04b 는 project status 검증이라 `projects.test.js` 에 위치.)
 - Phase P4(2026-09-07, feature/p4-common-components): 공통 프레젠테이션 컴포넌트 — `frontend/src/components/{dotFill.js,DotProgress.jsx,StatTile.jsx,Chip.jsx}`(신규), `frontend/test/dotFill.test.mjs`(신규, TC-P4-01~05), `frontend/src/styles.css`(`--card-radius` 10→16, `--shadow-card` 추가), `WidgetFrame.jsx`(그림자 1겹), `ProjectCard.jsx`(진행바 → `DotProgress`). `cd frontend && node --test test/` 26/0, `npm run build`·`npm run build:demo` 성공, `verify.sh --code-only` 27/0/0. 컴포넌트 육안 확인(TC-P4-M1~4)은 로컬 수행 대기(샌드박스 GUI 불가).
 - fix/ai-results-cleanup(2026-09-07): C1 `backend/src/lifecycle.js`(신규 — `logFatal`/`createShutdown`/`registerProcessHandlers`, `uncaughtException`→로그 후 안전 종료 exit 1, SIGTERM/SIGINT→graceful shutdown exit 0, `unhandledRejection`→로그만), `backend/src/server.js`(배선), `backend/db/index.js`(`checkpointAndClose` 추가), `backend/test/lifecycle.test.js`·`test/helpers/crashFixture.js`(신규, TC-REL-01~06). C2 `backend/src/services/{tasks,projects}.js`(신규 — 서비스 계층), `backend/src/errors.js`(`ValidationError`/`NotFoundError` + `isNotFoundError`, 기존 정규식 판정 유지), `backend/src/routes/{tasks,projects}.js`(얇게 — `require('../db')` 제거), `backend/test/services.test.js`·`test/helpers/testApp.js`(`loadService`). 기존 회귀 테스트 무수정 통과. NFR-REL-03 문구 개정, NFR-MAINT-02 ✅.

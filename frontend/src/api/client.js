@@ -61,12 +61,19 @@ async function request(method, path, body) {
   }
 
   if (!res.ok) {
-    // 백엔드가 한국어 error 필드를 주면 그대로 사용
-    if (data && typeof data.error === 'string') {
-      const e = new Error(data.error);
+    // 백엔드가 RFC 9457 스타일(type/title/detail/...)을 주면 그대로 파싱한다 (ADR-0017).
+    if (data && typeof data.type === 'string') {
+      const message = data.detail || data.title || '요청을 처리하지 못했습니다.';
+      const e = new Error(message);
       e.status = res.status;
+      e.type = data.type;
+      e.title = data.title;
+      e.detail = data.detail;
+      e.fieldErrors = data.errors;
+      e.requestId = data.request_id;
       throw e;
     }
+    // shape 를 알 수 없으면(구버전 응답 등) 기존 폴백을 유지한다 (방어).
     const e = new Error('요청을 처리하지 못했습니다.');
     e.status = res.status;
     throw e;

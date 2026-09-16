@@ -84,7 +84,8 @@ describe('지식 축적 추세 API', () => {
       // eslint-disable-next-line no-await-in-loop
       const res = await request(app).get(`/api/knowledge-trend?weeks=${bad}`);
       assert.equal(res.status, 400);
-      assert.equal(res.body.error, 'weeks 는 1~26 사이 정수여야 합니다.');
+      assert.equal(res.body.detail, 'weeks 는 1~26 사이 정수여야 합니다.');
+      assert.equal(res.body.type, 'validation_error');
     }
   });
 
