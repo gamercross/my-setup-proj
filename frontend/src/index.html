@@ -2,7 +2,8 @@
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://localhost:3000" />
+    <!-- connect-src: ADR-0016 결정 4항 — 백엔드 포트 폴백(3000~3010) 대응, localhost/127.0.0.1 둘 다 허용 -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://localhost:3000 http://localhost:3001 http://localhost:3002 http://localhost:3003 http://localhost:3004 http://localhost:3005 http://localhost:3006 http://localhost:3007 http://localhost:3008 http://localhost:3009 http://localhost:3010 http://127.0.0.1:3000 http://127.0.0.1:3001 http://127.0.0.1:3002 http://127.0.0.1:3003 http://127.0.0.1:3004 http://127.0.0.1:3005 http://127.0.0.1:3006 http://127.0.0.1:3007 http://127.0.0.1:3008 http://127.0.0.1:3009 http://127.0.0.1:3010" />
     <title>AI Computer OS</title>
     <style>
       /* 로딩 깜빡임 방지용 최소 규칙만. 토큰·나머지는 styles.css (renderer.jsx 에서 import). */

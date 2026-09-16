@@ -6,10 +6,16 @@ import react from '@vitejs/plugin-react';
 // 인라인 preamble(<script>)을 주입하므로 dev 에서는 script-src 'unsafe-inline' 이 필요하다.
 // prod 빌드본에는 인라인 스크립트가 없으므로 index.html 원본의 엄격한 CSP 를 유지한다.
 function devCspPlugin() {
+  // connect-src: ADR-0016 결정 4항 — 백엔드 포트 폴백(3000~3010) 대응
+  const BACKEND_PORTS = Array.from({ length: 11 }, (_, i) => 3000 + i);
+  const BACKEND_CONNECT_SRC = BACKEND_PORTS.flatMap((p) => [
+    `http://localhost:${p}`,
+    `http://127.0.0.1:${p}`,
+  ]).join(' ');
   const DEV_CSP =
     "default-src 'self'; script-src 'self' 'unsafe-inline' http://localhost:5173; " +
     "style-src 'self' 'unsafe-inline'; " +
-    "connect-src 'self' http://localhost:3000 http://localhost:5173 ws://localhost:5173";
+    `connect-src 'self' ${BACKEND_CONNECT_SRC} http://localhost:5173 ws://localhost:5173`;
   return {
     name: 'dev-csp',
     apply: 'serve',
