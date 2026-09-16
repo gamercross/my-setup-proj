@@ -32,6 +32,7 @@ bash verify.sh    # 환경·문법·문서 정합 점검 (현재 13/0/0)
 
 - `setup.sh` 는 `node` / `npm` / `python3` 가 PATH 에 있어야 동작한다 (없으면 아래 OS별 절차로 먼저 설치).
 - `.env` 는 `.env.example` 을 복사해 만든다. **값 채우기는 각 기능 착수 시점** — 지금은 비어 있어도 로컬 개발이 된다 ([ENV_REFERENCE.md](ENV_REFERENCE.md)).
+- `setup.sh` 는 git 저장소일 때 `git config core.hooksPath .githooks` 도 설정한다 — 커밋 시 pre-commit 시크릿 스캔(`scripts/check-secrets.sh`)이 자동 활성화된다 (NFR-SEC-01).
 - 앱 실행법·포트 규칙은 [§5](#5-앱-실행).
 
 ---

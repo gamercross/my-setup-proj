@@ -30,3 +30,6 @@ refresh token 을 포함한 credentials JSON 을 **Fernet(대칭키)로 암호�
   실수 커밋·백업 유출 방어이며, 이 한계를 문서에 명시한다.
 - `TOKEN_ENCRYPTION_KEY` 를 잃으면 재로그인이 필요하다(복호화 불가 시 `GoogleNotAuthorized`).
 - Electron 패키징 시 `safeStorage`(OS 보호 저장소)로 이관을 재검토한다.
+- 키 회전·유출 대응 절차는 2026-09-16 [ENV_REFERENCE.md](../../../setup/ENV_REFERENCE.md)
+  `TOKEN_ENCRYPTION_KEY` 절에 런북으로 추가(REVERSE_PLAN §4-5 구 S4 해소). 정기 주기는 없음
+  (1인 프로젝트) — 유출 트리거 발생 시 회전 + Google 계정 권한 취소까지 안내.

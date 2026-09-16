@@ -62,6 +62,40 @@
    ```
 2. 출력값을 `.env` 의 `TOKEN_ENCRYPTION_KEY=` 에 붙여넣는다. **키를 잃으면 재로그인 필요.**
 
+#### 키 회전 · 유출 대응 런북 (REVERSE_PLAN §4-5 S4, 2026-09-16)
+
+ADR-0024가 "1인 데스크톱 앱, 실수 커밋·백업 유출 방어가 목적"이라고 명시한 대로, 이 절차는
+**로컬 기기 자체가 침해된 경우까지는 방어하지 않는다** — 그 경우는 재로그인만으로 부족하고
+Google 계정 자체의 보안 점검(§"유출이 의심될 때" 참고)이 필요하다.
+
+**정기 회전 (권장 주기: 없음 — 1인 프로젝트라 강제 주기를 두지 않는다. 아래 트리거 중 하나가
+발생하면 그때 회전한다):**
+1. 새 키 생성 (위 1번 명령과 동일).
+2. `.env`의 `TOKEN_ENCRYPTION_KEY`를 새 값으로 교체.
+3. 기존 암호문은 옛 키로만 복호화되므로 **재사용 불가** — `python auth/google_oauth.py logout`
+   으로 `agent/.secrets/google_token.enc`를 지우고, `login`으로 다시 로그인해 새 키로 재암호화된
+   토큰 파일을 만든다(§"Google 최초 로그인" 1~4단계와 동일 흐름).
+4. 옛 키 값은 어디에도 남기지 않는다(쉘 히스토리 등 확인).
+
+**언제 회전하나 (트리거):**
+- `TOKEN_ENCRYPTION_KEY`가 실수로 커밋되거나 로그·스크린샷 등으로 노출된 경우 — **즉시**.
+- 개발 머신을 교체하거나 공유하게 된 경우.
+- `.env` 파일 자체가 유출됐다고 의심되는 경우.
+
+**유출이 의심될 때 (키만이 아니라 refresh token 자체가 샜을 가능성):**
+1. 위 회전 절차로 로컬 키·토큰 파일을 즉시 교체한다.
+2. [Google 계정 → 보안 → 타사 앱 및 서비스](https://myaccount.google.com/permissions)에서 이
+   앱(OAuth 클라이언트)의 접근 권한을 **취소**한다 — 서버 측에서 기존 refresh token을 즉시
+   무효화하는 유일한 방법이다(로컬에서 키를 바꾸는 것만으로는 이미 유출된 refresh token 자체를
+   막지 못한다).
+3. 권한 취소 후 다시 로그인(`python auth/google_oauth.py login`)해 새 동의를 받는다.
+4. 읽기 전용 스코프(`gmail.readonly`, `calendar.readonly`)만 요청하므로 유출 시 노출 범위는
+   "메일·일정 열람"으로 제한된다 — 쓰기·삭제 권한은 애초에 요청하지 않는다(§"Google Cloud를
+   서버 비용 없이 쓰는 법" 6번 참고).
+5. 시크릿이 실제로 git에 커밋된 경우는 `scripts/check-secrets.sh`(pre-commit 훅, REVERSE_PLAN
+   §4-5 S5)가 막지만, 이미 히스토리에 들어간 경우엔 커밋 제거만으로 부족하다 — 위 1~4단계가
+   진짜 방어선이다.
+
 ### Google 최초 로그인 (D2-b)
 1. `TOKEN_ENCRYPTION_KEY`·`GOOGLE_CLIENT_ID`·`GOOGLE_CLIENT_SECRET` 를 `.env` 에 채운다.
 2. `cd agent && source venv/bin/activate && python auth/google_oauth.py login`

@@ -51,6 +51,24 @@ CREATE TABLE IF NOT EXISTS task_tags (
 );
 CREATE INDEX IF NOT EXISTS idx_task_tags_tag ON task_tags(tag);
 
+-- 사용자 태그 비침범 불변식 (ADR-0029 PO-3, FR-TASK-08 AC-4) — REVERSE_PLAN §4-5 S3.
+-- 이미 source='user' 태그가 붙은 할일에는 source='agent' INSERT 를 조용히 무시한다.
+-- RAISE(IGNORE) 인 이유: 에이전트 배치(agent/db.py:add_agent_tags)가 무효 INSERT 한 건 때문에
+--   예외로 죽지 않게 한다. 단일 행 INSERT 만 쓰는 현재 전제 — INSERT..SELECT 로 바꾸면
+--   첫 위반에서 나머지 행도 포기되므로 주의.
+-- 애플리케이션 가드(add_agent_tags 태그 0개 조건 · classify.py 환각 id 방어 ·
+--   get_untagged_tasks 의 NOT EXISTS)를 대체하지 않고 이중화한다.
+CREATE TRIGGER IF NOT EXISTS trg_task_tags_agent_no_override
+BEFORE INSERT ON task_tags
+FOR EACH ROW
+WHEN NEW.source = 'agent'
+ AND EXISTS (
+   SELECT 1 FROM task_tags t WHERE t.task_id = NEW.task_id AND t.source = 'user'
+ )
+BEGIN
+  SELECT RAISE(IGNORE);
+END;
+
 -- ── 캘린더 일정 (Google Calendar 캐시) ──────────────────
 CREATE TABLE IF NOT EXISTS calendar_events (
   id         INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -221,8 +221,9 @@ ADR 표에서는 한 줄이지만, 실제로 가장 오래 붙잡은 갈림길�
   전략(`PRAGMA user_version` 인라인 러너)을 처음으로 실제로 쓴 사례가 됐다.
 - **트레이드오프.** 태그별 통계·자동완성은 아직 없다(후속). `source` 값은 스키마 CHECK 로
   강제되지만, "사용자 태그가 붙은 할 일은 에이전트가 안 건드린다" 는 행 단위 불변식을
-  지키는 책임은 `agent/db.py:add_agent_tags` + `classify.py` 에 있다 — 트리거가 아니라
-  코드 가드라는 점은 §4-5 S3 로 이어진다.
+  지키는 책임은 `agent/db.py:add_agent_tags` + `classify.py` 였다 — 2026-09-16 부터
+  `task_tags` 의 `trg_task_tags_agent_no_override` 트리거(`RAISE(IGNORE)`)가 4번째 겹으로
+  이중화한다(구 §4-5 S3, 해소).
 
 결정: [ADR-0029](product/architecture/adr/ADR-0029-task-auto-category.md) 채택 (2026-09-08, P6). 요구사항 FR-TASK-08.
 
@@ -438,30 +439,11 @@ flowchart TB
 
 #### 보안 · 안전성
 
-**S3 — 에이전트의 사용자 태그 비침범이 트리거가 아닌 코드로만 지켜진다.**
-- *원인:* PO-3([0029](product/architecture/adr/ADR-0029-task-auto-category.md), §2-3 서사)에서 "에이전트는 `source='user'` 행을 안 건드린다" 를
-  정했다. `source` 값 자체는 스키마 CHECK(`source IN ('user','agent')`, `schema.sql`)로 강제되지만,
-  "이미 사용자 태그가 붙은 할 일에는 에이전트가 손대지 않는다" 는 **행 단위 불변식**은
-  최소 마이그레이션 전략([0018](product/architecture/adr/ADR-0018-schema-migration-strategy.md))이 트리거를 피하는 방향이라 애플리케이션 층에 남았다.
-- *영향:* `agent/db.py:add_agent_tags`(태그 0개인 할 일만 대상) + `classify.py`(환각 id 방어) +
-  `get_untagged_tasks`(`NOT EXISTS` 필터)의 3중 가드가 뚫리거나 새 쓰기 경로가 생기면,
-  자동화가 사용자 태그를 조용히 훼손하는 §2-3 이 우려하던 상황이 다시 열린다.
-- *설계 보완:* "이미 `source='user'` 태그가 있으면 `source='agent'` INSERT 를 무시" 트리거를
-  마이그레이션으로 추가. 침범 시도 회귀 테스트를 `agent` 스위트에 고정.
-
-**S4 — OAuth 토큰 암호화 키에 회전 절차가 없다.**
-- *원인:* 비용 0 목표(C-4) 아래 토큰을 Fernet 대칭키 1개로 암호화한 파일에 뒀다([0024](product/architecture/adr/ADR-0024-oauth-token-storage.md)).
-  키 회전·유출 대응은 학습·발표 산출물 범위(C-5)에서 빠졌다.
-- *영향:* `TOKEN_ENCRYPTION_KEY` 하나가 유출되면 Gmail·Calendar 읽기 토큰 전부가 풀린다.
-- *설계 보완:* 키 회전 런북, 유출 시 재인증 경로 문서화. (토큰 파일 권한 `0600` 은 이미
-  `google_oauth.py` 에서 `chmod` 로 설정 중 — 회전만 남았다.)
-
-**S5 — 시크릿 커밋 방지가 `.gitignore` 한 겹뿐이다.**
-- *원인:* 공개 저장소라 시크릿·개인정보 커밋 금지(C-6)인데, 실제 방어는 `.gitignore` 와
-  브랜치 가드 훅(`hook-code-branch-guard.sh`)뿐이다. 훅은 `main` 편집을 막는 용도지
-  시크릿 스캐너가 아니다.
-- *영향:* `.env` 는 무시되지만(확인됨), 패턴에서 벗어난 새 시크릿 파일은 그대로 커밋될 수 있다.
-- *설계 보완:* pre-commit 시크릿 스캔(gitleaks 등) 훅 추가.
+S1~S5 전부 해소됨(2026-09-15~16) — 이 절에는 이제 남은 보안 항목이 없다. 이력은
+§6-2·`docs/progress/PROGRESS.md`·[ADR-0004](product/architecture/adr/ADR-0004-front-back-http-rest.md)·
+[ADR-0018](product/architecture/adr/ADR-0018-schema-migration-strategy.md)·
+[ADR-0024](product/architecture/adr/ADR-0024-oauth-token-storage.md)·
+[ADR-0029](product/architecture/adr/ADR-0029-task-auto-category.md) 각주를 참고.
 
 #### 기술 부채 · 품질
 
@@ -479,7 +461,7 @@ flowchart TB
 **D3 — 레이어·경계 규칙에 자동 검사가 없다.**
 - *원인:* 1인 개발(C-1)이라 "렌더러는 REST 로만", "에이전트는 외부 API 읽기 전용",
   "쓰기 주체 분리" 를 코드 리뷰로 갈음해 왔다.
-- *영향:* 위 경계 중 하나가 리팩터링에서 깨져도 테스트가 통과할 수 있다 (S3 이 그 구체 사례).
+- *영향:* 위 경계 중 하나가 리팩터링에서 깨져도 테스트가 통과할 수 있다 (구 S3 이 그 사례였다).
 - *설계 보완:* 피트니스 함수([0019](product/architecture/adr/ADR-0019-architecture-fitness-functions.md), 제안 상태) 채택 — import 방향·금지 의존성을 CI 검사로.
 
 **D4 — 수동 검증 백로그(TC-P3~P9-M)가 실행되지 않았다.**
@@ -497,25 +479,20 @@ flowchart TB
 |---|---|---|---|
 | R-1 | 1인 개발 + 시험 기간 겹침으로 Phase D 이후 시간 부족 | 🔴 높음 | P0 우선 완성, 일정이 빠듯한 구간을 앞당겨 배치, 큰 항목은 착수 전에 자름 |
 | R-5 | Google OAuth 앱 검토·승인 지연(Gmail/Calendar 스코프) | 🔴 높음 | "테스트 사용자" 모드로 본인 계정만 사용해 검토 절차를 우회 |
-| R-13 | 시크릿·토큰이 공개 저장소에 커밋됨 | 🟠 중간 | `.gitignore` + 커밋 전 diff 육안 확인. §4-5 S5 의 pre-commit 스캔 부재가 이 리스크의 남은 구멍이다 |
+| R-13 | 시크릿·토큰이 공개 저장소에 커밋됨 | 🟠 중간 | `.gitignore`(보강) + pre-commit 시크릿 스캔(`scripts/check-secrets.sh`, `.githooks/pre-commit`) + `verify.sh` 게이트 — 2026-09-16 §4-5 S5 해소 |
 
 `better-sqlite3` 네이티브 빌드 실패(R-4, 3-OS CI 매트릭스로 완화), Claude API 스펙 변경(R-8,
 모델 상수 1곳 관리로 완화) 등 기술 리스크도 등급별로 관리한다. 전체 목록은 `RISKS.md`.
 
 ### 4-7. 문제 한눈에 보기 — 원인부터 도식화 (2026-09-15)
 
-§4-5의 7개 항목을 텍스트로 훑으면 개별 사실처럼 보이지만, 실제로는 대부분 같은
-두 원인에서 갈라져 나온다. (S1·S2 는 2026-09-15 해소되어 아래 도식에서 빠졌다.)
+§4-5의 남은 4개 항목(전부 기술 부채)은 개별 사실처럼 보이지만, 실제로는 같은 한 원인에서
+갈라져 나온다. **보안 항목(S1~S5)은 2026-09-15~16 사이에 전부 해소되어 이 도식에서 빠졌다.**
 
 ```mermaid
 flowchart TB
   ROOT["공통 원인<br/>로컬 단일 사용자 · 1인 개발 · 마감(C-1·C-2)"]
-  ROOT --> SEC["보안 · 안전성"]
   ROOT --> QUAL["기술 부채 · 품질"]
-
-  SEC --> S3["S3 태그 비침범 = 코드 가드뿐<br/>(PO-3 서사, §2-3)"]
-  SEC --> S4["S4 OAuth 키 회전 절차 없음"]
-  SEC --> S5["S5 시크릿 스캔이 .gitignore 한 겹"]
 
   QUAL --> D1["D1 데모↔실서버 스키마 드리프트 미검사"]
   QUAL --> D2["D2 REST 오류 단일 봉투"]
@@ -525,9 +502,9 @@ flowchart TB
   QUAL -.해소 전제.-> FIX2["1인 개발 속도 제약이 풀리는 시점<br/>(팀 합류 또는 마감 이후)"]
 ```
 
-즉 7개 약점은 무작위 버그 목록이 아니라, **"지금은 안 해도 되는 것으로 미룬 것"**
-이라는 하나의 판단이 여러 갈래로 나타난 결과다 — 다중 사용자 전환이나 마감 이후
-시점이 오면 남은 보안 항목부터 되짚어야 한다.
+즉 남은 4개 약점은 무작위 버그 목록이 아니라, **"지금은 안 해도 되는 것으로 미룬 것"**
+이라는 하나의 판단이 여러 갈래로 나타난 결과다 — 팀 합류나 마감 이후 시점이 오면
+D3(피트니스 함수)부터 되짚는 것이 합리적이다(나머지가 그 경계 규칙에 기대고 있으므로).
 
 ---
 
@@ -653,8 +630,10 @@ Phase A (환경·자동화 인프라)
 - **데모↔실서버 패리티** — 경로 집합 비교는 `scripts/check-demo-parity.mjs` 로 자동화됨(커밋 `0a1435c`).
   남은 것: 응답 스키마·상태코드 드리프트 검사(§4-5 D1)
 - **로컬 수동 검증 백로그** — TC-P3~P9-M 을 실제 Electron 앱에서 확인해 `PROGRESS.md`·`TEST_PLAN.md` 반영(§4-5 D4)
-- **보안 보완** — §4-5 S3~S5: 태그 불변식 DB 제약·토큰 키 회전 런북·pre-commit 시크릿 스캔.
-  루프백 바인딩·CORS `Origin: null` 환경 분기(구 S1·S2)는 2026-09-15 해소됨(NFR-SEC-06·NFR-SEC-08)
+- **보안 보완** — **S1~S5 전부 해소, 남은 항목 없음.** 루프백 바인딩·CORS `Origin: null`
+  환경 분기(구 S1·S2)는 2026-09-15(NFR-SEC-06·NFR-SEC-08), 태그 불변식 DB 트리거(구 S3)·
+  pre-commit 시크릿 스캔(구 S5)·OAuth 키 회전 런북(구 S4, [ENV_REFERENCE.md](setup/ENV_REFERENCE.md)
+  `TOKEN_ENCRYPTION_KEY` 절)은 2026-09-16 해소
 - **미결 결정** — §2-4 참조 (제안 ADR 0015·0016 2~4항·0017·0019·0033 + PO-10)
 - **다음 세션 기능 후보(§5-3 정합성 감사)** — 없음. 마지막 공백이던 레퍼런스 자료 요약 절차
   추적(RAW_STORIES #7)은 P12 에서 닫혔다(ADR-0037). (지식 축적 추세·역량 지도는 P11 에서
@@ -739,4 +718,5 @@ Phase A (환경·자동화 인프라)
 §4-6 위험 관리, §6-3 평가 기준·향후 활용·개인정보 처리, 외부 문헌 추가) ·
 2026-09-15 (§1-2 고객과 니즈, §2-5 니즈→기능 매핑, §4-7 문제 도식화, §6-4 성과 수치·
 프로젝트를 마치면 얻는 것 추가 — 공유 아티팩트(역 계획서·대시보드 OS) 양방향 링크 보강) ·
-2026-09-15 (§4-5 S1·S2 해소로 제거 — 백엔드 루프백 바인딩·CORS `Origin: null` 환경 분기, §4-7·§6-2 연동 갱신)
+2026-09-15 (§4-5 S1·S2 해소로 제거 — 백엔드 루프백 바인딩·CORS `Origin: null` 환경 분기, §4-7·§6-2 연동 갱신) ·
+2026-09-16 (§4-5 S3·S5 해소로 제거 — `task_tags` 사용자 태그 비침범 DB 트리거 + pre-commit 시크릿 스캔, §2-3·§4-6·§4-7·§6-2 연동 갱신)
